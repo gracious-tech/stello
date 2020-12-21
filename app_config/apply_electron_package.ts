@@ -34,6 +34,7 @@ export function generate_electron_package(app_config:AppConfigOutput):string{
             artifactName: app_config.codename + '.${ext}',
             appx: {
                 backgroundColor: app_config.theme.primary,
+                publisherDisplayName: "Gracious Tech Pty Ltd",
             },
             mac: {
                 darkModeSupport: true,
