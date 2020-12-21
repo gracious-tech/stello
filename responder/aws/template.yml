@@ -1,0 +1,19 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Resources:
+    Function:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: function/
+            # Properties needed for dev (actually set when setting up all services)
+            Handler: responder.entry
+            Runtime: python3.8
+            Environment:
+                Variables:
+                    stello_env: dev
+                    stello_msgs_bucket: ''
+                    stello_resp_bucket: ''
+                    stello_topic_arn: ''
+                    stello_region: ''

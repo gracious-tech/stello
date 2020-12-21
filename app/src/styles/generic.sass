@@ -1,0 +1,301 @@
+
+// Changes to browser defaults
+
+
+html
+    // Disable auto enlarging of text when in landscape (e.g. on iPhone 4)
+    // NOTE this also disables zoom on some devices (disabled via meta anyway)
+    text-size-adjust: none
+    // Prevent width increases that break layout due to long words like URLs
+    word-wrap: break-word
+    overflow-wrap: break-word
+
+
+iframe, img
+    // Prevent these elements from having implicit bottom padding due to being 'inline'
+    display: block
+
+
+iframe
+    border-style: none
+
+
+strong, th
+    // Bold is too strong, especially for other languages
+    font-weight: 500
+
+
+hr
+    border-width: 0 0 1px 0
+    margin: 16px 0
+
+
+::-moz-focus-inner
+    // Remove dotted outline around focused buttons etc (Firefox only)
+    border-style: none
+
+
+body
+    // Make scrollbars more subtle and themed
+    // WARN Colors chosen to work well on both dark/light bgs (not necessarily exact middle)
+    scrollbar-width: 12px
+    scrollbar-color: #5554 transparent  // WARN ::-webkit-scrollbar-thumb must also be changed
+
+    ::-webkit-scrollbar
+        width: 12px
+        background-color: transparent
+
+    ::-webkit-scrollbar-thumb
+        background-color: #5554
+
+    hr
+        border-color: #5554
+
+
+// Vuetify fixes
+
+
+html
+    // Undo Vuetify forcing scroll on whole page
+    overflow-y: hidden
+
+
+.v-application--wrap
+    // Undo Vuetify's `min-height: 100vh` which causes issues with browser chrome on mobile
+    min-height: auto
+
+
+.v-btn--icon.v-size--default
+    // Make default icon button size 48px (same as size when within a toolbar)
+    width: 48px
+    height: 48px
+
+
+.v-btn.v-btn--fab  // Double for specificity
+    // Fix color of text and icons for fabs
+    &.primary
+        color: $on_primary
+    &.accent
+        color: $on_accent
+    &.error
+        color: $on_error
+    svg
+        fill: currentColor
+
+
+.v-text-field__prefix, .v-text-field__suffix
+    // Make field prefixes/suffixs default to secondary color (not primary)
+    @include themed_color('secondary')
+    font-size: 14px
+
+
+.v-toolbar
+    // Stop toolbar growing vertically
+    flex-grow: 0
+    // Give toolbars a max content width
+    .v-toolbar__content, .v-toolbar__extension
+        max-width: $header-width
+        margin-left: auto
+        margin-right: auto
+    // Also apply to tabs
+    .v-toolbar__extension
+        justify-content: center
+        .v-tabs
+            max-width: $header-width
+
+
+.v-dialog
+
+    max-width: $content-width
+
+    .v-card__actions
+        justify-content: flex-end
+        flex-wrap: wrap
+        .v-btn
+            margin-top: 8px
+
+
+.v-tabs-items
+    // Assuming tabs are used as subnav for whole page, should not have own background
+    background-color: transparent !important
+
+
+.v-application--wrap .v-list
+    // Default to transparent bg for lists (as usually the main item on page)
+    // NOTE .v-application--wrap is just for priority
+    background-color: transparent
+
+
+.v-slider
+    // Sliders can be interacted with so show pointer
+    cursor: pointer
+
+
+.v-application
+
+    // Links have accent color so don't need underline
+    a:not(.v-btn)
+        text-decoration: none
+
+    // If on solid color, just show underline/strong and don't change color
+    .primary, .accent, .error
+        a:not(.v-btn)
+            color: inherit !important  // Override needed
+            text-decoration: underline
+            font-weight: 500
+
+    // Lighten links on dark bg (and vice versa)
+    // NOTE Only do this for text (e.g. links) as it is hard to read when not light/dark enough
+    //      i.e. don't need for things like switches and underlines (just leave normal accent)
+    &.theme--dark
+        a:not(.v-btn)  // Links amongst text
+            color: $accent_lighter
+        .primary--text:not([disabled])  // Vuetify text buttons etc
+            color: $primary_lighter !important  // Required to override Vuetify :/
+        .accent--text:not([disabled])
+            color: $accent_lighter !important
+        .error--text:not([disabled])
+            color: $error_lighter !important
+    &.theme--light
+        a:not(.v-btn)
+            color: $accent_darker
+        .primary--text:not([disabled])
+            color: $primary_darker !important
+        .accent--text:not([disabled])
+            color: $accent_darker !important
+        .error--text:not([disabled])
+            color: $error_darker !important
+
+    // Make tooltips inverse theme
+    // NOTE Whole tooltip already has an opacity of 0.9
+    &.theme--light .v-tooltip__content
+        color: white
+        background-color: black
+    &.theme--dark .v-tooltip__content
+        color: black
+        background-color: white
+
+
+// Other overrides of third-party code
+
+
+.medium-editor-toolbar
+    border-radius: 4px
+    background-color: $accent
+
+    li button
+        min-width: 45px
+        height: 45px
+        padding: 0
+        color: $on_accent
+        border-right-color: rgba($on_accent, 0.25)
+
+        &:hover
+            background-color: $accent_lighter
+            color: $on_accent_lighter
+
+        &.medium-editor-button-active
+            background-color: $accent_darker
+            color: $on_accent_darker
+
+    &:after  // Arrow underneath toolbar
+        top: 45px
+        border-top-color: $accent
+
+    .medium-editor-toolbar-form  // URL editor
+
+        .medium-editor-toolbar-input
+            background-color: $accent
+            color: $on_accent
+            height: 45px
+
+            &::placeholder
+                color: rgba($on_accent, 0.5)
+
+        a
+            color: $on_accent
+
+
+.medium-editor-placeholder:after  // Placeholder text over editable element when empty
+    @include themed(color, rgba(#000, 0.25), rgba(#fff, 0.25))
+    cursor: text  // Stop placeholder from changing text cursor to normal arrow on hover
+
+.stello-container:not(.dark) .medium-editor-placeholder:after
+    // Fix dark-on-light when within stello-container which has own dark setting
+    color: rgba(#000, 0.25)
+
+
+// Custom
+
+
+.invisible
+    visibility: hidden
+
+.app-bg-accent, .app-bg-accent-darker, .app-bg-error, .app-bg-error-darker
+    a
+        text-decoration: underline !important
+        color: inherit !important
+
+.app-bg-accent
+    color: $on_accent !important
+    background-color: $accent !important
+
+.app-bg-accent-darker
+    color: $on_accent_darker !important
+    background-color: $accent_darker !important
+
+.app-bg-error
+    color: $on_error !important
+    background-color: $error !important
+
+.app-bg-error-darker
+    color: $on_error_darker !important
+    background-color: $error_darker !important
+
+.theme--dark
+    .app-fg-primary-relative
+        color: $primary_lighter
+    .app-fg-accent-relative
+        color: $accent_lighter
+    .app-fg-error-relative
+        color: $error_lighter
+    .opacity-primary
+        opacity: map-get($material-dark, 'primary-text-percent')
+    .opacity-secondary
+        opacity: map-get($material-dark, 'secondary-text-percent')
+    .opacity-disabled
+        opacity: map-get($material-dark, 'disabledORhints-text-percent')
+.theme--light
+    .app-fg-primary-relative
+        color: $primary_darker
+    .app-fg-accent-relative
+        color: $accent_darker
+    .app-fg-error-relative
+        color: $error_darker
+    .opacity-primary
+        opacity: map-get($material-light, 'primary-text-percent')
+    .opacity-secondary
+        opacity: map-get($material-light, 'secondary-text-percent')
+    .opacity-disabled
+        opacity: map-get($material-light, 'disabledORhints-text-percent')
+
+
+.release-banner
+    // Appear fixed in top left
+    position: absolute
+    pointer-events: none
+    left: 0
+    top: 0
+    z-index: 10
+    // Size and rotation
+    width: 100px
+    transform: rotateZ(-45deg) translate(-30px, -14px)
+    font-size: 11px
+    padding-top: 2px
+    text-align: center
+    // Style
+    color: $on_error_darker
+    background-color: $error_darker
+    font-weight: bold
+    text-transform: uppercase
+    letter-spacing: 1px

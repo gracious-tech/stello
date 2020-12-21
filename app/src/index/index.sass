@@ -1,0 +1,66 @@
+
+// BASIC STYLING
+
+
+// All elements down to app layout element (.docked) must have height set to prevent
+//      growing off screen and resulting in scrollable area not thinking it needs to scroll
+html, body, #app, .v-application--wrap, .docked
+    height: 100%
+
+html
+    // TODO Could manually access idb before app loads to get colors here??
+    background-color: #303030  // Don't have access to dark setting on initial load
+    font-family: Roboto, sans-serif
+    // Enable momentum scroll for iOS
+    // WARN If this isn't set and inobounce is included, whole app will not be scrollable
+    -webkit-overflow-scrolling: touch
+
+#app
+    display: flex
+    justify-content: center
+    align-items: center
+
+
+// FAILURE
+
+
+.fail-splash
+    // Display full screen
+    position: absolute
+    top: 0
+    bottom: 0
+    left: 0
+    right: 0
+    // Cover all
+    z-index: 1000
+    // Scroll if needed (for long error messages)
+    overflow: auto
+    // Style
+    padding: 20px
+    padding-top: 100px
+    background-color: #303030
+    color: #fff
+
+    h1, h2
+        text-align: center
+        margin-bottom: 20px
+
+    &.error
+        pre
+            white-space: pre-wrap
+            margin-top: 100px  // Don't distract users from recovery button
+
+        .btn-wrap
+            text-align: center
+            padding: 20px
+
+            button
+                background-color: #00e676
+                color: #000c
+                font-weight: 500
+                border-style: none
+                border-radius: 6px
+                padding: 10px
+                cursor: pointer
+                // box-shadow copied from Vuetify to make button look pressable
+                box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12)

@@ -1,0 +1,33 @@
+doctype html
+html
+
+    head
+        meta(charset='utf-8')
+        meta(name='viewport' content='user-scalable=no, width=device-width, initial-scale=1')
+        title Message Viewer
+        //- Icon link href dynamically set so can inline image in JS
+        link(rel='icon')
+        //- Add a light blue theme color, just to stand out from other tabs (not configurable)
+        meta(name='theme-color' content='#b3e5fc')
+        style= env.CSS
+
+    body
+        div#app
+            //- Simplified low-CPU-cost Material progress circle (proportions same)
+            svg.loading(viewBox='0 0 100 100' preserveAspectRatio='xMidYMid meet')
+                //- Place in middle with radius 40 (stroke length of 250 surrounds whole circle)
+                circle(cx='50' cy='50' r='40' stroke-width='10' stroke-dasharray='190')
+
+        //- WARN All scripts (even inline) must come last so that DOM ready for immediate errors
+        //- Display of unsupported message (if error and not supported)
+        //- This code is intentionally inline as must be simple and support ES4/5 etc
+        //- WARN Should ONLY display if an error, in case feature detection is incorrect
+        script.
+            self._browser_supported = !! (crypto && crypto.subtle)
+            self.addEventListener('error', function(){
+                if (!self._browser_supported){
+                    self.document.body.innerHTML += '<div class="fail-splash"><h1>Sorry, your browser is too old.</h1><h2>Update it to view this message.</h2></div>'
+                }
+            })
+        script!= env.JS
+        script(src='/src/main.ts' type='module' onerror='_fail("Download interrupted")')

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cd `dirname "$0"`
+cd ../electron
+./node_modules/.bin/png-to-ico build/icon.png > build/icon.ico

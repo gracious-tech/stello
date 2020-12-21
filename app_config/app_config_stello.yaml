@@ -1,0 +1,9 @@
+
+codename: stello
+domain: stello.news  # For marketing purposes (use self.document.domain for technical matters)
+name: Stello
+short_name: Stello
+description: Simple secure stylish sending of newsletters for Christian ministry
+author:
+    name: Gracious Tech
+    email: support@gracious.tech

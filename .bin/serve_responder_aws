@@ -1,0 +1,9 @@
+#!/bin/bash
+
+cd `dirname "$0"`
+cd ../responder/aws
+
+# NOTE Must build beforehand so that requirements are available
+sam build
+# NOTE sudo required to run docker
+sudo /home/me/brd/.venv/bin/sam local start-lambda

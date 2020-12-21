@@ -1,0 +1,9 @@
+#!/bin/bash
+
+cd `dirname "$0"`
+cd ../responder/aws
+
+sam build
+chmod -R a+rwx .aws-sam/build/Function/
+python3 -m zipfile --create ../../app/static/responder_aws.zip .aws-sam/build/Function/*
+rm -r .aws-sam

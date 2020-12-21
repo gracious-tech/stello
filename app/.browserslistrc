@@ -1,0 +1,7 @@
+
+# Browsers actively supported only
+# Other browsers will be supported if these ones are
+chrome >= 57
+safari >= 10.1
+ios_saf >= 10.3
+firefox >= 52

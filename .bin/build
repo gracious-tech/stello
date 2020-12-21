@@ -1,0 +1,22 @@
+#!/bin/bash
+
+set -e
+
+# Unpack args
+PLATFORM="$1"
+
+
+# Install packages
+cd displayer
+npm ci
+cd ..
+cd app
+npm ci
+cd ..
+
+
+# Build
+.bin/build_displayer_index
+.bin/build_displayer
+# .bin/build_responder_aws (currently doing this locally and committing due to complexity)
+.bin/build_app "$PLATFORM"

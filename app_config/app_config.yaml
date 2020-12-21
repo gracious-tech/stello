@@ -1,0 +1,24 @@
+# APP VERSIONING
+
+# A simple form of versioning for apps (as opposed to libraries)
+
+# Differences:
+#     1. Only major.minor.patch is used, not any extra labels
+#         Major for changes to user data
+#         Minor for changes to features
+#         Patch for fixes
+#     2. App must always be stable on production domain
+#         Only ever beta on production domain when version < 1
+#     3. App is assumed unstable when on testing domain
+#         Once new versions pass on testing domain they can move to production without changes
+#         So production may jump versions if problems found
+
+
+version: 0.1.22
+theme_codes:
+    # ALL colors must support both LARGE black/white contrast FOR their darker/lighter variants
+    # AND preferable to also support for the base color as well!
+    # NOTE Accent/error do NOT need to use accent colors (spec doesn't even) if mellower better
+  primary: [blue_grey, p700]    # base color doesn't support white text (but sky needs to be light!)
+  accent: [green, a400]    # base color supports both black/white text
+  error: [red, a700]    # base color supports both black/white text

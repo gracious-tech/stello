@@ -1,0 +1,73 @@
+// CSS common to Stello app and rendered messages
+
+@import './shared_mixins'
+
+
+.stello-container
+    line-height: 1.65
+    font-size: 18px
+    @media (min-width: $stello_full_width)
+        font-size: 21px
+    font-family: charter, Georgia, Cambria, "Times New Roman", Times, serif
+    background-color: #eee
+    color: rgba(#000, 0.8)
+    &.dark
+        background-color: #111
+        color: rgba(#fff, 0.8)
+
+    .content
+        max-width: $stello_content_width
+        box-sizing: content-box  // So that max-width is width of actual content, excluding padding
+        margin-left: auto
+        margin-right: auto
+        padding: $stello_gutter $stello_gutter 100px $stello_gutter
+
+    section
+        width: 100%
+        padding-top: $stello_gutter
+
+        // As soon as content width starts decreasing, switch to single column
+        // (otherwise add/respond buttons don't have space to display)
+        @media (min-width: $stello_full_width)
+            &.full-wrappable
+                // pass
+            &.full-clear
+                clear: left
+            &.half-float
+                max-width: ($stello_content_width / 2) - ($stello_gutter / 2)
+                float: left
+                padding-right: $stello_gutter
+                z-index: 1  // Allowing focusing elements over wrapping sections that come after
+            &.half-adjacent
+                max-width: ($stello_content_width / 2) - ($stello_gutter / 2)
+                float: left
+
+
+    // Standout
+
+    .standout-distinct .inner
+        @include standout-distinct
+
+    .standout-notice .inner
+        @include standout-notice
+
+    .standout-important .inner
+        @include standout-important
+
+    &.dark
+        .standout-notice .inner
+            @include standout-notice-dark
+
+        .standout-important .inner
+            @include standout-important-dark
+
+
+    // Regular elements
+
+    button
+        color: inherit  // Chrome doesn't inherit by default
+
+    blockquote
+        margin-left: 12px
+        border-left: 2px solid rgba(50%, 50%, 50%, 0.5)
+        padding-left: 12px

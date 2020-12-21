@@ -1,0 +1,9 @@
+#!/bin/bash
+
+cd `dirname "$0"`
+cd ../app
+
+
+# Build for production but serve locally
+./node_modules/.bin/vue-cli-service build
+./node_modules/.bin/light-server --serve dist --port 8080 --no-reload

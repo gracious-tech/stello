@@ -1,0 +1,51 @@
+
+name: release
+
+on:
+    workflow_dispatch:
+        inputs: {}
+
+jobs:
+
+    new_release:
+        name: Create a new release with the generic app base
+        runs-on: ubuntu-latest
+        steps:
+
+            -   name: Checkout same commit from same repository as this Github Action is from
+                uses: actions/checkout@v2
+
+            -   name: Install and cache latest compatible version of node
+                uses: actions/setup-node@v1
+                with:
+                    node-version: '13'
+
+            -   name: Use cache for npm
+                # Cached dir is saved after a successful run and copied when used (not mounted)
+                uses: actions/cache@v2
+                with:
+                    path: ~/.npm
+                    # Must have new key whenever anything changed (github caches are immutable)
+                    # NOTE Caches auto-deleted after 7 days
+                    key: ${{ runner.os }}-npm-base-${{ hashFiles('./app/package-lock.json', './displayer/package-lock.json') }}
+                    # If cache is to change, start with latest one (by prefix) as a base
+                    restore-keys: ${{ runner.os }}-npm-base-
+
+            -   name: Extract number of version being published (same way electron-builder does)
+                working-directory: ./electron
+                run: |
+                    V=`python -c "import json; print(json.load(open('package.json'))['version'])"`
+                    echo "VERSION=v$V" >> $GITHUB_ENV
+
+            -   name: Build the generic base of the app
+                run: .bin/build electron
+
+            -   name: Upload app base for package jobs to use
+                working-directory: ./app
+                run: |
+                    sudo apt-get install --no-install-recommends awscli
+                    tar --create --gzip --file stello_base.tar.gz dist
+                    aws s3 cp ./stello_base.tar.gz s3://releases-stello-news/base/$VERSION/stello_base.tar.gz
+                env:
+                    AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                    AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

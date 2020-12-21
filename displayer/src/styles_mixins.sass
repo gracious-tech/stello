@@ -1,0 +1,11 @@
+
+// Make selector functions available
+@use 'sass:selector'
+
+@mixin themed($property, $light, $dark)
+    // Set property with $light, but also create same selector prefixed with .dark set to $dark
+    //     e.g. div p span -> .dark div p span
+    // NOTE '*' needed in between so scoped styles aren't ".dark[scoped]" but ".dark *[scoped]"
+    #{$property}: $light
+    @at-root #{selector.nest('.dark', '*', &)}
+        #{$property}: $dark

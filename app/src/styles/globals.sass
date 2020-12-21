@@ -1,0 +1,43 @@
+// Sass variables and utils made available in all components
+// WARN Do not define or import any styles as would be duplicated (put in generic.sass)
+
+
+// Make selector functions available
+@use 'sass:selector'
+
+
+// Make Vuetify variables available
+// See https://vuetifyjs.com/en/customization/sass-variables/#variable-api
+@import 'vuetify/src/styles/styles.sass'
+
+
+// Own variables
+$header-width: 800px
+$content-width: 600px
+
+
+// Own utils
+@mixin themed($property, $light, $dark)
+    // Set property with $light, but also create same selector prefixed with .dark set to $dark
+    //     e.g. div p span -> .dark div p span
+    // NOTE '*' needed in between so scoped styles aren't ".dark[scoped]" but ".dark *[scoped]"
+    #{$property}: $light
+    @at-root #{selector.nest('.dark', '*', &)}
+        #{$property}: $dark
+
+
+@mixin themed_color($type: 'primary')
+    // Shortcut for `themed` that sets color to given type
+    // NOTE Possible types: primary, secondary, disabled
+    color: map-get(map-get($material-light, 'text'), $type)
+    @at-root #{selector.nest('.dark', '*', &)}
+        color: map-get(map-get($material-dark, 'text'), $type)
+
+
+@mixin themed_opacity($type: 'primary')
+    // Shortcut for `themed` that sets opacity to given type
+    // NOTE Possible types: primary, secondary, disabled
+    $types: ('primary': 'primary-text-percent', 'secondary': 'secondary-text-percent', 'disabled': 'disabledORhints-text-percent')
+    opacity: map-get($material-light, map-get($types, $type))
+    @at-root #{selector.nest('.dark', '*', &)}
+        opacity: map-get($material-dark, map-get($types, $type))

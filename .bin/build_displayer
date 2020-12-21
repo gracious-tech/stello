@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -e
+
+cd `dirname "$0"`
+cd ../displayer
+
+# NOTE Ensures all assets inlined so don't need to upload extra files
+# NOTE Sticks assets at root for flat structure
+# WARN Passing an empty string '' as an arg converts to 0 for some reason
+./node_modules/.bin/vite build --outDir ../app/src/assets/displayer  --assetsInlineLimit 99999 --assetsDir './' --base './' "$@"
+
+# Remove hashes for simpler uploads
+cd ../app/src/assets/displayer
+mv *.js index.js
+mv *.css index.css
+sed --in-place -e 's/index\..*\.js/index\.js/' -e 's/style\..*\.css/index\.css/' index.html
+
+# TODO Ensure only three files created, so don't create more and fail to upload and break things

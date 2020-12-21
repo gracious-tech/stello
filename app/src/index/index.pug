@@ -1,0 +1,17 @@
+doctype html
+html
+
+    head
+        //- Browser parsing and config
+        meta(charset='utf-8')
+        meta(name='viewport' content='user-scalable=no, width=device-width, initial-scale=1')
+
+        //- Security
+        //- Only allow resources from own host (can't set as HTTP header for file protocol)
+        //- TODO meta(http-equiv='Content-Security-Policy' content="default-src 'self' 'unsafe-inline'")
+
+        //- Meta data
+        title= app_config.name
+
+    body
+        div#app

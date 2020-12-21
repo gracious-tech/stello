@@ -1,0 +1,54 @@
+
+name: publish_appimage
+
+on:
+    workflow_run:
+        workflows: [release]
+        types: [completed]
+    workflow_dispatch:
+        inputs: {}
+
+jobs:
+
+    publish_appimage:
+        name: Package the app with Electron and produce an AppImage
+        runs-on: ubuntu-latest
+        steps:
+
+            -   name: Checkout same commit from same repository as this Github Action is from
+                uses: actions/checkout@v2
+
+            -   name: Install and cache latest compatible version of node
+                uses: actions/setup-node@v1
+                with:
+                    node-version: '13'
+
+            -   name: Use cache for npm
+                uses: actions/cache@v2
+                with:
+                    path: ~/.npm
+                    key: ${{ runner.os }}-npm-electron-${{ hashFiles('./electron/package-lock.json') }}
+                    restore-keys: ${{ runner.os }}-npm-electron-
+
+            -   name: Install node modules for Electron
+                working-directory: ./electron
+                run: npm ci
+
+            -   name: Extract number of version being published (in case current commit not the tag)
+                working-directory: ./electron
+                run: |
+                    V=`python -c "import json; print(json.load(open('package.json'))['version'])"`
+                    echo "VERSION=v$V" >> $GITHUB_ENV
+
+            -   name: Download app base from release assets
+                working-directory: ./electron
+                run: |
+                    curl https://releases.stello.news/base/$VERSION/stello_base.tar.gz | tar --extract --gzip
+                    mv dist app_dist
+
+            -   name: Build and publish an AppImage
+                working-directory: ./electron
+                run: ./node_modules/.bin/electron-builder --linux AppImage --publish always
+                env:
+                    AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                    AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

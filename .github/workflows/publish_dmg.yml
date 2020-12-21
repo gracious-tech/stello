@@ -1,0 +1,59 @@
+
+name: publish_dmg
+
+on:
+    workflow_run:
+        workflows: [release]
+        types: [completed]
+    workflow_dispatch:
+        inputs: {}
+
+jobs:
+
+    publish_dmg:
+        name: Package the app with Electron and produce a dmg
+        runs-on: macos-latest
+        steps:
+
+            -   name: Checkout same commit from same repository as this Github Action is from
+                uses: actions/checkout@v2
+
+            -   name: Install and cache latest compatible version of node
+                uses: actions/setup-node@v1
+                with:
+                    node-version: '13'
+
+            -   name: Use cache for npm
+                uses: actions/cache@v2
+                with:
+                    path: ~/.npm
+                    key: ${{ runner.os }}-npm-electron-${{ hashFiles('./electron/package-lock.json') }}
+                    restore-keys: ${{ runner.os }}-npm-electron-
+
+            -   name: Install node modules for Electron
+                working-directory: ./electron
+                run: npm ci
+
+            -   name: Extract number of version being published (in case current commit not the tag)
+                working-directory: ./electron
+                run: |
+                    V=`python -c "import json; print(json.load(open('package.json'))['version'])"`
+                    echo "VERSION=v$V" >> $GITHUB_ENV
+
+            -   name: Download app base from release assets
+                working-directory: ./electron
+                run: |
+                    curl https://releases.stello.news/base/$VERSION/stello_base.tar.gz | tar --extract --gzip
+                    mv dist app_dist
+
+            -   name: Build and publish a dmg
+                working-directory: ./electron
+                # Electron Updater still relies on zip for updates, even if dmg used to install
+                run: ./node_modules/.bin/electron-builder --mac dmg zip --publish always
+                env:
+                    AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                    AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                    CSC_LINK: ${{ secrets.APPLE_CERT_P12_BASE64 }}
+                    CSC_KEY_PASSWORD: abc123
+                    APPLE_ID: ${{ secrets.APPLE_ID_EMAIL }}
+                    APPLE_ID_PASS: ${{ secrets.APPLE_ID_APP_PASSWORD }}

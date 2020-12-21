@@ -1,0 +1,7 @@
+#!/bin/bash
+
+cd `dirname "$0"`
+cd ../app
+
+ln --symbolic --force native_browser.ts src/services/native.ts
+./node_modules/.bin/vue-cli-service serve --watch --mode development

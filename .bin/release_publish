@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# To be run after all CI tasks complete successfully
+
+
+set -e
+
+
+# Config
+BUCKET="releases-stello-news"
+CF_DIST="E2UW2QQ9J75P8G"
+
+
+# Move proposed assets into official dir, overwriting existing
+aws s3 mv --recursive s3://${BUCKET}/electron_proposed/ s3://${BUCKET}/electron/
+
+
+# Invalidate all in cloudfront so caching doesn't delay access to new assets
+aws cloudfront create-invalidation --distribution-id "${CF_DIST}" --paths "/*"
