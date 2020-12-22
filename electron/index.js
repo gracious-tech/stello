@@ -3,6 +3,7 @@ const path = require('path')
 const nodemailer = require('nodemailer')
 const {app, BrowserWindow, ipcMain, shell, Menu} = require('electron')
 const {autoUpdater} = require('electron-updater')
+const context_menu = require('electron-context-menu')
 
 
 // Customise menu bar for macOS (since can't hide it as it's part of system bar)
@@ -24,6 +25,13 @@ if (process.platform === 'darwin'){
         {role: 'editMenu'},  // Basic undo/clipboard stuff for those who don't know shortcuts
     ]))
 }
+
+
+// Enable context (right-click) menus
+context_menu({
+    showLookUpSelection: false,
+    showSearchWithGoogle: false,
+})
 
 
 // App event handling

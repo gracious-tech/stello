@@ -25,6 +25,7 @@ export function generate_electron_package(app_config:AppConfigOutput):string{
         },
         dependencies: {
             'nodemailer': 'latest',
+            'electron-context-menu': 'latest',
             'electron-updater': '^4.3.5',  // builder checks this and requires a number (not latest)
         },
         build: {
