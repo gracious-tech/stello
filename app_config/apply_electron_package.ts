@@ -35,7 +35,11 @@ export function generate_electron_package(app_config:AppConfigOutput):string{
             artifactName: app_config.codename + '.${ext}',
             appx: {
                 backgroundColor: app_config.theme.primary,
+                // These properties must match exactly what Microsoft expects in its store
+                displayName: "Stello by Gracious Tech",
                 publisherDisplayName: "Gracious Tech Pty Ltd",
+                identityName: "GraciousTechPtyLtd.StellobyGraciousTech",
+                publisher: "CN=108FB3BA-A617-4D61-B151-371B31EF4350",
             },
             mac: {
                 darkModeSupport: true,
