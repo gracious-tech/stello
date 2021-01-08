@@ -130,7 +130,7 @@ function smtp_transport(settings){
         secure: settings.port !== 587,  // Only init with plain-text (STARTTLS) if port is 587
         requireTLS: true,  // Must use either TLS or STARTTLS (cannot be insecure)
         // Don't keep user waiting (default is in minutes!)
-        connectionTimeout: 3 * 1000, // ms
+        connectionTimeout: 5 * 1000, // ms
         // Reuse same connection for multiple messages
         pool: true,
         maxConnections: 10,
