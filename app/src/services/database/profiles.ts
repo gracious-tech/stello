@@ -54,9 +54,10 @@ export class Profile implements RecordProfile {
             },
         },
         microsoft: {
+            // https://support.microsoft.com/en-us/office/pop-and-imap-email-settings-for-outlook-8361e398-8af4-4e97-b147-6c6c4ac95353
             host: 'smtp.office365.com',
             port: 587,  // Doesn't support 465
-            domains: ['hotmail.com', 'outlook.com'],
+            domains: ['hotmail.com', 'outlook.com', 'live.com'],
             app_pass: {
                 url: 'https://account.live.com/proofs/Manage',
                 url_two_step: 'https://account.live.com/proofs/Manage',
