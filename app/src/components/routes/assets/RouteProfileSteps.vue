@@ -24,7 +24,7 @@ v-stepper(:value='profile.setup_step' @change='change_step')
             route-profile-host(:profile='profile')
             div.nav
                 span &nbsp;
-                app-btn(@click='next_step' :disabled='!host_done') Next
+                app-btn(@click='next_step' :disabled='!profile.host.cloud') Next
 
         v-stepper-content(:step='2')
             h3(class='text-h6 my-6') What are your email account details?
@@ -145,14 +145,6 @@ export default class extends Vue {
             },
         },
     ]
-
-    get host_done(){
-        // Whether host settings have been added
-        if (process.env.NODE_ENV === 'development'){
-            return true  // Allow devs to skip storage setup step
-        }
-        return !! this.profile.host.cloud
-    }
 
     get email_looks_done(){
         // Whether email address input looks to be valid
