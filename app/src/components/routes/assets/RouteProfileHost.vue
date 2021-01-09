@@ -43,7 +43,13 @@ export default class extends Vue {
         return this.profile.host
     }
 
-    show_dialog_existing(){
+    show_dialog_existing(event:MouseEvent){
+        // If in dev mode, can shift click to add dev account details
+        if (process.env.NODE_ENV === 'development' && event.shiftKey){
+            // NOTE relies on next steps to save to db for simplicity
+            this.profile.host = JSON.parse(process.env.VUE_APP_DEV_HOST_SETTINGS)
+            return
+        }
         this.$store.dispatch('show_dialog', {
             component: DialogHostExisting,
             props: {profile: this.profile},
