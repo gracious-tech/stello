@@ -113,7 +113,8 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         }).promise()
 
         // If no user then relying on SNS for notifications and need to ensure subscribed to it
-        if (this.user){
+        // NOTE Skip subscribing if not production as would send real emails to do so
+        if (this.user || process.env.NODE_ENV !== 'production'){
             return
         }
 
