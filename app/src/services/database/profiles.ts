@@ -54,6 +54,7 @@ export class Profile implements RecordProfile {
             },
         },
         microsoft: {
+            // tslint:disable-next-line:max-line-length
             // https://support.microsoft.com/en-us/office/pop-and-imap-email-settings-for-outlook-8361e398-8af4-4e97-b147-6c6c4ac95353
             host: 'smtp.office365.com',
             port: 587,  // Doesn't support 465
