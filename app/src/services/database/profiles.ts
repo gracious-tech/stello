@@ -69,8 +69,8 @@ export class Profile implements RecordProfile {
             port: 465,
             domains: ['psmail.net', 'psmx.org'],
             app_pass: {
-                url: null,
-                url_two_step: null,
+                url: 'https://info.psmail.net/xsupport/device-password/',
+                url_two_step: 'https://info.psmail.net/xsupport/software-token/',
             },
         },
     }
