@@ -4,4 +4,4 @@ cd `dirname "$0"`
 cd ../app
 
 ln --symbolic --force native_electron.ts src/services/native.ts
-./node_modules/.bin/vue-cli-service build --watch --mode electron
+./node_modules/.bin/vue-cli-service build --watch

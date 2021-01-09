@@ -6,4 +6,4 @@ cd ../app
 PLATFORM="$1"
 
 ln --symbolic --force native_${PLATFORM}.ts src/services/native.ts
-./node_modules/.bin/vue-cli-service build --mode ${PLATFORM}
+./node_modules/.bin/vue-cli-service build
