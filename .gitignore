@@ -2,6 +2,7 @@
 /tsconfig.json
 /.venv/
 
+/app/.env.development.local
 /app/dist/
 /app/node_modules/
 /app/src/assets/displayer/
