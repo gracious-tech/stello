@@ -42,13 +42,17 @@ export class Draft implements RecordDraft {
 
         // Add all contacts included by groups
         for (const group_id of this.recipients.include_groups){
-            recipients.push(...groups_dict[group_id])
+            if (group_id in groups_dict){  // WARN Group may no longer exist
+                recipients.push(...groups_dict[group_id])
+            }
         }
 
         // Remove all contacts excluded by groups
         for (const group_id of this.recipients.exclude_groups){
-            for (const contact_id of groups_dict[group_id]){
-                remove(recipients, contact_id)
+            if (group_id in groups_dict){  // WARN Group may no longer exist
+                for (const contact_id of groups_dict[group_id]){
+                    remove(recipients, contact_id)
+                }
             }
         }
 

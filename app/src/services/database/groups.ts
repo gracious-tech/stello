@@ -68,6 +68,7 @@ export class DatabaseGroups {
         store_groups.delete(id)
 
         // Remove the group from drafts
+        // WARN Not removing from drafts within sent messages as could be heaps and so inefficient
         for (const draft of await store_drafts.getAll()){
             // Filter group out of draft's recipients and if changed then save changes
             const filtered_include = draft.recipients.include_groups.filter(val => val !== id)
