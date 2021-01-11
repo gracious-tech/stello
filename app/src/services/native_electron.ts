@@ -6,14 +6,14 @@ import {IpcRenderer} from 'electron'  // Just for type (injected via preload.js)
 // Functions
 
 
-export function test_email_settings(settings:EmailSettings):Promise<string>{
+export function test_email_settings(settings:EmailSettings):Promise<EmailError>{
     // Tests provided settings to see if they work and returns either null or error string
     return self.ipcRenderer.invoke('test_email_settings', settings)
 }
 
 
 export function send_emails(settings:EmailSettings, emails:Email[], from:EmailIdentity,
-        no_reply:boolean):Promise<string[]>{
+        no_reply:boolean):Promise<EmailError[]>{
     return self.ipcRenderer.invoke('send_emails', settings, emails, from, no_reply)
 }
 
@@ -43,4 +43,10 @@ interface Email {
 interface EmailIdentity {
     name:string
     address:string
+}
+
+interface EmailError {
+    code:string
+    message:string
+    response:string
 }

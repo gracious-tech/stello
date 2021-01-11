@@ -172,7 +172,11 @@ ipcMain.handle('test_email_settings', async (event, settings) => {
     try {
         await transport.verify()
     } catch (error){
-        result = error?.response || `${error.code}: ${error.message}`
+        result = {
+            code: error.code,
+            message: error.message,
+            response: error.response || null,
+        }
     }
     transport.close()
     return result
@@ -197,7 +201,11 @@ ipcMain.handle('send_emails', async (event, settings, emails, from, no_reply) =>
                 replyTo: reply_to,
             })
         } catch (error){
-            return error?.response || `${error.code}: ${error.message}`
+            return {
+                code: error.code,
+                message: error.message,
+                response: error.response || null,
+            }
         }
         return null
     }))
