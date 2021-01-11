@@ -17,6 +17,37 @@ div
             app-text(v-model='smtp_host' v-bind='$t("smtp_host")' :error='tested && !smtp_host')
             app-text(v-model='smtp_port' placeholder='465' v-bind='$t("smtp_port")')
 
+        v-alert(v-if='error' colored-border border='left' color='error')
+            h1(class='text-h6 mb-3') Could not connect
+            ul(class='body-2')
+                template(v-if='error.code === "ETIMEDOUT"')
+                    li(v-if='show_all_fields') Your "host" may be incorrect
+                        ul
+                            li If you can access your messages using Gmail (even if you usually use another program) enter "smtp.gmail.com"
+                            li Otherwise search for "smtp settings" for your email provider
+                    li(v-if='show_all_fields') Your "port" may be incorrect (try 465 or 587)
+                    li Your Internet may be extremely slow or disconnected
+                template(v-if='error.code === "ESOCKET"')
+                    li Make sure you are connected to the Internet
+                    li Make sure any anti-virus software isn't blocking Stello
+                template(v-if='error.code === "EDNS"')
+                    li(v-if='show_all_fields') Your "host" is likely incorrect
+                        ul
+                            li If you can access your messages using Gmail (even if you usually use another program) enter "smtp.gmail.com"
+                            li Otherwise search for "smtp settings" for your email provider
+                    li Your Internet may be extremely slow or disconnected
+                template(v-if='error.code === "EAUTH"')
+                    li Your email address and/or password may be incorrect
+                    li You may need to use an #[a(:href='url_app_pass' target='_blank') "app password"] rather than your normal password
+                        ul
+                            li This is a special password created each time you connect a new app
+                            li You may need to enable #[a(:href='url_two_step' target='_blank') Two-Step Verification] before you can create an app password
+                            li(v-if='show_all_fields') Search for "app password" for your email provider
+            //- NOTE error.message already includes error.response if it exists
+            p.error-msg(class='mt-6') {{ error.code }}: {{ error.message }}
+            p(class='text-center')
+                app-btn(href='mailto:support@gracious.tech' raised small) Contact Support
+
 </template>
 
 
@@ -161,5 +192,9 @@ export default class extends Vue {
     .error-msg
         opacity: 0.5
         font-size: 12px
+
+    a:not([href])
+        color: inherit !important
+        cursor: inherit
 
 </style>
