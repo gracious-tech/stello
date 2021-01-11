@@ -101,17 +101,29 @@ function open_app(){
     }
 
     // Navigate to the app
-    window.loadFile(path.join(__dirname, 'app_dist/index.html'))
+    const load_index = () => {
+        window.loadFile(path.join(__dirname, 'app_dist/index.html'))
+    }
+    load_index()
 
     // Ensure cannot navigate away from app and instead open all other URLs in system browser
     // NOTE Initial load and all in-app nav shouldn't trigger any of these events
     const handle_navigation = function(event, url){
-        // Allows reload of same file (e.g. when clicking recover button upon app failure)
+
+        // Determine current file URL
         const current_file_url = window.webContents.getURL().split('#')[0]
-        if (!url.startsWith(current_file_url)){
-            event.preventDefault()
+
+        // Handle action
+        if (url.startsWith(current_file_url)){
+            // The only valid action for internal nav is to reload upon error
+            // NOTE Reload file so nav to root in case displaying current page causes the error
+            load_index()
+        } else {
             shell.openExternal(url)
         }
+
+        // Always prevent default otherwise could nav to an external url or create new windows
+        event.preventDefault()
     }
     window.webContents.on('new-window', handle_navigation)  // e.g. _blank links
     window.webContents.on('will-navigate', handle_navigation)  // e.g. regular external links
