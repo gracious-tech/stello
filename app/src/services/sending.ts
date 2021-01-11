@@ -183,7 +183,9 @@ export class Sender {
         const no_reply = this.profile.options.smtp_no_reply && this.profile.options.allow_replies
 
         // Get native platform to send
-        const errors = await send_emails(this.profile.smtp_settings, emails, from, no_reply)
+        const errors = (await send_emails(this.profile.smtp_settings, emails, from, no_reply)).map(
+            error => error.message  // TODO Make use of other error properties
+        )
 
         // Update copies for successes
         // WARN Ensure copies still matches emails/errors in terms of item order etc
