@@ -159,10 +159,10 @@ export default class extends Vue {
     async test():Promise<boolean>{
         // Test the current email settings and return success boolean (also triggers error display)
         this.tested = true
+        this.error = null
         if (!this.email || !this.smtp_pass || (this.show_all_fields && !this.smtp_host)){
             return false  // These fields have no defaults and will highlight red now `tested` true
         }
-        this.error = null
         this.error = await test_email_settings(this.profile.smtp_settings)
         return !this.error  // Return success boolean (parent components access this)
     }
