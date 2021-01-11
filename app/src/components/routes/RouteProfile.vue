@@ -22,9 +22,10 @@ div
         v-card
             v-card-text
                 p(class='body-2 text--secondary' v-t='"email.p1"')
-                route-profile-email(:profile='profile')
+                route-profile-email(:profile='profile' ref='route_profile_email')
                 p(class='text-center')
-                    app-btn(@click='test_email_settings') Test email settings
+                    app-btn(@click='test_email_settings' :loading='email_loading')
+                        | Test email settings
 
 
         h2 Identity
@@ -85,7 +86,7 @@ div
 en:
     # Email
     email:
-        p1: "Stello uses your email address to send messages and receive notifications about replies. Providing it is optional, but the alternative is copying and pasting links to each contact individually."
+        p1: "Stello uses your email address to send messages and receive notifications about replies."
     # Identity
     identity:
         p1: "How emails and other notifications identify you prior to opening messages. Unlike messages, this information does not expire and will remain in recipients' inboxes, likely for all eternity."
@@ -150,7 +151,6 @@ import RouteProfileEmail from '@/components/routes/assets/RouteProfileEmail.vue'
 import RouteProfileIdentity from '@/components/routes/assets/RouteProfileIdentity.vue'
 import RouteProfileSteps from '@/components/routes/assets/RouteProfileSteps.vue'
 import {Profile} from '@/services/database/profiles'
-import {test_email_settings} from '@/services/native'
 import {update_configs} from '@/services/configs'
 
 
@@ -203,6 +203,7 @@ export default class extends Vue {
         {value: 'replies', text: "Every reply"},
         {value: 'replies_and_reactions', text: "Every reply & reaction"},
     ]
+    email_loading = false
 
     async created(){
         // Get the profile for the given id, and groups (needed for auto_exclude_exempt_groups)
@@ -258,16 +259,15 @@ export default class extends Vue {
         self._db.profiles.set(this.profile)
     }
 
-    test_email_settings(){
+    async test_email_settings(){
         // Confirm email settings are valid
-        test_email_settings(this.profile.smtp_settings).then(error => {
-            let result = "Success, your email settings are correct!"
-            if (error){
-                // NOTE This could be due to no network connection too...
-                result = "Failure, could not connect to email server.\n\n" + error
-            }
-            this.$store.dispatch('show_snackbar', result)
-        })
+        this.email_loading = true
+        const success = await (this.$refs.route_profile_email as any).test()
+        this.email_loading = false
+        if (success){
+            // NOTE Error info handled and displayed by RouteProfileEmail
+            this.$store.dispatch('show_snackbar', "Success, your email settings are correct!")
+        }
     }
 
     toggle_auto_exclude(value){

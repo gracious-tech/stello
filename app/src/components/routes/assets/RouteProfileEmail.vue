@@ -2,17 +2,19 @@
 <template lang='pug'>
 
 div
-    app-text(v-model='email' v-bind='$t("email")')
+    app-text(v-model='email' v-bind='$t("email")' :error='tested && !email')
 
     template(v-if='email_looks_done')
-        app-password(v-model='smtp_pass' :label='is_app_pass ? "App Password" : "Password"'
-            :hint='is_app_pass ? "" : $t("password.hint")')
+        app-password.password(v-model='smtp_pass' label="App Password" :error='tested && !smtp_pass')
+        p.password-hint(class='text--secondary body-2')
+            template(v-if='show_all_fields')
+                | We recommend using an "app password" rather than your normal password, which can be created in your email account settings.
+            template(v-else)
+                | Don't use your normal password (which probably won't work). Instead, ensure you have #[a(:href='url_two_step' target='_blank') Two-Step Verification] enabled and create a new #[a(:href='url_app_pass' target='_blank') "app password"].
 
-        p(v-if='is_app_pass' class='text--secondary body-2') Do not use your normal password (it won't work). Instead, #[a(:href='profile.smtp_provider_config.app_pass.url' target='_blank') create an "app password"]. If asked for a name, you can give any (such as "Stello"). Also ensure you have enabled #[a(:href='profile.smtp_provider_config.app_pass.url_two_step' target='_blank') 2-Step Verification] for your account before you try to create the app password.
-
-        template(v-if='!profile.smtp_provider')
+        template(v-if='show_all_fields')
             app-text(v-model='smtp_user' :placeholder='email' v-bind='$t("smtp_user")')
-            app-text(v-model='smtp_host' v-bind='$t("smtp_host")')
+            app-text(v-model='smtp_host' v-bind='$t("smtp_host")' :error='tested && !smtp_host')
             app-text(v-model='smtp_port' placeholder='465' v-bind='$t("smtp_port")')
 
 </template>
@@ -22,17 +24,15 @@ div
 en:
     email:
         label: "Email Address"
-    password:
-        hint: "You may need to create an \"app password\" rather than use your normal one"
     smtp_user:
         label: "Username"
         hint: "This is usually the same as your email address"
     smtp_host:
         label: "Host"
-        hint: 'Search for "smtp settings" for your email account to discover the host address'
+        hint: "If you use Gmail, enter \"smtp.gmail.com\". Otherwise search for \"smtp settings\" for your email provider."
     smtp_port:
         label: "Port"
-        hint: "You usually won't need to change this"
+        hint: "This will usually be either 465 (most common) or 587"
 </i18n>
 
 
@@ -50,6 +50,30 @@ import {email_address_like} from '@/services/utils/misc'
 export default class extends Vue {
 
     @Prop() profile:Profile
+
+    tested = false
+    error = null
+
+    get show_all_fields():boolean{
+        // Whether to show all fields because the provider is not automatically known
+        return !this.profile.smtp_provider
+    }
+
+    get url_app_pass():string{
+        // Return app pass url if provider is known
+        if (this.profile.smtp_provider){
+            return this.profile.smtp_provider_config.app_pass.url
+        }
+        return null
+    }
+
+    get url_two_step():string{
+        // Return two step url if provider is known
+        if (this.profile.smtp_provider){
+            return this.profile.smtp_provider_config.app_pass.url_two_step
+        }
+        return null
+    }
 
     get email(){
         return this.profile.email
@@ -97,12 +121,19 @@ export default class extends Vue {
         return email_address_like(this.email)
     }
 
-    get is_app_pass(){
-        return !!this.profile.smtp_provider_config?.app_pass
-    }
-
     save(){
         self._db.profiles.set(this.profile)
+    }
+
+    async test():Promise<boolean>{
+        // Test the current email settings and return success boolean (also triggers error display)
+        this.tested = true
+        if (!this.email || !this.smtp_pass || (this.show_all_fields && !this.smtp_host)){
+            return false  // These fields have no defaults and will highlight red now `tested` true
+        }
+        this.error = null
+        this.error = await test_email_settings(this.profile.smtp_settings)
+        return !this.error  // Return success boolean (parent components access this)
     }
 }
 
@@ -113,5 +144,22 @@ export default class extends Vue {
 
 .v-text-field
     margin: 24px 0
+
+.password
+    margin-bottom: 0
+
+    ::v-deep .v-text-field__details
+        display: none  // Using custom hint element instead
+
+.password-hint
+    margin-bottom: 36px
+
+.v-alert
+    padding-left: 24px
+    background-color: rgba($error, 0.1)
+
+    .error-msg
+        opacity: 0.5
+        font-size: 12px
 
 </style>
