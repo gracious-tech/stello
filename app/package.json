@@ -28,7 +28,6 @@
     "email-addresses": "latest",
     "hint": "latest",
     "idb": "latest",
-    "ignore-emit-webpack-plugin": "latest",
     "jsdom": "latest",
     "light-server": "latest",
     "lighthouse": "latest",

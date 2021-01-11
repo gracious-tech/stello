@@ -95,14 +95,6 @@ module.exports = {
         // Copy files from static folder
         // NOTE This basically just renames `public` to `static`, but not able to override default
         config.plugin('copy').use(require('copy-webpack-plugin'), [[{from: 'static'}]])
-
-        // Production specific
-        if (process.env.NODE_ENV !== 'development'){
-            // Prevent inlined index assets from getting emitted as separate files as well
-            const match_emit_inlined = /^_assets\/(js|css)\/index\./
-            config.plugin('ignore-emit').use(require('ignore-emit-webpack-plugin'),
-                [match_emit_inlined])
-        }
     },
 
     pluginOptions: {
