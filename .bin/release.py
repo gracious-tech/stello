@@ -48,6 +48,10 @@ def release(inv):
     # Tag the new version and push to trigger CI build and deploy
     inv.run(f'git tag --annotate -m "Version {new_version}" v{new_version}')
 
+    # Notes
+    print("\n\nNow push and once built, test using below before running release_publish\n")
+    print("https://releases-stello-news.s3-us-west-2.amazonaws.com/electron_proposed/stello.AppImage")
+
 
 if __name__ == '__main__':
     collection = Collection.from_module(sys.modules[__name__])
