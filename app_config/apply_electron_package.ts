@@ -18,15 +18,17 @@ export function generate_electron_package(app_config:AppConfigOutput):string{
         private: true,
         main: 'index.js',
         devDependencies: {
-            'electron': 'latest',
-            'electron-builder': 'latest',
-            'electron-notarize': 'latest',
-            'png-to-ico': 'latest',
+            'electron': '^11.0.2',
+            'electron-builder': '^22.9.1',
+            'electron-notarize': '^1.0.0',
+            'png-to-ico': '^2.1.1',
         },
         dependencies: {
-            'nodemailer': 'latest',
-            'electron-context-menu': 'latest',
-            'electron-updater': '^4.3.5',  // builder checks this and requires a number (not latest)
+            'nodemailer': '^6.4.16',
+            'gmail-nodemailer-transport': '^2.0.1',
+            'electron-context-menu': '^2.3.1',
+            'electron-updater': '^4.3.5',
+            '@openid/appauth': '^1.3.0',
         },
         build: {
             appId: `tech.gracious.${app_config.codename}`,
