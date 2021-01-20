@@ -29,7 +29,7 @@ v-stepper(:value='profile.setup_step' @change='change_step')
         v-stepper-content(:step='2')
             h3(class='text-h6 my-6') What are your email account details?
             p(class='text--secondary body-2 mb-12') Stello will send messages on your behalf, and notify you of any replies.
-            route-profile-email(:profile='profile' ref='route_profile_email')
+            app-email-settings(:profile='profile' ref='app_email_settings')
             div.nav
                 app-btn(@click='prev_step' :disabled='loading') Prev
                 app-btn(@click='next_step_after_email' :disabled='!email_looks_done'
@@ -73,14 +73,14 @@ v-stepper(:value='profile.setup_step' @change='change_step')
 import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import RouteProfileHost from '@/components/routes/assets/RouteProfileHost.vue'
-import RouteProfileEmail from '@/components/routes/assets/RouteProfileEmail.vue'
+import AppEmailSettings from '@/components/reuseable/AppEmailSettings.vue'
 import RouteProfileIdentity from '@/components/routes/assets/RouteProfileIdentity.vue'
 import {Profile} from '@/services/database/profiles'
 import {email_address_like} from '@/services/utils/misc'
 
 
 @Component({
-    components: {RouteProfileHost, RouteProfileEmail, RouteProfileIdentity},
+    components: {RouteProfileHost, AppEmailSettings, RouteProfileIdentity},
 })
 export default class extends Vue {
 
@@ -177,7 +177,7 @@ export default class extends Vue {
     async next_step_after_email(){
         // Only go to next step if email setup properly
         this.loading = true
-        const success = await (this.$refs.route_profile_email as any).test()
+        const success = await (this.$refs.app_email_settings as any).test()
         this.loading = false
         if (success){
             this.next_step()

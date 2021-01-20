@@ -22,7 +22,7 @@ div
         v-card
             v-card-text
                 p(class='body-2 text--secondary' v-t='"email.p1"')
-                route-profile-email(:profile='profile' ref='route_profile_email')
+                app-email-settings(:profile='profile' ref='app_email_settings')
                 p(class='text-center')
                     app-btn(@click='test_email_settings' :loading='email_loading')
                         | Test email settings
@@ -147,7 +147,7 @@ en:
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
 import RouteProfileHost from '@/components/routes/assets/RouteProfileHost.vue'
-import RouteProfileEmail from '@/components/routes/assets/RouteProfileEmail.vue'
+import AppEmailSettings from '@/components/reuseable/AppEmailSettings.vue'
 import RouteProfileIdentity from '@/components/routes/assets/RouteProfileIdentity.vue'
 import RouteProfileSteps from '@/components/routes/assets/RouteProfileSteps.vue'
 import {Profile} from '@/services/database/profiles'
@@ -181,7 +181,7 @@ function options_to_computed_props(props:string[]){
 
 
 @Component({
-    components: {RouteProfileHost, RouteProfileEmail, RouteProfileIdentity, RouteProfileSteps},
+    components: {RouteProfileHost, AppEmailSettings, RouteProfileIdentity, RouteProfileSteps},
     computed: {
         ...options_to_computed_props([
             'notify_mode', 'notify_include_contents', 'allow_replies', 'allow_reactions',
@@ -262,10 +262,10 @@ export default class extends Vue {
     async test_email_settings(){
         // Confirm email settings are valid
         this.email_loading = true
-        const success = await (this.$refs.route_profile_email as any).test()
+        const success = await (this.$refs.app_email_settings as any).test()
         this.email_loading = false
         if (success){
-            // NOTE Error info handled and displayed by RouteProfileEmail
+            // NOTE Error info handled and displayed by AppEmailSettings
             this.$store.dispatch('show_snackbar', "Success, your email settings are correct!")
         }
     }
