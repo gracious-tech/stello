@@ -175,6 +175,14 @@ function sleep(ms){
 // IPC handlers
 
 
+ipcMain.handle('dns_mx', async (event, host) => {
+    // Do a DNS request for MX records and return domains ordered by priority
+    const results = await dns.resolveMx(host)
+    results.sort((a, b) => a.priority - b.priority)
+    return results.map(record => record.exchange)
+})
+
+
 ipcMain.handle('test_email_settings', async (event, settings) => {
     // Tests provided settings to see if they work and returns either null or error string
 

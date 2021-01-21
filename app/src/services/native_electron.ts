@@ -6,6 +6,12 @@ import {IpcRenderer} from 'electron'  // Just for type (injected via preload.js)
 // Functions
 
 
+export function dns_mx(host:string):Promise<string[]>{
+    // Do a DNS request for MX records and return domains ordered by priority
+    return self.ipcRenderer.invoke('dns_mx', host)
+}
+
+
 export function test_email_settings(settings:EmailSettings):Promise<EmailError>{
     // Tests provided settings to see if they work and returns either null or error string
     return self.ipcRenderer.invoke('test_email_settings', settings)
