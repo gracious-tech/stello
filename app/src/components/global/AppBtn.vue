@@ -53,7 +53,7 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
-.v-btn[raised]
+.v-btn.accent[raised]
     color: $on_accent  // Correct Vuetify which doesn't account for theme correctly
 
 </style>
