@@ -35,9 +35,9 @@ export interface RecordGroup {
 
 export interface RecordProfile {
     id:string
-    setup_step:number,
+    setup_step:number
     host:RecordProfileHost
-    host_state:RecordProfileHostState,
+    host_state:RecordProfileHostState
     email:string  // Address used for both sending and receiving notifications
     smtp:RecordProfileSmtp
     options:RecordProfileOptions
