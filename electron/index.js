@@ -1,9 +1,14 @@
 
 const path = require('path')
-const nodemailer = require('nodemailer')
+const dns = require('dns').promises
+
 const {app, BrowserWindow, ipcMain, shell, Menu} = require('electron')
 const {autoUpdater} = require('electron-updater')
 const context_menu = require('electron-context-menu')
+
+const nodemailer = require('nodemailer')
+const appauth = require('@openid/appauth')
+const appauth_node = require('@openid/appauth/built/node_support')
 
 
 // Customise menu bar for macOS (since can't hide it as it's part of system bar)
