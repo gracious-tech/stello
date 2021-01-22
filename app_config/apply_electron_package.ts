@@ -28,7 +28,6 @@ export function generate_electron_package(app_config:AppConfigOutput):string{
             'gmail-nodemailer-transport': '^2.0.1',
             'electron-context-menu': '^2.3.1',
             'electron-updater': '^4.3.5',
-            '@openid/appauth': '^1.3.0',
         },
         build: {
             appId: `tech.gracious.${app_config.codename}`,
