@@ -8,17 +8,8 @@ module.exports = {
 
     assetsDir: '_assets',
 
-    /* NOTE Despite Vuetify saying this setting is only need for IE11 support, in fact Vuetify also
-        uses object = {...object} syntax which is an ES2018 feature!
-        Vue CLI is configured to not apply babel to node_modules, so must tell it to here.
-    */
-    transpileDependencies: ['vuetify'],  // NOTE Doesn't seem to affect build time
-
     css: {
-
-        // Embed CSS in JS so downloading it doesn't block first paint (progress wheel)
         extract: false,
-
         loaderOptions: {
             sass: {
                 // Make node_modules and variables available in both components and regular files
@@ -27,16 +18,17 @@ module.exports = {
                     includePaths: ['node_modules'],
                 },
             },
+            // Disable postcss by removing default autoprefixer plugin
+            // NOTE Too complicated to remove postcss itself since in many different locations
+            postcss: {
+                plugins: [],
+            },
         },
     },
 
     configureWebpack: {
         devtool: 'source-map',  // Needed for vscode debug
         optimization: {
-            // Webpack by default outputs common modules (for index & app) to a separate file
-            // This causes index JS to wait for the "vendors" chunk before executing
-            // This happens even if index and app JS have nothing in common, so must be disabled
-            // TODO index JS is still mostly just unnecessary webpack module stuff (remove somehow?)
             splitChunks: false,
         },
     },
