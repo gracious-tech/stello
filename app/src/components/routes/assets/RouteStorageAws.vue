@@ -12,7 +12,7 @@ div
     div.none(v-else-if='!storages.length' class='text--secondary')
         p No storage created yet
     v-list(v-else)
-        v-list-item(v-for='storage of storages')
+        v-list-item(v-for='storage of storages' :key='storage.bucket')
             v-list-item-title
                 | {{ storage.bucket }}
                 | (version {{ storage.version || 'incomplete' }})
@@ -47,7 +47,7 @@ import {HostManagerStorageAws} from '@/services/hosts/aws_manager'
 @Component({})
 export default class extends Vue {
 
-    storages = []
+    storages:HostManagerStorageAws[] = []
     scanning = false
 
     async created(){

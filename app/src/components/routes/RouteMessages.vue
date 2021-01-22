@@ -8,7 +8,7 @@ div
 
     app-content(class='pa-5')
         v-list
-            route-messages-item(v-for='message of messages' :msg='message')
+            route-messages-item(v-for='message of messages' :msg='message' :key='message.id')
 
 </template>
 
