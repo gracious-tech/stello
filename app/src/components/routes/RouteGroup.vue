@@ -2,7 +2,7 @@
 <template lang='pug'>
 
 div
-    v-toolbar(color='primary' dark)
+    v-toolbar
         app-btn(to='../' icon='arrow_back')
         v-toolbar-title {{ group && group.name }}
         v-spacer

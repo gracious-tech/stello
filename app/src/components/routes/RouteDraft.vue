@@ -2,7 +2,7 @@
 <template lang='pug'>
 
 div(v-if='draft')
-    v-toolbar(color='primary' dark)
+    v-toolbar
 
         app-btn(to='../' icon='arrow_back')
 

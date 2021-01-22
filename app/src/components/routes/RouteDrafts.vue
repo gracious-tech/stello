@@ -2,8 +2,7 @@
 <template lang='pug'>
 
 div
-    v-toolbar(color='primary' dark)
-        app-btn(icon='arrow_back' to='../')
+    v-toolbar
         v-toolbar-title Drafts
         v-spacer
         app-btn.new(@click='new_draft' icon='add' fab)

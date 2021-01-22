@@ -2,9 +2,8 @@
 <template lang='pug'>
 
 div
-    v-toolbar(color='primary' dark)
-        app-btn(to='../' icon='arrow_back')
-        v-toolbar-title Replies and Reactions
+    v-toolbar
+        v-toolbar-title Responses
         v-spacer
         app-btn(@click='download' icon='cloud_download')
 

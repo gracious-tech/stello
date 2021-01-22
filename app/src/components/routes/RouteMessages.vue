@@ -2,8 +2,7 @@
 <template lang='pug'>
 
 div
-    v-toolbar(color='primary' dark)
-        app-btn(to='../' icon='arrow_back')
+    v-toolbar
         v-toolbar-title Sent Messages
 
     app-content(class='pa-5')

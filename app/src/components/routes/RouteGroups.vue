@@ -2,10 +2,8 @@
 <template lang='pug'>
 
 div
-    v-toolbar(color='primary' dark)
-        app-btn(to='../' icon='arrow_back')
+    v-toolbar
         v-toolbar-title Groups
-        app-btn(to='../contacts/' color='' outlined class='ml-6') Contacts
         v-spacer
         app-btn.add(@click='new_group' icon='add' fab)
 
