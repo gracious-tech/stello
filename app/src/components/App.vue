@@ -5,8 +5,11 @@ v-app(:class='app_classes')
     //- v-app will become .v-application > .v-application--wrap > ...
     //- Dialogs etc will be children of .v-application
     //- Transition will not appear in the DOM itself
-    transition(:name='transition')
-        component(:is='docked' class='docked')
+
+    div.horizontal
+        app-sidebar(v-if='docked === "router-view"')
+        transition(:name='transition')
+            component(:is='docked' class='docked')
 
     app-status
 
@@ -26,6 +29,7 @@ import {Component, Vue, Watch} from 'vue-property-decorator'
 
 import app_config from '@/app_config.json'
 import AppStatus from '@/components/other/AppStatus.vue'
+import AppSidebar from '@/components/other/AppSidebar.vue'
 import AppDialog from '@/components/dialogs/AppDialog.vue'
 import SplashWelcome from '@/components/splash/SplashWelcome.vue'
 import SplashDisclaimer from '@/components/splash/SplashDisclaimer.vue'
@@ -33,7 +37,7 @@ import {update_configs} from '@/services/configs'
 
 
 @Component({
-    components: {AppStatus, SplashWelcome, SplashDisclaimer, AppDialog},
+    components: {AppStatus, AppSidebar, SplashWelcome, SplashDisclaimer, AppDialog},
 })
 export default class extends Vue {
 
@@ -168,11 +172,15 @@ export default class extends Vue {
 
 // Route layout and transitions
 
+.horizontal
+    display: flex
+    flex-grow: 1
+    height: 1px  // WARN Important for stopping tasks toolbar disappearing
+
 .docked
     display: flex
     flex-direction: column
     flex-grow: 1
-    height: 1px  // WARN Important for stopping tasks toolbar disappearing
     // Defaults for all transition animations
     animation-duration: 375ms
     animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1)
