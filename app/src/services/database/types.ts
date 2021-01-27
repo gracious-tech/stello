@@ -71,6 +71,7 @@ export interface RecordProfileSmtp {
     pass:string
     host:string
     port:number
+    starttls:boolean
 }
 
 export interface RecordProfileOptions {

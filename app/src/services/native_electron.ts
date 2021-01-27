@@ -30,6 +30,7 @@ declare global {
 interface EmailSettings {
     host:string
     port:number
+    starttls:boolean
     user:string
     pass:string
 }

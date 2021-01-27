@@ -1,5 +1,5 @@
 
-import {openDB} from 'idb'
+import {openDB} from 'idb/with-async-ittr.js'
 
 import {AppDatabaseSchema, AppDatabaseConnection, RecordReplaction} from './types'
 import {DatabaseState} from './state'
@@ -20,38 +20,47 @@ import {buffer_to_url64} from '../utils/coding'
 
 export function open_db():Promise<AppDatabaseConnection>{
     // Get access to db (and create/upgrade if needed)
-    return openDB<AppDatabaseSchema>('main', 1, {
-        upgrade(db, old_version, new_version, transaction){
+    return openDB<AppDatabaseSchema>('main', 2, {
+        async upgrade(db, old_version, new_version, transaction){
 
-            // Deal with previous versions
-            // NOTE old_version is 0 if db doesn't exist yet
-            if (old_version === 1){
-                // Future upgrade code when have a version 2
+            // Begin upgrade at whichever version is already present (no break statements)
+            // WARN Ensure all versions accounted for, or none will match
+            switch (old_version){
+                default:
+                    throw new Error("Database version unknown (should never happen)")
+                case 0:  // Version number when db didn't previously exist
+                    // Create object stores
+                    // NOTE If no keyPath is given then must provide a key for every transaction
+                    const state = db.createObjectStore('state', {keyPath: 'key'})
+                    const contacts = db.createObjectStore('contacts', {keyPath: 'id'})
+                    const groups = db.createObjectStore('groups', {keyPath: 'id'})
+                    const profiles = db.createObjectStore('profiles', {keyPath: 'id'})
+                    const drafts = db.createObjectStore('drafts', {keyPath: 'id'})
+                    const messages = db.createObjectStore('messages', {keyPath: 'id'})
+                    const copies = db.createObjectStore('copies', {keyPath: 'id'})
+                    const sections = db.createObjectStore('sections', {keyPath: 'id'})
+                    const reads = db.createObjectStore('reads', {keyPath: 'id'})
+                    const replies = db.createObjectStore('replies', {keyPath: 'id'})
+                    const reactions = db.createObjectStore('reactions', {keyPath: 'id'})
+                    // Create indexes
+                    copies.createIndex('by_msg', 'msg_id')
+                    copies.createIndex('by_contact', 'contact_id')
+                    copies.createIndex('by_resp_token', 'resp_token')
+                    reads.createIndex('by_msg', 'msg_id')
+                    replies.createIndex('by_msg', 'msg_id')
+                    replies.createIndex('by_contact', 'contact_id')
+                    reactions.createIndex('by_msg', 'msg_id')
+                    reactions.createIndex('by_contact', 'contact_id')
+                case 1:
+                    for await (const cursor of transaction.objectStore('profiles')){
+                        // New property added after v0.0.4 (previously true if port 587)
+                        cursor.value.smtp.starttls = cursor.value.smtp.port === 587
+                        // Unintentionally saved in db in v0.0.4 and below
+                        delete (cursor.value as any).smtp_providers
+                        // Save changes
+                        cursor.update(cursor.value)
+                    }
             }
-
-            // Create object stores
-            // NOTE If no keyPath is given then must provide a key for every transaction
-            const state = db.createObjectStore('state', {keyPath: 'key'})
-            const contacts = db.createObjectStore('contacts', {keyPath: 'id'})
-            const groups = db.createObjectStore('groups', {keyPath: 'id'})
-            const profiles = db.createObjectStore('profiles', {keyPath: 'id'})
-            const drafts = db.createObjectStore('drafts', {keyPath: 'id'})
-            const messages = db.createObjectStore('messages', {keyPath: 'id'})
-            const copies = db.createObjectStore('copies', {keyPath: 'id'})
-            const sections = db.createObjectStore('sections', {keyPath: 'id'})
-            const reads = db.createObjectStore('reads', {keyPath: 'id'})
-            const replies = db.createObjectStore('replies', {keyPath: 'id'})
-            const reactions = db.createObjectStore('reactions', {keyPath: 'id'})
-
-            // Create indexes
-            copies.createIndex('by_msg', 'msg_id')
-            copies.createIndex('by_contact', 'contact_id')
-            copies.createIndex('by_resp_token', 'resp_token')
-            reads.createIndex('by_msg', 'msg_id')
-            replies.createIndex('by_msg', 'msg_id')
-            replies.createIndex('by_contact', 'contact_id')
-            reactions.createIndex('by_msg', 'msg_id')
-            reactions.createIndex('by_contact', 'contact_id')
         },
     })
 }

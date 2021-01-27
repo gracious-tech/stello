@@ -16,6 +16,7 @@ div
             app-text(v-model='smtp_user' :placeholder='email' v-bind='$t("smtp_user")')
             app-text(v-model='smtp_host' v-bind='$t("smtp_host")' :error='tested && !smtp_host')
             app-text(v-model='smtp_port' placeholder='465' v-bind='$t("smtp_port")')
+            app-switch(v-model='smtp_starttls' v-bind='$t("smtp_starttls")')
 
         v-alert(v-if='error' colored-border border='left' color='error')
             h1(class='text-h6 mb-3') Could not connect
@@ -28,6 +29,7 @@ div
                     li(v-if='show_all_fields') Your "port" may be incorrect (try 465 or 587)
                     li Your Internet may be extremely slow or disconnected
                 template(v-if='error.code === "ESOCKET"')
+                    li(v-if='show_all_fields') Try enabling (or disabling) STARTTLS
                     li Make sure you are connected to the Internet
                     li Make sure any anti-virus software isn't blocking Stello
                 template(v-if='error.code === "EDNS"')
@@ -64,6 +66,9 @@ en:
     smtp_port:
         label: "Port"
         hint: "This will usually be either 465 (most common) or 587"
+    smtp_starttls:
+        label: "Use STARTTLS"
+        hint: "You can try enabling this if you can't connect (otherwise uses regular TLS)"
 </i18n>
 
 
@@ -144,6 +149,14 @@ export default class extends Vue {
     }
     @debounce_set() set smtp_port(value){
         this.profile.smtp.port = value
+        this.save()
+    }
+
+    get smtp_starttls(){
+        return this.profile.smtp.starttls
+    }
+    set smtp_starttls(value){
+        this.profile.smtp.starttls = value
         this.save()
     }
 
