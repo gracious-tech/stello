@@ -57,6 +57,9 @@ export function open_db():Promise<AppDatabaseConnection>{
                         cursor.value.smtp.starttls = cursor.value.smtp.port === 587
                         // Unintentionally saved in db in v0.0.4 and below
                         delete (cursor.value as any).smtp_providers
+                        // Previously saved smtp port as string by mistake
+                        // @ts-ignore since port may be string
+                        cursor.value.smtp.port = parseInt(cursor.value.smtp.port, 10) || null
                         // Save changes
                         cursor.update(cursor.value)
                     }
