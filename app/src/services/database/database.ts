@@ -53,13 +53,13 @@ export function open_db():Promise<AppDatabaseConnection>{
                     reactions.createIndex('by_contact', 'contact_id')
                 case 1:
                     for await (const cursor of transaction.objectStore('profiles')){
-                        // New property added after v0.0.4 (previously true if port 587)
-                        cursor.value.smtp.starttls = cursor.value.smtp.port === 587
                         // Unintentionally saved in db in v0.0.4 and below
                         delete (cursor.value as any).smtp_providers
                         // Previously saved smtp port as string by mistake
                         // @ts-ignore since port may be string
                         cursor.value.smtp.port = parseInt(cursor.value.smtp.port, 10) || null
+                        // New property added after v0.0.4 (previously true if port 587)
+                        cursor.value.smtp.starttls = cursor.value.smtp.port === 587
                         // Save changes
                         cursor.update(cursor.value)
                     }
