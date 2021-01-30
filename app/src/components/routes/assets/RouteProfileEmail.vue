@@ -15,7 +15,7 @@ div
         template(v-if='show_all_fields')
             app-text(v-model='smtp_user' :placeholder='email' v-bind='$t("smtp_user")')
             app-text(v-model='smtp_host' v-bind='$t("smtp_host")' :error='tested && !smtp_host')
-            app-text(v-model='smtp_port' placeholder='465' v-bind='$t("smtp_port")')
+            app-integer(v-model='smtp_port' :buttons='false' :inherit='465' v-bind='$t("smtp_port")')
             app-switch(v-model='smtp_starttls' v-bind='$t("smtp_starttls")')
 
         v-alert(v-if='error' colored-border border='left' color='error')
