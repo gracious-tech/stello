@@ -22,8 +22,6 @@ export interface SmtpProvider {
 
 
 const SMTP_PROVIDERS:{[provider:string]:SmtpProvider} = {
-    // WARN No garuantee a certain port will use starttls/tls
-    // e.g. Microsoft uses 587/STARTTLS where as Apple uses 587/TLS :/
     google: {
         host: 'smtp.gmail.com',
         port: 465,
@@ -59,7 +57,7 @@ const SMTP_PROVIDERS:{[provider:string]:SmtpProvider} = {
     apple: {
         host: 'smtp.mail.me.com',
         port: 587,
-        starttls: false,
+        starttls: true,
         domains: ['icloud.com'],
         app_pass: {
             url: 'https://appleid.apple.com/account/manage',
