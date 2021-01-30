@@ -65,10 +65,10 @@ en:
         hint: "If you use Gmail, enter \"smtp.gmail.com\". Otherwise search for \"smtp settings\" for your email provider."
     smtp_port:
         label: "Port"
-        hint: "This will usually be either 465 (most common) or 587"
+        hint: "This will usually be either 465 or 587"
     smtp_starttls:
         label: "Use STARTTLS"
-        hint: "You can try enabling this if you can't connect (otherwise uses regular TLS)"
+        hint: "Usually required if using port 587 (full TLS used otherwise)"
 </i18n>
 
 
