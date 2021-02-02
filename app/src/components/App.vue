@@ -27,7 +27,6 @@ v-app(:class='app_classes')
 
 import {Component, Vue, Watch} from 'vue-property-decorator'
 
-import app_config from '@/app_config.json'
 import AppStatus from '@/components/other/AppStatus.vue'
 import AppSidebar from '@/components/other/AppSidebar.vue'
 import AppDialog from '@/components/dialogs/AppDialog.vue'
