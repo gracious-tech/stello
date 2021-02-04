@@ -7,32 +7,19 @@ section
 
     //- inner div used to separate content area from add-before button for purposes of hover outline
     div.inner(@click.self='click_inner')
-        app-menu-more
-            v-list-item(@click='show_modify_dialog' :disabled='!(type in modify_dialogs)')
-                v-list-item-icon
-                    app-svg(name='icon_edit')
-                v-list-item-content
-                    v-list-item-title Modify
-            v-list-item(@click='move_up' :disabled='is_first')
-                v-list-item-icon
-                    app-svg(name='icon_arrow_upward')
-                v-list-item-content
-                    v-list-item-title Move up
-            v-list-item(@click='move_down' :disabled='is_last')
-                v-list-item-icon
-                    app-svg(name='icon_arrow_downward')
-                v-list-item-content
-                    v-list-item-title Move down
-            v-list-item(@click='toggle_half' :disabled='section.is_plain_text')
-                v-list-item-icon
-                    app-svg(:name='toggle_half_icon')
-                v-list-item-content
-                    v-list-item-title Half width
-            v-list-item(@click='remove' color='error')
-                v-list-item-icon
-                    app-svg(name='icon_delete')
-                v-list-item-content
-                    v-list-item-title Remove
+        div.actions
+            app-btn(icon='settings' @click='show_modify_dialog' :disabled='!(type in modify_dialogs)')
+            app-btn(icon='arrow_upward' @click='move_up' :disabled='is_first')
+            app-btn(icon='arrow_downward' @click='move_down' :disabled='is_last')
+            //- NOTE internal-activator prevents tooltip getting stuck after button toggled
+            //- NOTE inner div allows tooltip to show even when button disabled
+            v-tooltip(left internal-activator)
+                template(#activator='tooltip')
+                    div(v-bind='tooltip.attrs' v-on='tooltip.on')
+                        app-btn(:icon='toggle_half_icon' @click='toggle_half'
+                            :disabled='section.is_plain_text')
+                span {{ toggle_half_tooltip }}
+            app-btn(icon='delete' @click='remove' color='error')
 
         //- NOTE Using v-once so that selection not lost whenever html is saved/updated
         div(v-if='type === "text"' ref='editable' v-html='section.content.html' v-once
@@ -180,13 +167,13 @@ export default class extends Vue {
 
 
 section
-    position: relative  // So that .menu-more-btn will be relative to this
+    position: relative  // So that .actions will be relative to this
 
     &.full-wrappable .medium-editor-placeholder::after
         // Stop no-text placeholder overlapping left floats
         left: 55%
 
-    &.half-float ::v-deep .menu-more-btn
+    &.half-float .actions
         // half-float has right padding to form middle gutter, so don't need the -48px default
         // WARN Only apply when not in single-col layout
         @media (min-width: $stello_full_width)
@@ -198,6 +185,14 @@ section
         outline-style: dashed
         outline-color: rgba($accent, 0.2)
         outline-offset: 2px
+
+        .actions
+            // Reveal actions toolbar when hovering over section or the toolbar itself
+            z-index: 10  // MUST only be applied on hover to prevent overlapping sections' actions
+            opacity: 0.6
+
+            &:hover
+                opacity: 1  // Give full opacity if hovering over the toolbar itself
 
         .medium-editor-element
             // Don't show default white outline as will show outline around whole section instead
@@ -211,15 +206,14 @@ section
         margin-top: -48px
         z-index: 1  // Ensure button clickable despite prev float section's padding overlapping
 
-    ::v-deep .menu-more-btn
-        // Show options menu for section in right gutter
+    .actions
+        // Style (but initially hide) actions toolbar in right gutter
+        opacity: 0
+        display: flex
+        flex-direction: column
         position: absolute
         top: 48px
         right: -48px
-
-        &:not(:hover)
-            // Make subtle when not hovered
-            opacity: 0.15
 
 
 </style>
