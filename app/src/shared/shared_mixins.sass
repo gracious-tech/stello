@@ -17,6 +17,12 @@ $stello_full_width: 700px + $stello_gutter * 2
     *:last-child
         margin-bottom: 0
 
+@mixin standout-subtle
+    @include standout
+    opacity: 0.6
+    font-size: 0.75em
+    box-shadow: none
+
 @mixin standout-distinct
     @include standout
     background-color: rgba(50%, 50%, 50%, 0.1)

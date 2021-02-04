@@ -10,7 +10,8 @@ v-card
         v-radio-group.standout(v-model='standout' label="Standout")
             //- WARN Vuetify doesn't handle null properly so string is converted when saved
             //- See https://github.com/vuetifyjs/vuetify/issues/8876
-            v-radio.null(value='null' label="None")
+            v-radio.subtle(value='subtle' label="Subtle")
+            v-radio.null(value='null' label="Normal")
             v-radio.distinct(value='distinct' label="Distinct")
             v-radio.notice(value='notice' label="Notice")
             v-radio.important(value='important' label="Important")
@@ -58,6 +59,8 @@ export default class extends Vue {
         padding: 12px !important
         margin: 6px 0
 
+        &.subtle
+            @include standout-subtle
         &.distinct
             @include standout-distinct
         &.notice
