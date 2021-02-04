@@ -3,7 +3,7 @@
 
 div(@click='bg_click')
 
-    div.displayer(:class='{zoom}' :style='current_style' @click.stop='toggle_zoom')
+    div.displayer(:class='{zoom, editing}' :style='current_style' @click.stop='handle_img_click')
         img.sizer(:src='first_src')
 
     div.buttons(v-if='images.length > 1')
@@ -33,6 +33,10 @@ export default {
         crop: {
             type: Boolean,
             default: false,  // Important not to when zooming in displayer (crop already applied)
+        },
+        editing: {
+            type: Boolean,
+            default: false,  // Whether using slideshow in message editor or displayer
         },
     },
 
@@ -130,8 +134,13 @@ export default {
             }
         },
 
-        toggle_zoom(){
-            this.zoom = !this.zoom
+        handle_img_click(event){
+            // If editing then pass event to parent, otherwise toggle zoom
+            if (this.editing){
+                this.$listeners.click(event)
+            } else {
+                this.zoom = !this.zoom
+            }
         },
 
         bg_click(){
@@ -151,17 +160,6 @@ export default {
 
 <style lang='sass' scoped>
 
-.zoom
-    background-color: black
-    color: white
-    position: fixed
-    top: 0
-    bottom: 0
-    left: 0
-    right: 0
-    z-index: 9999
-    cursor: zoom-out !important
-
 
 .sizer
     width: 100%
@@ -173,6 +171,20 @@ export default {
     cursor: zoom-in
     background-position: center
     background-repeat: no-repeat
+
+    &.editing
+        cursor: pointer
+
+    &.zoom
+        background-color: black
+        color: white
+        position: fixed
+        top: 0
+        bottom: 0
+        left: 0
+        right: 0
+        z-index: 9999
+        cursor: zoom-out !important
 
 
 .buttons

@@ -39,7 +39,7 @@ section
             @input='html_changed')
 
         shared-slideshow(v-if='type === "images"' :images='section.content.images'
-            :crop='section.content.crop')
+            :crop='section.content.crop' editing @click='show_modify_dialog')
 
 </template>
 
