@@ -107,9 +107,9 @@ export default class extends Vue {
     get toggle_half_icon(){
         // Icon to display for toggle_half button (plain text always shows disabled)
         if (this.section.half_width && !this.section.is_plain_text){
-            return 'icon_checkbox_true'
+            return 'section_width_full'
         }
-        return 'icon_checkbox_false'
+        return 'section_width_half'
     }
 
     move_up(){
