@@ -7,12 +7,12 @@ div(@click='bg_click')
         img.sizer(:src='first_src')
 
     div.buttons(v-if='images.length > 1')
-        button(@click.stop='prev' :disabled='is_first' class='step')
+        button(@click.stop='prev' class='step')
             svg(width='24' height='24')
                 path(d='M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z')
         button(v-for='(button, i) of buttons' :key='button.id' @click.stop='button.activate'
             :style='button.style' class='thumb' :class='{active: current === i}')
-        button(@click.stop='next' :disabled='is_last' class='step')
+        button(@click.stop='next' class='step')
             svg(width='24' height='24')
                 path(d='M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z')
 
@@ -123,15 +123,11 @@ export default {
     methods: {
 
         prev(){
-            if (!this.is_first){
-                this.current -= 1
-            }
+            this.current = this.is_first ? this.images.length - 1 : this.current - 1
         },
 
         next(){
-            if (!this.is_last){
-                this.current += 1
-            }
+            this.current = this.is_last ? 0 : this.current + 1
         },
 
         handle_img_click(event){
