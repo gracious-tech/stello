@@ -105,11 +105,19 @@ export default class extends Vue {
     }
 
     get toggle_half_icon(){
-        // Icon to display for toggle_half button (plain text always shows disabled)
-        if (this.section.half_width && !this.section.is_plain_text){
-            return 'section_width_full'
+        // Icon to display for toggle_half button (plain text always wraps)
+        if (this.section.is_plain_text){
+            return 'section_width_wrap'
         }
-        return 'section_width_half'
+        return this.section.half_width ? 'section_width_full' : 'section_width_half'
+    }
+
+    get toggle_half_tooltip(){
+        // Return text to display for tooltip for toggle half width button
+        if (this.section.is_plain_text){
+            return "Normal text always wraps around other content"
+        }
+        return this.section.half_width ? "Expand to full width" : "Reduce to half width"
     }
 
     move_up(){

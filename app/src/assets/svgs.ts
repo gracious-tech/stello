@@ -35,6 +35,7 @@ export default {
     icon_groups:            require('@/assets/icon_groups.svg').default,
     icon_section_width_half: require('@/assets/icon_section_width_half.svg').default,
     icon_section_width_full: require('@/assets/icon_section_width_full.svg').default,
+    icon_section_width_wrap: require('@/assets/icon_section_width_wrap.svg').default,
 
     // Material icons
     icon_invert_colors:     require('md-icon-svgs/invert_colors.svg').default,
