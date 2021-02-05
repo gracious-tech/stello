@@ -9,7 +9,7 @@ section(v-for='(section, i) of sections' :key='section.id' :class='section_class
     div(v-if='!section_classes[i].includes("half-float")' style='clear: left')
     Respond(:section_id='section.id')
 
-//- Should credit only when message visible (else nothing impressive to see!)
+//- Should credit only when message decrypted (unauthenticated readers shouldn't know about Stello)
 Credit
 
 </template>
