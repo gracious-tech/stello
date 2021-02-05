@@ -37,24 +37,8 @@ div(v-if='draft')
         input(v-model.trim='title' placeholder="Subject...")
 
     div.stello-container(:class='{dark: dark_message}')
-
         shared-dark-toggle(v-model='dark_message')
-
-        div.content
-            template(v-for='(section_id, i) of draft.sections')
-
-                draft-section.section(v-if='sections[section_id]' :key='section_id' :draft='draft'
-                    :section='sections[section_id]' :class='section_classes[i]')
-
-                //- Clearing on sections themselves usually isn't enough so must insert empty div
-                //- Only time when shouldn't clear after a section is after a half-float (on left)
-                //- WARN Update sent message rendering if this changes
-                div(v-if='!section_classes[i].includes("half-float")' style='clear: left')
-
-            draft-add-section.add-end(:draft='draft' :position='draft.sections.length'
-                :visible='!draft.sections.length')
-
-            draft-guide(:empty='!draft.sections.length')
+        draft-content(:draft='draft' :sections='sections')
 
 </template>
 
@@ -63,15 +47,13 @@ div(v-if='draft')
 
 import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
-import DraftGuide from './assets/DraftGuide.vue'
-import DraftSection from './assets/DraftSection.vue'
-import DraftAddSection from './assets/DraftAddSection.vue'
+import DraftContent from './assets/DraftContent.vue'
 import DialogSectionImages from '@/components/dialogs/DialogSectionImages.vue'
 import DialogDraftProfile from '@/components/dialogs/DialogDraftProfile.vue'
 import DialogDraftRecipients from '@/components/dialogs/DialogDraftRecipients.vue'
 import DialogDraftSecurity from '@/components/dialogs/DialogDraftSecurity.vue'
 import SharedDarkToggle from '@/shared/SharedDarkToggle.vue'
-import {debounce_set, get_section_classes} from '@/services/misc'
+import {debounce_set} from '@/services/misc'
 import {Draft} from '@/services/database/drafts'
 import {Profile} from '@/services/database/profiles'
 import {Section} from '@/services/database/sections'
@@ -79,7 +61,7 @@ import {update_configs} from '@/services/configs'
 
 
 @Component({
-    components: {DraftSection, DraftAddSection, DraftGuide, SharedDarkToggle},
+    components: {DraftContent, SharedDarkToggle},
 })
 export default class extends Vue {
 
@@ -208,12 +190,6 @@ export default class extends Vue {
         self._db.drafts.set(this.draft)
     }
 
-    get section_classes(){
-        // Automatically determine appropriate display classes for sections based on their positions
-        const sections_data = this.draft.sections.map(id => this.sections[id])
-        return get_section_classes(sections_data)
-    }
-
     get dark_message(){
         // Control whether message should be dark themed (for user only)
         return this.$store.state.dark_message
@@ -334,11 +310,5 @@ export default class extends Vue {
     // Make any buttons inherit message theme color rather than app theme color
     ::v-deep button
         color: inherit !important
-
-    .content
-        .add-end
-            clear: both
-            position: relative
-            left: -48px
 
 </style>
