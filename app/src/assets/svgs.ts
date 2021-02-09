@@ -33,11 +33,11 @@ export default {
     icon_checkbox_cross:    require('@/assets/icon_checkbox_cross.svg').default,
     icon_privacy_tip:       require('@/assets/icon_privacy_tip.svg').default,
     icon_groups:            require('@/assets/icon_groups.svg').default,
-    icon_section_width_half: require('@/assets/icon_section_width_half.svg').default,
-    icon_section_width_full: require('@/assets/icon_section_width_full.svg').default,
-    icon_section_width_wrap: require('@/assets/icon_section_width_wrap.svg').default,
+    icon_section_merge:     require('@/assets/icon_section_merge.svg').default,
+    icon_section_separate:  require('@/assets/icon_section_separate.svg').default,
 
     // Material icons
+    icon_swap_horiz:        require('md-icon-svgs/swap_horiz.svg').default,
     icon_invert_colors:     require('md-icon-svgs/invert_colors.svg').default,
     icon_compare_arrows:    require('md-icon-svgs/compare_arrows.svg').default,
     icon_cloud_download:    require('md-icon-svgs/cloud_download.svg').default,
