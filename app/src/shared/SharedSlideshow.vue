@@ -167,6 +167,7 @@ export default {
     cursor: zoom-in
     background-position: center
     background-repeat: no-repeat
+    border-radius: 12px
 
     &.editing
         cursor: pointer
