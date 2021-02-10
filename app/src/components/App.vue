@@ -84,9 +84,6 @@ export default class extends Vue {
     get app_classes(){
         // Return classes for the component's root
         const classes = []
-        if (self.navigator.userAgent.includes('electron')){
-            classes.push('custom-scroll')  // Don't want to show scrollbar for mobile devices
-        }
         if (this.$store.state.dark){
             classes.push('dark')
         }
@@ -206,29 +203,6 @@ export default class extends Vue {
     &.deeper-leave-active, &.shallower-leave-active, &.jump-leave-active
         position: absolute
         width: 100%
-
-
-// Custom scrollbar
-
-
-.custom-scroll
-    // Make scrollbars more subtle and themed
-    // WARN Only apply to desktop, as mobile scrollbars should be hidden (and default to so)
-    scrollbar-width: 12px
-    scrollbar-color: #0002 transparent  // WARN ::-webkit-scrollbar-thumb must also be changed
-
-    ::-webkit-scrollbar
-        width: 12px
-        background-color: transparent
-
-    ::-webkit-scrollbar-thumb
-        background-color: #0002
-
-    &.dark  // NOTE Not using `themed` as setting on .dark's element (rather than nested element)
-        scrollbar-color: #fff2 transparent
-
-        ::-webkit-scrollbar-thumb
-            background-color: #fff2
 
 
 // Snackbar
