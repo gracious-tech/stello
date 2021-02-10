@@ -1,4 +1,10 @@
 
+<!-- TODO
+    1. Switch to display via horizontal snap scrolling div (so touch users can smoothly swipe)
+    2. Replace prev/next buttons with hover over left/right of image
+        Show shadow/light at edge of image on hover (so doesn't block viewing of image edge)
+-->
+
 <template lang='pug'>
 
 div(@click='bg_click')
