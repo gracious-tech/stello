@@ -1,7 +1,7 @@
 
 <template lang='pug'>
 
-div.root
+div.sidebar
 
     div(class='release-banner') ALPHA
 
@@ -69,7 +69,7 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
-.root
+.sidebar
     display: flex
     flex-direction: column
     background-color: $primary
@@ -77,6 +77,7 @@ export default class extends Vue {
     padding: 24px
     z-index: 10
     overflow-y: auto
+    min-width: 250px
 
 .new
     margin-top: 24px
