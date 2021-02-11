@@ -36,7 +36,7 @@ v-card
         div(v-else class='text-center text--secondary')
 
             p
-                app-file(@input='from_file' color='accent'
+                app-file(@input='from_file'
                         accept='text/vcard,text/csv,text/plain,.vcf,.vcard,.txt,.csv')
                     | Load file
                 app-btn(@click='from_clipboard') Paste
@@ -64,8 +64,6 @@ import vcard_json from 'vcard-json'
 import neat_csv from 'neat-csv'
 import email_addresses, {ParsedMailbox} from 'email-addresses'
 
-import {Draft} from '@/services/database/drafts'
-import {Profile} from '@/services/database/profiles'
 import {get_clipboard_text} from '@/services/utils/misc'
 
 
