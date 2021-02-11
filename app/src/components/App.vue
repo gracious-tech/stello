@@ -177,6 +177,7 @@ export default class extends Vue {
     display: flex
     flex-direction: column
     flex-grow: 1
+    overflow-x: hidden  // Stops growing out of container (e.g. when very long word in content)
     // Defaults for all transition animations
     animation-duration: 375ms
     animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1)
