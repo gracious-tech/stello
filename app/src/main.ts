@@ -21,6 +21,7 @@ import AppBtn from '@/components/global/AppBtn.vue'
 import AppBtnCheckbox from '@/components/global/AppBtnCheckbox.vue'
 import AppSVG from '@/components/global/AppSVG.vue'
 import AppText from '@/components/global/AppText.vue'
+import AppTextarea from '@/components/global/AppTextarea.vue'
 import AppFile from '@/components/global/AppFile.vue'
 import AppSwitch from '@/components/global/AppSwitch.vue'
 import AppSelect from '@/components/global/AppSelect.vue'
@@ -86,6 +87,7 @@ Vue.component('app-btn', AppBtn)
 Vue.component('app-btn-checkbox', AppBtnCheckbox)
 Vue.component('app-svg', AppSVG)
 Vue.component('app-text', AppText)
+Vue.component('app-textarea', AppTextarea)
 Vue.component('app-file', AppFile)
 Vue.component('app-switch', AppSwitch)
 Vue.component('app-select', AppSelect)
