@@ -22,8 +22,7 @@ div(@click='bg_click')
             svg(width='24' height='24')
                 path(d='M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z')
 
-    //- NOTE \u00A0 is a non-breaking space (&nbsp; didn't work for some reason)
-    div.cap {{ caption || "\u00A0" }}
+    div.cap(v-if='caption') {{ caption }}
 
 </template>
 
@@ -97,7 +96,22 @@ export default {
         },
 
         caption(){
-            return this.empty ? "No images added yet" : this.images[this.current].caption
+            // Get caption for current image
+            if (this.empty){
+                // No images added, must be in editor, so display help text
+                return "No images added yet"
+            }
+            if (!this.captions_exist){
+                // No images have captions so don't leave space for them
+                return null
+            }
+            // Return current caption, or otherwise a non-breaking space to reduce layout jumping
+            return this.images[this.current].caption.trim() || "\u00A0"
+        },
+
+        captions_exist(){
+            // Whether at least one image has a caption (and should .'. make room for it)
+            return this.images.some(image => image.caption.trim())
         },
 
         buttons(){
