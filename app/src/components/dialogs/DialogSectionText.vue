@@ -16,7 +16,7 @@ v-card
             v-radio.notice(value='notice' label="Notice")
             v-radio.important(value='important' label="Important")
 
-        p Normal text will always take up full width and wrap around other content, where as other styles do not wrap and can instead be made half-width if desired.
+        p When normal text is placed next to other content it will wrap around it, where as other styles will not.
 
     v-card-actions
         v-btn(@click='dismiss' text) Done
