@@ -5,16 +5,17 @@ v-card
 
     v-card-title
         app-file(@input='add_files' accept='image/*' multiple) Select image
-        v-btn(@click='paste_images' text) Paste image
+        app-btn(@click='paste_images') Paste image
         app-switch(v-model='crop' :disabled='images.length < 2' :disabled_value='false'
             label="Make same size")
 
     v-card-text
         dialog-section-images-item(v-for='(item, i) of images' :key='item.id' :section='section'
             :item_index='i')
+        p.empty(v-if='!images.length') Select from your files or copy &amp; paste an image
 
     v-card-actions
-        v-btn(@click='dismiss' text) Done
+        app-btn(@click='dismiss') Done
 
 </template>
 
@@ -141,5 +142,8 @@ export default class extends Vue {
     display: flex
     align-items: center
     justify-content: space-around
+
+.empty
+    text-align: center
 
 </style>
