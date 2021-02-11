@@ -56,5 +56,7 @@ for section in data['sections']:
             download(f'assets/{base_msg_id}/{image["asset_jpeg"]}')
             download(f'assets/{base_msg_id}/{image["asset_webp"]}')
 
-# Print URL for testing
-print(f'http://localhost:3000/#{raw_hash}')
+# Print and save URL for testing
+displayer_url = f'http://localhost:3000/#{raw_hash}'
+print(displayer_url)
+(dest_path / 'url.txt').write_text(displayer_url)
