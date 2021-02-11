@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 "ruamel.yaml" = "*"
 invoke = "*"
+cryptography = "*"
 
 [dev-packages]
 
