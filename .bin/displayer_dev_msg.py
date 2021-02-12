@@ -26,6 +26,7 @@ if dest_path.is_dir():
 
 # Download helper
 def download(path:Path):
+    print(path)
     file_path = dest_path / path
     file_path.parent.mkdir(exist_ok=True, parents=True)
     with open(file_path, 'wb') as file:
@@ -49,12 +50,13 @@ data = json.loads(crypto.decrypt(iv, encrypted_data, None))
 
 # Download message assets
 base_msg_id = data['base_msg_id']
-for section in data['sections']:
-    if section['content']['type'] == 'images':
-        for image in section['content']['images']:
-            print("Downloading image assets")
-            download(f'assets/{base_msg_id}/{image["asset_jpeg"]}')
-            download(f'assets/{base_msg_id}/{image["asset_webp"]}')
+for row in data['sections']:
+    for section in row:
+        if section['content']['type'] == 'images':
+            for image in section['content']['images']:
+                print("Downloading image assets")
+                download(f'assets/{base_msg_id}/{image["asset_jpeg"]}')
+                download(f'assets/{base_msg_id}/{image["asset_webp"]}')
 
 # Print and save URL for testing
 displayer_url = f'http://localhost:3000/#{raw_hash}'
