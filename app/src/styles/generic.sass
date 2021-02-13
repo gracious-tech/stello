@@ -7,8 +7,8 @@ html
     // NOTE this also disables zoom on some devices (disabled via meta anyway)
     text-size-adjust: none
     // Prevent width increases that break layout due to long words like URLs
-    word-wrap: break-word
-    overflow-wrap: break-word
+    // NOTE word-wrap is an old alias of overflow-wrap
+    overflow-wrap: break-word  // Break when needed (expand container to its limit first though)
 
 
 iframe, img
@@ -38,11 +38,11 @@ hr
 body
     // Make scrollbars more subtle and themed
     // WARN Colors chosen to work well on both dark/light bgs (not necessarily exact middle)
-    scrollbar-width: 12px
+    scrollbar-width: $stello_scrollbar_width
     scrollbar-color: #5554 transparent  // WARN ::-webkit-scrollbar-thumb must also be changed
 
     ::-webkit-scrollbar
-        width: 12px
+        width: $stello_scrollbar_width
         background-color: transparent
 
     ::-webkit-scrollbar-thumb

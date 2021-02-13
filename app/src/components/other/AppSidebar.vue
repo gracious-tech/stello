@@ -77,7 +77,7 @@ export default class extends Vue {
     padding: 24px
     z-index: 10
     overflow-y: auto
-    min-width: 250px
+    min-width: $stello_sidebar_width
 
 .new
     margin-top: 24px
