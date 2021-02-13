@@ -1,14 +1,17 @@
 
 <template lang='pug'>
 
-SharedSlideshow(:images='images')
+SharedSlideshow(:images='images' @img_click='fullscreen_enable')
+
+teleport(v-if='fullscreen_img_style' to='.content')
+    div.fullscreen(@click='fullscreen_disable' :style='fullscreen_img_style')
 
 </template>
 
 
 <script lang='ts'>
 
-import {ref, reactive} from 'vue'
+import {ref, reactive, computed, watch, onUnmounted} from 'vue'
 
 import SharedSlideshow from '../shared/SharedSlideshow.vue'
 import {store} from '../services/store'
@@ -58,14 +61,55 @@ export default {
             }).catch(() => {})  // Will show placeholder if getting asset fails
         }
 
-        // Expose images ref
-        return {images}
-    }
+
+        // Fullscreen mode
+        const fullscreen_img = ref(null)
+        const fullscreen_img_style = computed(() => {
+            return fullscreen_img.value && {'background-image': `url(${fullscreen_img.value})`}
+        })
+        const fullscreen_enable = (url:string) => {
+            fullscreen_img.value = url
+        }
+        const fullscreen_disable = () => {
+            fullscreen_img.value = null
+        }
+
+
+        // Disabling of page scroll
+        const set_page_scroll = (value:boolean) => {
+            // Set whether whole page can scroll or not (so can disable when image fullscreen)
+            self.document.body.style.overflowY = value ? 'auto' : 'hidden'
+        }
+        watch(fullscreen_img, (value:string) => {
+            set_page_scroll(!value)
+        })
+        onUnmounted(() => {
+            // Ensure page can still scroll after component unmounted (in case done while fullscreen)
+            set_page_scroll(true)
+        })
+
+
+        // Expose template's requirements
+        return {images, fullscreen_img_style, fullscreen_enable, fullscreen_disable}
+    },
 }
 
 </script>
 
 
 <style lang='sass' scoped>
+
+.fullscreen
+    position: fixed
+    z-index: 100
+    top: 0
+    bottom: 0
+    left: 0
+    right: 0
+    background-color: black
+    background-size: contain
+    background-position: center
+    background-repeat: no-repeat
+    cursor: zoom-out
 
 </style>

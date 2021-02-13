@@ -7,9 +7,9 @@
 
 <template lang='pug'>
 
-div(@click='bg_click')
+div
 
-    div.displayer(:class='{zoom, editing}' :style='current_style' @click.stop='handle_img_click')
+    div.displayer(:class='{editing}' :style='current_style' @click.stop='handle_img_click')
         img.sizer(:src='first_src')
 
     div.buttons(v-if='images.length > 1')
@@ -37,7 +37,7 @@ export default {
         },
         crop: {
             type: Boolean,
-            default: false,  // Important not to when zooming in displayer (crop already applied)
+            default: false,  // Not needed in displayer (crop already applied)
         },
         editing: {
             type: Boolean,
@@ -48,7 +48,6 @@ export default {
     data(){
         return {
             current: 0,
-            zoom: false,
             placeholder: null,
         }
     },
@@ -62,14 +61,6 @@ export default {
         </svg>`
         const blob = new Blob([svg], {type: 'image/svg+xml'})
         this.placeholder = URL.createObjectURL(blob)
-    },
-
-    // Ensure page can still scroll after component unmounted (in case done while zooming)
-    destroyed(){  // Vue 2
-        this.set_page_scroll(true)
-    },
-    unmounted(){  // Vue 3
-        this.set_page_scroll(true)
     },
 
     computed: {
@@ -87,10 +78,13 @@ export default {
             return this.empty ? this.placeholder : this.object_urls[0]
         },
 
+        current_url(){
+            return this.empty ? this.placeholder : this.object_urls[this.current]
+        },
+
         current_style(){
-            const url = this.empty ? this.placeholder : this.object_urls[this.current]
             return {
-                'background-image': `url(${url})`,
+                'background-image': `url(${this.current_url})`,
                 'background-size': this.crop ? 'cover' : 'contain',
             }
         },
@@ -133,13 +127,6 @@ export default {
         },
     },
 
-    watch: {
-        zoom(){
-            // Disable page scroll while zooming
-            this.set_page_scroll(!this.zoom)
-        },
-    },
-
     methods: {
 
         prev(){
@@ -150,22 +137,9 @@ export default {
             this.current = this.is_last ? 0 : this.current + 1
         },
 
-        handle_img_click(event){
-            // If editing then pass event to parent, otherwise toggle zoom
-            if (this.editing){
-                this.$listeners.click(event)
-            } else {
-                this.zoom = !this.zoom
-            }
-        },
-
-        bg_click(){
-            this.zoom = false
-        },
-
-        set_page_scroll(value){
-            // Set whether whole page can scroll or not (want to disable when zooming image)
-            self.document.body.style.overflowY = value ? 'auto' : 'hidden'
+        handle_img_click(){
+            // Pass event to parent for custom behaviour
+            this.$emit('img_click', this.current_url)
         },
     },
 
@@ -191,17 +165,6 @@ export default {
 
     &.editing
         cursor: pointer
-
-    &.zoom
-        background-color: black
-        color: white
-        position: fixed
-        top: 0
-        bottom: 0
-        left: 0
-        right: 0
-        z-index: 9999
-        cursor: zoom-out !important
 
 
 .buttons
