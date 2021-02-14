@@ -67,7 +67,7 @@ setup(props:{msg_access:MessageAccess}, context){
         }
 
         // Try to decrypt the message
-        let decrypted
+        let decrypted:ArrayBuffer
         try {
             decrypted = await decrypt_sym(encrypted, props.msg_access.secret)
         } catch {
@@ -77,6 +77,12 @@ setup(props:{msg_access:MessageAccess}, context){
 
         // Parse the data
         const msg_data = JSON.parse(buffer_to_utf8(decrypted)) as PublishedCopy
+
+        // Reformat old data structures (v0.1.1 and below)
+        if (!Array.isArray(msg_data.sections[0])){
+            // @ts-ignore old format
+            msg_data.sections = msg_data.sections.map(section => [section])
+        }
 
         // Generate response token
         resp_token.value =

@@ -96,7 +96,7 @@ export interface RecordDraft {
     reply_to:string
     modified:Date
     title:string
-    sections:string[]
+    sections:string[][]
     profile:string
     options_identity:MessageOptionsIdentity
     options_security:MessageOptionsSecurity
@@ -113,10 +113,9 @@ export interface RecordDraftRecipients {
 
 // Section
 
-export interface RecordSection {
+export interface RecordSection<TContent extends RecordSectionContent=RecordSectionContent> {
     id:string
-    content:RecordSectionContent
-    half_width:boolean
+    content:TContent
 }
 
 export type RecordSectionContent =

@@ -6,7 +6,6 @@ import {VSelect} from 'vuetify/lib/components/VSelect'
 import {VAutocomplete} from 'vuetify/lib/components/VAutocomplete'
 
 import svgs from '@/assets/svgs'
-import {Section} from './database/sections'
 
 
 // SECTION SIZES
@@ -98,46 +97,4 @@ export function activate_editor(elements){
 
     // Return deactivator
     return () => {self._editor.removeElements(elements)}
-}
-
-
-export function get_section_classes(sections:Section[]):string[][]{
-    // Automatically determine appropriate display classes for sections based on their positions
-    // Possible classes: full-wrappable, full-clear, half-float, half-adjacent
-    const classes:string[][] = []
-    let prev = 'full-clear'
-    for (const section of sections){
-
-        // If section data not available yet, no class since won't render anyway
-        if (!section){
-            classes.push([])  // Still push empty array so indexes match
-            continue
-        }
-
-        // The type of the section affects how it is displayed
-        if (section.is_plain_text){
-            // Plain text can never be half width
-            //      and not allowed to have two wrappables next to each other (confuses buttons)
-            prev = prev === 'half-float' ? 'full-wrappable' : 'full-clear'
-
-        } else {
-            // Can never be full-wrappable as only plain text allowed to wrap
-            if (!section.half_width){
-                prev = 'full-clear'
-            } else {
-                prev = prev === 'half-float' ? 'half-adjacent' : 'half-float'
-            }
-        }
-
-        // Add the display class to the list
-        const items_classes = [prev]
-        classes.push(items_classes)
-
-        // Also add additional classes if standout text
-        if (section.content.type === 'text' && section.content.standout){
-            items_classes.push(`standout-${section.content.standout}`)
-        }
-    }
-
-    return classes
 }

@@ -15,7 +15,7 @@ export class Draft implements RecordDraft {
     reply_to:string
     modified:Date
     title:string
-    sections:string[]
+    sections:string[][]
     profile:string
     options_identity:MessageOptionsIdentity
     options_security:MessageOptionsSecurity
@@ -141,7 +141,7 @@ export class DatabaseDrafts {
         const store_sections = transaction.objectStore('sections')
 
         // Get the message's sections so can remove them
-        const section_ids = (await store_drafts.get(id)).sections
+        const section_ids = (await store_drafts.get(id)).sections.flat()
 
         // Remove the message and its sections
         store_drafts.delete(id)

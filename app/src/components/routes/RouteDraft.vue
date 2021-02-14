@@ -80,7 +80,7 @@ export default class extends Vue {
 
         // Load the draft and the contents of the draft's sections
         const draft = await self._db.drafts.get(this.draft_id)
-        for (const section of await self._db.sections.get_multiple(draft.sections)){
+        for (const section of await self._db.sections.get_multiple(draft.sections.flat())){
             Vue.set(this.sections, section.id, section)
         }
         this.draft = draft
@@ -103,7 +103,7 @@ export default class extends Vue {
         this.sections_inited = true
 
         // Process each section id
-        this.draft.sections.forEach(async section_id => {
+        this.draft.sections.flat().forEach(async section_id => {
 
             // Ignore section if data already obtained as only interested in creation events
             // NOTE Changes to sections are made to section objects directly, not refetched from db
@@ -140,7 +140,7 @@ export default class extends Vue {
             return "Give message a subject"
         if (!this.draft.sections.length)
             return "Give message some contents"
-        for (const section_id of this.draft.sections){
+        for (const section_id of this.draft.sections.flat()){
             const section = this.sections[section_id]  // WARN May not exist if fetching from db
             if (section && section.content.type === 'images' && !section.content.images.length){
                 return "Add an image to the placeholder you created"
@@ -306,9 +306,19 @@ export default class extends Vue {
     width: 100%
     flex-grow: 1
     overflow-y: auto
+    position: relative  // So dark toggle button scrolls normally
+
+    // Override app defaults that won't be present in displayer
+    ::v-deep
+        strong
+            font-weight: revert  // 500 weight not supported by fonts used for message display
 
     // Make any buttons inherit message theme color rather than app theme color
     ::v-deep button
         color: inherit !important
+
+        &.v-btn--disabled
+            color: inherit !important
+            opacity: 0.3
 
 </style>

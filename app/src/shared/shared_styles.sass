@@ -5,10 +5,13 @@
 
 .stello-container
     line-height: 1.65
-    font-size: 18px
-    @media (min-width: $stello_full_width)
-        font-size: 21px
     font-family: charter, Georgia, Cambria, "Times New Roman", Times, serif
+    overflow-wrap: break-word  // Prevent layout breaks due to long words (like URLs)
+
+    font-size: 18px
+    @media (min-width: $stello_full_plus_sidebar)
+        font-size: 21px
+
     background-color: #eee
     color: rgba(#000, 0.8)
     &.dark
@@ -22,25 +25,69 @@
         margin-right: auto
         padding: $stello_gutter $stello_gutter 100px $stello_gutter
 
-    section
-        width: 100%
-        padding-top: $stello_gutter
+    .srow
+        display: flex
+        align-items: center
 
         // As soon as content width starts decreasing, switch to single column
         // (otherwise add/respond buttons don't have space to display)
-        @media (min-width: $stello_full_width)
-            &.full-wrappable
-                // pass
-            &.full-clear
-                clear: left
-            &.half-float
-                max-width: ($stello_content_width / 2) - ($stello_gutter / 2)
-                float: left
-                padding-right: $stello_gutter
-                z-index: 1  // Allowing focusing elements over wrapping sections that come after
-            &.half-adjacent
-                max-width: ($stello_content_width / 2) - ($stello_gutter / 2)
-                float: left
+        @media (min-width: $stello_full_plus_sidebar)
+
+            &.parallel
+                section:nth-child(1)
+                    float: left
+                    max-width: $stello_float_width
+                    margin-right: $stello_gutter
+                section:nth-child(2)
+                    float: right
+                    max-width: $stello_float_width
+
+            &.wrap-left
+                section:nth-child(1)
+                    float: left
+                    max-width: $stello_float_width
+                    margin-right: $stello_gutter
+                section:nth-child(2)
+                    ul, ol
+                        /* PROBLEM: List indentation breaks when next to a left float
+                            Why: Floats shift text only and not actual elements
+                            Solutions that don't work:
+                                - overflow:hidden fixes indentation but stops lists wrapping
+                                - list-style-position:inside has bad alignment for items that wrap
+
+                            Solution: Use position:relative to indent lists
+                                Must also disable default list padding as affects non-wrapped lists
+                                WARN Messes up wrapping around right floats so only use for left
+                            */
+                        padding-left: 0  // Disable default padding for lists
+                        position: relative
+                        left: 2em  // Give root list extra padding to standout from normal text
+                        padding-right: 2em  // Stop text breaking container due to positioning
+                        ul, ol
+                            left: 1em
+                            padding-right: 1em
+
+            &.wrap-right
+                section:nth-child(1)
+                    float: right
+                    max-width: $stello_float_width
+                    margin-left: $stello_gutter
+
+    .sections
+        flex-grow: 1
+        max-width: 100%  // Stop long words breaking layout
+
+        section:nth-child(1)
+            z-index: 1  // Second section may wrap and prevent interaction with first, so raise it
+
+    section
+        position: relative  // Needed to position .actions & to stop ol/ul overlapping left float
+        box-sizing: border-box
+        padding: 2px
+        border: 2px dashed #0000  // Although not used by displayer, keeps same sizing as editor
+        margin-bottom: 12px  // Important for floated sections
+        min-height: $stello_gutter * 2 - 12px  // Allow enough room for actions bar (less margin)
+        width: 100%
 
 
     // Standout
@@ -67,6 +114,32 @@
 
     // Regular elements
 
+    p, blockquote, h1, h2, ul, ol
+        margin-top: 0  // Override browser default
+        margin-bottom: 0.8em
+
+    h1:not(:first-child), h2:not(:first-child)
+        margin-top: 1.2em  // Headings in middle of content should have extra spacing above
+
+    h1
+        font-size: 1.5em  // Relative to container size (which changes by screen size)
+
+    h2
+        font-size: 1.25em  // Relative to container size (which changes by screen size)
+
+    ul, ol
+        // WARN Check .wrap-left list customisations when making changes
+        padding-left: 2em  // Give root list extra padding to stand out from other text
+        ul, ol
+            padding-left: 1em
+            font-size: 0.9em  // Only slight decrease as will compound each level down
+            margin-bottom: 0
+        // Change ordered list style per level (unordered style already changes)
+        ol
+            list-style-type: lower-alpha  // TODO Support i18n
+            ol
+                list-style-type: lower-roman
+
     button
         color: inherit  // Chrome doesn't inherit by default
 
@@ -74,3 +147,15 @@
         margin-left: 12px
         border-left: 2px solid rgba(50%, 50%, 50%, 0.5)
         padding-left: 12px
+
+    a
+        color: #0044ff  // No transparency for links to stand out more
+        text-decoration: none
+        &:hover
+            text-decoration: underline
+    &.dark a
+        color: #0088ff  // Hue adjusted for better contrast ratio
+
+    iframe, img
+        // Prevent these elements from having implicit bottom padding due to being 'inline'
+        display: block

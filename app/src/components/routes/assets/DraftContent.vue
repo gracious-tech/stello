@@ -2,15 +2,14 @@
 <template lang='pug'>
 
 div.content
-    template(v-for='(section_id, i) of draft.sections')
 
-        draft-section.section(v-if='sections[section_id]' :key='section_id' :draft='draft'
-            :section='sections[section_id]' :class='section_classes[i]')
-
-        //- Clearing on sections themselves usually isn't enough so must insert empty div
-        //- Only time when shouldn't clear after a section is after a half-float (on left)
-        //- WARN Update sent message rendering if this changes
-        div(v-if='!section_classes[i].includes("half-float")' style='clear: left')
+    template(v-for='(row, row_i) of floatified_rows')
+        draft-add-section.add-before(:draft='draft' :position='row_i')
+        div.srow(:class='row.display')
+            draft-movebar(:draft='draft' :row_i='row_i')
+            div.sections
+                draft-section.section(v-for='section of row.sections' :key='section.id'
+                    :draft='draft' :section='section')
 
     draft-add-section.add-end(:draft='draft' :position='draft.sections.length'
         :visible='!draft.sections.length')
@@ -26,24 +25,30 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 
 import DraftGuide from './DraftGuide.vue'
 import DraftSection from './DraftSection.vue'
+import DraftMovebar from './DraftMovebar.vue'
 import DraftAddSection from './DraftAddSection.vue'
-import {get_section_classes} from '@/services/misc'
 import {Draft} from '@/services/database/drafts'
 import {Section} from '@/services/database/sections'
+import {floatify_rows} from '@/shared/shared_functions'
 
 
 @Component({
-    components: {DraftSection, DraftAddSection, DraftGuide},
+    components: {DraftSection, DraftAddSection, DraftGuide, DraftMovebar},
 })
 export default class extends Vue {
 
     @Prop() draft:Draft
     @Prop() sections:{[id:string]: Section}
 
-    get section_classes(){
-        // Automatically determine appropriate display classes for sections based on their positions
-        const sections_data = this.draft.sections.map(id => this.sections[id])
-        return get_section_classes(sections_data)
+    get floatified_rows(){
+        // Return rows of sections with actual section records, and display mode for the rows
+        return floatify_rows(
+            // Convert the section ids to actual sections
+            // NOTE Must filter out sections and/or rows when they haven't been loaded from db yet
+            this.draft.sections.map(row => {
+                return row.map(section => this.sections[section]).filter(s => s)
+            }).filter(row => row.length),
+        )
     }
 }
 
@@ -52,10 +57,52 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+@import '@/shared/shared_mixins'
+
+
 .content
-    .add-end
-        clear: both
-        position: relative
-        left: -48px
+    position: relative
+
+    .srow
+
+        .movebar
+            position: absolute
+            margin-left: -$stello_gutter
+
+            &:hover
+                opacity: 1 !important
+                z-index: 1  // Raise over other movebars when using (needed when they overlap)
+
+            // Hide bar contents rather than bar itself so can still trigger hover
+            ::v-deep > *
+                visibility: hidden
+
+        &:hover
+            .movebar
+                opacity: 0.3
+
+                ::v-deep > *
+                    visibility: visible
+
+        // Modify display of outlines etc to account for wrapped text technically overlapping floats
+        @media (min-width: $stello_full_plus_sidebar)
+
+            &.wrap-left section:nth-child(2)
+                border-top-color: #0000
+                border-bottom-color: #0000
+                border-left-color: #0000
+
+                ::v-deep .medium-editor-placeholder::after
+                    // Stop no-text placeholder overlapping left floats
+                    left: $stello_float_width + $stello_gutter
+
+            &.wrap-right section:nth-child(2)
+                border-top-color: #0000
+                border-bottom-color: #0000
+                border-right-color: #0000
+
+                ::v-deep .actions
+                    // Move actions bar to left of the right float
+                    right: $stello_float_width
 
 </style>

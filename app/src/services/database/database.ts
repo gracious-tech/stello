@@ -16,11 +16,12 @@ import {DatabaseReactions, Reaction} from './reactions'
 import {export_key, generate_hash, generate_token} from '../utils/crypt'
 import {generate_key_sym} from '../utils/crypt'
 import {buffer_to_url64} from '../utils/coding'
+import {remove} from '../utils/arrays'
 
 
 export function open_db():Promise<AppDatabaseConnection>{
     // Get access to db (and create/upgrade if needed)
-    return openDB<AppDatabaseSchema>('main', 2, {
+    return openDB<AppDatabaseSchema>('main', 3, {
         async upgrade(db, old_version, new_version, transaction){
 
             // Begin upgrade at whichever version is already present (no break statements)
@@ -61,6 +62,23 @@ export function open_db():Promise<AppDatabaseConnection>{
                         // New property added after v0.0.4 (previously true if port 587)
                         cursor.value.smtp.starttls = cursor.value.smtp.port === 587
                         // Save changes
+                        cursor.update(cursor.value)
+                    }
+                case 2:
+                    // half_width property removed from RecordSection post v0.1.1
+                    for await (const cursor of transaction.objectStore('sections')){
+                        delete (cursor.value as any).half_width
+                        cursor.update(cursor.value)
+                    }
+                    // sections became nested arrays post v0.1.1
+                    for await (const cursor of transaction.objectStore('drafts')){
+                        // @ts-ignore old structure was string[]
+                        cursor.value.sections = cursor.value.sections.map(s => [s])
+                        cursor.update(cursor.value)
+                    }
+                    for await (const cursor of transaction.objectStore('messages')){
+                        // @ts-ignore old structure was string[]
+                        cursor.value.draft.sections = cursor.value.draft.sections.map(s => [s])
                         cursor.update(cursor.value)
                     }
             }
@@ -126,14 +144,18 @@ export class Database {
             copy[key] = original[key]
         }
 
-        // Also copy sections, but need to create copies of each too
+        // Also copy sections, but need to create copies of each's record too
+        // NOTE The original's sections returned are used as-is with just the id changed
         // WARN It's assumed all properties (except id) of sections is copyable
-        const sections = await this.sections.get_multiple(original.sections)
-        for (const section of sections){
-            section.id = generate_token()
-            copy.sections.push(section.id)
-            this.sections.set(section)
-        }
+        const section_records = await this.sections.get_multiple(original.sections.flat())
+        copy.sections = original.sections.map(row => {
+            return row.map(old_section_id => {
+                const section = section_records.shift()  // Take next section out of array
+                section.id = generate_token()  // Change id of the section
+                this.sections.set(section)  // Save to db under the new id
+                return section.id  // Replace old id in the sections nested array
+            })
+        })
 
         // Save the copy to the database and return
         this.drafts.set(copy)
@@ -161,15 +183,18 @@ export class Database {
             throw new Error('invalid_type')
         }
 
-        // Create the section and then add it (in correct position) to draft
+        // Create the section and then add it (in correct position) to draft in a new row
         const section = await this.sections.create(content)
-        draft.sections.splice(position, 0, section.id)
+        draft.sections.splice(position, 0, [section.id])
         await this.drafts.set(draft)
     }
 
     async draft_section_remove(draft:Draft, section:Section):Promise<void>{
         // Remove a section from a draft
-        draft.sections = draft.sections.filter(id => id !== section.id)
+        draft.sections = draft.sections.filter(row => {
+            remove(row, section.id)  // Remove from inner array if present (can since row is a ref)
+            return row.length  // Keep row if still has a section
+        })
         await Promise.all([
             this.drafts.set(draft),
             this.sections.remove(section.id),
@@ -301,7 +326,8 @@ export class Database {
 
             // If section id given then can determine its position and type
             if (section_id){
-                replaction.section_num = msg.draft.sections.indexOf(section_id)
+                // Record position as order of flat sections (ignoring rows)
+                replaction.section_num = msg.draft.sections.flat().indexOf(section_id)
 
                 // Get section object so can know the type
                 const section = await self._db.sections.get(section_id)

@@ -6,8 +6,7 @@ export interface PublishedCopyBase {
     published:Date
     base_msg_id:string  // Needed for working out where assets are
     has_max_reads:boolean
-    sections:PublishedSection[]
-    section_classes:string[][]
+    sections:PublishedSection[][]
     assets_key:string
 }
 

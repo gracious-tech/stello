@@ -1,32 +1,20 @@
 
 <template lang='pug'>
 
-section
+section(@click.self='focus_editor' :class='classes')
 
-    draft-add-section.add-before(:draft='draft' :position='position')
+    div.actions
+        app-btn(icon='settings' @click='show_modify_dialog' :disabled='!(type in modify_dialogs)')
+        app-btn(icon='delete' @click='remove' color='error')
 
-    //- inner div used to separate content area from add-before button for purposes of hover outline
-    div.inner(@click.self='click_inner')
-        div.actions
-            app-btn(icon='settings' @click='show_modify_dialog' :disabled='!(type in modify_dialogs)')
-            app-btn(icon='arrow_upward' @click='move_up' :disabled='is_first')
-            app-btn(icon='arrow_downward' @click='move_down' :disabled='is_last')
-            //- NOTE internal-activator prevents tooltip getting stuck after button toggled
-            //- NOTE inner div allows tooltip to show even when button disabled
-            v-tooltip(left internal-activator)
-                template(#activator='tooltip')
-                    div(v-bind='tooltip.attrs' v-on='tooltip.on')
-                        app-btn(:icon='toggle_half_icon' @click='toggle_half'
-                            :disabled='section.is_plain_text')
-                span {{ toggle_half_tooltip }}
-            app-btn(icon='delete' @click='remove' color='error')
-
+    div.inner(@click.self='focus_editor')
         //- NOTE Using v-once so that selection not lost whenever html is saved/updated
         div(v-if='type === "text"' ref='editable' v-html='section.content.html' v-once
             @input='html_changed')
-
+        //- Add a clear div if plain so node (and border) extends same height as adjacent float
+        div(v-if='section.is_plain_text' style='clear:both')
         shared-slideshow(v-if='type === "images"' :images='section.content.images'
-            :crop='section.content.crop' editing @click='show_modify_dialog')
+            :crop='section.content.crop' editing @img_click='show_modify_dialog')
 
 </template>
 
@@ -43,6 +31,7 @@ import {activate_editor, debounce_method} from '@/services/misc'
 import {Section} from '@/services/database/sections'
 import {Draft} from '@/services/database/drafts'
 import {ContentText} from '@/services/database/types'
+import {section_classes} from '@/shared/shared_functions'
 
 
 @Component({
@@ -52,6 +41,7 @@ export default class extends Vue {
 
     @Prop() draft:Draft
     @Prop() section:Section
+
     deactivate_editor
     modify_dialogs = {
         text: DialogSectionText,
@@ -76,55 +66,9 @@ export default class extends Vue {
         return this.section.content.type
     }
 
-    get position(){
-        // Get position/index of this section in the draft
-        return this.draft.sections.indexOf(this.section.id)
-    }
-
-    get is_first(){
-        // Bool for whether section is first in draft
-        return this.position === 0
-    }
-
-    get is_last(){
-        // Bool for whether section is last in draft
-        return this.position === (this.draft.sections.length - 1)
-    }
-
-    get toggle_half_icon(){
-        // Icon to display for toggle_half button (plain text always wraps)
-        if (this.section.is_plain_text){
-            return 'section_width_wrap'
-        }
-        return this.section.half_width ? 'section_width_full' : 'section_width_half'
-    }
-
-    get toggle_half_tooltip(){
-        // Return text to display for tooltip for toggle half width button
-        if (this.section.is_plain_text){
-            return "Normal text always wraps around other content"
-        }
-        return this.section.half_width ? "Expand to full width" : "Reduce to half width"
-    }
-
-    move_up(){
-        // Move this section up in order
-        const prev_section_id = this.draft.sections[this.position - 1]
-        this.draft.sections.splice(this.position - 1, 2, this.section.id, prev_section_id)
-        self._db.drafts.set(this.draft)
-    }
-
-    move_down(){
-        // Move this section down in order
-        const next_section_id = this.draft.sections[this.position + 1]
-        this.draft.sections.splice(this.position, 2, next_section_id, this.section.id)
-        self._db.drafts.set(this.draft)
-    }
-
-    toggle_half(){
-        // Toggle whether section is half width
-        this.section.half_width = !this.section.half_width
-        self._db.sections.set(this.section)
+    get classes(){
+        // Return classes for the section
+        return section_classes(this.section)
     }
 
     @debounce_method() html_changed(event){
@@ -146,10 +90,10 @@ export default class extends Vue {
         self._db.draft_section_remove(this.draft, this.section)
     }
 
-    click_inner(){
-        // If inner of standout sections is clicked, focus the text area for editing
-        // NOTE Normally inner's padding would prevent focusing the text area
-        if (this.type === 'text' && !this.section.is_plain_text){
+    focus_editor(){
+        // If text section is clicked, focus the text area for editing
+        // NOTE Normally section's padding would prevent focusing the text area
+        if (this.type === 'text'){
             (this.$refs.editable as HTMLElement).focus()
             // Move cursor to end of editable region (default is to position before first char)
             self.document.getSelection().modify('move', 'forward', 'documentboundary')
@@ -167,53 +111,42 @@ export default class extends Vue {
 
 
 section
-    position: relative  // So that .actions will be relative to this
 
-    &.full-wrappable .medium-editor-placeholder::after
-        // Stop no-text placeholder overlapping left floats
-        left: 55%
+    &.type-text
+        // Let user know that clicking anywhere in section will trigger text editing
+        cursor: text
 
-    &.half-float .actions
-        // half-float has right padding to form middle gutter, so don't need the -48px default
-        // WARN Only apply when not in single-col layout
-        @media (min-width: $stello_full_width)
-            right: 0px
+    &:focus-within, &:hover
+        border-color: rgba($primary, 0.4)
 
-    .inner:hover, .inner:focus-within
-        // Show an outline over sections content whenever hover or focused inside
-        outline-width: 2px
-        outline-style: dashed
-        outline-color: rgba($accent, 0.2)
-        outline-offset: 2px
+        .medium-editor-element
+            // Don't show default white outline as will show outline around whole section instead
+            outline-style: none
 
+    &:focus-within
+        border-color: rgba($accent, 0.4)
+
+    &:hover
         .actions
             // Reveal actions toolbar when hovering over section or the toolbar itself
+            > *
+                visibility: visible
             z-index: 10  // MUST only be applied on hover to prevent overlapping sections' actions
             opacity: 0.6
 
             &:hover
                 opacity: 1  // Give full opacity if hovering over the toolbar itself
 
-        .medium-editor-element
-            // Don't show default white outline as will show outline around whole section instead
-            outline-style: none
-
-    .add-before
-        // Show add-before toolbar in gap between sections
-        display: inline-block  // Become affected by text wrapping, so centered when next to float
-        position: absolute
-        margin-left: -48px
-        margin-top: -48px
-        z-index: 1  // Ensure button clickable despite prev float section's padding overlapping
-
     .actions
         // Style (but initially hide) actions toolbar in right gutter
-        opacity: 0
         display: flex
         flex-direction: column
         position: absolute
-        top: 48px
-        right: -48px
+        top: 0  // For some reason this doesn't default to zero for standout sections
+        right: -48px - 2
 
+        // Default to hiding bar contents only, so that bar itself can still receive hover
+        > *
+            visibility: hidden
 
 </style>
