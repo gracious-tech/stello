@@ -326,8 +326,12 @@ export function render_invite_html(template:string, {contact, sender, title, url
         <div class='message'>${html}</div>
         <hr>
         <div class='prompt'>
-            <p class='title'>${escape(title)}</p>
-            <p class='link'><a href='${escape(url)}'>OPEN MESSAGE</a></p>
+            <h3>${escape(title)}</h3>
+            <p class='link'>
+                <a href='${escape(url)}'>
+                    <strong>OPEN MESSAGE</strong>
+                </a>
+            </p>
         </div>
     `
 
@@ -351,10 +355,10 @@ export function render_invite_html(template:string, {contact, sender, title, url
         hr {margin-bottom: 0; border-style: solid; border-color: #cccccc; border-width: 1px 0 0 0;}
         .prompt {padding: 12px; border-radius: 0 0 12px 12px; text-align: center;
             background-color: #ddeeff; color: #000000; font-family: Roboto, sans-serif;}
-        .title {font-size: 1.2em;}
+        h3 {font-size: 1.2em;}
         .link {margin: 36px 0;}
-        .link a {background-color: #224477; color: #ffffff; padding: 12px 18px; font-weight: bold;
-            border-radius: 12px; text-decoration: none;}
+        .link a {background-color: #224477; color: #ffffff; padding: 12px 18px; border-radius: 12px;
+            text-decoration: none;}
 
                 </style>
             </head>
