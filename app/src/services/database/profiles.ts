@@ -247,10 +247,10 @@ export class DatabaseProfiles {
                 // WARN Keep templates the same as user will expect them to be (may not change them)
                 invite_tmpl_email: `
                     <p>Dear CONTACT,</p>
-                    <p>LINK</p>
+                    <p>Please see below for latest news.</p>
                     <p>Regards,<br>SENDER</p>
                 `,
-                invite_tmpl_clipboard: 'Dear CONTACT,\n\nLINK\n\nRegards,\nSENDER',
+                invite_tmpl_clipboard: 'Dear CONTACT, please see below for latest news. Regards, SENDER\n\nSUBJECT\nLINK',
             },
             msg_options_security: {
                 lifespan: 3,

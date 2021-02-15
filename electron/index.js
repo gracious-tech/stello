@@ -202,7 +202,7 @@ ipcMain.handle('send_emails', async (event, settings, emails, from, no_reply) =>
     const transport = smtp_transport(settings)
 
     // Request all be sent and let transport handle the queuing of requests
-    const reply_to = no_reply ? {name: "USE LINK TO REPLY", address: "noreply@localhost"} : null
+    const reply_to = no_reply ? {name: "OPEN MESSAGE TO REPLY", address: "noreply@localhost"} : null
     const requests = Promise.all(emails.map(async email => {
         try {
             await transport.sendMail({

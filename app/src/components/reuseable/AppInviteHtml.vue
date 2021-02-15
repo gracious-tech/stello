@@ -29,7 +29,7 @@ export default class extends Vue {
     @Prop(String) value:string
     @Prop({default: {}}) context
 
-    placeholders = ['CONTACT', 'LINK', 'SENDER']
+    placeholders = ['CONTACT', 'SENDER', 'SUBJECT']
     example_context = {
         contact: "Friend",
         sender: "Myself",

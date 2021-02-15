@@ -291,55 +291,97 @@ async function process_section(section:RecordSection):Promise<[PublishedSection,
 }
 
 
+function replace_without_overlap(template:string, replacements:{[k:string]:string}):string{
+    // Replace a series of values without replacing any values inserted from a previous replacement
+    // e.g. if "SUBJECT" is replaced with "CONTACT ME", it will not match another key like "CONTACT"
+
+    // First replace placeholders with versions with near zero probability of overlap
+    for (const placeholder of Object.keys(replacements)){
+        template = template.replaceAll(placeholder, `~~NEVER~~${placeholder}~~MATCH~~`)
+    }
+
+    // Now safe(r) to replace with actual values
+    for (const [placeholder, value] of Object.entries(replacements)){
+        template = template.replaceAll(`~~NEVER~~${placeholder}~~MATCH~~`, value)
+    }
+
+    return template
+}
+
+
 export function render_invite_html(template:string, {contact, sender, title, url}, doc=true):string{
     // Render a HTML invite template with the provided context
 
-    let html = template
+    // Escape and replace placeholders
+    let html = replace_without_overlap(template, {
+        CONTACT: escape(contact),
+        SENDER: escape(sender),
+        SUBJECT: escape(title),
+        LINK: '',  // Link placeholder removed post v0.1.1 (bad UX to have link and main button)
+    })
 
-    // Form link from title and url
-    const link = `<a href="${escape(url)}">${escape(title)}</a>`
+    // Append title and url to end of template
+    // NOTE <hr> used for some separation if css disabled
+    html = `
+        <div class='message'>${html}</div>
+        <hr>
+        <div class='prompt'>
+            <p class='title'>${escape(title)}</p>
+            <p class='link'><a href='${escape(url)}'>OPEN MESSAGE</a></p>
+        </div>
+    `
 
-    // If template doesn't have link placeholder, add it to end
-    if (!html.includes('LINK')){
-        html += '<p>LINK</p>'
+    // Optionally return without structural html
+    if (!doc){
+        return html
     }
 
-    // Replace link without escaping since already escaped
-    html = html.replaceAll('LINK', link)
+    // Add doc tags and styles
+    // NOTE Font size is slightly larger than user's default to standout since not much text
+    return `
+        <!DOCTYPE html>
+        <html>
+            <head>
+                <style>
 
-    // Escape and replace other placeholders
-    html = html
-        .replaceAll('CONTACT', escape(contact))
-        .replaceAll('SENDER', escape(sender))
+        body {margin: 24px; font-size: 1.1em;}
+        .container {border-radius: 12px; max-width: 600px; margin: 0 auto;
+            border: 1px solid #cccccc;}
+        .message {padding: 24px;}
+        hr {margin-bottom: 0; border-style: solid; border-color: #cccccc; border-width: 1px 0 0 0;}
+        .prompt {padding: 12px; border-radius: 0 0 12px 12px; text-align: center;
+            background-color: #ddeeff; color: #000000; font-family: Roboto, sans-serif;}
+        .title {font-size: 1.2em;}
+        .link {margin: 36px 0;}
+        .link a {background-color: #224477; color: #ffffff; padding: 12px 18px; font-weight: bold;
+            border-radius: 12px; text-decoration: none;}
 
-    // Wrap with usual html tags to get slightly lower spam rating
-    if (doc){
-        return `<!DOCTYPE html><html><head></head><body>${html}</body></html>`
-    }
-    return html
+                </style>
+            </head>
+            <body>
+                <div class='container'>${html}</div>
+            </body>
+        </html>
+    `
 }
 
 
 export function render_invite_text(template:string, {contact, sender, title, url}):string{
     // Render a text invite template with the provided context
 
-    let text = template
-
-    // In a text invite the link is simply the url
-    // NOTE Always surrounded by spaces so user can't accidently add text to it
-    const link = ` ${url} `
-
-    // If template doesn't have link placeholder, add it to end
-    if (!text.includes('LINK')){
-        text += '\n\nLINK'
-    }
-
     // Replace placeholders
-    text = text
-        .replaceAll('LINK', link)
-        .replaceAll('SUBJECT', title)
-        .replaceAll('CONTACT', contact)
-        .replaceAll('SENDER', sender)
+    let text = replace_without_overlap(template, {
+        CONTACT: contact,
+        SENDER: sender,
+        SUBJECT: title,
+        LINK: ` ${url} `,  // Pad to ensure not accidently broken by adjacent characters
+    })
+
+    // If template didn't include link placeholder, add url to end
+    // WARN Do this last so that no chance of a placeholder occuring in url and being replaced
+    if (!text.includes(url)){
+        text += `\n\n${url}`
+    }
 
     return text
 }
