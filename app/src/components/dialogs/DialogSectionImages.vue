@@ -31,7 +31,6 @@ import {request_blob} from '@/services/utils/http'
 import {bitmap_to_canvas, canvas_to_blob} from '@/services/utils/coding'
 import {get_clipboard_blobs} from '@/services/utils/misc'
 import {SECTION_IMAGE_WIDTH} from '@/services/misc'
-import {Draft} from '@/services/database/drafts'
 import {Section} from '@/services/database/sections'
 import {ContentImages} from '@/services/database/types'
 
@@ -41,12 +40,10 @@ import {ContentImages} from '@/services/database/types'
 })
 export default class extends Vue {
 
-    @Prop() draft:Draft
-    @Prop() section:Section
+    @Prop() section:Section<ContentImages>
 
     get content(){
-        // Return access to content with correct type (else typescript thinks could be text etc)
-        return this.section.content as ContentImages
+        return this.section.content
     }
 
     get images(){
