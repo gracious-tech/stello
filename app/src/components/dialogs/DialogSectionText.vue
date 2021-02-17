@@ -28,11 +28,14 @@ v-card
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
+import {Section} from '@/services/database/sections'
+import {ContentText} from '@/services/database/types'
+
 
 @Component({})
 export default class extends Vue {
 
-    @Prop() section
+    @Prop() section:Section<ContentText>
 
     get standout(){
         return this.section.content.standout || 'null'
