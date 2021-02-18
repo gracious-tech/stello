@@ -29,6 +29,12 @@
         display: flex
         align-items: center
 
+        // Restore correct order of sections for .wrap-right when wrapping isn't active
+        @media (max-width: $stello_full_plus_sidebar - 1)
+            &.wrap-right .sections
+                display: flex
+                flex-direction: column-reverse
+
         // As soon as content width starts decreasing, switch to single column
         // (otherwise add/respond buttons don't have space to display)
         @media (min-width: $stello_full_plus_sidebar)
