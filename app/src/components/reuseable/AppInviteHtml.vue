@@ -116,8 +116,6 @@ export default class extends Vue {
     letter-spacing: 3px
 
 .preview
-    border: 1px solid #8888
-    padding: 12px
     opacity: 0.5
     user-select: none
 
