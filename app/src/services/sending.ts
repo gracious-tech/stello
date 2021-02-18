@@ -235,6 +235,13 @@ async function process_section(section:RecordSection):Promise<[PublishedSection,
             },
         }
 
+    // Handle video
+    } else if (section.content.type === 'video'){
+        pub_section = {
+            id: section.id,
+            content: {...section.content},  // All props same and are primitives
+        }
+
     // Handle images
     } else if (section.content.type === 'images'){
 

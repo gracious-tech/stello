@@ -9,7 +9,7 @@ div.content
             draft-movebar(:draft='draft' :row_i='row_i')
             div.sections
                 draft-section.section(v-for='section of row.sections' :key='section.id'
-                    :draft='draft' :section='section')
+                    :draft='draft' :section='section' @modify='modify_section')
 
     draft-add-section.add-end(:draft='draft' :position='draft.sections.length'
         :visible='!draft.sections.length')
@@ -27,6 +27,9 @@ import DraftGuide from './DraftGuide.vue'
 import DraftSection from './DraftSection.vue'
 import DraftMovebar from './DraftMovebar.vue'
 import DraftAddSection from './DraftAddSection.vue'
+import DialogSectionText from '@/components/dialogs/DialogSectionText.vue'
+import DialogSectionImages from '@/components/dialogs/DialogSectionImages.vue'
+import DialogSectionVideo from '@/components/dialogs/DialogSectionVideo.vue'
 import {Draft} from '@/services/database/drafts'
 import {Section} from '@/services/database/sections'
 import {floatify_rows} from '@/shared/shared_functions'
@@ -40,6 +43,12 @@ export default class extends Vue {
     @Prop() draft:Draft
     @Prop() sections:{[id:string]: Section}
 
+    modify_dialogs = {
+        text: DialogSectionText,
+        images: DialogSectionImages,
+        video: DialogSectionVideo,
+    }
+
     get floatified_rows(){
         // Return rows of sections with actual section records, and display mode for the rows
         return floatify_rows(
@@ -49,6 +58,15 @@ export default class extends Vue {
                 return row.map(section => this.sections[section]).filter(s => s)
             }).filter(row => row.length),
         )
+    }
+
+    modify_section(section:Section){
+        // Open the appropriate modify dialog for this section's type
+        // NOTE This method is also accessed by the parent component
+        this.$store.dispatch('show_dialog', {
+            component: this.modify_dialogs[section.content.type],
+            props: {section},
+        })
     }
 }
 

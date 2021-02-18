@@ -40,7 +40,6 @@ import DialogManagerKey from '@/components/dialogs/DialogManagerKey.vue'
 import DialogStorageCreateAws from '@/components/dialogs/DialogStorageCreateAws.vue'
 import DialogCredentials from '@/components/dialogs/DialogCredentials.vue'
 import {HostManagerAws} from '@/services/hosts/aws_manager'
-import {Task} from '@/services/tasks'
 import {HostManagerStorageAws} from '@/services/hosts/aws_manager'
 
 

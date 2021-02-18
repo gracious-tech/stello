@@ -30,7 +30,7 @@ import {HostManagerAws} from '@/services/hosts/aws_manager'
 export default class extends Vue {
 
     @Prop() resolve
-    manager
+    manager:HostManagerAws
     bucket = ''
     bucket_dirty = false
     bucket_available = null

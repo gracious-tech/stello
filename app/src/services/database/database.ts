@@ -1,7 +1,8 @@
 
 import {openDB} from 'idb/with-async-ittr.js'
 
-import {AppDatabaseSchema, AppDatabaseConnection, RecordReplaction} from './types'
+import {AppDatabaseSchema, AppDatabaseConnection, RecordReplaction, RecordSectionContent}
+    from './types'
 import {DatabaseState} from './state'
 import {DatabaseContacts} from './contacts'
 import {DatabaseGroups} from './groups'
@@ -165,20 +166,34 @@ export class Database {
 
     async draft_section_create(draft:Draft, type:string, position:number):Promise<void>{
         // Add a new section to a draft
-        const content:any = {type}
+        let content:RecordSectionContent
 
         // Content will vary by type
         if (type === 'text'){
-            content.standout = null
-            content.html = ''
+            content = {
+                type,
+                standout: null,
+                html: '',
+            }
             // If the first section, auto-add title as a heading if it exists
             if (!draft.sections.length && draft.title.trim()){
                 const encoded_title = new Option(draft.title).innerHTML  // Hack to encode text
                 content.html = `<h1>${encoded_title}</h1>`
             }
         } else if (type === 'images'){
-            content.images = []
-            content.crop = true
+            content = {
+                type,
+                images: [],
+                crop: true,
+            }
+        } else if (type === 'video'){
+            content = {
+                type,
+                format: null,
+                id: null,
+                start: null,
+                end: null,
+            }
         } else {
             throw new Error('invalid_type')
         }

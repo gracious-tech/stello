@@ -4,17 +4,22 @@
 section(@click.self='focus_editor' :class='classes')
 
     div.actions
-        app-btn(icon='settings' @click='show_modify_dialog' :disabled='!(type in modify_dialogs)')
+        app-btn(icon='settings' @click='modify')
         app-btn(icon='delete' @click='remove' color='error')
 
     div.inner(@click.self='focus_editor')
+
         //- NOTE Using v-once so that selection not lost whenever html is saved/updated
-        div(v-if='type === "text"' ref='editable' v-html='section.content.html' v-once
+        div(v-if='type === "text"' ref='editable' v-html='content.html' v-once
             @input='html_changed')
         //- Add a clear div if plain so node (and border) extends same height as adjacent float
         div(v-if='section.is_plain_text' style='clear:both')
-        shared-slideshow(v-if='type === "images"' :images='section.content.images'
-            :crop='section.content.crop' editing @img_click='show_modify_dialog')
+
+        shared-slideshow(v-if='type === "images"' :images='content.images'
+            :crop='content.crop' editing @img_click='modify')
+
+        shared-video(v-if='type === "video"' @modify='modify' :format='content.format'
+            :id='content.id' :start='content.start' :end='content.end')
 
 </template>
 
@@ -24,9 +29,8 @@ section(@click.self='focus_editor' :class='classes')
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
 import DraftAddSection from './DraftAddSection.vue'
+import SharedVideo from '@/shared/SharedVideo.vue'
 import SharedSlideshow from '@/shared/SharedSlideshow.vue'
-import DialogSectionText from '@/components/dialogs/DialogSectionText.vue'
-import DialogSectionImages from '@/components/dialogs/DialogSectionImages.vue'
 import {activate_editor, debounce_method} from '@/services/misc'
 import {Section} from '@/services/database/sections'
 import {Draft} from '@/services/database/drafts'
@@ -35,7 +39,7 @@ import {section_classes} from '@/shared/shared_functions'
 
 
 @Component({
-    components: {DraftAddSection, SharedSlideshow},
+    components: {DraftAddSection, SharedSlideshow, SharedVideo},
 })
 export default class extends Vue {
 
@@ -43,10 +47,6 @@ export default class extends Vue {
     @Prop() section:Section
 
     deactivate_editor
-    modify_dialogs = {
-        text: DialogSectionText,
-        images: DialogSectionImages,
-    }
 
     mounted(){
         // Activate contenteditable editor if a text section
@@ -62,8 +62,12 @@ export default class extends Vue {
         }
     }
 
+    get content(){
+        return this.section.content
+    }
+
     get type(){
-        return this.section.content.type
+        return this.content.type
     }
 
     get classes(){
@@ -73,16 +77,13 @@ export default class extends Vue {
 
     @debounce_method() html_changed(event){
         // Save html whenever it changes for text types
-        (this.section.content as ContentText).html = event.target.innerHTML
+        ;(this.content as ContentText).html = event.target.innerHTML
         self._db.sections.set(this.section)
     }
 
-    show_modify_dialog(){
-        // Open the appropriate modify dialog for this section's type
-        this.$store.dispatch('show_dialog', {
-            component: this.modify_dialogs[this.type],
-            props: {section: this.section},
-        })
+    modify(){
+        // Emit modify event so parent can open a dialog
+        this.$emit('modify', this.section)
     }
 
     remove(){

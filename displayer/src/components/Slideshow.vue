@@ -11,7 +11,7 @@ teleport(v-if='fullscreen_img_style' to='.content')
 
 <script lang='ts'>
 
-import {ref, reactive, computed, watch, onUnmounted} from 'vue'
+import {ref, reactive, computed, watch, onUnmounted, inject} from 'vue'
 
 import SharedSlideshow from '../shared/SharedSlideshow.vue'
 import {store} from '../services/store'
@@ -28,12 +28,12 @@ export default {
         content: {
             type: Object,
         },
-        get_asset: {
-            type: Function,
-        },
     },
 
-    setup(props:{content:PublishedContentImages, get_asset:GetAsset}){
+    setup(props:{content:PublishedContentImages}){
+
+        // Injections
+        const get_asset = inject<{value:GetAsset}>('get_asset')
 
         // Create ref for images
         const images = ref([])
@@ -56,7 +56,7 @@ export default {
             images.value.push(image)
 
             // Get the asset's data
-            props.get_asset(asset_id).then(decrypted => {
+            get_asset.value(asset_id).then(decrypted => {
                 image.data = buffer_to_blob(decrypted, `image/${asset_type}`)
             }).catch(() => {})  // Will show placeholder if getting asset fails
         }

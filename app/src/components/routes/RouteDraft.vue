@@ -38,7 +38,7 @@ div(v-if='draft')
 
     div.stello-container(:class='{dark: dark_message}')
         shared-dark-toggle(v-model='dark_message')
-        draft-content(:draft='draft' :sections='sections')
+        draft-content(ref='content' :draft='draft' :sections='sections')
 
 </template>
 
@@ -48,7 +48,6 @@ div(v-if='draft')
 import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import DraftContent from './assets/DraftContent.vue'
-import DialogSectionImages from '@/components/dialogs/DialogSectionImages.vue'
 import DialogDraftProfile from '@/components/dialogs/DialogDraftProfile.vue'
 import DialogDraftRecipients from '@/components/dialogs/DialogDraftRecipients.vue'
 import DialogDraftSecurity from '@/components/dialogs/DialogDraftSecurity.vue'
@@ -115,14 +114,12 @@ export default class extends Vue {
             const section_data = await self._db.sections.get(section_id)
             Vue.set(this.sections, section_id, section_data)
 
-            // If just created a new images section, open modify dialog straight away
+            // If just created a new section, open modify dialog straight away (unless text)
             // NOTE Have to use same instance of section data, otherwise lose reactivity
             //      Which is why must handle here since its the origin of the section instance
-            if (cached_sections_inited && section_data.content.type === 'images'){
-                this.$store.dispatch('show_dialog', {
-                    component: DialogSectionImages,
-                    props: {section: section_data},
-                })
+            if (cached_sections_inited && section_data.content.type !== 'text'){
+                // @ts-ignore as doesn't know about component's methods
+                this.$refs.content.modify_section(section_data)
             }
         })
     }
@@ -143,7 +140,10 @@ export default class extends Vue {
         for (const section_id of this.draft.sections.flat()){
             const section = this.sections[section_id]  // WARN May not exist if fetching from db
             if (section && section.content.type === 'images' && !section.content.images.length){
-                return "Add an image to the placeholder you created"
+                return "Add an image to the section you created"
+            }
+            if (section && section.content.type === 'video' && !section.content.format){
+                return "Add a video to the section you created"
             }
         }
         if (!this.final_recipients.length)

@@ -19,7 +19,8 @@ export interface PublishedSection {
     content:PublishedSectionContent
 }
 
-export type PublishedSectionContent = PublishedContentText|PublishedContentImages
+export type PublishedSectionContent =
+    PublishedContentText|PublishedContentImages|PublishedContentVideo
 
 export interface PublishedContentText {
     type:'text'
@@ -32,6 +33,14 @@ export interface PublishedContentImages {
     images:PublishedImage[]
     ratio_width:number
     ratio_height:number
+}
+
+export interface PublishedContentVideo {
+    type:'video'
+    format:string
+    id:string
+    start:number
+    end:number
 }
 
 export interface PublishedImage {

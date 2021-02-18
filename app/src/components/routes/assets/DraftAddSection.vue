@@ -7,7 +7,7 @@ div.addbar(:class='{visible}')
     div.buttons
         app-btn(@click='add_text' icon='subject')
         app-btn(@click='add_images' icon='image')
-        //- app-btn(icon='video')
+        app-btn(@click='add_video' icon='video')
         //- app-btn(icon='pie_chart')
         //- app-btn(icon='attach_file')
         //- app-btn(icon='library_books')
@@ -41,6 +41,9 @@ export default class extends Vue {
         this.add('images')
     }
 
+    add_video(){
+        this.add('video')
+    }
 }
 
 </script>

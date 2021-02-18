@@ -119,7 +119,7 @@ export interface RecordSection<TContent extends RecordSectionContent=RecordSecti
 }
 
 export type RecordSectionContent =
-    ContentText|ContentImages|ContentArticle|ContentEmbed|ContentVideo|ContentFile
+    ContentText|ContentImages|ContentArticle|ContentVideo|ContentFile
 
 export interface ContentText {
     type:'text'
@@ -147,14 +147,12 @@ export interface ContentArticle {
     sections:string[]  // All except articles allowed
 }
 
-export interface ContentEmbed {
-    type:'embed'
-    url:string  // Youtube/vimeo auto-detected, else iframe used
-}
-
 export interface ContentVideo {
     type:'video'
-    data:Blob
+    format:'iframe_youtube'|'iframe_vimeo'
+    id:string
+    start:number
+    end:number
 }
 
 export interface ContentFile {
