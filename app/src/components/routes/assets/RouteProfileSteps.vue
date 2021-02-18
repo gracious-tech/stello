@@ -256,7 +256,7 @@ export default class extends Vue {
             .v-stepper__label
                 margin-left: 8px
 
-                @media (min-width: (650px))
+                @media (min-width: (600px + $stello_sidebar_width))
                     display: flex  // Ensure labels shown earlier than 959px (Vuetify's default)
 
     .v-stepper__items

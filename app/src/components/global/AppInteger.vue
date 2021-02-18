@@ -12,7 +12,7 @@ v-text-field(
     filled
     v-bind='$attrs'
 )
-    template(#append)
+    template(#append v-if='buttons')
         v-btn(@click='decrease' :disabled='$attrs.disabled || is_min' icon)
             app-svg(name='icon_remove')
         v-btn(@click='increase' :disabled='$attrs.disabled || is_max' icon)
@@ -36,6 +36,7 @@ export default class extends Vue {
     @Prop({type: Number, default: 0, validator: v => v >= 0}) min
     @Prop({type: Number, default: 1000000}) max  // Either max possible, or max before infinity
     @Prop({type: Boolean, default: false}) infinity  // Allowed to be infinity after max reached
+    @Prop({type: Boolean, default: true}) buttons
 
     error = null
 

@@ -71,6 +71,7 @@ export interface RecordProfileSmtp {
     pass:string
     host:string
     port:number
+    starttls:boolean
 }
 
 export interface RecordProfileOptions {
@@ -95,7 +96,7 @@ export interface RecordDraft {
     reply_to:string
     modified:Date
     title:string
-    sections:string[]
+    sections:string[][]
     profile:string
     options_identity:MessageOptionsIdentity
     options_security:MessageOptionsSecurity
@@ -112,14 +113,13 @@ export interface RecordDraftRecipients {
 
 // Section
 
-export interface RecordSection {
+export interface RecordSection<TContent extends RecordSectionContent=RecordSectionContent> {
     id:string
-    content:RecordSectionContent
-    half_width:boolean
+    content:TContent
 }
 
 export type RecordSectionContent =
-    ContentText|ContentImages|ContentArticle|ContentEmbed|ContentVideo|ContentFile
+    ContentText|ContentImages|ContentArticle|ContentVideo|ContentFile
 
 export interface ContentText {
     type:'text'
@@ -147,14 +147,12 @@ export interface ContentArticle {
     sections:string[]  // All except articles allowed
 }
 
-export interface ContentEmbed {
-    type:'embed'
-    url:string  // Youtube/vimeo auto-detected, else iframe used
-}
-
 export interface ContentVideo {
     type:'video'
-    data:Blob
+    format:'iframe_youtube'|'iframe_vimeo'
+    id:string
+    start:number
+    end:number
 }
 
 export interface ContentFile {

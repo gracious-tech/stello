@@ -3,4 +3,8 @@
 cd `dirname "$0"`
 cd ../displayer
 
+echo
+cat public/dev/url.txt
+echo
+
 ./node_modules/.bin/vite

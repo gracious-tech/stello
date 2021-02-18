@@ -144,7 +144,7 @@ function smtp_transport(settings){
             user: settings.user,
             pass: settings.pass,
         },
-        secure: settings.port !== 587,  // Only init with plain-text (STARTTLS) if port is 587
+        secure: !settings.starttls,
         requireTLS: true,  // Must use either TLS or STARTTLS (cannot be insecure)
         // Don't keep user waiting (default is in minutes!)
         connectionTimeout: 5 * 1000, // ms
@@ -215,7 +215,7 @@ ipcMain.handle('send_emails', async (event, settings, emails, from, no_reply) =>
     const transport = smtp_transport(settings)
 
     // Request all be sent and let transport handle the queuing of requests
-    const reply_to = no_reply ? {name: "USE LINK TO REPLY", address: "noreply@localhost"} : null
+    const reply_to = no_reply ? {name: "OPEN MESSAGE TO REPLY", address: "noreply@localhost"} : null
     const requests = Promise.all(emails.map(async email => {
         try {
             await transport.sendMail({

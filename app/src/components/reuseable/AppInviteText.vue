@@ -2,8 +2,8 @@
 <template lang='pug'>
 
 div.root
-    v-textarea(:value='value' @input='input' label="Notification template for copy/pasting"
-        :hint='suggestions' persistent-hint color='accent' filled)
+    app-textarea(:value='value' @input='input' label="Notification template for copy/pasting"
+        :hint='suggestions')
     div.preview-label Preview
     //- Clicking disabled so can't click link in preview
     div.preview(v-html='preview' @click.prevent)
@@ -25,7 +25,7 @@ export default class extends Vue {
     @Prop(String) value:string
     @Prop({default: {}}) context
 
-    placeholders = ['CONTACT', 'LINK', 'SENDER', 'SUBJECT']
+    placeholders = ['CONTACT', 'SENDER', 'SUBJECT', 'LINK']
     example_context = {
         contact: "Friend",
         sender: "Myself",

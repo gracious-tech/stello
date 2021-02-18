@@ -1,7 +1,7 @@
 
 <template lang='pug'>
 
-app-svg(name='logo')
+app-svg(name='logo' :shrinkable='false')
 
 </template>
 

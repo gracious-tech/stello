@@ -6,8 +6,7 @@ export interface PublishedCopyBase {
     published:Date
     base_msg_id:string  // Needed for working out where assets are
     has_max_reads:boolean
-    sections:PublishedSection[]
-    section_classes:string[][]
+    sections:PublishedSection[][]
     assets_key:string
 }
 
@@ -20,7 +19,8 @@ export interface PublishedSection {
     content:PublishedSectionContent
 }
 
-export type PublishedSectionContent = PublishedContentText|PublishedContentImages
+export type PublishedSectionContent =
+    PublishedContentText|PublishedContentImages|PublishedContentVideo
 
 export interface PublishedContentText {
     type:'text'
@@ -33,6 +33,14 @@ export interface PublishedContentImages {
     images:PublishedImage[]
     ratio_width:number
     ratio_height:number
+}
+
+export interface PublishedContentVideo {
+    type:'video'
+    format:string
+    id:string
+    start:number
+    end:number
 }
 
 export interface PublishedImage {

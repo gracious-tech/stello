@@ -3,7 +3,7 @@
 <template lang='pug'>
 
 v-text-field(
-    v-model.trim='wrapped_value'
+    v-model='wrapped_value'
     :color='$attrs.color || "accent"'
     :persistent-hint='!hint_on_focus'
     filled
@@ -26,9 +26,9 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 @Component({})
 export default class extends Vue {
 
-    @Prop(String) value
-    @Prop(String) security
-    @Prop({type: Boolean, default: false}) hint_on_focus
+    @Prop(String) value:string
+    @Prop(String) security:string
+    @Prop({type: Boolean, default: false}) hint_on_focus:boolean
 
     get wrapped_value(){
         return this.value

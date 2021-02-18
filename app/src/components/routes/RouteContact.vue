@@ -2,24 +2,23 @@
 <template lang='pug'>
 
 div
-    v-toolbar(color='primary' dark)
+    v-toolbar
         app-btn(to='../' icon='arrow_back')
         v-toolbar-title {{ contact && contact.name }}
 
-    app-content(v-if='contact' class='pa-5')
+    app-content(v-if='contact' class='pa-10')
 
-        v-text-field(v-model='name' label="Full Name" color='accent')
+        app-text(v-model='name' label="Full Name")
 
-        v-text-field(v-model='name_hello' :placeholder='contact.name_hello_result' label="Hello Name"
-            color='accent'
+        app-text(v-model='name_hello' :placeholder='contact.name_hello_result' label="Hello Name"
             hint="The name used to address this contact in messages (defaults to first name)")
 
-        v-text-field(v-model.trim='address' label="Contact method" color='accent'
+        app-text(v-model.trim='address' label="Contact method"
             hint="Can be 1. email address 2. link to chat window 3. blank (manual send)")
 
-        v-textarea(v-model='notes' label="Notes" color='accent')
-
         app-select(v-model='groups' :items='possible_groups_items' multiple label="Groups")
+
+        app-textarea(v-model='notes' label="Notes")
 
 </template>
 
@@ -34,7 +33,7 @@ import {debounce_set} from '@/services/misc'
 @Component({})
 export default class extends Vue {
 
-    @Prop() contact_id
+    @Prop() contact_id:string
     contact = null
     possible_groups = []
 
@@ -125,6 +124,10 @@ export default class extends Vue {
 
 
 <style lang='sass' scoped>
+
+
+.v-input
+    margin: 24px 0
 
 
 </style>

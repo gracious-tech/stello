@@ -62,6 +62,7 @@ export default {
     // Show narrower gutters for displayer since don't need space for menus
     padding-left: 24px
     padding-right: 24px
+    padding-top: 48px * 2  // Match editor, accounting for missing addbar
 
 .no_msg
     text-align: center

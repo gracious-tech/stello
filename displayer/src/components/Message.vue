@@ -1,7 +1,7 @@
 
 <template lang='pug'>
 
-MessageContents(v-if='msg' :msg='msg' :get_asset='get_asset')
+MessageContents(v-if='msg' :msg='msg')
 
 div.no_msg(v-else)
     div(v-if='error')
@@ -48,6 +48,7 @@ setup(props:{msg_access:MessageAccess}, context){
 
     // Provides
     provide('resp_token', resp_token)
+    provide('get_asset', get_asset)
 
     // Method for downloading and decrypting the message
     const get_message = async () => {
@@ -67,7 +68,7 @@ setup(props:{msg_access:MessageAccess}, context){
         }
 
         // Try to decrypt the message
-        let decrypted
+        let decrypted:ArrayBuffer
         try {
             decrypted = await decrypt_sym(encrypted, props.msg_access.secret)
         } catch {
@@ -77,6 +78,12 @@ setup(props:{msg_access:MessageAccess}, context){
 
         // Parse the data
         const msg_data = JSON.parse(buffer_to_utf8(decrypted)) as PublishedCopy
+
+        // Reformat old data structures (v0.1.1 and below)
+        if (!Array.isArray(msg_data.sections[0])){
+            // @ts-ignore old format
+            msg_data.sections = msg_data.sections.map(section => [section])
+        }
 
         // Generate response token
         resp_token.value =
@@ -117,7 +124,6 @@ setup(props:{msg_access:MessageAccess}, context){
         msg,
         error,
         get_message,
-        get_asset,
     }
 },
 

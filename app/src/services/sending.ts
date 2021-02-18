@@ -10,7 +10,7 @@ import {resize_bitmap, blob_image_size} from '@/services/utils/image'
 import {bitmap_to_canvas, canvas_to_blob, buffer_to_url64} from './utils/coding'
 import {encrypt_sym, export_key} from './utils/crypt'
 import {utf8_to_buffer} from './utils/coding'
-import {SECTION_IMAGE_WIDTH, get_section_classes} from './misc'
+import {SECTION_IMAGE_WIDTH} from './misc'
 import {HostUser} from './hosts/types'
 import {send_emails} from './native'
 import type {PublishedCopyBase, PublishedAsset, PublishedCopy, PublishedSection,
@@ -58,8 +58,8 @@ export class Sender {
         this.host = this.profile.new_host_user()
 
         // Process sections and produce assets
-        const sections_data = await Promise.all(
-            this.msg.draft.sections.map(sid => self._db.sections.get(sid)))
+        const sections_data = await Promise.all(this.msg.draft.sections.map(
+            async row => await Promise.all(row.map(sid => self._db.sections.get(sid)))))
         const [pub_sections, assets] = await process_sections(sections_data)
 
         // Encrypt and upload assets
@@ -74,7 +74,6 @@ export class Sender {
             base_msg_id: this.msg_id,
             has_max_reads: this.max_reads !== null,
             sections: pub_sections,
-            section_classes: get_section_classes(sections_data),
             assets_key: buffer_to_url64(await export_key(this.msg.assets_key)),
         }
 
@@ -184,7 +183,7 @@ export class Sender {
 
         // Get native platform to send
         const errors = (await send_emails(this.profile.smtp_settings, emails, from, no_reply)).map(
-            error => error.message)  // TODO Make use of other error properties
+            error => error && error.message)  // TODO Make use of other error properties
 
         // Update copies for successes
         // WARN Ensure copies still matches emails/errors in terms of item order etc
@@ -200,136 +199,198 @@ export class Sender {
 }
 
 
-async function process_sections(sections:RecordSection[])
-        :Promise<[PublishedSection[], PublishedAsset[]]>{
+async function process_sections(sections:RecordSection[][])
+        :Promise<[PublishedSection[][], PublishedAsset[]]>{
     // Process sections and produce assets
-    const pub_sections:PublishedSection[] = []
-    const pub_assets:PublishedAsset[] = []
-
-    // Process each section
     // WARN Avoid deep copying sections in case includes sensitive data (e.g. added in future)
     //      (also avoids duplicating blobs in memory)
-    for (const section of sections){
+    const pub_sections:PublishedSection[][] = []
+    const pub_assets:PublishedAsset[] = []
+    for (const row of sections){
+        const pub_row = []
+        for (const section of row){
+            const [pub_section, pub_section_assets] = await process_section(section)
+            pub_row.push(pub_section)
+            pub_assets.push(...pub_section_assets)
+        }
+        pub_sections.push(pub_row)
+    }
+    return [pub_sections, pub_assets]
+}
 
-        // Handle text
-        if (section.content.type === 'text'){
-            pub_sections.push({
-                id: section.id,
-                content: {
-                    type: 'text',
-                    html: section.content.html,
-                    standout: section.content.standout,
-                },
+
+async function process_section(section:RecordSection):Promise<[PublishedSection, PublishedAsset[]]>{
+    // Take section and produce publishable form and any assets required
+    let pub_section:PublishedSection
+    const pub_section_assets:PublishedAsset[] = []
+
+    // Handle text
+    if (section.content.type === 'text'){
+        pub_section = {
+            id: section.id,
+            content: {
+                type: 'text',
+                html: section.content.html,
+                standout: section.content.standout,
+            },
+        }
+
+    // Handle video
+    } else if (section.content.type === 'video'){
+        pub_section = {
+            id: section.id,
+            content: {...section.content},  // All props same and are primitives
+        }
+
+    // Handle images
+    } else if (section.content.type === 'images'){
+
+        // Work out max width/height for all images
+        const max_width = SECTION_IMAGE_WIDTH
+        // Determine max height from first image's dimensions
+        const base_size = await blob_image_size(section.content.images[0].data)
+        const base_ratio = base_size.width / base_size.height
+        const max_height = max_width / base_ratio
+
+        // Define and add section first, then add to its images array
+        pub_section = {
+            id: section.id,
+            content: {
+                type: 'images',
+                images: [],
+                ratio_width: base_size.width,  // May be smaller if resized (just for ratio)
+                ratio_height: base_size.height,  // May be smaller if resized (just for ratio)
+            },
+        }
+
+        // Create assets for each image and add references to published section data
+        for (const image of section.content.images){
+
+            // Resize the image
+            let bitmap = await createImageBitmap(image.data)
+            bitmap = await resize_bitmap(bitmap, max_width, max_height, section.content.crop)
+            const bitmap_canvas = bitmap_to_canvas(bitmap)
+
+            // Add assets
+            pub_section_assets.push({
+                id: image.id,
+                data: await (await canvas_to_blob(bitmap_canvas)).arrayBuffer(),
+            })
+            /* SECURITY With admin access to storage you could know what assets are images by
+                noting the patterns for webp/jpeg ids. But if you have admin access, there are
+                far worse threats to make it negligable anyway.
+            */
+            const jpeg_id = `${image.id}j`
+            pub_section_assets.push({
+                id: jpeg_id,
+                data: await (await canvas_to_blob(bitmap_canvas, 'jpeg')).arrayBuffer(),
             })
 
-        // Handle images
-        } else if (section.content.type === 'images'){
-
-            // Work out max width/height for all images
-            const max_width = SECTION_IMAGE_WIDTH
-            // Determine max height from first image's dimensions
-            const base_size = await blob_image_size(section.content.images[0].data)
-            const base_ratio = base_size.width / base_size.height
-            const max_height = max_width / base_ratio
-
-            // Define and add section first, then add to its images array
-            const pub_section:PublishedSection = {
-                id: section.id,
-                content: {
-                    type: 'images',
-                    images: [],
-                    ratio_width: base_size.width,  // May be smaller if resized (just for ratio)
-                    ratio_height: base_size.height,  // May be smaller if resized (just for ratio)
-                },
-            }
-            pub_sections.push(pub_section)
-
-            // Create assets for each image and add references to published section data
-            for (const image of section.content.images){
-
-                // Resize the image
-                let bitmap = await createImageBitmap(image.data)
-                bitmap = await resize_bitmap(bitmap, max_width, max_height, section.content.crop)
-                const bitmap_canvas = bitmap_to_canvas(bitmap)
-
-                // Add assets
-                pub_assets.push({
-                    id: image.id,
-                    data: await (await canvas_to_blob(bitmap_canvas)).arrayBuffer(),
-                })
-                /* SECURITY With admin access to storage you could know what assets are images by
-                    noting the patterns for webp/jpeg ids. But if you have admin access, there are
-                    far worse threats to make it negligable anyway.
-                */
-               const jpeg_id = `${image.id}j`
-               pub_assets.push({
-                   id: jpeg_id,
-                   data: await (await canvas_to_blob(bitmap_canvas, 'jpeg')).arrayBuffer(),
-               })
-
-                // Add image to published section data
-                ;(pub_section.content as PublishedContentImages).images.push({
-                    asset_webp: image.id,
-                    asset_jpeg: jpeg_id,
-                    caption: image.caption,
-                })
-            }
+            // Add image to published section data
+            ;(pub_section.content as PublishedContentImages).images.push({
+                asset_webp: image.id,
+                asset_jpeg: jpeg_id,
+                caption: image.caption,
+            })
         }
     }
+    return [pub_section, pub_section_assets]
+}
 
-    return [pub_sections, pub_assets]
+
+function replace_without_overlap(template:string, replacements:{[k:string]:string}):string{
+    // Replace a series of values without replacing any values inserted from a previous replacement
+    // e.g. if "SUBJECT" is replaced with "CONTACT ME", it will not match another key like "CONTACT"
+
+    // First replace placeholders with versions with near zero probability of overlap
+    for (const placeholder of Object.keys(replacements)){
+        template = template.replaceAll(placeholder, `~~NEVER~~${placeholder}~~MATCH~~`)
+    }
+
+    // Now safe(r) to replace with actual values
+    for (const [placeholder, value] of Object.entries(replacements)){
+        template = template.replaceAll(`~~NEVER~~${placeholder}~~MATCH~~`, value)
+    }
+
+    return template
 }
 
 
 export function render_invite_html(template:string, {contact, sender, title, url}, doc=true):string{
     // Render a HTML invite template with the provided context
 
-    let html = template
+    // Escape and replace placeholders
+    let html = replace_without_overlap(template, {
+        CONTACT: escape(contact),
+        SENDER: escape(sender),
+        SUBJECT: escape(title),
+        LINK: '',  // Link placeholder removed post v0.1.1 (bad UX to have link and main button)
+    })
 
-    // Form link from title and url
-    const link = `<a href="${escape(url)}">${escape(title)}</a>`
+    // Append title and url to end of template
+    // NOTE <hr> used for some separation if css disabled
+    html = `
+        <div style='border-radius: 12px; max-width: 600px; margin: 0 auto; border:
+                1px solid #cccccc;'>
 
-    // If template doesn't have link placeholder, add it to end
-    if (!html.includes('LINK')){
-        html += '<p>LINK</p>'
+            <div style='padding: 24px;'>
+                ${html}
+            </div>
+
+            <hr style='margin-bottom: 0; border-style: solid; border-color: #cccccc;
+                border-width: 1px 0 0 0;'>
+
+            <div style='padding: 12px; border-radius: 0 0 12px 12px; text-align: center;
+                    background-color: #ddeeff; color: #000000; font-family: Roboto, sans-serif;'>
+
+                <h3 style='font-size: 1.2em;'>${escape(title)}</h3>
+
+                <p style='margin: 36px 0;'>
+                    <a href='${escape(url)}' style='background-color: #224477; color: #ffffff;
+                            padding: 12px 18px; border-radius: 12px; text-decoration: none;'>
+                        <strong>OPEN MESSAGE</strong>
+                    </a>
+                </p>
+
+            </div>
+        </div>
+    `
+
+    // Optionally return without structural html
+    if (!doc){
+        return html
     }
 
-    // Replace link without escaping since already escaped
-    html = html.replaceAll('LINK', link)
-
-    // Escape and replace other placeholders
-    html = html
-        .replaceAll('CONTACT', escape(contact))
-        .replaceAll('SENDER', escape(sender))
-
-    // Wrap with usual html tags to get slightly lower spam rating
-    if (doc){
-        return `<!DOCTYPE html><html><head></head><body>${html}</body></html>`
-    }
-    return html
+    // Add doc tags and styles for when not embedding in another page
+    return `
+        <!DOCTYPE html>
+        <html>
+            <head>
+            </head>
+            <body style='margin: 24px;'>
+                ${html}
+            </body>
+        </html>
+    `
 }
 
 
 export function render_invite_text(template:string, {contact, sender, title, url}):string{
     // Render a text invite template with the provided context
 
-    let text = template
-
-    // In a text invite the link is simply the url
-    // NOTE Always surrounded by spaces so user can't accidently add text to it
-    const link = ` ${url} `
-
-    // If template doesn't have link placeholder, add it to end
-    if (!text.includes('LINK')){
-        text += '\n\nLINK'
-    }
-
     // Replace placeholders
-    text = text
-        .replaceAll('LINK', link)
-        .replaceAll('SUBJECT', title)
-        .replaceAll('CONTACT', contact)
-        .replaceAll('SENDER', sender)
+    let text = replace_without_overlap(template, {
+        CONTACT: contact,
+        SENDER: sender,
+        SUBJECT: title,
+        LINK: ` ${url} `,  // Pad to ensure not accidently broken by adjacent characters
+    })
+
+    // If template didn't include link placeholder, add url to end
+    // WARN Do this last so that no chance of a placeholder occuring in url and being replaced
+    if (!text.includes(url)){
+        text += `\n\n${url}`
+    }
 
     return text
 }

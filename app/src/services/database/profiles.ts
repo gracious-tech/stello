@@ -12,11 +12,68 @@ import {HostUserAws} from '@/services/hosts/aws_user'
 export interface SmtpProvider {
     host:string
     port:number
+    starttls:boolean
     domains:string[]
     app_pass:{
         url:string,
         url_two_step:string,
     }
+}
+
+
+const SMTP_PROVIDERS:{[provider:string]:SmtpProvider} = {
+    google: {
+        host: 'smtp.gmail.com',
+        port: 465,
+        starttls: false,
+        domains: ['gmail.com', 'googlemail.com'],
+        app_pass: {
+            url: 'https://myaccount.google.com/apppasswords',
+            url_two_step: 'https://myaccount.google.com/signinoptions/two-step-verification',
+        },
+    },
+    yahoo: {
+        host: 'smtp.mail.yahoo.com',
+        port: 465,
+        starttls: false,
+        domains: ['yahoo.com'],  // https://help.yahoo.com/kb/yahoo-dmarc-policy-sln24050.html
+        app_pass: {
+            url: 'https://login.yahoo.com/account/security/app-passwords/list',
+            url_two_step: 'https://login.yahoo.com/account/security',
+        },
+    },
+    microsoft: {
+        // tslint:disable-next-line:max-line-length
+        // https://support.microsoft.com/en-us/office/pop-and-imap-email-settings-for-outlook-8361e398-8af4-4e97-b147-6c6c4ac95353
+        host: 'smtp.office365.com',
+        port: 587,
+        starttls: true,
+        domains: ['hotmail.com', 'outlook.com', 'live.com'],
+        app_pass: {
+            url: 'https://account.live.com/proofs/Manage',
+            url_two_step: 'https://account.live.com/proofs/Manage',
+        },
+    },
+    apple: {
+        host: 'smtp.mail.me.com',
+        port: 587,
+        starttls: true,
+        domains: ['icloud.com'],
+        app_pass: {
+            url: 'https://appleid.apple.com/account/manage',
+            url_two_step: 'https://appleid.apple.com/account/manage',
+        },
+    },
+    psmail: {
+        host: 'mail.psmail.net',
+        port: 465,
+        starttls: false,
+        domains: ['psmail.net', 'psmx.org'],
+        app_pass: {
+            url: 'https://info.psmail.net/xsupport/device-password/',
+            url_two_step: 'https://info.psmail.net/xsupport/software-token/',
+        },
+    },
 }
 
 
@@ -31,49 +88,6 @@ export class Profile implements RecordProfile {
     options:RecordProfileOptions
     msg_options_identity:MessageOptionsIdentity
     msg_options_security:MessageOptionsSecurity
-
-    // Not in RecordProfile
-    smtp_providers = {
-        // NOTE All providers use email address as username
-        google: {
-            host: 'smtp.gmail.com',
-            port: 465,
-            domains: ['gmail.com', 'googlemail.com'],
-            app_pass: {
-                url: 'https://myaccount.google.com/apppasswords',
-                url_two_step: 'https://myaccount.google.com/signinoptions/two-step-verification',
-            },
-        },
-        yahoo: {
-            host: 'smtp.mail.yahoo.com',
-            port: 465,
-            domains: ['yahoo.com'],  // https://help.yahoo.com/kb/yahoo-dmarc-policy-sln24050.html
-            app_pass: {
-                url: 'https://login.yahoo.com/account/security/app-passwords/list',
-                url_two_step: 'https://login.yahoo.com/account/security',
-            },
-        },
-        microsoft: {
-            // tslint:disable-next-line:max-line-length
-            // https://support.microsoft.com/en-us/office/pop-and-imap-email-settings-for-outlook-8361e398-8af4-4e97-b147-6c6c4ac95353
-            host: 'smtp.office365.com',
-            port: 587,  // Doesn't support 465
-            domains: ['hotmail.com', 'outlook.com', 'live.com'],
-            app_pass: {
-                url: 'https://account.live.com/proofs/Manage',
-                url_two_step: 'https://account.live.com/proofs/Manage',
-            },
-        },
-        psmail: {
-            host: 'mail.psmail.net',
-            port: 465,
-            domains: ['psmail.net', 'psmx.org'],
-            app_pass: {
-                url: 'https://info.psmail.net/xsupport/device-password/',
-                url_two_step: 'https://info.psmail.net/xsupport/software-token/',
-            },
-        },
-    }
 
     constructor(db_object:RecordProfile){
         Object.assign(this, db_object)
@@ -101,8 +115,8 @@ export class Profile implements RecordProfile {
         if (!this.email?.includes('@'))
             return null
         const domain = this.email.split('@').pop().toLowerCase()
-        for (const org in this.smtp_providers){
-            if (this.smtp_providers[org].domains.includes(domain)){
+        for (const org in SMTP_PROVIDERS){
+            if (SMTP_PROVIDERS[org].domains.includes(domain)){
                 return org
             }
         }
@@ -111,7 +125,7 @@ export class Profile implements RecordProfile {
 
     get smtp_provider_config():SmtpProvider{
         // Return defaults for smtp provider (if detected)
-        return this.smtp_provider && this.smtp_providers[this.smtp_provider]
+        return this.smtp_provider && SMTP_PROVIDERS[this.smtp_provider]
     }
 
     get smtp_settings():RecordProfileSmtp{
@@ -121,6 +135,7 @@ export class Profile implements RecordProfile {
         if (this.smtp_provider){
             settings.host = this.smtp_provider_config.host
             settings.port = this.smtp_provider_config.port
+            settings.starttls = this.smtp_provider_config.starttls
             settings.user = this.email
         } else {
             settings.port ||= 465
@@ -213,6 +228,7 @@ export class DatabaseProfiles {
                 pass: '',
                 host: '',
                 port: null,
+                starttls: false,
             },
             options: {
                 notify_mode: 'replies',
@@ -231,10 +247,10 @@ export class DatabaseProfiles {
                 // WARN Keep templates the same as user will expect them to be (may not change them)
                 invite_tmpl_email: `
                     <p>Dear CONTACT,</p>
-                    <p>LINK</p>
+                    <p>Please see below for latest news.</p>
                     <p>Regards,<br>SENDER</p>
                 `,
-                invite_tmpl_clipboard: 'Dear CONTACT,\n\nLINK\n\nRegards,\nSENDER',
+                invite_tmpl_clipboard: 'Dear CONTACT, please see below for latest news. Regards, SENDER\n\nSUBJECT\nLINK',
             },
             msg_options_security: {
                 lifespan: 3,

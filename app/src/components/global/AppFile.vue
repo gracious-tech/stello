@@ -2,7 +2,7 @@
 
 <template lang='pug'>
 
-label(class='v-btn v-btn--flat v-btn--text v-size--default' :class='label_classes')
+label(class='v-btn v-btn--flat v-btn--text v-size--default accent--text' :class='label_classes')
     slot
     input(@change='changed' type='file' :accept='accept' :multiple='multiple')
 
@@ -17,8 +17,8 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 @Component({})
 export default class extends Vue {
 
-    @Prop(String) accept
-    @Prop(Boolean) multiple
+    @Prop(String) accept:string
+    @Prop(Boolean) multiple:boolean
 
     get label_classes(){
         // Return appropriate classes for label to make it look like a button

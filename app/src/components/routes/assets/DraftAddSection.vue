@@ -1,13 +1,13 @@
 
 <template lang='pug'>
 
-div
-    //- Parent div needed so can position as block but not trigger hover over whole block width
-    div.toolbar(:class='{keep_visible}')
-        app-btn.add(icon='add')
+div.addbar(:class='{visible}')
+    span.prompt(v-if='visible') Add a section
+    app-btn.plus(icon='add')
+    div.buttons
         app-btn(@click='add_text' icon='subject')
         app-btn(@click='add_images' icon='image')
-        //- app-btn(icon='video')
+        app-btn(@click='add_video' icon='video')
         //- app-btn(icon='pie_chart')
         //- app-btn(icon='attach_file')
         //- app-btn(icon='library_books')
@@ -19,28 +19,18 @@ div
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
+import {Draft} from '@/services/database/drafts'
+
 
 @Component({})
 export default class extends Vue {
 
-    @Prop() draft
-    @Prop() position
-    @Prop({type: Boolean, default: false}) visible  // Sets default for keep_visible
-    keep_visible = false
+    @Prop() draft:Draft
+    @Prop() position:number
+    @Prop({type: Boolean, default: false}) visible:boolean  // Show buttons even without hover
 
-    created(){
-        this.keep_visible = this.visible
-    }
-
-    toggle_visibility(){
-        // TODO Trigger on tap (touch click) for add button (but not for mouse click)
-        // NOTE Hover relied on for desktops, but toggle needed for touch screens
-        this.keep_visible = !this.keep_visible
-    }
-
-    add(type){
+    add(type:string){
         self._db.draft_section_create(this.draft, type, this.position)
-        this.keep_visible = false
     }
 
     add_text(){
@@ -51,6 +41,9 @@ export default class extends Vue {
         this.add('images')
     }
 
+    add_video(){
+        this.add('video')
+    }
 }
 
 </script>
@@ -58,17 +51,21 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+.addbar
 
-.toolbar
-    display: inline-block
+    .prompt
+        opacity: 0.6
 
-    // Don't show section type buttons unless hovering or keeping visible
-    &:not(:hover):not(.keep_visible) .v-btn:not(.add)
-        visibility: hidden
-
-    // Make add button barely visible unless keeping visible
-    &:not(.keep_visible) .add
+    .plus
         opacity: 0.15
 
+    .buttons
+        display: none
+
+    &.visible, &:hover
+        .plus
+            display: none
+        .buttons
+            display: block
 
 </style>

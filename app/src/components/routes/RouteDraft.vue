@@ -2,7 +2,7 @@
 <template lang='pug'>
 
 div(v-if='draft')
-    v-toolbar(color='primary' dark)
+    v-toolbar
 
         app-btn(to='../' icon='arrow_back')
 
@@ -16,7 +16,7 @@ div(v-if='draft')
             v-list-item(@click='show_security_dialog' :disabled='!profile')
                 v-list-item-content
                     v-list-item-title Security
-            v-list-item(@click='delete_draft')
+            v-list-item(@click='delete_draft' color='error')
                 v-list-item-content
                     v-list-item-title Delete draft
 
@@ -37,24 +37,8 @@ div(v-if='draft')
         input(v-model.trim='title' placeholder="Subject...")
 
     div.stello-container(:class='{dark: dark_message}')
-
         shared-dark-toggle(v-model='dark_message')
-
-        div.content
-            template(v-for='(section_id, i) of draft.sections')
-
-                draft-section.section(v-if='sections[section_id]' :key='section_id' :draft='draft'
-                    :section='sections[section_id]' :class='section_classes[i]')
-
-                //- Clearing on sections themselves usually isn't enough so must insert empty div
-                //- Only time when shouldn't clear after a section is after a half-float (on left)
-                //- WARN Update sent message rendering if this changes
-                div(v-if='!section_classes[i].includes("half-float")' style='clear: left')
-
-            draft-add-section.add-end(:draft='draft' :position='draft.sections.length'
-                :visible='!draft.sections.length')
-
-            draft-guide(:empty='!draft.sections.length')
+        draft-content(ref='content' :draft='draft' :sections='sections')
 
 </template>
 
@@ -63,25 +47,20 @@ div(v-if='draft')
 
 import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
-import DraftGuide from './assets/DraftGuide.vue'
-import DraftSection from './assets/DraftSection.vue'
-import DraftAddSection from './assets/DraftAddSection.vue'
-import DialogSectionImages from '@/components/dialogs/DialogSectionImages.vue'
+import DraftContent from './assets/DraftContent.vue'
 import DialogDraftProfile from '@/components/dialogs/DialogDraftProfile.vue'
 import DialogDraftRecipients from '@/components/dialogs/DialogDraftRecipients.vue'
 import DialogDraftSecurity from '@/components/dialogs/DialogDraftSecurity.vue'
 import SharedDarkToggle from '@/shared/SharedDarkToggle.vue'
-import {debounce_set, get_section_classes} from '@/services/misc'
+import {debounce_set} from '@/services/misc'
 import {Draft} from '@/services/database/drafts'
 import {Profile} from '@/services/database/profiles'
 import {Section} from '@/services/database/sections'
-import {Task} from '@/services/tasks'
-import {Sender} from '@/services/sending'
 import {update_configs} from '@/services/configs'
 
 
 @Component({
-    components: {DraftSection, DraftAddSection, DraftGuide, SharedDarkToggle},
+    components: {DraftContent, SharedDarkToggle},
 })
 export default class extends Vue {
 
@@ -100,7 +79,7 @@ export default class extends Vue {
 
         // Load the draft and the contents of the draft's sections
         const draft = await self._db.drafts.get(this.draft_id)
-        for (const section of await self._db.sections.get_multiple(draft.sections)){
+        for (const section of await self._db.sections.get_multiple(draft.sections.flat())){
             Vue.set(this.sections, section.id, section)
         }
         this.draft = draft
@@ -123,7 +102,7 @@ export default class extends Vue {
         this.sections_inited = true
 
         // Process each section id
-        this.draft.sections.forEach(async section_id => {
+        this.draft.sections.flat().forEach(async section_id => {
 
             // Ignore section if data already obtained as only interested in creation events
             // NOTE Changes to sections are made to section objects directly, not refetched from db
@@ -135,14 +114,12 @@ export default class extends Vue {
             const section_data = await self._db.sections.get(section_id)
             Vue.set(this.sections, section_id, section_data)
 
-            // If just created a new images section, open modify dialog straight away
+            // If just created a new section, open modify dialog straight away (unless text)
             // NOTE Have to use same instance of section data, otherwise lose reactivity
             //      Which is why must handle here since its the origin of the section instance
-            if (cached_sections_inited && section_data.content.type === 'images'){
-                this.$store.dispatch('show_dialog', {
-                    component: DialogSectionImages,
-                    props: {section: section_data},
-                })
+            if (cached_sections_inited && section_data.content.type !== 'text'){
+                // @ts-ignore as doesn't know about component's methods
+                this.$refs.content.modify_section(section_data)
             }
         })
     }
@@ -160,10 +137,13 @@ export default class extends Vue {
             return "Give message a subject"
         if (!this.draft.sections.length)
             return "Give message some contents"
-        for (const section_id of this.draft.sections){
+        for (const section_id of this.draft.sections.flat()){
             const section = this.sections[section_id]  // WARN May not exist if fetching from db
             if (section && section.content.type === 'images' && !section.content.images.length){
-                return "Add an image to the placeholder you created"
+                return "Add an image to the section you created"
+            }
+            if (section && section.content.type === 'video' && !section.content.format){
+                return "Add a video to the section you created"
             }
         }
         if (!this.final_recipients.length)
@@ -208,12 +188,6 @@ export default class extends Vue {
         // Set draft's title
         this.draft.title = value
         self._db.drafts.set(this.draft)
-    }
-
-    get section_classes(){
-        // Automatically determine appropriate display classes for sections based on their positions
-        const sections_data = this.draft.sections.map(id => this.sections[id])
-        return get_section_classes(sections_data)
     }
 
     get dark_message(){
@@ -332,15 +306,19 @@ export default class extends Vue {
     width: 100%
     flex-grow: 1
     overflow-y: auto
+    position: relative  // So dark toggle button scrolls normally
+
+    // Override app defaults that won't be present in displayer
+    ::v-deep
+        strong
+            font-weight: revert  // 500 weight not supported by fonts used for message display
 
     // Make any buttons inherit message theme color rather than app theme color
     ::v-deep button
         color: inherit !important
 
-    .content
-        .add-end
-            clear: both
-            position: relative
-            left: -48px
+        &.v-btn--disabled
+            color: inherit !important
+            opacity: 0.3
 
 </style>

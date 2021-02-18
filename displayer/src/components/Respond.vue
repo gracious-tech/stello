@@ -11,46 +11,47 @@ div.bar
             path(d='M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z')
         | React
 
-div.overlay(v-if='responding' @click.self='close')
+teleport(v-if='responding' to='.content')
+    div.overlay(@click.self='close')
 
-    svg.close(viewBox='0 0 24 24' @click='close')
-        path(d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z')
+        svg.close(viewBox='0 0 24 24' @click='close')
+            path(d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z')
 
-    div.dialog
+        div.dialog
 
-        div.progress(v-if='waiting')
-            Progress
+            div.progress(v-if='waiting')
+                Progress
 
-        div.result(v-if='success !== null' :class='{success}')
-            | {{ success ? "Response has been sent" : "Could not send response" }}
+            div.result(v-if='success !== null' :class='{success}')
+                | {{ success ? "Response has been sent" : "Could not send response" }}
 
-        template(v-if='responding === "reacting"')
-            div.reactions
-                button(@click='react_with("like")' class='btn-icon')
-                    img(src='../shared/reactions/like.png' title='Like')
-                button(@click='react_with("love")' class='btn-icon')
-                    img(src='../shared/reactions/love.png' title='Love')
-                button(@click='react_with("yay")' class='btn-icon')
-                    img(src='../shared/reactions/yay.png' title='Yay!')
-                button(@click='react_with("pray")' class='btn-icon')
-                    img(src='../shared/reactions/pray.png' title='Praying')
-            div.reactions
-                button(@click='react_with("laugh")' class='btn-icon')
-                    img(src='../shared/reactions/laugh.png' title='Lol')
-                button(@click='react_with("wow")' class='btn-icon')
-                    img(src='../shared/reactions/wow.png' title='Wow!')
-                button(@click='react_with("sad")' class='btn-icon')
-                    img(src='../shared/reactions/sad.png' title='Sad')
+            template(v-if='responding === "reacting"')
+                div.reactions
+                    button(@click='react_with("like")' class='btn-icon')
+                        img(src='../shared/reactions/like.png' title='Like')
+                    button(@click='react_with("love")' class='btn-icon')
+                        img(src='../shared/reactions/love.png' title='Love')
+                    button(@click='react_with("yay")' class='btn-icon')
+                        img(src='../shared/reactions/yay.png' title='Yay!')
+                    button(@click='react_with("pray")' class='btn-icon')
+                        img(src='../shared/reactions/pray.png' title='Praying')
+                div.reactions
+                    button(@click='react_with("laugh")' class='btn-icon')
+                        img(src='../shared/reactions/laugh.png' title='Lol')
+                    button(@click='react_with("wow")' class='btn-icon')
+                        img(src='../shared/reactions/wow.png' title='Wow!')
+                    button(@click='react_with("sad")' class='btn-icon')
+                        img(src='../shared/reactions/sad.png' title='Sad')
 
-        //- Using form important for enabling submit button in virtual keyboards
-        form(v-else @submit.prevent='send_comment')
-            textarea(v-model='text' ref='textarea' placeholder="Write your comment...")
-            div.send
-                button(type='submit' class='btn-icon')
-                    svg(viewBox='0 0 24 24')
-                        path(d='M2.01 21L23 12 2.01 3 2 10l15 2-15 2z')
+            //- Using form important for enabling submit button in virtual keyboards
+            form(v-else @submit.prevent='send_comment')
+                textarea(v-model='text' ref='textarea' placeholder="Write your comment...")
+                div.send
+                    button(type='submit' class='btn-icon')
+                        svg(viewBox='0 0 24 24')
+                            path(d='M2.01 21L23 12 2.01 3 2 10l15 2-15 2z')
 
-        p.note Encrypted &amp; only author can see
+            p.note Encrypted &amp; only author can see
 
 </template>
 

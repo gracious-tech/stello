@@ -5,8 +5,11 @@ v-app(:class='app_classes')
     //- v-app will become .v-application > .v-application--wrap > ...
     //- Dialogs etc will be children of .v-application
     //- Transition will not appear in the DOM itself
-    transition(:name='transition')
-        component(:is='docked' class='docked')
+
+    div.horizontal
+        app-sidebar(v-if='docked === "router-view"')
+        transition(:name='transition')
+            component(:is='docked' class='docked')
 
     app-status
 
@@ -24,8 +27,8 @@ v-app(:class='app_classes')
 
 import {Component, Vue, Watch} from 'vue-property-decorator'
 
-import app_config from '@/app_config.json'
 import AppStatus from '@/components/other/AppStatus.vue'
+import AppSidebar from '@/components/other/AppSidebar.vue'
 import AppDialog from '@/components/dialogs/AppDialog.vue'
 import SplashWelcome from '@/components/splash/SplashWelcome.vue'
 import SplashDisclaimer from '@/components/splash/SplashDisclaimer.vue'
@@ -33,7 +36,7 @@ import {update_configs} from '@/services/configs'
 
 
 @Component({
-    components: {AppStatus, SplashWelcome, SplashDisclaimer, AppDialog},
+    components: {AppStatus, AppSidebar, SplashWelcome, SplashDisclaimer, AppDialog},
 })
 export default class extends Vue {
 
@@ -81,9 +84,6 @@ export default class extends Vue {
     get app_classes(){
         // Return classes for the component's root
         const classes = []
-        if (self.navigator.userAgent.includes('electron')){
-            classes.push('custom-scroll')  // Don't want to show scrollbar for mobile devices
-        }
         if (this.$store.state.dark){
             classes.push('dark')
         }
@@ -168,11 +168,16 @@ export default class extends Vue {
 
 // Route layout and transitions
 
+.horizontal
+    display: flex
+    flex-grow: 1
+    height: 1px  // WARN Important for stopping tasks toolbar disappearing
+
 .docked
     display: flex
     flex-direction: column
     flex-grow: 1
-    height: 1px  // WARN Important for stopping tasks toolbar disappearing
+    overflow-x: hidden  // Stops growing out of container (e.g. when very long word in content)
     // Defaults for all transition animations
     animation-duration: 375ms
     animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1)
@@ -199,29 +204,6 @@ export default class extends Vue {
     &.deeper-leave-active, &.shallower-leave-active, &.jump-leave-active
         position: absolute
         width: 100%
-
-
-// Custom scrollbar
-
-
-.custom-scroll
-    // Make scrollbars more subtle and themed
-    // WARN Only apply to desktop, as mobile scrollbars should be hidden (and default to so)
-    scrollbar-width: 12px
-    scrollbar-color: #0002 transparent  // WARN ::-webkit-scrollbar-thumb must also be changed
-
-    ::-webkit-scrollbar
-        width: 12px
-        background-color: transparent
-
-    ::-webkit-scrollbar-thumb
-        background-color: #0002
-
-    &.dark  // NOTE Not using `themed` as setting on .dark's element (rather than nested element)
-        scrollbar-color: #fff2 transparent
-
-        ::-webkit-scrollbar-thumb
-            background-color: #fff2
 
 
 // Snackbar

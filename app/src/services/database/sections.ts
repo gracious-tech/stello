@@ -1,13 +1,13 @@
 
-import {AppDatabaseConnection, RecordSection, RecordSectionContent} from './types'
+import {AppDatabaseConnection, RecordSection, RecordSectionContent, ContentText} from './types'
 import {generate_token} from '@/services/utils/crypt'
 
 
-export class Section implements RecordSection {
+export class Section<TContent extends RecordSectionContent=RecordSectionContent>
+        implements RecordSection<TContent> {
 
     id:string
-    content:RecordSectionContent
-    half_width:boolean
+    content:TContent
 
     constructor(db_object:RecordSection){
         Object.assign(this, db_object)
@@ -15,14 +15,8 @@ export class Section implements RecordSection {
 
     get is_plain_text():boolean{
         // Boolean for whether section is text without any standout
-        return this.content.type === 'text' && !this.content.standout
+        return this.content.type === 'text' && !(this.content as ContentText).standout
     }
-
-    get half_width_enabled():boolean{
-        // True if half_width true AND not plain text
-        return this.half_width && !this.is_plain_text
-    }
-
 }
 
 
@@ -58,7 +52,6 @@ export class DatabaseSections {
         return new Section({
             id: generate_token(),
             content,
-            half_width: false,
         })
     }
 

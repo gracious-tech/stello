@@ -29,7 +29,7 @@ export default class extends Vue {
     @Prop(String) value:string
     @Prop({default: {}}) context
 
-    placeholders = ['CONTACT', 'LINK', 'SENDER']
+    placeholders = ['CONTACT', 'SENDER', 'SUBJECT']
     example_context = {
         contact: "Friend",
         sender: "Myself",
@@ -116,8 +116,6 @@ export default class extends Vue {
     letter-spacing: 3px
 
 .preview
-    border: 1px solid #8888
-    padding: 12px
     opacity: 0.5
     user-select: none
 

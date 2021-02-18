@@ -2,17 +2,15 @@
 <template lang='pug'>
 
 div.component
-    div.row
+    div.row(class='mb-3')
         div.displayer(:style='displayer_styles')
             img.sizer(:src='sizer_src')
         div.toolbar
-            v-btn(@click='move_up' :disabled='is_first' icon)
-                app-svg(name='icon_arrow_upward')
-            v-btn(@click='move_down' :disabled='is_last' icon)
-                app-svg(name='icon_arrow_downward')
-            v-btn(@click='remove' color='error' icon)
-                app-svg(name='icon_delete')
-    v-text-field(v-model='caption' label="Caption")
+            app-btn(@click='move_up' :disabled='is_first' icon='arrow_upward')
+            app-btn(@click='move_down' :disabled='is_last' icon='arrow_downward')
+            app-btn(@click='remove' color='error' icon='delete')
+    p
+        app-textarea(v-model='caption' placeholder="Caption" :rows='1' regular dense)
 
 </template>
 
@@ -22,13 +20,15 @@ div.component
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
 import {debounce_set} from '@/services/misc'
+import {Section} from '@/services/database/sections'
+import {ContentImages} from '@/services/database/types'
 
 
 @Component({})
 export default class extends Vue {
 
-    @Prop() section
-    @Prop() item_index
+    @Prop() section:Section<ContentImages>
+    @Prop() item_index:number
 
     get item(){
         // Return individual image object represented by this component
@@ -53,7 +53,6 @@ export default class extends Vue {
         // Return caption for this image
         return this.item.caption
     }
-
     @debounce_set() set caption(value){
         // Change the caption of this image
         this.item.caption = value

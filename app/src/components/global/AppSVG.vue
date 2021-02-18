@@ -3,7 +3,7 @@
 
 //- SVG attributes are unpacked so that <svg> can be at top level
 svg(:viewBox='viewbox' :width='width' :height='height' v-html='contents' :class='{fill}'
-    v-bind='$attrs' v-on='$listeners')
+    :style='styles' v-bind='$attrs' v-on='$listeners')
 
 </template>
 
@@ -24,8 +24,8 @@ export default class extends Vue {
     contents:string = ''
 
     @Prop() name:string
-
     @Prop({default: true, type: Boolean}) fill:boolean
+    @Prop({default: true, type: Boolean}) shrinkable:boolean
 
     @Watch('name', {immediate: true}) watch_name(value){
         // Allow easier debugging for missing svgs
@@ -43,6 +43,17 @@ export default class extends Vue {
         this.width = svg.attributes.getNamedItem('width').value
         this.height = svg.attributes.getNamedItem('height').value
         this.contents = svg.innerHTML
+    }
+
+    get styles(){
+        // Return styles (if any) to add to the element
+        if (!this.shrinkable){
+            return {
+                'min-width': `${this.width}px`,
+                'min-height': `${this.height}px`,
+            }
+        }
+        return null
     }
 }
 </script>
