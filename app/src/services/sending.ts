@@ -330,15 +330,29 @@ export function render_invite_html(template:string, {contact, sender, title, url
     // Append title and url to end of template
     // NOTE <hr> used for some separation if css disabled
     html = `
-        <div class='message'>${html}</div>
-        <hr>
-        <div class='prompt'>
-            <h3>${escape(title)}</h3>
-            <p class='link'>
-                <a href='${escape(url)}'>
-                    <strong>OPEN MESSAGE</strong>
-                </a>
-            </p>
+        <div style='border-radius: 12px; max-width: 600px; margin: 0 auto; border:
+                1px solid #cccccc;'>
+
+            <div style='padding: 24px;'>
+                ${html}
+            </div>
+
+            <hr style='margin-bottom: 0; border-style: solid; border-color: #cccccc;
+                border-width: 1px 0 0 0;'>
+
+            <div style='padding: 12px; border-radius: 0 0 12px 12px; text-align: center;
+                    background-color: #ddeeff; color: #000000; font-family: Roboto, sans-serif;'>
+
+                <h3 style='font-size: 1.2em;'>${escape(title)}</h3>
+
+                <p style='margin: 36px 0;'>
+                    <a href='${escape(url)}' style='background-color: #224477; color: #ffffff;
+                            padding: 12px 18px; border-radius: 12px; text-decoration: none;'>
+                        <strong>OPEN MESSAGE</strong>
+                    </a>
+                </p>
+
+            </div>
         </div>
     `
 
@@ -347,30 +361,14 @@ export function render_invite_html(template:string, {contact, sender, title, url
         return html
     }
 
-    // Add doc tags and styles
-    // NOTE Font size is slightly larger than user's default to standout since not much text
+    // Add doc tags and styles for when not embedding in another page
     return `
         <!DOCTYPE html>
         <html>
             <head>
-                <style>
-
-        body {margin: 24px; font-size: 1.1em;}
-        .container {border-radius: 12px; max-width: 600px; margin: 0 auto;
-            border: 1px solid #cccccc;}
-        .message {padding: 24px;}
-        hr {margin-bottom: 0; border-style: solid; border-color: #cccccc; border-width: 1px 0 0 0;}
-        .prompt {padding: 12px; border-radius: 0 0 12px 12px; text-align: center;
-            background-color: #ddeeff; color: #000000; font-family: Roboto, sans-serif;}
-        h3 {font-size: 1.2em;}
-        .link {margin: 36px 0;}
-        .link a {background-color: #224477; color: #ffffff; padding: 12px 18px; border-radius: 12px;
-            text-decoration: none;}
-
-                </style>
             </head>
-            <body>
-                <div class='container'>${html}</div>
+            <body style='margin: 24px;'>
+                ${html}
             </body>
         </html>
     `
