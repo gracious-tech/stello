@@ -11,6 +11,13 @@ const context_menu = require('electron-context-menu')
 const nodemailer = require('nodemailer')
 
 
+// Don't open if another instance of Stello is already running
+// NOTE The other instance will receive an event and focus itself instead
+if (!app.requestSingleInstanceLock()){
+    app.exit()
+}
+
+
 // Customise menu bar for macOS (since can't hide it as it's part of system bar)
 // See https://www.electronjs.org/docs/api/menu
 // See https://github.com/electron/electron/blob/master/lib/browser/default-menu.ts
@@ -84,16 +91,17 @@ app.whenReady().then(() => {
         }
     }
 
-    // Open the app in a new window
-    open_app()
+    // Open primary window for first time
+    open_window()
 
-    // Handle future "opens" (when electron main already running)
+    // Handle attempts to open another instance (e.g. via terminal etc)
+    app.on('second-instance', () => {
+        activate_app()
+    })
+
+    // Handle activation of app (e.g. clicking app in dock on Mac)
     app.on('activate', () => {
-        // If app window is not already open, open it now
-        // NOTE Usually just for Macs where it's normal to keep app running despite window close
-        if (BrowserWindow.getAllWindows().length === 0){
-            open_app()
-        }
+        activate_app()
     })
 })
 
@@ -109,7 +117,22 @@ app.on('window-all-closed', () => {
 // Helpers
 
 
-function open_app(){
+function activate_app(){
+    // Activate the app, ensuring it is open and focused, and only ever has one window
+    const window = BrowserWindow.getAllWindows()[0]
+    if (window){
+        if (window.isMinimized){
+            window.restore()
+        }
+        window.focus()
+    } else {
+        // NOTE Usually just for Macs where it's normal to keep app running despite window close
+        open_window()
+    }
+}
+
+
+function open_window(){
     // Create the browser window for the app
     const window = new BrowserWindow({
         width: 1000,
