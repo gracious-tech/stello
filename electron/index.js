@@ -1,14 +1,14 @@
 
-const path = require('path')
+const fs = require('fs').promises
 const dns = require('dns').promises
+const path = require('path')
+const http = require('http')
 
-const {app, BrowserWindow, ipcMain, shell, Menu} = require('electron')
+const {app, BrowserWindow, ipcMain, shell, Menu, dialog} = require('electron')
 const {autoUpdater} = require('electron-updater')
 const context_menu = require('electron-context-menu')
 
 const nodemailer = require('nodemailer')
-const appauth = require('@openid/appauth')
-const appauth_node = require('@openid/appauth/built/node_support')
 
 
 // Customise menu bar for macOS (since can't hide it as it's part of system bar)
@@ -44,6 +44,46 @@ context_menu({
 // Handle app init
 app.whenReady().then(() => {
 
+    // Try to auto-update (if packaging format supports it)
+    // NOTE Updates on Windows are currently handled by the Windows Store
+    if (app.isPackaged && (process.platform === 'darwin' || process.env.APPIMAGE)){
+
+        // Warn if app cannot overwrite itself (and .'. can't update)
+        // NOTE If an AppImage, need to test the AppImage file rather than currently unpackaged code
+        const app_path = process.env.APPIMAGE || app.getAppPath()
+        let can_update = true
+        try {
+            fs.accessSync(app_path, fs.constants.W_OK)
+        } catch {
+            can_update = false
+            let msg = `Stello is not able to auto-update because it doesn't have permission to write to itself. Please correct the permissions for:\n\n${app_path}`
+            if (process.platform === 'darwin' && !app.isInApplicationsFolder()){
+                // App is most likely running from a read-only mount of the DMG
+                msg = "Please move Stello into your Applications folder and open it from there, otherwise you will not be able to receive important updates."
+            }
+            const button_i = dialog.showMessageBoxSync({
+                title: "Stello is not yet installed properly",
+                message: msg,
+                type: 'warning',
+                buttons: ["CLOSE", "OPEN ANYWAY"],
+                defaultId: 0,
+                cancelId: 0,
+            })
+            if (button_i === 0){
+                app.exit()
+            }
+        }
+
+        // Check for updates if permissions ok
+        if (can_update){
+            autoUpdater.setFeedURL({
+                provider: 'generic',
+                url: 'https://releases.stello.news/electron/',
+            })
+            autoUpdater.checkForUpdatesAndNotify()
+        }
+    }
+
     // Open the app in a new window
     open_app()
 
@@ -55,15 +95,6 @@ app.whenReady().then(() => {
             open_app()
         }
     })
-
-    // Auto-update (unless windows which relies on Windows Store for updates)
-    if (process.platform !== 'win32'){
-        autoUpdater.setFeedURL({
-            provider: 'generic',
-            url: 'https://releases.stello.news/electron/',
-        })
-        autoUpdater.checkForUpdatesAndNotify()
-    }
 })
 
 // Handle no-windows event
