@@ -14,8 +14,36 @@ const nodemailer = require('nodemailer')
 // Don't open if another instance of Stello is already running
 // NOTE The other instance will receive an event and focus itself instead
 if (!app.requestSingleInstanceLock()){
-    app.exit()
+    app.quit()
 }
+
+
+// Create HTTP server for receiving oauth2 redirects
+const http_server_port = 44932
+const http_server = http.createServer(async (request, response) => {
+
+    const url = new URL(request.url, `http://127.0.0.1:${http_server_port}`)
+
+    if (url.pathname === '/oauth' && app.isReady){
+        // Process an oauth redirect (only possible if app is ready)
+        const window = activate_app()  // Also brings window to front if not already
+        window.webContents.send('oauth', Object.fromEntries(url.searchParams))
+        response.writeHead(303, {Location: '/'})  // Clear params to prevent replays
+    } else {
+        // Default route that simply prompts the user to close the window
+        const template_path = path.join(__dirname, 'server_response.html')
+        const template = await fs.readFile(template_path, {encoding: 'utf8'})
+        response.write(template)
+    }
+    response.end()
+})
+
+
+// Start the server and close it when app closes
+http_server.listen(http_server_port, '127.0.0.1')
+app.on('quit', () => {
+    http_server.close()
+})
 
 
 // Customise menu bar for macOS (since can't hide it as it's part of system bar)
@@ -77,7 +105,7 @@ app.whenReady().then(() => {
                 cancelId: 0,
             })
             if (button_i === 0){
-                app.exit()
+                app.quit()
             }
         }
 
@@ -119,16 +147,19 @@ app.on('window-all-closed', () => {
 
 function activate_app(){
     // Activate the app, ensuring it is open and focused, and only ever has one window
-    const window = BrowserWindow.getAllWindows()[0]
+    let window = BrowserWindow.getAllWindows()[0]
     if (window){
+        // Window already exists, so bring it to front and focus it
         if (window.isMinimized){
             window.restore()
         }
         window.focus()
     } else {
+        // No window yet so open one
         // NOTE Usually just for Macs where it's normal to keep app running despite window close
-        open_window()
+        window = open_window()
     }
+    return window
 }
 
 
@@ -186,6 +217,8 @@ function open_window(){
     }
     window.webContents.on('new-window', handle_navigation)  // e.g. _blank links
     window.webContents.on('will-navigate', handle_navigation)  // e.g. regular external links
+
+    return window
 }
 
 
