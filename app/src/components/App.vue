@@ -13,7 +13,7 @@ v-app(:class='app_classes')
 
     app-status
 
-    v-snackbar(v-model='snackbar' timeout='10000')
+    v-snackbar(v-model='snackbar' timeout='6000')
         | {{ $store.state.tmp.snackbar_text }}
         template(#action)
             app-btn(@click='close_snackbar' icon='close' :light='$vuetify.theme.dark')
