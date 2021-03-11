@@ -25,9 +25,9 @@ export default {
 
     // Custom
     logo:                   require('@/branding/logo.svg').default,
-    logo_google:            require('@/assets/logo_google.svg').default,
-    logo_microsoft:         require('@/assets/logo_microsoft.svg').default,
     decor_compose:          require('@/assets/decor_compose.svg').default,
+    icon_google:            require('@/assets/icon_google.svg').default,
+    icon_microsoft:         require('@/assets/icon_microsoft.svg').default,
     icon_next_plan:         require('@/assets/icon_next_plan.svg').default,
     icon_import:            require('@/assets/icon_import.svg').default,
     icon_post_add:          require('@/assets/icon_post_add.svg').default,
