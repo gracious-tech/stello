@@ -1,4 +1,24 @@
 
+// GENERICS
+
+
+export class MustReconnect extends Error {
+    // Use for errors that can be resolved by fixing network connection
+}
+
+
+export class MustReauthenticate extends Error {
+    // Use for errors that can be resolved by reauthenticating
+}
+
+
+export class MustRecover extends Error {
+    // Use for missing resource errors that can be resolved by recreating or giving up
+}
+
+
+// HELPERS
+
 
 export function type_of(value:any):string{
     // Extend typeof to support null and Array
