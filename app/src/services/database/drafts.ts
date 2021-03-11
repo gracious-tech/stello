@@ -15,7 +15,7 @@ export class Draft implements RecordDraft {
     reply_to:string
     modified:Date
     title:string
-    sections:string[][]
+    sections:([string]|[string, string])[]
     profile:string
     options_identity:MessageOptionsIdentity
     options_security:MessageOptionsSecurity
@@ -128,7 +128,7 @@ export class DatabaseDrafts {
     async create():Promise<Draft>{
         // Create a new draft (and save to db)
         const draft = await this.create_object()
-        this._conn.add('drafts', draft)
+        await this._conn.add('drafts', draft)
         return draft
     }
 
