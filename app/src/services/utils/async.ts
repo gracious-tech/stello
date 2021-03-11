@@ -6,6 +6,24 @@ export function sleep(ms:number):Promise<void>{
 }
 
 
+export function setIntervalPlus(amount:number, unit:'ms'|'s'|'m'|'h', instant:boolean,
+        handler:()=>any):number{
+    // A wrapper around setInterval providing more features
+    switch (unit){
+        case 'h':
+            amount *= 60
+        case 'm':
+            amount *= 60
+        case 's':
+            amount *= 1000
+    }
+    if (instant){
+        self.setTimeout(handler())  // Execute async to avoid errors affecting future setInterval
+    }
+    return self.setInterval(handler, amount)
+}
+
+
 export async function concurrent(tasks:(()=>any)[], status?:{count:number}, limit=10):Promise<void>{
     // Complete the given tasks concurrently and return promise that resolves when all done
     // NOTE AWS S3 CLI concurrency limit defaults to 10
