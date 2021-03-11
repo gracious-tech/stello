@@ -39,6 +39,8 @@ jobs:
 
             -   name: Build the generic base of the app
                 run: .bin/build electron
+                env:
+                    VUE_APP_OAUTH_SECRET_GOOGLE: ${{ secrets.OAUTH_SECRET_GOOGLE }}
 
             -   name: Upload app base for package jobs to use
                 working-directory: ./app
