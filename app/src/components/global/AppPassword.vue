@@ -7,8 +7,7 @@ app-text(
     v-bind='$attrs'
 )
     template(#append)
-        v-btn(@click='visible = !visible' icon)
-            app-svg(:name='visible ? "icon_visibility" : "icon_visibility_off"')
+        app-btn(@click='visible = !visible' :icon='visible ? "visibility" : "visibility_off"')
 
 </template>
 

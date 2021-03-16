@@ -19,7 +19,7 @@ v-card
         p When normal text is placed next to other content it will wrap around it, where as other styles will not.
 
     v-card-actions
-        v-btn(@click='dismiss' text) Done
+        app-btn(@click='dismiss') Done
 
 </template>
 

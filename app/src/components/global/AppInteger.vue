@@ -13,10 +13,8 @@ v-text-field(
     v-bind='$attrs'
 )
     template(#append v-if='buttons')
-        v-btn(@click='decrease' :disabled='$attrs.disabled || is_min' icon)
-            app-svg(name='icon_remove')
-        v-btn(@click='increase' :disabled='$attrs.disabled || is_max' icon)
-            app-svg(name='icon_add')
+        app-btn(@click='decrease' :disabled='$attrs.disabled || is_min' icon='remove')
+        app-btn(@click='increase' :disabled='$attrs.disabled || is_max' icon='add')
         v-btn.min(@click='set_min' :disabled='$attrs.disabled || is_min' icon) min
         v-btn.max(@click='set_max' :disabled='$attrs.disabled || is_max' icon) max
 

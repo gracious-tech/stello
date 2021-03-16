@@ -11,7 +11,7 @@ v-card
             :inherit='inherit_max_reads')
 
     v-card-actions
-        v-btn(@click='dismiss' text) Close
+        app-btn(@click='dismiss') Close
 
 </template>
 

@@ -4,8 +4,7 @@
 v-tooltip(top open-on-click)
 
     template(#activator='tooltip')
-        v-btn(v-bind='tooltip.attrs' v-on='tooltip.on' icon color='#ffc400')
-            app-svg(name='icon_privacy_tip')
+        app-btn(v-bind='tooltip.attrs' v-on='tooltip.on' icon='privacy_tip' color='#ffc400')
 
     span {{ msg }}
 

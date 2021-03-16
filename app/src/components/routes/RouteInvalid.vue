@@ -3,7 +3,7 @@
 
 app-content.page(class='text-center')
     h1(class='title mt-10') Where did you want to go again??
-    v-btn(to='/' text class='mt-5' color='accent') Nevermind
+    app-btn(to='/' class='mt-5') Nevermind
 
 </template>
 

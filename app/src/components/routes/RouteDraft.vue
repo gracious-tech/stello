@@ -13,12 +13,8 @@ div(v-if='draft')
         app-btn(@click='show_recipients_dialog' icon='contact_mail' color='' class='recipients')
             | Recipients
         app-menu-more
-            v-list-item(@click='show_security_dialog' :disabled='!profile')
-                v-list-item-content
-                    v-list-item-title Security
-            v-list-item(@click='delete_draft' color='error')
-                v-list-item-content
-                    v-list-item-title Delete draft
+            app-list-item(@click='show_security_dialog' :disabled='!profile') Security
+            app-list-item(@click='delete_draft' color='error') Delete draft
 
         v-spacer
 

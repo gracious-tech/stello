@@ -7,9 +7,7 @@ div
         v-spacer
         app-btn.fab(@click='new_contact' icon='add' fab)
         app-menu-more
-            v-list-item(@click='show_import_dialog')
-                v-list-item-content
-                    v-list-item-title Import contacts
+            app-list-item(@click='show_import_dialog') Import contacts
 
     v-toolbar.filterbar(class='text--secondary')
 
@@ -17,17 +15,15 @@ div
             app-btn-checkbox(@click='bulk_toggle' :value='bulk_value')
             span.selected Selected {{ contacts_selected.length }} of {{ contacts.length }}
             app-menu-more
-                v-list-item(@click='delete_selected')
-                    v-list-item-content
-                        v-list-item-title Delete selected
+                app-list-item(@click='delete_selected') Delete selected
 
         input(v-model.trim='search' placeholder="Search...")
         app-btn(v-if='search' @click='search = ""' icon='close')
 
     app-content(class='pa-5')
         div.empty(v-if='!contacts.length')
-            p(class='text-h5 text--secondary') No contacts added yet
-            v-btn(@click='show_import_dialog' text color='accent') Import contacts
+            p(class='text-h5 text--secondary noselect') No contacts added yet
+            app-btn(@click='show_import_dialog') Import contacts
         v-list.contacts(:class='{selections: some_selected}')
             route-contacts-item(v-for='contact of contacts_visible' :key='contact.id'
                 :contact='contact')

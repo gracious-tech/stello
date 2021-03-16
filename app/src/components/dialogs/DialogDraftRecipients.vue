@@ -40,7 +40,7 @@ v-card
                             v-list-item-title {{ contact.display }}
 
     v-card-actions
-        v-btn(@click='dismiss' text) Close
+        app-btn(@click='dismiss') Close
 
 </template>
 

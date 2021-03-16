@@ -3,9 +3,9 @@
 
 div
     p(class='btns-row')
-        v-btn(@click='set_key') Set Access Key
-        v-btn(@click='scan' :disabled='!key_id') Scan Storage
-        v-btn(@click='new_storage' :disabled='!key_id') Create storage
+        app-btn(@click='set_key') Set Access Key
+        app-btn(@click='scan' :disabled='!key_id') Scan Storage
+        app-btn(@click='new_storage' :disabled='!key_id') Create storage
 
     div.none(v-if='scanning')
         v-progress-circular(indeterminate color='accent')
@@ -18,16 +18,11 @@ div
                 | (version {{ storage.version || 'incomplete' }})
             v-list-item-action
                 app-menu-more
-                    v-list-item(@click='() => new_credentials(storage)'
-                            :disabled='!storage.version')
-                        v-list-item-content
-                            v-list-item-title Get new credentials
-                    v-list-item(@click='() => setup_services(storage)')
-                        v-list-item-content
-                            v-list-item-title {{ storage.version ? "Update" : "Fix" }}
-                    v-list-item(@click='() => delete_services(storage)')
-                        v-list-item-content
-                            v-list-item-title Delete
+                    app-list-item(@click='() => new_credentials(storage)'
+                        :disabled='!storage.version') Get new credentials
+                    app-list-item(@click='() => setup_services(storage)')
+                        | {{ storage.version ? "Update" : "Fix" }}
+                    app-list-item(@click='() => delete_services(storage)') Delete
 
 </template>
 

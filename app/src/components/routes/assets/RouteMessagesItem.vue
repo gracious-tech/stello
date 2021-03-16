@@ -7,9 +7,7 @@ v-list-item(:to='to')
         v-list-item-subtitle {{ msg.published.toLocaleString() }}
     v-list-item-action
         app-menu-more
-            v-list-item(@click='copy')
-                v-list-item-content
-                    v-list-item-title Copy to new draft
+            app-list-item(@click='copy') Copy to new draft
 
 </template>
 

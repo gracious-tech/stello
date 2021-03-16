@@ -12,8 +12,8 @@ v-card
             hint="Choose somewhere close to where your recipients are (not where you are)")
 
     v-card-actions
-        v-btn(@click='dismiss' text) Cancel
-        v-btn(@click='setup' :disabled='!bucket_available' text) Setup
+        app-btn(@click='dismiss') Cancel
+        app-btn(@click='setup' :disabled='!bucket_available') Setup
 
 </template>
 
