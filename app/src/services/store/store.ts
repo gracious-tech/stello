@@ -56,13 +56,7 @@ async function get_store_options(db:Database):Promise<StoreOptions<AppStoreState
 
         tmp_set(state, [key, value]:[string, any]):void{
             // Set a value in the store's tmp object (not saved to db)
-            // If both target and value are objects, do a nested update
-            // NOTE Still allows replacement if old or new value is null
-            if (type_of(state.tmp[key]) === 'object' && type_of(value) === 'object'){
-                nested_objects_update(state.tmp[key], value)
-            } else {
                 state.tmp[key] = value
-            }
         },
 
         tmp_new(state, [container, key, value]:[string, string, any]):void{
@@ -97,9 +91,30 @@ async function get_store_options(db:Database):Promise<StoreOptions<AppStoreState
             commit('tmp_set', ['snackbar', true])
         },
 
-        show_dialog({commit}, dialog:StateTmpDialog):void{
+        show_dialog({state, commit}, dialog:StateTmpDialog):Promise<any>{
             // Show the specified dialog
-            commit('tmp_set', ['dialog', dialog])
+
+            // If a dialog is already open, try close it
+            if (state.tmp.dialog){
+                // If existing dialog is persistant and requested one isn't, assume more important
+                if (state.tmp.dialog.persistent && !dialog.persistent){
+                    return  // Ignore request to open dialog
+                } else {
+                    dialog.resolve()
+                }
+            }
+
+            // Create a new promise that is resolved with a value when dialog closed
+            const p = new Promise(resolve => {
+                commit('tmp_set', ['dialog', {...dialog, resolve}])
+            })
+
+            // Automatically clear the dialog state when closed
+            p.then(() => {
+                commit('tmp_set', ['dialog', null])
+            })
+
+            return p
         },
 
         set_dark({commit}, value:boolean):void{

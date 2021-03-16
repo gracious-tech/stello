@@ -20,7 +20,7 @@ v-card
 
 <script lang='ts'>
 
-import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
+import {Component, Vue, Watch} from 'vue-property-decorator'
 
 import {debounce_method} from '@/services/misc'
 import {HostManagerAws} from '@/services/hosts/aws_manager'
@@ -29,7 +29,6 @@ import {HostManagerAws} from '@/services/hosts/aws_manager'
 @Component({})
 export default class extends Vue {
 
-    @Prop() resolve
     manager:HostManagerAws
     bucket = ''
     bucket_dirty = false
@@ -46,11 +45,6 @@ export default class extends Vue {
         this.manager.list_regions().then(regions => {
             this.regions = regions
         })
-    }
-
-    beforeDestroy(){
-        // Ensure promise is resolved (harmless if already resolved)
-        this.resolve(null)
     }
 
     get error(){
@@ -110,13 +104,12 @@ export default class extends Vue {
     }
 
     dismiss(){
-        this.$store.dispatch('show_dialog', null)
+        this.$emit('close')
     }
 
     setup(){
         // Accept the name and setup services
-        this.resolve({bucket: this.bucket, region: this.region})
-        this.dismiss()
+        this.$emit('close', {bucket: this.bucket, region: this.region})
     }
 
 }

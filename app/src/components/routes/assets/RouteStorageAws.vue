@@ -81,11 +81,8 @@ export default class extends Vue {
 
     async new_storage(){
         // Show dialog for choosing a bucket id and create services if accepted
-        const resp:any = await new Promise(resolve => {
-            this.$store.dispatch('show_dialog', {
-                component: DialogStorageCreateAws,
-                props: {resolve},
-            })
+        const resp = await this.$store.dispatch('show_dialog', {
+            component: DialogStorageCreateAws,
         })
         if (resp){
             const storage = this.manager.new_storage(resp.bucket, resp.region)

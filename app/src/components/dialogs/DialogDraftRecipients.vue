@@ -153,7 +153,7 @@ export default class extends Vue {
     }
 
     dismiss(){
-        this.$store.dispatch('show_dialog', null)
+        this.$emit('close')
     }
 
 }
