@@ -90,6 +90,8 @@ html
 
 
 .v-toolbar
+    // Toolbar text shouldn't be selectable
+    user-select: none
     // Stop toolbar growing vertically
     flex-grow: 0
     // Give toolbars a max content width
@@ -231,6 +233,16 @@ html
 .invisible
     visibility: hidden
 
+.noselect
+    user-select: none
+
+.ellipsis
+    // Getting text overflow to show ellipsis can be tricky and minimally requires these
+    text-overflow: ellipsis
+    overflow-x: hidden
+    white-space: nowrap
+    display: inline-block  // Or block (can't use flex :/)
+
 .app-bg-accent, .app-bg-accent-darker, .app-bg-error, .app-bg-error-darker
     a
         text-decoration: underline !important
@@ -254,11 +266,11 @@ html
 
 .theme--dark
     .app-fg-primary-relative
-        color: $primary_lighter
+        color: $primary_lighter !important
     .app-fg-accent-relative
-        color: $accent_lighter
+        color: $accent_lighter !important
     .app-fg-error-relative
-        color: $error_lighter
+        color: $error_lighter !important
     .opacity-primary
         opacity: map-get($material-dark, 'primary-text-percent')
     .opacity-secondary
@@ -267,11 +279,11 @@ html
         opacity: map-get($material-dark, 'disabledORhints-text-percent')
 .theme--light
     .app-fg-primary-relative
-        color: $primary_darker
+        color: $primary_darker !important
     .app-fg-accent-relative
-        color: $accent_darker
+        color: $accent_darker !important
     .app-fg-error-relative
-        color: $error_darker
+        color: $error_darker !important
     .opacity-primary
         opacity: map-get($material-light, 'primary-text-percent')
     .opacity-secondary
