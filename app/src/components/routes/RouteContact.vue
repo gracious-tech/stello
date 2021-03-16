@@ -17,6 +17,9 @@ div
             hint="Can be 1. email address 2. link to chat window 3. blank (manual send)")
 
         app-select(v-model='groups' :items='possible_groups_items' multiple label="Groups")
+            template(#append-item)
+                v-divider
+                app-list-item(@click='new_group' color='accent') Create new group
 
         app-textarea(v-model='notes' label="Notes")
 
@@ -117,6 +120,14 @@ export default class extends Vue {
             }
         }
     }
+
+    async new_group(){
+        // Create new group and add the contact to it
+        const group = await self._db.groups.create('', [this.contact_id])
+        this.possible_groups.push(group)
+        this.$store.dispatch('show_dialog', {component: DialogGroupName, props: {group}})
+    }
+
 
 }
 
