@@ -2,7 +2,7 @@
 <template lang='pug'>
 
 div.addbar(:class='{visible}')
-    span.prompt(v-if='visible') Add a section
+    span.prompt(v-if='visible' class='noselect') Add a section
     app-btn.plus(icon='add')
     div.buttons
         app-btn(@click='add_text' icon='subject')
