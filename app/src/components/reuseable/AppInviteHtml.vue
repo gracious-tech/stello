@@ -20,7 +20,7 @@ div.root
 import {Component, Prop, Vue} from 'vue-property-decorator'
 
 import {activate_editor} from '@/services/misc'
-import {render_invite_html} from '@/services/sending'
+import {render_invite_html} from '@/services/tasks/sending'
 
 
 @Component({})

@@ -6,7 +6,7 @@ import pako from 'pako'
 
 import {buffer_to_hex} from '@/services/utils/coding'
 import {sleep} from '@/services/utils/async'
-import {Task} from '@/services/tasks'
+import {Task} from '@/services/tasks/tasks'
 import {StorageBaseAws} from './aws_common'
 import {HostManager, HostManagerStorage, HostPermissionError} from './types'
 

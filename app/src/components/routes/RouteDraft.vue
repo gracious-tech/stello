@@ -52,7 +52,7 @@ import {debounce_set} from '@/services/misc'
 import {Draft} from '@/services/database/drafts'
 import {Profile} from '@/services/database/profiles'
 import {Section} from '@/services/database/sections'
-import {update_configs} from '@/services/configs'
+import {update_configs} from '@/services/tasks/configs'
 
 
 @Component({

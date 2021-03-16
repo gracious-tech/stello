@@ -1,5 +1,5 @@
 
-import {Task} from '@/services/tasks'
+import {Task} from '@/services/tasks/tasks'
 
 
 export interface HostCredentials {

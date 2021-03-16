@@ -16,7 +16,7 @@ div.root
 
 import {Component, Prop, Vue} from 'vue-property-decorator'
 
-import {render_invite_text} from '@/services/sending'
+import {render_invite_text} from '@/services/tasks/sending'
 
 
 @Component({})
