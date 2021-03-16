@@ -136,6 +136,15 @@ const vuetify = new Vuetify({
             complete: {component: AppSVG, props: {name: 'icon_done'}},
         },
     },
+    lang: {
+        // Override some default strings
+        // TODO Integrate with i18n instead (Vuetify has a guide on doing so)
+        locales: {
+            en: {
+                noDataText: "",  // Should show "create new" button or disable the field instead
+            },
+        },
+    },
 })
 
 
