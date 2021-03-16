@@ -12,6 +12,9 @@ v-select(
     filled
     v-bind='$attrs'
 )
+    //- NOTE Using $scopedSlots and receiving props via `v-slot:[name]='props'` seems to have bug
+    template(v-for='(slot_array, slot_name) of $slots' v-slot:[slot_name])
+        slot(:name='slot_name')
 
 </template>
 
