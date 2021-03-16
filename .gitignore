@@ -6,7 +6,7 @@
 /app/dist/
 /app/node_modules/
 /app/src/assets/displayer/
-/app/src/services/native.ts
+/app/src/services/native/native.ts
 
 /app_config/node_modules/
 
