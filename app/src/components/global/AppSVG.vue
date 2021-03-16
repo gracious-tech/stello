@@ -9,7 +9,7 @@ svg(:viewBox='viewbox' :width='width' :height='height' v-html='contents' :class=
 
 
 <script lang='ts'>
-import {Component, Prop, Vue, Watch, Inject} from 'vue-property-decorator'
+import {Component, Prop, Vue, Watch} from 'vue-property-decorator'
 
 import svgs from '@/assets/svgs'
 
@@ -25,7 +25,7 @@ export default class extends Vue {
 
     @Prop() name:string
     @Prop({default: true, type: Boolean}) fill:boolean
-    @Prop({default: true, type: Boolean}) shrinkable:boolean
+    @Prop({default: false, type: Boolean}) responsive:boolean
 
     @Watch('name', {immediate: true}) watch_name(value){
         // Allow easier debugging for missing svgs
@@ -47,7 +47,7 @@ export default class extends Vue {
 
     get styles(){
         // Return styles (if any) to add to the element
-        if (!this.shrinkable){
+        if (!this.responsive){
             return {
                 'min-width': `${this.width}px`,
                 'min-height': `${this.height}px`,

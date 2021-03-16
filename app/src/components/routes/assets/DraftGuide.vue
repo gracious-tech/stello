@@ -3,7 +3,7 @@
 
 div.root(:class='{showing: show_guide}')
 
-    app-svg.decor_compose(v-if='show_decor' @click='toggle_guide' name='decor_compose')
+    app-svg.decor_compose(v-if='show_decor' @click='toggle_guide' name='decor_compose' responsive)
 
     div.guide(v-if='show_guide')
 
@@ -12,7 +12,7 @@ div.root(:class='{showing: show_guide}')
         h2(class='text-h6') The subject
         p Like an email, the subject for each message is not part of the message itself. Readers will see it when they are notified about your message. Don't put anything sensitive in the subject, as it will still be around after your messages expire.
 
-        app-svg.decor_compose_guide(name='decor_compose')
+        app-svg.decor_compose_guide(name='decor_compose' responsive)
 
         h2(class='text-h6') Sections
         p Stello organises messages into sections, which can be text #[app-svg(name='icon_subject')], images #[app-svg(name='icon_image')], or videos #[app-svg(name='icon_video')]. This gives several advantages, such as being able to rearrange sections, allow recipients to comment on individual sections, and giving your message a more logical flow. You can still just write one long section if you prefer.
