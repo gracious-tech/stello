@@ -17,10 +17,10 @@ export function sort(array:any[], property:string=null, ascending:boolean=true):
 }
 
 
-export function remove(array:any[], item:any):void{
+export function remove(array:any[], item:any, comparer:(a, b)=>boolean=(a, b)=>a === b):void{
     // Remove all instances of an item from an array
     for (let i = array.length - 1; i >= 0; i--){
-        if (array[i] === item){
+        if (comparer(array[i], item)){
             array.splice(i, 1)
         }
     }
