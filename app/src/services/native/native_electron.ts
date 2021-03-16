@@ -2,6 +2,15 @@
 
 import {IpcRenderer} from 'electron'  // Just for type (injected via preload.js)
 
+import {EmailSettings, Email, EmailError, EmailIdentity} from './types'
+
+
+declare global {
+    interface Window {
+        ipcRenderer:IpcRenderer
+    }
+}
+
 
 // Functions
 
@@ -24,36 +33,12 @@ export function send_emails(settings:EmailSettings, emails:Email[], from:EmailId
 }
 
 
-// Types
+// Listeners
 
 
-declare global {
-    interface Window {
-        ipcRenderer:IpcRenderer
-    }
-}
-
-interface EmailSettings {
-    host:string
-    port:number
-    starttls:boolean
-    user:string
-    pass:string
-}
-
-interface Email {
-    to:EmailIdentity
-    subject:string
-    html:string
-}
-
-interface EmailIdentity {
-    name:string
-    address:string
-}
-
-interface EmailError {
-    code:string
-    message:string
-    response:string
+export function on_oauth(handler:(url:string)=>void):void{
+    // Listen to oauth redirect events by providing a handler
+    self.ipcRenderer.on('oauth', (event, url) => {
+        handler(url)
+    })
 }

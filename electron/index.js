@@ -27,7 +27,7 @@ const http_server = http.createServer(async (request, response) => {
     if (url.pathname === '/oauth' && app.isReady){
         // Process an oauth redirect (only possible if app is ready)
         const window = activate_app()  // Also brings window to front if not already
-        window.webContents.send('oauth', Object.fromEntries(url.searchParams))
+        window.webContents.send('oauth', url.toString())
         response.writeHead(303, {Location: '/'})  // Clear params to prevent replays
     } else {
         // Default route that simply prompts the user to close the window
