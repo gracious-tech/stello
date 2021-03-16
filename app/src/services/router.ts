@@ -11,8 +11,6 @@ import RouteStorage from '@/components/routes/RouteStorage.vue'
 import RouteInvalid from '@/components/routes/RouteInvalid.vue'
 import RouteContacts from '@/components/routes/RouteContacts.vue'
 import RouteContact from '@/components/routes/RouteContact.vue'
-import RouteGroups from '@/components/routes/RouteGroups.vue'
-import RouteGroup from '@/components/routes/RouteGroup.vue'
 import RouteDrafts from '@/components/routes/RouteDrafts.vue'
 import RouteDraft from '@/components/routes/RouteDraft.vue'
 import RouteMessages from '@/components/routes/RouteMessages.vue'
@@ -32,8 +30,6 @@ const routes:RouteConfig[] = [
     {path: '/settings/storage/', component: RouteStorage},
     {path: '/contacts/', component: RouteContacts},
     {path: '/contacts/:contact_id/', component: RouteContact, name: 'contact', props: true},
-    {path: '/groups/', component: RouteGroups},
-    {path: '/groups/:group_id/', component: RouteGroup, name: 'group', props: true},
     {path: '/drafts/', component: RouteDrafts},
     {path: '/drafts/:draft_id/', component: RouteDraft, name: 'draft', props: true},
     {path: '/messages/', component: RouteMessages},

@@ -18,7 +18,6 @@ div.sidebar
         app-list-item(to='/replies/') Responses
         v-divider
         app-list-item(to='/contacts/') Contacts
-        app-list-item(to='/groups/') Groups
 
     v-list(dark)
         v-divider
