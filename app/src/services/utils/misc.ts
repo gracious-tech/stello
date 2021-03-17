@@ -42,3 +42,19 @@ export function email_address_like(input:string):boolean{
     // Whether given input looks like an email address (for UI purposes, not validation)
     return /.+@.+\..+/.test(input)
 }
+
+
+export function download_file(file:File):void{
+    // Trigger a download of the given file
+    download_url(URL.createObjectURL(file), file.name)
+}
+
+
+export function download_url(url:string, filename:string=''):void{
+    // Trigger a download of the given url
+    // NOTE If no filename given the browser will base it on the URL
+    const tmp = self.document.createElement('a')
+    tmp.href = url
+    tmp.download = filename
+    tmp.click()
+}
