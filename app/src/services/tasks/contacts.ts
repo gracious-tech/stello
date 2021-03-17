@@ -31,7 +31,25 @@ export async function contacts_sync(task:Task):Promise<Promise<void>[]>{
 // GOOGLE
 
 
+interface GoogleGroupsListResp {
+    contactGroups:GoogleGroup[]
+}
+
+interface GoogleGroupsBatchResp {
+    responses:{contactGroup:GoogleGroup}[]
+}
+
+interface GoogleGroup {
+    resourceName:string
+    name:string
+    groupType:'USER_CONTACT_GROUP'  // The only relevant one
+    memberCount?:number  // Won't exist if 0
+    memberResourceNames?:string[]  // Only returned for get requests (not list)
+}
+
+
 const URL_GOOGLE_CONTACTS = 'https://people.googleapis.com/v1/people/me/connections'
+const URL_GOOGLE_GROUPS = 'https://people.googleapis.com/v1/contactGroups'
 
 
 async function sync_contacts_google(task:Task, oauth:OAuth):Promise<void>{
@@ -128,7 +146,79 @@ async function sync_contacts_google_full(task:Task, oauth:OAuth):Promise<void>{
 
 async function sync_groups_google(task:Task, oauth:OAuth):Promise<void>{
     // Sync contact groups from a Google account
-    // TODO
+
+    // Get fresh list of the groups
+    // NOTE While could use pagination/syncToken, list likely to be very small and not worth it
+    const list_resp = await task.add(oauth_request(oauth, URL_GOOGLE_GROUPS, {
+        groupFields: 'name,groupType,memberCount',
+        pageSize: '1000',  // Highest possible and highly unlikely to get anywhere close
+    })) as GoogleGroupsListResp
+
+    // Filter out system groups (starred/banned/etc) and empty groups
+    const groups = list_resp.contactGroups.filter(
+        g => g.groupType === 'USER_CONTACT_GROUP' && g.memberCount)  // memberCount excluded if 0
+
+    // Organise groups into batches depending on how many members (i.e. how large request will be)
+    const batches:GoogleGroup[][] = [[]]
+    let total_members = 0
+    for (const group of groups){
+        /* Start new batch if:
+            a. Current batch has >= 40 groups already (limit for people.getBatchGet is 50)
+            b. Current batch has a group and adding next would put it over the total members limit
+        */
+        const batch_size = batches[0].length
+        if (batch_size >= 40 || (batch_size && total_members + group.memberCount > 1000)){
+            total_members = 0
+            batches.unshift([group])
+        } else {
+            batches[0].push(group)
+        }
+        total_members += group.memberCount
+    }
+
+    // Update subtasks count since know how many batches there'll be
+    task.upcoming(batches.length)
+
+    // Get existing groups from db
+    const existing_groups = await self._db.groups.list_for_account(oauth.issuer, oauth.issuer_id)
+    const existing_by_id = Object.fromEntries(existing_groups.map(g => [g.service_id, g]))
+
+    // Make batch get requests, as members data isn't returned for list requests
+    for (const batch of batches){
+        const get_resp = await task.expected(oauth_request(oauth, `${URL_GOOGLE_GROUPS}:batchGet`, {
+            resourceNames: batch.map(g => g.resourceName),
+            maxMembers: '10000',  // Have to put something...
+            groupFields: 'name',  // Don't need any, but defaults to more if none set
+        })) as GoogleGroupsBatchResp
+
+        // Process each group now that we have the list of members available
+        for (const batch_sub_resp of get_resp.responses){
+
+            // Extract relevant fields
+            const service_id = batch_sub_resp.contactGroup.resourceName
+            const name = batch_sub_resp.contactGroup.name || ''
+            const members = batch_sub_resp.contactGroup.memberResourceNames || []
+            if (!members.length){
+                continue  // Double check (see above too)
+            }
+
+            // Either update existing or add new group
+            if (service_id in existing_by_id){
+                const existing = existing_by_id[service_id]
+                existing.name = name
+                existing.contacts = members
+                self._db.groups.set(existing)
+                delete existing_by_id[service_id]  // Prevent deletion during final step
+            } else {
+                self._db.groups.create(name, members, `google:${oauth.issuer_id}`, service_id)
+            }
+        }
+    }
+
+    // Remove any remaining existing groups since are no longer present in the service
+    for (const existing of Object.values(existing_by_id)){
+        self._db.groups.remove(existing.id)
+    }
 }
 
 
