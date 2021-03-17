@@ -1,7 +1,7 @@
 // Utils that are too hard to categorise
 
 
-export function address_type(address:string):string{
+export function address_type(address:string):'url'|'email'|'other'{
     // Return the type of address given
     // SECURITY Only encouraging/supporting secure urls
     if (address.startsWith('https://')){
