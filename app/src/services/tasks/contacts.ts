@@ -6,12 +6,12 @@ import {partition} from "../utils/strings"
 
 
 // Functions which sync contacts in ways specific to the issuer
-const handlers:{[issuer:string]:((task:Task, oauth:OAuth)=>Promise<void>)[]} = {
-    google: [sync_contacts_google, sync_groups_google],
+const handlers:{[issuer:string]:(task:Task, oauth:OAuth)=>Promise<void>} = {
+    google: contacts_sync_google,
 }
 
 
-export async function contacts_sync(task:Task):Promise<Promise<void>[]>{
+export async function contacts_sync(task:Task):Promise<void>{
     // Task for syncing contacts
 
     // Extract args from task object and get oauth record
@@ -23,8 +23,8 @@ export async function contacts_sync(task:Task):Promise<Promise<void>[]>{
     task.show_count = true
     task.fix_oauth = oauth
 
-    // Call array of handlers specific to the oauth's issuer
-    return handlers[oauth.issuer].map(handler => handler(task, oauth))
+    // Call handler specific to the oauth's issuer
+    return handlers[oauth.issuer](task, oauth)
 }
 
 
@@ -52,22 +52,24 @@ const URL_GOOGLE_CONTACTS = 'https://people.googleapis.com/v1/people/me/connecti
 const URL_GOOGLE_GROUPS = 'https://people.googleapis.com/v1/contactGroups'
 
 
-async function sync_contacts_google(task:Task, oauth:OAuth):Promise<void>{
+async function contacts_sync_google(task:Task, oauth:OAuth):Promise<void>{
     // Sync contacts from a Google account
+    let confirmed:Record<string, string>
     if (oauth.contacts_sync_token){
-        return sync_contacts_google_changes(task, oauth)
+        confirmed = await contacts_sync_google_changes(task, oauth)
     }
-    return sync_contacts_google_full(task, oauth)
+    confirmed = await contacts_sync_google_full(task, oauth)
+    return contacts_sync_google_groups(task, oauth, confirmed)
 }
 
 
-async function sync_contacts_google_changes(task:Task, oauth:OAuth):Promise<void>{
+async function contacts_sync_google_changes(task:Task, oauth:OAuth):Promise<Record<string, string>>{
     // Do a sync for the Google account that requests only what has changed rather than all data
-    return sync_contacts_google_full(task, oauth)  // TODO
+    return contacts_sync_google_full(task, oauth)  // TODO
 }
 
 
-async function sync_contacts_google_full(task:Task, oauth:OAuth):Promise<void>{
+async function contacts_sync_google_full(task:Task, oauth:OAuth):Promise<Record<string, string>>{
     // Do a full sync for the Google account, comparing with own existing records
 
     // Increase subtasks for initial page (better predictions after that)
@@ -76,6 +78,9 @@ async function sync_contacts_google_full(task:Task, oauth:OAuth):Promise<void>{
     // Get list of previously synced contacts for account and map by service's ids
     const existing_contacts = await self._db.contacts.list_for_account('google', oauth.issuer_id)
     const existing_by_id = Object.fromEntries(existing_contacts.map(c => [c.service_id, c]))
+
+    // Keep track of final confirmed contacts with mapping from service's id to Stello id
+    const confirmed:Record<string, string> = {}
 
     // Download pages of contacts until none left
     const page_size = 100
@@ -115,8 +120,11 @@ async function sync_contacts_google_full(task:Task, oauth:OAuth):Promise<void>{
                     self._db.contacts.set(existing)
                 }
                 delete existing_by_id[service_id]  // Prevent deletion during final step
+                confirmed[existing.service_id] = existing.id
             } else {
-                self._db.contacts.create(name, email, `google:${oauth.issuer_id}`, service_id)
+                const created = await self._db.contacts.create(
+                    name, email, `google:${oauth.issuer_id}`, service_id)
+                confirmed[created.service_id] = created.id
             }
         }
 
@@ -141,10 +149,14 @@ async function sync_contacts_google_full(task:Task, oauth:OAuth):Promise<void>{
     for (const existing of Object.values(existing_by_id)){
         self._db.contacts.remove(existing.id)
     }
+
+    // Return confirmed ids
+    return confirmed
 }
 
 
-async function sync_groups_google(task:Task, oauth:OAuth):Promise<void>{
+async function contacts_sync_google_groups(task:Task, oauth:OAuth, confirmed:Record<string, string>,
+        ):Promise<void>{
     // Sync contact groups from a Google account
 
     // Get fresh list of the groups
@@ -195,18 +207,24 @@ async function sync_groups_google(task:Task, oauth:OAuth):Promise<void>{
         for (const batch_sub_resp of get_resp.responses){
 
             // Extract relevant fields
-            const service_id = batch_sub_resp.contactGroup.resourceName
+            const service_id = partition(batch_sub_resp.contactGroup.resourceName, '/')[1]
             const name = batch_sub_resp.contactGroup.name || ''
-            const members = batch_sub_resp.contactGroup.memberResourceNames || []
-            if (!members.length){
-                continue  // Double check (see above too)
+            const members = batch_sub_resp.contactGroup.memberResourceNames.map(
+                n => partition(n, '/')[1])
+
+            // Convert array of service's contact ids to Stello ids (and filter out dud members)
+            const contacts = members.map(sid => confirmed[sid]).filter(id => id)
+
+            // Ignore (and effectively delete) group if no valid contacts (e.g. none with emails)
+            if (!contacts.length){
+                continue
             }
 
             // Either update existing or add new group
             if (service_id in existing_by_id){
                 const existing = existing_by_id[service_id]
                 existing.name = name
-                existing.contacts = members
+                existing.contacts = contacts
                 self._db.groups.set(existing)
                 delete existing_by_id[service_id]  // Prevent deletion during final step
             } else {
