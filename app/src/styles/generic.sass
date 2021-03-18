@@ -152,24 +152,34 @@ html
     // Lighten links on dark bg (and vice versa)
     // NOTE Only do this for text (e.g. links) as it is hard to read when not light/dark enough
     //      i.e. don't need for things like switches and underlines (just leave normal accent)
+    // NOTE Don't apply to disabled items ([aria-disabled] more reliably present than [disabled])
     &.theme--dark
         a:not(.v-btn)  // Links amongst text
             color: $accent_lighter
-        .primary--text:not([disabled])  // Vuetify text buttons etc
+        .primary--text:not([aria-disabled])  // Vuetify text buttons etc
             color: $primary_lighter !important  // Required to override Vuetify :/
-        .accent--text:not([disabled])
+        .accent--text:not([aria-disabled])
             color: $accent_lighter !important
-        .error--text:not([disabled])
+        .error--text:not([aria-disabled])
             color: $error_lighter !important
     &.theme--light
         a:not(.v-btn)
             color: $accent_darker
-        .primary--text:not([disabled])
+        .primary--text:not([aria-disabled])
             color: $primary_darker !important
-        .accent--text:not([disabled])
+        .accent--text:not([aria-disabled])
             color: $accent_darker !important
-        .error--text:not([disabled])
+        .error--text:not([aria-disabled])
             color: $error_darker !important
+
+    // Stop Vuetify's color classes from overriding disabled themes (e.g. on v-list-item)
+    // NOTE list items within select components don't have [disabled]
+    &.theme--dark
+        *[aria-disabled]
+            color: rgba(white, map-get($material-dark, 'disabledORhints-text-percent')) !important
+    &.theme--light
+        *[aria-disabled]
+            color: rgba(black, map-get($material-light, 'disabledORhints-text-percent')) !important
 
     // Make tooltips inverse theme
     // NOTE Whole tooltip already has an opacity of 0.9
