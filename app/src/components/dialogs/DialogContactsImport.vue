@@ -5,11 +5,14 @@ v-card
     v-card-title Import Contacts
 
     div.csv_controls(v-if='type === "csv" && contacts.length')
-        span(class='text--secondary') Relevant columns
-        app-select(v-model='csv_column_name' :items='csv_columns' label="Name column" dense
-            outlined)
-        app-select(v-model='csv_column_email' :items='csv_columns' label="Email column" dense
-            outlined)
+        p.warn(class='text-center') Confirm columns are correct
+        div.columns
+            app-select(v-model='csv_column_name' :items='csv_columns' label="Name column"
+                dense outlined)
+            app-select(v-model='csv_column_name2' :items='csv_columns_optional'
+                label="Last Name (if needed)" dense outlined)
+            app-select(v-model='csv_column_email' :items='csv_columns' label="Email column"
+                dense outlined)
 
     v-card-text
         v-simple-table(v-if='contacts.length' dense fixed-header)
@@ -36,17 +39,27 @@ v-card
         div(v-else class='text-center text--secondary')
 
             p
+                app-btn(@click='oauth_google' raised color='' class='mr-3')
+                    app-svg(name='icon_google' class='mr-3')
+                    | Google
+
+            p
+                app-btn(@click='oauth_microsoft' raised color='' class='mr-3')
+                    app-svg(name='icon_microsoft' class='mr-3')
+                    | Outlook
+
+            v-divider
+
+            p
                 app-file(@input='from_file'
-                        accept='text/vcard,text/csv,text/plain,.vcf,.vcard,.txt,.csv')
-                    | Load file
-                app-btn(@click='from_clipboard') Paste
+                    accept='text/*,application/zip,.vcf,.vcard,.csv,.eml,.zip') From file
 
             p(v-if='type' class='text-subtitle-1') No contacts detected
 
             p.supported
                 span Comma-separated (.csv)
                 span vCard (.vcf)
-                span Name #{'<email>'}
+                span Email (.eml)
 
     v-card-actions
         app-btn(@click='dismiss') Close
@@ -58,24 +71,23 @@ v-card
 
 <script lang='ts'>
 
-import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
-
+import papaparse from 'papaparse'
 import vcard_json from 'vcard-json'
-import neat_csv from 'neat-csv'
-import email_addresses, {ParsedMailbox} from 'email-addresses'
+import PostalMime from 'postal-mime'
+import * as zip from '@zip.js/zip.js/dist/zip'
+import {Component, Vue, Watch} from 'vue-property-decorator'
 
-import {get_clipboard_text} from '@/services/utils/misc'
+import {oauth_action_init_grant} from '@/services/oauth'
 
 
 @Component({})
 export default class extends Vue {
 
-    @Prop() done
-
     type = null
     csv_items:{[col:string]:string}[] = []
     csv_columns = []
     csv_column_name = null
+    csv_column_name2 = null
     csv_column_email = null
     contacts:{name:string, email:string, include:boolean}[] = []
     limit_visible = true  // So don't make UI laggy if user won't check them all anyway
@@ -105,8 +117,18 @@ export default class extends Vue {
         return this.all_selected ? true : (this.some_selected ? null : false)
     }
 
+    get csv_columns_optional(){
+        // Get CSV columns with a null option at the start
+        return [{value: null, text: "—"}, ...this.csv_columns]
+    }
+
     @Watch('csv_column_name') watch_column_name(){
         // Change which name column used for CSV
+        this.apply_csv_columns()
+    }
+
+    @Watch('csv_column_name2') watch_column_name2(){
+        // Change which second name column used for CSV
         this.apply_csv_columns()
     }
 
@@ -115,22 +137,35 @@ export default class extends Vue {
         this.apply_csv_columns()
     }
 
+    oauth_google(){
+        oauth_action_init_grant('google', 'contacts_read')
+    }
+
+    oauth_microsoft(){
+        oauth_action_init_grant('microsoft', 'contacts_read')
+    }
+
     async from_file(file:File){
         // Get contact data from a file
-        const extension = file.name?.split('.').pop().toLowerCase()
-        const text = await file.text()
-        this.parse_text(text, extension)
-    }
+        const get_ext = (filename:string):string => filename.split('.').pop().toLowerCase()
+        let extension:string = get_ext(file.name)
+        let text:string
 
-    async from_clipboard(){
-        // Get contact data from clipboard
-        this.parse_text(await get_clipboard_text())
-    }
+        // If a zip file is given, assume it contains a single contacts file and use it instead
+        // NOTE MailChimp exports a csv within a zip
+        if (extension === 'zip'){
+            const zip_entries = await new zip.ZipReader(new zip.BlobReader(file)).getEntries()
+            if (!zip_entries.length){
+                return
+            }
+            extension = get_ext(zip_entries[0].filename)
+            text = await zip_entries[0].getData(new zip.TextWriter()) as string
+        } else {
+            text = await file.text()
+        }
 
-    async parse_text(text:string, extension?){
-        // Parse given text and auto-detect the format
-        text = text.trim()
-        if (text.startsWith('BEGIN:VCARD')){
+        // Parse the file's text
+        if (text.trim().startsWith('BEGIN:VCARD')){
             this.parse_vcard(text)
             this.type = 'vcard'
         } else if (extension === 'csv'){
@@ -138,8 +173,8 @@ export default class extends Vue {
             await this.parse_csv(text)
             this.type = 'csv'
         } else {
-            this.parse_addresses(text)
-            this.type = 'addresses'
+            this.parse_email(text)
+            this.type = 'email'
         }
     }
 
@@ -147,14 +182,14 @@ export default class extends Vue {
         // Turn given vcard data into a list of contacts
         this.accept_contacts(vcard_json.parseVcardStringSync(text).map(contact => {
             // Get the default address, or just the first if none default
-            const email = contact.email.filter(e => e.default)[0] || contact.email[0]
+            const email = contact.email.find(e => e.default) || contact.email[0]
             return {name: contact.fullname, email: email?.value}
         }))
     }
 
     async parse_csv(text){
         // Turn given csv data into a list of contacts
-        this.csv_items = await neat_csv(text)
+        this.csv_items = (await papaparse.parse(text, {header: true})).data
 
         // Can't detect columns if no items
         if (!this.csv_items.length){
@@ -165,19 +200,25 @@ export default class extends Vue {
         // Get column names from first item
         this.csv_columns = Object.keys(this.csv_items[0])
 
-        // Auto-detect name column
-        const detected_name = this.csv_columns.filter(c => c.includes('Name'))[0]
-        this.csv_column_name = detected_name || this.csv_columns[0]
-
-        // Auto-detect email column
-        let detected_email = Object.entries(this.csv_items[0])
-            .filter(i => i[1].includes('@'))
-            .map(i => i[0])
-            [0]
-        if (!detected_email){
-            detected_email = this.csv_columns.filter(c => c.includes('E-mail'))[0]
+        // Auto-detect name columns
+        this.csv_column_name = this.csv_columns.find(c => /^(full )?name$/i.test(c))
+        if (!this.csv_column_name){
+            this.csv_column_name = this.csv_columns.find(c => /(first|given) name/i.test(c))
+                ?? this.csv_columns[0]
+            this.csv_column_name2 = this.csv_columns.find(c => /(last|family) name/i.test(c))
+                ?? null
         }
-        this.csv_column_email = detected_email || this.csv_columns[0]
+
+        // Auto-detect email column by going through rows and columns until an '@' found
+        // NOTE First rows might not have an email address, so searches multiple rows
+        // NOTE Favour search for '@' as column names can be "Email Type [home/work]" etc
+        for (const row of this.csv_items){
+            this.csv_column_email = Object.entries(row).find(([k, v]) => v.includes('@'))?.[0]
+            if (this.csv_column_email)
+                break
+        }
+        if (!this.csv_column_email)
+            this.csv_column_email = this.csv_columns[0]
 
         // Do initial conversion to contacts (user may change selected columns after this)
         this.apply_csv_columns()
@@ -186,16 +227,22 @@ export default class extends Vue {
     apply_csv_columns(){
         // Reconvert CSV data to contacts based on current column selections
         this.accept_contacts(this.csv_items.map(item => {
-            return {name: item[this.csv_column_name], email: item[this.csv_column_email]}
+            let name = item[this.csv_column_name]
+            if (this.csv_column_name2){
+                name += ' ' + item[this.csv_column_name2]
+            }
+            return {name, email: item[this.csv_column_email]}
         }))
     }
 
-    parse_addresses(text){
-        // Turn given email addresses data into a list of contacts
-        text = text.replaceAll('\n', ' ')
-        const result = email_addresses.parseAddressList(text) || []
-        this.accept_contacts(result.map((item:ParsedMailbox) => {
-            return {name: item.name, email: item.address}
+    async parse_email(text){
+        // Extract contacts from to/cc/bcc headers of given email
+        const email = await new PostalMime().parse(text)
+        const recipients = [...email.to ?? [], ...email.cc ?? [], ...email.bcc ?? []]
+        // Unlike other parsers, should not here accept addressless items
+        // NOTE `undisclosed-recipients:;` is a "group" with no address
+        this.accept_contacts(recipients.filter(item => 'address' in item).map(item => {
+            return {name: item.name ?? '', email: item.address}
         }))
     }
 
@@ -228,17 +275,15 @@ export default class extends Vue {
         // Create a new group for all the contacts
         const date = new Date()
         const group_name = `Imported ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`
-        await self._db.groups.create(group_name, contacts.map(c => c.id))
-        this.$store.dispatch('show_snackbar', `Successfully imported ${contacts.length} contacts`)
+        const group = await self._db.groups.create(group_name, contacts.map(c => c.id))
 
-        // Let current route know have finished importing
-        this.done()
-        this.dismiss()
+        // Let caller know the id of the new group
+        this.$emit('close', group.id)
     }
 
     dismiss(){
         // Close the dialog
-        this.$store.dispatch('show_dialog', null)
+        this.$emit('close')
     }
 
 }
@@ -249,18 +294,23 @@ export default class extends Vue {
 <style lang='sass' scoped>
 
 .csv_controls
-    display: flex
     margin: 12px 0
     padding: 0 24px
-    justify-content: space-between
-    align-items: center
     font-weight: 500
 
-    .v-select
-        max-width: 175px
+    .warn
+        @include themed(color, #937100, #ffc400)
 
-        ::v-deep .v-text-field__details
-            display: none
+    .columns
+        display: flex
+        justify-content: space-between
+        align-items: center
+
+        .v-select
+            max-width: 175px
+
+            ::v-deep .v-text-field__details
+                display: none
 
 .supported span
     display: inline-block
