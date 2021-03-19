@@ -77,6 +77,7 @@ import PostalMime from 'postal-mime'
 import * as zip from '@zip.js/zip.js/dist/zip'
 import {Component, Vue, Watch} from 'vue-property-decorator'
 
+import {drop} from '@/services/utils/exceptions'
 import {oauth_action_init_grant} from '@/services/oauth'
 
 
@@ -147,7 +148,14 @@ export default class extends Vue {
 
     async from_file(file:File){
         // Get contact data from a file
+
+        // Reset file type (so there's a visible change)
+        this.type = null
+
+        // Helper for getting normalised file extension
         const get_ext = (filename:string):string => filename.split('.').pop().toLowerCase()
+
+        // Init vars
         let extension:string = get_ext(file.name)
         let text:string
 
@@ -164,21 +172,27 @@ export default class extends Vue {
             text = await file.text()
         }
 
-        // Parse the file's text
+        // Detect the file's type
+        let type:string
+        let parser:(text:string)=>Promise<void>
         if (text.trim().startsWith('BEGIN:VCARD')){
-            this.parse_vcard(text)
-            this.type = 'vcard'
+            type = 'vcard'
+            parser = this.parse_vcard
         } else if (extension === 'csv'){
-            // NOTE Must set type after parsing done so don't show "no contacts" message in between
-            await this.parse_csv(text)
-            this.type = 'csv'
+            type = 'csv'
+            parser = this.parse_csv
         } else {
-            this.parse_email(text)
-            this.type = 'email'
+            type = 'email'
+            parser = this.parse_email
         }
+
+        // Try to parse
+        // NOTE Must set type after parsing done so don't show "no contacts" message in between
+        await drop(parser(text))
+        this.type = type
     }
 
-    parse_vcard(text){
+    async parse_vcard(text:string):Promise<void>{
         // Turn given vcard data into a list of contacts
         this.accept_contacts(vcard_json.parseVcardStringSync(text).map(contact => {
             // Get the default address, or just the first if none default
@@ -187,7 +201,7 @@ export default class extends Vue {
         }))
     }
 
-    async parse_csv(text){
+    async parse_csv(text:string):Promise<void>{
         // Turn given csv data into a list of contacts
         this.csv_items = (await papaparse.parse(text, {header: true})).data
 
@@ -224,7 +238,7 @@ export default class extends Vue {
         this.apply_csv_columns()
     }
 
-    apply_csv_columns(){
+    apply_csv_columns():void{
         // Reconvert CSV data to contacts based on current column selections
         this.accept_contacts(this.csv_items.map(item => {
             let name = item[this.csv_column_name]
@@ -235,7 +249,7 @@ export default class extends Vue {
         }))
     }
 
-    async parse_email(text){
+    async parse_email(text:string):Promise<void>{
         // Extract contacts from to/cc/bcc headers of given email
         const email = await new PostalMime().parse(text)
         const recipients = [...email.to ?? [], ...email.cc ?? [], ...email.bcc ?? []]
