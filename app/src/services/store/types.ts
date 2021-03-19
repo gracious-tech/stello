@@ -42,7 +42,8 @@ export interface AppStoreState {
 
 export interface StateTmpDialog {
     component:object
-    props:object
-    persistent:boolean
+    props?:object
+    persistent?:boolean
+    wide?:boolean
     resolve:(v?:any)=>void
 }

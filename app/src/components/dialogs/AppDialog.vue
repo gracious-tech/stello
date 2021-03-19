@@ -2,7 +2,7 @@
 <template lang='pug'>
 
 v-dialog(:value='show' @input='close_detected' :fullscreen='fullscreen' :persistent='persistent'
-        scrollable)
+        scrollable :max-width='max_width')
     component(v-if='dialog' :is='dialog.component' v-bind='dialog.props' @close='close_request')
 
 </template>
@@ -27,6 +27,11 @@ export default class extends Vue {
     get persistent(){
         // If true, dialog cannot be closed by clicking outside it
         return this.dialog?.persistent === true
+    }
+
+    get max_width(){
+        // Max width of dialog
+        return this.dialog?.wide ? '800px' : '600px'
     }
 
     @Watch('$store.state.tmp.dialog') watch_dialog(value){
