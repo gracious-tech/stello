@@ -36,17 +36,38 @@ v-card
                         app-btn(@click='limit_visible = false') Show all
 
 
+        div(v-else-if='mailchimp')
+            video(src='_assets/videos/guide_mailchimp_export_contacts.webm' autoplay loop controls)
+
+            h2(class='mt-6 mb-3 text-h6') Adding contacts from Mailchimp
+            ol(class='ml-4 text-body-1')
+                li
+                    app-btn(href='https://admin.mailchimp.com/lists/members' small)
+                        | Go to contacts page
+                li(class='pl-4') Click "Export Audience"
+                li(class='pl-4') Click "Export As CSV" on the export you just created
+                li
+                    app-file(@input='from_file'
+                        accept='text/*,application/zip,.vcf,.vcard,.csv,.eml,.zip') Load zip file
+
+            p(v-if='type' class='text-subtitle-1 error--text') No contacts detected
+
         div(v-else class='text-center text--secondary')
 
-            p
-                app-btn(@click='oauth_google' raised color='' class='mr-3')
+            p.service
+                app-btn(@click='oauth_google' raised color='' light class='mr-3')
                     app-svg(name='icon_google' class='mr-3')
                     | Google
 
-            p
-                app-btn(@click='oauth_microsoft' raised color='' class='mr-3')
+            p.service
+                app-btn(@click='oauth_microsoft' raised color='' light class='mr-3')
                     app-svg(name='icon_microsoft' class='mr-3')
                     | Outlook
+
+            p.service
+                app-btn(@click='mailchimp = true' raised color='#ffe01b' light class='mr-3')
+                    app-svg(name='icon_mailchimp' :fill='false' class='mr-3')
+                    | Mailchimp
 
             v-divider
 
@@ -92,6 +113,7 @@ export default class extends Vue {
     csv_column_email = null
     contacts:{name:string, email:string, include:boolean}[] = []
     limit_visible = true  // So don't make UI laggy if user won't check them all anyway
+    mailchimp = false
 
     get contacts_visible(){
         // The contacts present in the DOM
@@ -325,6 +347,17 @@ export default class extends Vue {
 
             ::v-deep .v-text-field__details
                 display: none
+
+.service
+    .v-btn
+        text-transform: none
+
+        svg
+            width: 20px
+            height: 20px
+
+video
+    width: 100%
 
 .supported span
     display: inline-block
