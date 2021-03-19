@@ -15,6 +15,7 @@ v-card
                 dense outlined)
 
     v-card-text
+
         v-simple-table(v-if='contacts.length' dense fixed-header)
             thead
                 tr
@@ -36,7 +37,7 @@ v-card
                         app-btn(@click='limit_visible = false') Show all
 
 
-        div(v-else-if='mailchimp')
+        div(v-else-if='source === "mailchimp"')
             video(src='_assets/videos/guide_mailchimp_export_contacts.webm' autoplay loop controls)
 
             h2(class='mt-6 mb-3 text-h6') Adding contacts from Mailchimp
@@ -47,40 +48,50 @@ v-card
                 li(class='pl-4') Click "Export Audience"
                 li(class='pl-4') Click "Export As CSV" on the export you just created
                 li
-                    app-file(@input='from_file'
-                        accept='text/*,application/zip,.vcf,.vcard,.csv,.eml,.zip') Load zip file
+                    app-file(@input='from_file' :accept='file_accept') Load zip file
 
-            p(v-if='type' class='text-subtitle-1 error--text') No contacts detected
 
-        div(v-else class='text-center text--secondary')
+        div(v-else-if='source === "email"')
+            video(src='_assets/videos/guide_save_email.webm' autoplay loop controls)
+            p(class='mt-4 text-body-1') If you have been sending newsletters as regular emails with a long list of addresses in the TO/CC/BCC fields, Stello can automatically import those contacts for you. You simply need to save a copy of the last email you sent and load it into Stello.
+            p(class='text-center')
+                app-file(@input='from_file' :accept='file_accept') Load email file
 
-            p.service
-                app-btn(@click='oauth_google' raised color='' light class='mr-3')
-                    app-svg(name='icon_google' class='mr-3')
-                    | Google
 
-            p.service
-                app-btn(@click='oauth_microsoft' raised color='' light class='mr-3')
-                    app-svg(name='icon_microsoft' class='mr-3')
-                    | Outlook
-
-            p.service
-                app-btn(@click='mailchimp = true' raised color='#ffe01b' light class='mr-3')
-                    app-svg(name='icon_mailchimp' :fill='false' class='mr-3')
-                    | Mailchimp
-
-            v-divider
-
-            p
-                app-file(@input='from_file'
-                    accept='text/*,application/zip,.vcf,.vcard,.csv,.eml,.zip') From file
-
-            p(v-if='type' class='text-subtitle-1') No contacts detected
-
-            p.supported
+        div(v-else-if='source === "other"')
+            p(class='text-body-1') Open your contacts list and export them as a CSV or vCard file, then load it into Stello.
+            p(class='text-center')
+                app-file(@input='from_file' :accept='file_accept') Load file
+            p.supported(class='text-center')
                 span Comma-separated (.csv)
                 span vCard (.vcf)
-                span Email (.eml)
+
+
+        div.sources(v-else class='text-center text--secondary')
+
+            h1(class='text-h5') From an existing newsletter system...
+
+            p
+                app-btn(@click='source = "mailchimp"' raised color='#ffe01b' light)
+                    app-svg(name='icon_mailchimp' :fill='false' class='mr-3')
+                    | Mailchimp
+                app-btn(@click='source = "email"' raised color='' light) Regular email
+                app-btn(@click='source = "other"' raised color='' dark) Other
+
+            h1(class='text-h5') From a contacts list...
+
+            p
+                app-btn(@click='oauth_google' raised color='' light)
+                    app-svg(name='icon_google' class='mr-3')
+                    | Google
+                app-btn(@click='oauth_microsoft' raised color='' light)
+                    app-svg(name='icon_microsoft' class='mr-3')
+                    | Outlook
+                app-btn(@click='source = "other"' raised color='' dark) Other
+
+
+        p(v-if='type && !contacts.length' class='text-subtitle-1 text-center error--text')
+            | No contacts detected
 
     v-card-actions
         app-btn(@click='dismiss') Close
@@ -105,7 +116,10 @@ import {oauth_action_init_grant} from '@/services/oauth'
 @Component({})
 export default class extends Vue {
 
-    type = null
+    readonly file_accept = 'text/*,application/zip,.vcf,.vcard,.csv,.eml,.zip'
+
+    source = null  // The source of the contacts the user chooses (for UI display only)
+    type = null  // The detected file type of the latest upload attempt
     csv_items:{[col:string]:string}[] = []
     csv_columns = []
     csv_column_name = null
@@ -113,7 +127,6 @@ export default class extends Vue {
     csv_column_email = null
     contacts:{name:string, email:string, include:boolean}[] = []
     limit_visible = true  // So don't make UI laggy if user won't check them all anyway
-    mailchimp = false
 
     get contacts_visible(){
         // The contacts present in the DOM
@@ -348,9 +361,14 @@ export default class extends Vue {
             ::v-deep .v-text-field__details
                 display: none
 
-.service
+.sources
+
+    h1
+        margin: 24px 0
+
     .v-btn
         text-transform: none
+        margin: 0 12px
 
         svg
             width: 20px
