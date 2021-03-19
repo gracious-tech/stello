@@ -39,6 +39,20 @@ export function catch_only(error_class:any, error:Error):void{
 }
 
 
+export function silence<A, R>(fn:(...args:A[])=>R, args:A[]=[]):R{
+    // Call given function and silence any errors that occur
+    try {
+        return fn(...args)
+    } catch {}
+}
+
+
+export function drop<T>(promise:Promise<T>):Promise<T>{
+    // Drop (rather than catch) any errors for promise (resolving to undefined instead)
+    return promise.catch(() => undefined)
+}
+
+
 export function validate_chars(value:string, regex_chars:string):void{
     // Ensure value only contains given chars (in regex syntax)
     // WARN Use double \\ in regex_chars since initing via a normal string rather than regex string
