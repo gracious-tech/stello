@@ -8,7 +8,7 @@ div.sidebar
     app-logo.logo
 
     app-btn.new(@click='new_draft')
-        | {{ default_template_exists ? "new from template" : "new message" }}
+        | {{ default_template ? "new from template" : "new message" }}
 
     v-list(dark).main-nav
         app-list-item(to='/') Dashboard
@@ -33,6 +33,7 @@ div.sidebar
 import {Component, Vue} from 'vue-property-decorator'
 
 import AppLogo from '@/branding/AppLogo.vue'
+import {Draft} from '@/services/database/drafts'
 
 
 @Component({
@@ -40,21 +41,16 @@ import AppLogo from '@/branding/AppLogo.vue'
 })
 export default class extends Vue {
 
-    default_template_exists = false
-
-    async created(){
-        // Confirm whether default template exists
-        const default_id = this.$store.state.default_template
-        if (default_id && await self._db.drafts.get(default_id)){
-            this.default_template_exists = true
-        }
+    get default_template(){
+        return this.$store.state.default_template
     }
 
     async new_draft(){
         // Create a new draft and navigate to it
-        let draft
-        if (this.default_template_exists){
-            draft = await self._db.draft_copy(this.$store.state.default_template)
+        let draft:Draft
+        // NOTE Also double check default template id not just set, but actual template exists still
+        if (this.default_template && await self._db.drafts.get(this.default_template)){
+            draft = await self._db.draft_copy(this.default_template, false)
         } else {
             draft = await self._db.drafts.create()
         }
