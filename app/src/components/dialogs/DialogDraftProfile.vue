@@ -59,7 +59,7 @@ export default class extends Vue {
         // Get profiles that can be selected (also one in progress for use if none finished yet)
         const profiles = await self._db.profiles.list()
         this.profiles = profiles.filter(p => p.setup_complete)
-        this.profile_in_progress = profiles.filter(p => !p.setup_complete)[0] ?? null
+        this.profile_in_progress = profiles.find(p => !p.setup_complete) ?? null
     }
 
     get profiles_ui(){
@@ -79,7 +79,7 @@ export default class extends Vue {
 
     get profile_data(){
         // Get the actual data for the profile id
-        return this.profiles.filter(p => p.id === this.profile)[0]
+        return this.profiles.find(p => p.id === this.profile)
     }
 
     get sender_name(){
