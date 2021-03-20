@@ -21,20 +21,20 @@ import {AppStoreState} from '@/services/store/types'
 
 // Route config
 const routes:RouteConfig[] = [
+    // WARN Order must match sidebar nav as animations automatically determined based on this
     {path: '/', component: RouteRoot},
-    {path: '/about/', component: RouteAbout},
-    {path: '/settings/', component: RouteSettings},
-    {path: '/settings/profiles/', redirect: '/settings/'},  // Embedded in RouteSettings
-    {path: '/settings/profiles/:profile_id/', component: RouteProfile, name: 'profile',
-        props: true},
-    {path: '/settings/storage/', component: RouteStorage},
-    {path: '/contacts/', component: RouteContacts},
-    {path: '/contacts/:contact_id/', component: RouteContact, name: 'contact', props: true},
     {path: '/drafts/', component: RouteDrafts},
     {path: '/drafts/:draft_id/', component: RouteDraft, name: 'draft', props: true},
     {path: '/messages/', component: RouteMessages},
     {path: '/messages/:msg_id/', component: RouteMessage, name: 'message', props: true},
     {path: '/replies/', component: RouteReplies},
+    {path: '/contacts/', component: RouteContacts},
+    {path: '/contacts/:contact_id/', component: RouteContact, name: 'contact', props: true},
+    {path: '/settings/', component: RouteSettings},
+    {path: '/settings/profiles/', redirect: '/settings/'},  // Embedded in RouteSettings
+    {path: '/settings/profiles/:profile_id/', component: RouteProfile, name: 'profile', props:true},
+    {path: '/settings/storage/', component: RouteStorage},
+    {path: '/about/', component: RouteAbout},
     {path: '*', component: RouteInvalid},
 ]
 
