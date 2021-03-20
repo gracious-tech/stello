@@ -30,7 +30,7 @@ export default class extends Vue {
     }
 
     async copy(){
-        const copy = await self._db.draft_copy(new Draft(this.msg.draft))
+        const copy = await self._db.draft_copy(new Draft(this.msg.draft), false)
         this.$router.push({name: 'draft', params: {draft_id: copy.id}})
     }
 
