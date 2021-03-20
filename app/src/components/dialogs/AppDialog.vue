@@ -2,7 +2,7 @@
 <template lang='pug'>
 
 v-dialog(:value='show' @input='close_detected' :fullscreen='fullscreen' :persistent='persistent'
-        scrollable :max-width='max_width')
+        scrollable :max-width='max_width' :content-class='content_class')
     component(v-if='dialog' :is='dialog.component' v-bind='dialog.props' @close='close_request')
 
 </template>
@@ -32,6 +32,11 @@ export default class extends Vue {
     get max_width(){
         // Max width of dialog
         return this.dialog?.wide ? '800px' : '600px'
+    }
+
+    get content_class():string{
+        // Classes to apply to the detached dialog in DOM (normal class attribute doesn't work)
+        return this.dialog?.tall === true ? 'tall' : ''
     }
 
     @Watch('$store.state.tmp.dialog') watch_dialog(value){
@@ -66,7 +71,11 @@ export default class extends Vue {
 </script>
 
 
-<style lang='sass' scoped>
+<style lang='sass'>
+// WARN These styles are not scoped, so can still apply despite abnormal insertion into DOM
+
+.v-dialog.tall
+    height: 100%  // Actual height is maxed out at e.g. 90%
 
 
 </style>
