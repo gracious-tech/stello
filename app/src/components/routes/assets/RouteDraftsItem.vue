@@ -10,9 +10,10 @@ v-list-item(:to='to')
         v-tooltip(v-if='draft.template' top)
             | Use for new draft
             template(#activator='tooltip')
-                app-btn(v-bind='tooltip.attrs' v-on='tooltip.on' @click.prevent='copy' icon='post_add')
+                app-btn(v-bind='tooltip.attrs' v-on='tooltip.on' @click.prevent='copy_to_draft'
+                    icon='post_add')
         app-menu-more
-            app-list-item(v-if='!draft.template' @click='copy') Duplicate
+            app-list-item(@click='duplicate') Duplicate
             app-list-item(v-if='!draft.template' @click='make_template') Turn into template
             app-list-item(v-if='draft.template' @click='make_default_template'
                 :disabled='is_default') Make default
@@ -42,9 +43,20 @@ export default class extends Vue {
         return this.draft.id === this.$store.state.default_template
     }
 
-    async copy(){
-        const copy = await self._db.draft_copy(this.draft.id)
+    async copy(template?:boolean){
+        // Duplicate the draft or template
+        const copy = await self._db.draft_copy(this.draft.id, template)
         this.$emit('copied', copy)
+    }
+
+    duplicate(event){
+        // Duplicate a draft or template
+        this.copy()
+    }
+
+    copy_to_draft(event){
+        // Copy a template as a new draft
+        this.copy(false)
     }
 
     make_template(){
