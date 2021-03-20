@@ -9,7 +9,8 @@ v-app(:class='app_classes')
     div.horizontal
         app-sidebar(v-if='docked === "router-view"')
         transition(:name='transition')
-            component(:is='docked' class='docked')
+            //- WARN key important to stop Vue reusing a route when its params change
+            component(:is='docked' :key='$route.fullPath' class='docked')
 
     app-status
 
@@ -25,6 +26,7 @@ v-app(:class='app_classes')
 
 <script lang='ts'>
 
+import {Route} from 'vue-router'
 import {Component, Vue, Watch} from 'vue-property-decorator'
 
 import AppStatus from '@/components/other/AppStatus.vue'
@@ -40,7 +42,7 @@ import {update_configs} from '@/services/configs'
 })
 export default class extends Vue {
 
-    route_transition = 'jump'
+    route_transition = 'below'
 
     async mounted(){
         // Prevent window close if still doing tasks
@@ -77,8 +79,8 @@ export default class extends Vue {
     }
 
     get transition(){
-        // Always jump if transitioning with splashes
-        return this.docked === 'router-view' ? this.route_transition : 'jump'
+        // Always below if transitioning with splashes
+        return this.docked === 'router-view' ? this.route_transition : 'below'
     }
 
     get app_classes(){
@@ -97,15 +99,32 @@ export default class extends Vue {
         this.$store.commit('tmp_set', ['snackbar', value])
     }
 
-    @Watch('$route') watch_$route(to, from){
+    @Watch('$route') watch_$route(to:Route, from:Route){
         // Do a different transition depending on which routes going from/to
-        if (to.path.startsWith(from.path)){
-            this.route_transition = 'deeper'
-        } else if (from.path.startsWith(to.path)){
-            this.route_transition = 'shallower'
-        } else {
-            this.route_transition = 'jump'
-        }
+
+        // Work with raw paths (/path/:param/ rather than /path/value/)
+        const to_path = to.matched[0].path
+        const from_path = from.matched[0].path
+
+        this.route_transition = (() => {
+
+            // Root route (dashboard) is a special case and needs manual handling
+            if (from_path === '/')
+                return 'below'
+            if (to_path === '/')
+                return 'above'
+
+            // Handle transitions within same branch
+            if (to_path.startsWith(from_path))
+                return 'deeper'
+            if (from_path.startsWith(to_path))
+                return 'shallower'
+
+            // Moving branch, so detect is going above or below based on order of routes
+            const paths = this.$router.options.routes.map(item => item.path)
+            return paths.indexOf(to_path) > paths.indexOf(from_path) ? 'below' : 'above'
+
+        })()
     }
 
     close_snackbar(){
@@ -165,6 +184,18 @@ export default class extends Vue {
     to
         transform: translateY(-100%)
 
+@keyframes slide-down-enter
+    from
+        transform: translateY(-100%)
+    to
+        transform: translateY(0)
+
+@keyframes slide-down-leave
+    from
+        transform: translateY(0)
+    to
+        transform: translateY(100%)
+
 
 // Route layout and transitions
 
@@ -194,16 +225,23 @@ export default class extends Vue {
     &.shallower-leave-active
         animation-name: slide-right-leave
 
-    &.jump-enter-active
+    &.above-enter-active
+        animation-name: slide-down-enter
+
+    &.above-leave-active
+        animation-name: slide-down-leave
+
+    &.below-enter-active
         animation-name: slide-up-enter
 
-    &.jump-leave-active
+    &.below-leave-active
         animation-name: slide-up-leave
 
     // Need to absolute position a route when it's leaving so entering route not displaced
-    &.deeper-leave-active, &.shallower-leave-active, &.jump-leave-active
+    &.deeper-leave-active, &.shallower-leave-active, &.above-leave-active, &.below-leave-active
         position: absolute
-        width: 100%
+        width: 100%  // Needed because of absolute, but doesn't take into account sidebar
+        padding-left: $stello_sidebar_width  // Take into account sidebar
 
 
 // Snackbar
