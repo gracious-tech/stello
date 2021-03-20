@@ -108,6 +108,10 @@ export default class extends Vue {
 
         this.route_transition = (() => {
 
+            // If going to the same path then a param has changed
+            if (from_path === to_path)
+                return 'below'
+
             // Root route (dashboard) is a special case and needs manual handling
             if (from_path === '/')
                 return 'below'
