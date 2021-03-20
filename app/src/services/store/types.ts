@@ -45,5 +45,6 @@ export interface StateTmpDialog {
     props?:object
     persistent?:boolean
     wide?:boolean
+    tall?:boolean
     resolve:(v?:any)=>void
 }
