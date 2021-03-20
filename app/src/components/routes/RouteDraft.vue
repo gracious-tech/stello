@@ -14,14 +14,20 @@ div(v-if='draft')
             | Recipients
         app-menu-more
             app-list-item(@click='show_security_dialog' :disabled='!profile') Security
-            app-list-item(@click='delete_draft' color='error') Delete draft
+            app-list-item(@click='delete_draft' color='error')
+                | {{ draft.template ? "Delete template" : "Delete draft" }}
 
         v-spacer
 
-        v-tooltip(:disabled='!sending_barrier' left)
+        v-tooltip(v-if='draft.template' left)
+            | Use for new draft
+            template(#activator='tooltip')
+                app-btn(v-bind='tooltip.attrs' v-on='tooltip.on' @click='copy_to_draft' fab
+                    icon='post_add')
+        v-tooltip(v-else :disabled='!sending_barrier' left)
             | {{ sending_barrier }}
             template(#activator='tooltip')
-                app-btn.send(@click='send' :class='{barrier: sending_barrier}' icon='send' fab
+                app-btn(@click='send' :class='{barrier: sending_barrier}' icon='send' fab
                     v-bind='tooltip.attrs' v-on='tooltip.on')
 
         //- Second row of toolbar
@@ -207,6 +213,7 @@ export default class extends Vue {
         this.$store.dispatch('show_dialog', {
             component: DialogDraftRecipients,
             props: {draft: this.draft},
+            tall: true,
         })
     }
 
@@ -241,9 +248,19 @@ export default class extends Vue {
         this.$router.push('/')
     }
 
+    async copy_to_draft(){
+        // Copy template to a new draft and navigate to it
+        const draft = await self._db.draft_copy(this.draft, false)
+        this.$router.push({name: 'draft', params: {draft_id: draft.id}})
+    }
+
     delete_draft(){
         // Delete this draft
         self._db.drafts.remove(this.draft_id)
+        // If this was the default template, clear it
+        if (this.draft_id === this.$store.state.default_template){
+            this.$store.commit('dict_set', ['default_template', null])
+        }
         this.$router.push('../')
     }
 
@@ -262,7 +279,7 @@ export default class extends Vue {
 .v-toolbar ::v-deep
     height: auto !important
 
-    .send
+    .v-btn--fab
         margin-top: 64px  // Height of toolbar
 
         &.barrier
