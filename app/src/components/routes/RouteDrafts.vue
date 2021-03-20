@@ -5,19 +5,25 @@ div
     v-toolbar
         v-toolbar-title Drafts
         v-spacer
-        app-btn.new(@click='new_draft' icon='add' fab)
+        app-btn.new(@click='new_regular_draft' icon='add' fab)
 
-    app-content(class='pa-5')
+    app-content(class='px-5 py-10')
 
-        h3(class='text-h6') Drafts
         v-list
+            v-subheader Drafts
             route-drafts-item(v-for='draft of regular_drafts' :key='draft.id' :draft='draft'
                 @removed='removed' @copied='copied')
+            p(v-if='!regular_drafts.length' class='text-center text--secondary text-body-2') No drafts
 
-        h3(class='text-h6') Templates
-        v-list
+            v-divider(class='my-10')
+
+            v-subheader Templates
             route-drafts-item(v-for='draft of templates' :key='draft.id' :draft='draft'
                 @removed='removed' @copied='copied')
+            p(v-if='!templates.length' class='text-center text--secondary text-body-2')
+                | Create a template so you can copy it when creating new messages
+            p(class='text-center')
+                app-btn(@click='new_template' small) New template
 
 </template>
 
@@ -56,10 +62,20 @@ export default class extends Vue {
         this.drafts = drafts
     }
 
-    async new_draft(){
+    async new_draft(template:boolean){
         // Create a new draft and navigate to it
-        const draft = await self._db.drafts.create()
+        const draft = await self._db.drafts.create(template)
         this.$router.push({name: 'draft', params: {draft_id: draft.id}})
+    }
+
+    new_regular_draft(event){
+        // Create a regular draft
+        this.new_draft(false)
+    }
+
+    new_template(event){
+        // Create a new template
+        this.new_draft(true)
     }
 
     removed(removed_id){
@@ -69,7 +85,7 @@ export default class extends Vue {
 
     copied(copy){
         // Handle copy of a draft
-        this.drafts.push(copy)
+        this.drafts.unshift(copy)
     }
 
 }
@@ -82,5 +98,8 @@ export default class extends Vue {
 
 .new
     margin-top: 56px
+
+.v-subheader
+    font-size: 20px
 
 </style>
