@@ -2,17 +2,29 @@
 <template lang='pug'>
 
 v-card
-    v-card-title Recipients
+    v-card-title Recipients ({{ final_recipients.length }})
 
-    v-card-text
+    v-tabs(v-model='tab' color='accent' grow class='px-6')
+        v-tab Groups
+        v-tab Contacts
 
-        template(v-if='!contacts || !contacts.length')
-            p(class='text-center') You don't have any contacts yet
+    div.filtering(v-if='tab === 1 && contacts.length')
+        v-chip-group(v-model='contacts_filter' active-class='accent--text')
+            v-chip All
+            v-chip Recipients
+            v-chip Non-Recipients
+        app-text(v-model='contacts_search' placeholder='Search...' rounded dense)
+            template(#append)
+                    app-btn(v-if='contacts_search' @click='contacts_search = ""' icon='close')
+
+    v-card-text(ref='scrollable')
+
+        template(v-if='!contacts.length')
+            p(class='text-center mt-10') You don't have any contacts yet
             p(class='text-center')
                 app-btn(to='/contacts/') Add contacts
 
-        v-tabs(v-else grow color='accent')
-            v-tab Groups
+        v-tabs-items(v-else v-model='tab')
             v-tab-item
                 v-list
                     v-list-item(v-for='group of groups_ui' :key='group.id' @click='group.click'
@@ -21,23 +33,18 @@ v-card
                             app-svg(:name='group.icon')
                         v-list-item-content
                             v-list-item-title {{ group.display }}
+                        v-list-item-icon(class='justify-end') {{ group.size }}
 
-            v-tab Contacts
             v-tab-item
-
-                v-chip-group(v-model='filter_contacts' mandatory class='pt-4'
-                        active-class='accent--text')
-                    v-chip All
-                    v-chip Recipients
-                    v-chip Non-Recipients
-
                 v-list
-                    v-list-item(v-for='contact of contacts_ui' :key='contact.id'
+                    v-list-item(v-for='contact of contacts_visible_ui' :key='contact.id'
                             @click='contact.click' :color='contact.color')
                         v-list-item-icon
                             app-svg(:name='contact.icon')
                         v-list-item-content
                             v-list-item-title {{ contact.display }}
+                p(v-if='is_limited || contacts_search' class='text-center')
+                    app-btn(@click='reveal_more' small) {{ is_limited ? "Show more" : "Clear search" }}
 
     v-card-actions
         app-btn(@click='dismiss') Close
@@ -47,18 +54,24 @@ v-card
 
 <script lang='ts'>
 
-import {Component, Vue, Prop} from 'vue-property-decorator'
+import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import {sort, remove} from '@/services/utils/arrays'
+import {Draft} from '@/services/database/drafts'
+import {Group} from '@/services/database/groups'
+import {Contact} from '@/services/database/contacts'
 
 
 @Component({})
 export default class extends Vue {
 
-    @Prop() draft
-    groups = null
-    contacts = null
-    filter_contacts = 0
+    @Prop() draft:Draft
+    groups:Group[] = []
+    contacts:Contact[] = []
+    tab:number = 0
+    contacts_filter:number = 0
+    contacts_search:string = ''
+    contacts_pages:number = 1
 
     created(){
         // Get all groups and contacts and sort them
@@ -73,6 +86,11 @@ export default class extends Vue {
         })
     }
 
+    get final_recipients():string[]{
+        // Get list of contact ids that will currently be included when all things accounted for
+        return this.draft.get_final_recipients(this.groups)
+    }
+
     get groups_ui(){
         // A UI view of the groups data
         const items = []
@@ -84,6 +102,7 @@ export default class extends Vue {
             items.push({
                 id: group.id,
                 display: group.display,
+                size: group.contacts.length,
                 icon: 'icon_checkbox_' + (excluded ? 'cross' : (included ? 'true' : 'false')),
                 color: excluded ? 'error' : (included ? 'accent' : ''),
                 click: () => {this.toggle_group(group.id)},
@@ -92,23 +111,15 @@ export default class extends Vue {
         return items
     }
 
-    get contacts_ui(){
+    get contacts_visible_ui(){
         // A UI view of the contacts data
-
-        // Get list of recipients that will currently be included when all things accounted for
-        const final = this.draft.get_final_recipients(this.groups)
-
         const items = []
-        for (const contact of this.contacts){
-            // Don't show contacts depending on filtering setting
-            const in_final = final.includes(contact.id)
-            if (this.filter_contacts !== 0 && in_final !== (this.filter_contacts === 1)){
-                continue
-            }
+        for (const contact of this.contacts_visible){
             // Determine if the contact is explicitly included or excluded
             const included = this.draft.recipients.include_contacts.includes(contact.id)
             const excluded = this.draft.recipients.exclude_contacts.includes(contact.id)
             // Return UI info for the contact
+            const in_final = this.final_recipients.includes(contact.id)
             items.push({
                 id: contact.id,
                 display: contact.display,
@@ -118,6 +129,67 @@ export default class extends Vue {
             })
         }
         return items
+    }
+
+    get contacts_matched():Contact[]{
+        // The contacts that should be displayed based on current filters
+        if (this.contacts_search){
+            // TODO Improve search method, especially for i18n
+            const lower_search = this.contacts_search.toLowerCase()
+            return this.contacts.filter(contact => {
+                return contact.display.toLowerCase().includes(lower_search)
+            })
+        } else if (this.contacts_filter !== 0){
+            return this.contacts.filter(contact => {
+                const in_final = this.final_recipients.includes(contact.id)
+                return in_final === (this.contacts_filter === 1)
+            })
+        }
+        return this.contacts
+    }
+
+    get contacts_visible():Contact[]{
+        // The contacts present in the DOM, optionally limited to reduce lag
+        return this.contacts_matched.slice(0, 100 * this.contacts_pages)
+    }
+
+    get is_limited():boolean{
+        // Whether contacts are being limited to reduce load on the DOM
+        return this.contacts_visible.length < this.contacts_matched.length
+    }
+
+    @Watch('contacts_matched') watch_contacts_matched(){
+        // Whenever matched contacts changes, scroll back to top and reduce to 1 page again
+        ;(this.$refs.scrollable as Element).scroll(0, 0)
+        this.contacts_pages = 1
+    }
+
+    @Watch('contacts_filter') watch_contacts_filter(value:number){
+        // Respond to changes in filter value
+        if (value !== null){
+            // Filter has been re-engaged so clear any existing search
+            this.contacts_search = ''
+        }
+    }
+
+    @Watch('contacts_search') watch_contacts_search(value:string){
+        // Respond to changes in search value
+        if (value){
+            // User has started/continued searching so clear any existing filter
+            this.contacts_filter = null
+        } else if (this.contacts_filter === null){
+            // User has cleared search and no filter yet, so default to showing all
+            this.contacts_filter = 0
+        }
+    }
+
+    reveal_more():void{
+        // Reveal more contacts by either clearing search or increasing number of pages
+        if (this.is_limited){
+            this.contacts_pages *= 2  // Increase exponentially so quicker for those who want all
+        } else {
+            this.contacts_search = ''
+        }
     }
 
     toggle_group(group_id){
@@ -162,6 +234,31 @@ export default class extends Vue {
 
 
 <style lang='sass' scoped>
+
+
+.v-tabs
+    flex-grow: 0  // For some reason need `grow` on element to grow width, but disable height here
+
+.filtering
+    display: flex
+    align-items: center
+    padding: 12px 24px 0 24px
+
+    .v-chip
+        margin-right: 12px
+
+    ::v-deep
+        // Fix padding of search field so it looks similar to a chip
+        .v-input__slot
+            margin-bottom: 0
+            padding-right: 0
+        .v-text-field__details
+            display: none
+        .v-input__append-inner
+            margin-top: 0 !important
+        .v-btn
+            width: 40px
+            height: 40px
 
 
 </style>
