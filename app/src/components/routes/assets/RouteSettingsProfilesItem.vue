@@ -10,7 +10,7 @@ v-list-item(:to='route')
     v-list-item-action
         app-menu-more
             app-list-item(@click='make_default' :disabled='is_default || is_incomplete') Make default
-            app-list-item(@click='remove' class='error--text') Delete
+            app-list-item(@click='remove' color='error') Delete
 
 </template>
 
