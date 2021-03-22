@@ -57,8 +57,9 @@ async function contacts_sync_google(task:Task, oauth:OAuth):Promise<void>{
     let confirmed:Record<string, string>
     if (oauth.contacts_sync_token){
         confirmed = await contacts_sync_google_changes(task, oauth)
+    } else {
+        confirmed = await contacts_sync_google_full(task, oauth)
     }
-    confirmed = await contacts_sync_google_full(task, oauth)
     return contacts_sync_google_groups(task, oauth, confirmed)
 }
 
@@ -228,7 +229,7 @@ async function contacts_sync_google_groups(task:Task, oauth:OAuth, confirmed:Rec
                 self._db.groups.set(existing)
                 delete existing_by_id[service_id]  // Prevent deletion during final step
             } else {
-                self._db.groups.create(name, members, `google:${oauth.issuer_id}`, service_id)
+                self._db.groups.create(name, contacts, `google:${oauth.issuer_id}`, service_id)
             }
         }
     }
