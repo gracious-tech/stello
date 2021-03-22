@@ -91,6 +91,11 @@ export default class extends Vue {
         return this.draft.get_final_recipients(this.groups)
     }
 
+    get contact_ids():string[]{
+        // A list of just contact ids (rather than objects)
+        return this.contacts.map(c => c.id)
+    }
+
     get groups_ui(){
         // A UI view of the groups data
         const items = []
@@ -102,7 +107,8 @@ export default class extends Vue {
             items.push({
                 id: group.id,
                 display: group.display,
-                size: group.contacts.length,
+                // NOTE Don't count any contacts that have since been deleted
+                size: group.contacts.filter(id => this.contact_ids.includes(id)).length,
                 icon: 'icon_checkbox_' + (excluded ? 'cross' : (included ? 'true' : 'false')),
                 color: excluded ? 'error' : (included ? 'accent' : ''),
                 click: () => {this.toggle_group(group.id)},
