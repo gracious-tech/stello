@@ -7,7 +7,7 @@ v-list-item.item(:value='group.id')
     v-list-item-action
         app-menu-more
             app-list-item(@click='rename') Rename
-            app-list-item(@click='remove') Delete
+            app-list-item(@click='remove' color='error') Delete
 
 </template>
 

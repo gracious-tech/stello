@@ -19,7 +19,7 @@ v-card(:class='{read: replaction.read}')
             div.actions
                 app-btn(@click='toggle_read' icon='done')
                 app-menu-more
-                    app-list-item(@click='remove') Delete
+                    app-list-item(@click='remove' color='error') Delete
         div.sent(class='text--secondary') {{ replaction.sent.toLocaleString() }}
 
 </template>
