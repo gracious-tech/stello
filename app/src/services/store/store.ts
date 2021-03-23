@@ -56,7 +56,7 @@ async function get_store_options(db:Database):Promise<StoreOptions<AppStoreState
 
         tmp_set(state, [key, value]:[string, any]):void{
             // Set a value in the store's tmp object (not saved to db)
-                state.tmp[key] = value
+            state.tmp[key] = value
         },
 
         tmp_new(state, [container, key, value]:[string, string, any]):void{
@@ -79,16 +79,9 @@ async function get_store_options(db:Database):Promise<StoreOptions<AppStoreState
 
     actions: {
 
-        async show_snackbar({state, commit}, message:string):Promise<void>{
-            // Display a message in a snackbar
-            if (state.tmp.snackbar){
-                // Another message already showing so trigger close and wait a moment
-                // TODO In future might wait till its done or create queue system?
-                commit('tmp_set', ['snackbar', false])
-                await sleep(500)
-            }
-            commit('tmp_set', ['snackbar_text', message])
-            commit('tmp_set', ['snackbar', true])
+        async show_snackbar({commit}, arg:string|object):Promise<void>{
+            // Display a message in a snackbar, and optionally include button
+            commit('tmp_set', ['snackbar', typeof arg === 'string' ? {msg: arg} : arg])
         },
 
         show_dialog({state, commit}, dialog:StateTmpDialog):Promise<any>{

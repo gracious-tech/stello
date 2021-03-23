@@ -38,8 +38,7 @@ export async function get_initial_state(db:Database):Promise<AppStoreState>{
             viewport_height: self.document.documentElement.clientHeight,
 
             // User UI
-            snackbar: false,
-            snackbar_text: null,
+            snackbar: null,
             dialog: null,
             prev_location: null,
 

@@ -29,8 +29,7 @@ export interface AppStoreState {
         viewport_height:number,
 
         // User UI
-        snackbar:boolean,
-        snackbar_text:string,
+        snackbar:{msg:string, btn_label?:string, btn_color?:string, btn_handler?:()=>void},
         dialog:StateTmpDialog,
         prev_location:Location,
 

@@ -14,10 +14,13 @@ v-app(:class='app_classes')
 
     app-status
 
-    v-snackbar(v-model='snackbar' timeout='6000')
-        | {{ $store.state.tmp.snackbar_text }}
-        template(#action)
-            app-btn(@click='close_snackbar' icon='close' :light='$vuetify.theme.dark')
+    v-snackbar(v-model='snackbar_visible' timeout='6000')
+        span(v-if='snackbar') {{ snackbar.msg }}
+        template(#action v-if='snackbar')
+            app-btn(v-if='snackbar.btn_handler' :color='snackbar.btn_color'
+                @click='() => snackbar.btn_handler()') {{ snackbar.btn_label }}
+            app-btn(v-else @click='snackbar_visible = false' icon='close'
+                :light='$vuetify.theme.dark')
 
     app-dialog
 
@@ -34,7 +37,7 @@ import AppSidebar from '@/components/other/AppSidebar.vue'
 import AppDialog from '@/components/dialogs/AppDialog.vue'
 import SplashWelcome from '@/components/splash/SplashWelcome.vue'
 import SplashDisclaimer from '@/components/splash/SplashDisclaimer.vue'
-import {update_configs} from '@/services/configs'
+import {sleep} from '@/services/utils/async'
 
 
 @Component({
@@ -42,13 +45,24 @@ import {update_configs} from '@/services/configs'
 })
 export default class extends Vue {
 
-    route_transition = 'below'
+    route_transition:string = 'below'
+    snackbar_visible:boolean = false
+    snackbar:{msg:string, btn_label?:string, btn_color?:string, btn_handler?:()=>void} = null
+    allow_force_quit:boolean = false
 
     async mounted(){
         // Prevent window close if still doing tasks
         self.addEventListener('beforeunload', event => {
-            if (this.$store.getters.active_tasks.length){
-                this.$store.dispatch('show_snackbar', "Cannot close until tasks complete")
+            if (task_manager.data.tasks.length && !this.allow_force_quit){
+                this.$store.dispatch('show_snackbar', {
+                    msg: "Cannot close until tasks complete",
+                    btn_label: "Force quit",
+                    btn_color: 'error',
+                    btn_handler: () => {
+                        this.allow_force_quit = true
+                        self.close()
+                    },
+                })
                 event.returnValue = false  // Prevents close
             }
         })
@@ -92,13 +106,6 @@ export default class extends Vue {
         return classes
     }
 
-    get snackbar(){
-        return this.$store.state.tmp.snackbar
-    }
-    set snackbar(value){
-        this.$store.commit('tmp_set', ['snackbar', value])
-    }
-
     @Watch('$route') watch_$route(to:Route, from:Route){
         // Do a different transition depending on which routes going from/to
 
@@ -131,10 +138,16 @@ export default class extends Vue {
         })()
     }
 
-    close_snackbar(){
-        this.snackbar = false
+    @Watch('$store.state.tmp.snackbar') async watch_snackbar(arg){
+        // Listen to changes to snackbar state and handle its display
+        if (this.snackbar_visible){
+            // Another message already showing so trigger close and wait a moment
+            this.snackbar_visible = false
+            await sleep(500)
+        }
+        this.snackbar = arg
+        this.snackbar_visible = !!arg
     }
-
 }
 </script>
 
