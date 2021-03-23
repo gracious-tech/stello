@@ -34,8 +34,13 @@ export function sort(array:string[]|number[]|object[], property:string=null, asc
 }
 
 
-export function remove(array:any[], item:any, comparer:(a, b)=>boolean=(a, b)=>a === b):void{
+// Default comparer for `remove()` that expects array items and item arg to be of same type
+const remove_default_comparer = <T>(array_item:T, item:T) => array_item === item
+
+export function remove<AT, IT>(array:AT[], item:IT,
+        comparer:(array_item:AT, item:IT)=>boolean=remove_default_comparer as any):void{
     // Remove all instances of an item from an array
+    // NOTE Comparer fn can optionally be given for more complicated comparisons
     for (let i = array.length - 1; i >= 0; i--){
         if (comparer(array[i], item)){
             array.splice(i, 1)
