@@ -1,5 +1,4 @@
 
-import {address_type} from '@/services/utils/misc'
 import {AppDatabaseConnection, RecordMessageCopy} from './types'
 
 
@@ -26,22 +25,12 @@ export class MessageCopy implements RecordMessageCopy {
         return this.contact_name.trim() || "[Nameless]"
     }
 
-    get contact_address_type():string{
-        // Return the type of address for the contact
-        return address_type(this.contact_address)
-    }
-
     get sent():boolean{
         // Whether the copy can be considered "sent" to the contact or not
-        // NOTE Will be null if it is user's job to send invite
+        // If have an email address, it's true/false depending on whether invite sent
+        // If no email address, it's null/false depending on whether uploaded yet
         // TODO Account for uploaded_latest value
-        if (!this.uploaded){
-            return false
-        }
-        if (this.invited){
-            return true
-        }
-        return this.contact_address_type === 'email' ? false : null
+        return this.contact_address ? this.invited : (this.uploaded ? null : false)
     }
 }
 
