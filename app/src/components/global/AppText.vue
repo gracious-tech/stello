@@ -8,6 +8,7 @@ v-text-field(
     :persistent-hint='!hint_on_focus'
     filled
     v-bind='$attrs'
+    v-on='$listeners'
 )
     //- WARN Doesn't support scoped slots yet (see https://stackoverflow.com/questions/50891858/)
     slot(v-for='slot in other_slots' :name='slot' :slot='slot')
