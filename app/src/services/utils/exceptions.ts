@@ -61,3 +61,31 @@ export function validate_chars(value:string, regex_chars:string):void{
         throw new Error(`Invalid characters in: ${value}`)
     }
 }
+
+
+export function error_to_string(error:any):string{
+    // Since thrown errors can be any object in JS, need to carefully extract info from them
+
+    // Determine type of error (useful for knowing why can't extract more info from e.g. a string)
+    // NOTE Constructor name important for custom error classes (3rd party or own) which may not
+    //      inherit from Error properly
+    let type = typeof error
+    if (type === 'object'){
+        type = error?.constructor?.name || 'object'
+    }
+
+    // Try get more info
+    let info = ''
+    try {
+        if (error instanceof Error){
+            // NOTE `error.name` will be same as constructor name already included above
+            info = `${error.message}\n\n${error.stack}`
+        } else if (typeof error === 'object'){
+            info = JSON.stringify(error, undefined, 4)
+        } else {
+            info = '' + error
+        }
+    } catch {}
+
+    return `Error type: ${type}\n${info}`
+}
