@@ -48,3 +48,19 @@ export function download_url(url:string, filename:string=''):void{
     tmp.download = filename
     tmp.click()
 }
+
+
+export function mailto(address:string='', subject:string='', body:string=''):string{
+    // Form a mailto link
+    // NOTE Args can be empty strings and the link will still be correctly formed
+
+    // URL size limited by both Chrome/Electron and OS/mail-client, so using a careful figure
+    // See https://stackoverflow.com/questions/13317429/
+    const char_limit = 1900
+
+    // WARN Not using `URLSearchParams` as it uses `+` for spaces which aren't supported in mailto
+    subject = encodeURIComponent(subject)
+    body = encodeURIComponent(body)
+    // WARN Add body last as it may be cut off if too long
+    return `mailto:${address}?subject=${subject}&body=${body}`.slice(0, char_limit)
+}
