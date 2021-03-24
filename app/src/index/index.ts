@@ -10,7 +10,7 @@ NOTE Declare window-level properties and methods in `services/types.d.ts`
 
 import app_config from '@/app_config.json'
 import {mailto} from '@/services/utils/misc'
-import {error_to_string} from '@/services/utils/exceptions'
+import {drop, error_to_string} from '@/services/utils/exceptions'
 
 
 // Trigger packaging of index's styles
@@ -41,7 +41,7 @@ self._error_to_debug = (error:any):string => {
 
 self._debug_to_mailto = (debug:string):string => {
     // Generate a mailto href for reporting bugs, attaching given debugging details
-    return mailto('support@gracious.tech', "Problem with Stello", ""
+    return mailto(app_config.author.email, "Problem with Stello", ""
         + "Hi, I was using Stello and encountered an error. This happened when I was trying to..."
         + "\n\n[ADD AS MUCH DETAIL AS POSSIBLE]"
         + `\n\n\n\n\n\n----------\n${debug}`)
@@ -77,6 +77,22 @@ self._fail_splash = (debug:string):void => {
 }
 
 
+self._fail_report = (debug:string):void => {
+    // Report bugs by posting to author's contact API
+    if (process.env.NODE_ENV === 'production'){
+        drop(fetch(app_config.author.post, {
+            method: 'POST',
+            body: JSON.stringify({
+                app: app_config.codename,
+                type: 'failure',
+                version: app_config.version,  // Important for silencing reports from old versions
+                message: debug,
+            }),
+        }))
+    }
+}
+
+
 self.addEventListener('error', (event:ErrorEvent):void => {
     // Handle uncaught errors
 
@@ -90,7 +106,9 @@ self.addEventListener('error', (event:ErrorEvent):void => {
     // NOTE error property should usually exist, but fallback on message
     const error = event.error ?? event.message ?? 'unknown'
     console.error(error)  // tslint:disable-line:no-console
-    self._fail_splash(self._error_to_debug(error))
+    const debug = self._error_to_debug(error)
+    self._fail_report(debug)
+    self._fail_splash(debug)
 })
 
 
@@ -98,4 +116,5 @@ self.addEventListener('unhandledrejection', (event:PromiseRejectionEvent):void =
     // Handle uncaught errors in promises
     // NOTE Don't trigger failure as can usually safely continue after promise failures or retry
     // NOTE Not even logging to avoid duplication, as Chrome already does this by default
+    self._fail_report(self._error_to_debug(event.reason))
 })
