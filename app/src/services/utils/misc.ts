@@ -1,16 +1,6 @@
 // Utils that are too hard to categorise
 
 
-export function address_type(address:string):'url'|'email'|'other'{
-    // Return the type of address given
-    // SECURITY Only encouraging/supporting secure urls
-    if (address.startsWith('https://')){
-        return 'url'
-    }
-    return address.includes('@') ? 'email' : 'other'
-}
-
-
 export async function get_clipboard_blobs(preferred=[]):Promise<Blob[]>{
     // Return clipboard's contents as blobs
     // NOTE May be multiple clipboard items, so an array is returned
