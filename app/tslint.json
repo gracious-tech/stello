@@ -28,6 +28,7 @@
     "arrow-parens": [true, "ban-single-arg-parens"],
     "object-literal-shorthand": false,
     "curly": false,
+    "no-empty": [true, "allow-empty-catch"],
     "no-empty-interface": false,
     "no-console": [true, "log"],
     "one-line": [true, "check-catch", "check-finally", "check-else", "check-open-brace"]
