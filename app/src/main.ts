@@ -134,6 +134,7 @@ const vuetify = new Vuetify({
             radioOff: {component: AppSVG, props: {name: 'icon_radio_unchecked'}},
             dropdown: {component: AppSVG, props: {name: 'icon_arrow_drop_down'}},
             complete: {component: AppSVG, props: {name: 'icon_done'}},
+            expand: {component: AppSVG, props: {name: 'icon_expand_more'}},
         },
     },
     lang: {

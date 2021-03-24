@@ -41,6 +41,7 @@ export default {
 
     // Material icons
     icon_swap_horiz:        require('md-icon-svgs/swap_horiz.svg').default,
+    icon_expand_more:       require('md-icon-svgs/expand_more.svg').default,
     icon_invert_colors:     require('md-icon-svgs/invert_colors.svg').default,
     icon_compare_arrows:    require('md-icon-svgs/compare_arrows.svg').default,
     icon_cloud_download:    require('md-icon-svgs/cloud_download.svg').default,
