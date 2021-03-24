@@ -31,9 +31,9 @@ declare module 'Custom' {
             _store:Store<AppStoreState>
             _db:Database
             _editor:any  // No types available
-            _fail(msg:string):void
-            _fail_alert(msg:string):void
-            _error_to_msg(error:Error):string
+            _error_to_debug(error:any):string
+            _debug_to_mailto(debug:string):string
+            _fail_splash(debug:string):void
             _toggle_dark():void
         }
 

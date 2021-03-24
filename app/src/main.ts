@@ -14,6 +14,7 @@ import app_config from '@/app_config.json'
 import {Database, open_db} from '@/services/database/database'
 import {get_store} from '@/services/store/store'
 import {get_router} from '@/services/router'
+import {error_to_string} from './services/utils/exceptions'
 
 // Components
 import App from '@/components/App.vue'
@@ -47,13 +48,27 @@ import '@/styles/fonts.css'
 
 // Vue config
 Vue.config.productionTip = false  // Don't show warning about running in development mode
-Vue.config.errorHandler = (error, vm, info) => {
-    console.error(error)  // tslint:disable-line:no-console
-    self._fail(self._error_to_msg(error) + '\n' + info)
+Vue.config.errorHandler = (error:any, vm, info) => {
+    // Vue will by default just log component errors, where as hard fail during dev is preferred
+    // WARN Despite typings, error arg may be anything and not necessarily an Error instance
+    // NOTE Vue's info arg says what part of Vue the error occured in (e.g. render/hook/etc)
+    const info_string = `(Error in Vue ${info})`
+
+    // Use `error_to_string` so can ensure error is string before attaching info arg to it
+    console.error(error_to_string(error) + '\n\n' + info_string)  // tslint:disable-line:no-console
+
+    if (process.env.NODE_ENV !== 'production'){
+        // NOTE Using `_error_to_debug` this time (as only want debug info in UI, not console)
+        self._fail_splash(self._error_to_debug(error) + '\n\n' + info_string)
+    }
 }
 Vue.config.warnHandler = (msg, vm, trace) => {
-    console.error(msg)  // tslint:disable-line:no-console
-    self._fail(msg + '\n' + trace)  // Only works in dev
+    // Vue will by default just log warnings, where as hard fail during dev is preferred
+    const error_string = `${msg}\n(Vue warning)\n\n${trace}`
+    console.error(error_string)  // tslint:disable-line:no-console
+    if (process.env.NODE_ENV !== 'production'){
+        self._fail_splash(self._error_to_debug(error_string))
+    }
 }
 
 
@@ -106,8 +121,14 @@ const i18n = new VueI18n({
     fallbackLocale: 'en',
     // NOTE preserveDirectiveContent required to stop text disappearing before route animation ends
     preserveDirectiveContent: true,
-    // Consider missing an i18n string (entirely) a hard fail
-    missing: (locale, path, vm) => self._fail(`Missing i18n path: ${path}`),
+    missing: (locale, path, vm) => {
+        // Consider missing an i18n string (entirely) a hard fail during development
+        const debug = self._error_to_debug(`Missing i18n path: ${path}\nLocale: ${locale}`)
+        console.error(debug)  // tslint:disable-line:no-console
+        if (process.env.NODE_ENV !== 'production'){
+            self._fail_splash(debug)
+        }
+    },
 })
 
 

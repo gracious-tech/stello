@@ -1,63 +1,101 @@
-// Code to be embedded in index.html during build
-// NOTE Declare window-level properties and methods in `services/types.d.ts`
+/* First code to be loaded and executed
+
+Contains error handling code so that at minimum a debug message can be displayed
+Not bundled with main code in case main has parsing or execution issues
+NOTE Ok to import specific utils etc as only what is imported will be bundled and used
+NOTE Declare window-level properties and methods in `services/types.d.ts`
+
+*/
+
+
+import app_config from '@/app_config.json'
+import {mailto} from '@/services/utils/misc'
+import {error_to_string} from '@/services/utils/exceptions'
+
 
 // Trigger packaging of index's styles
+// TODO Import from index.pug so this file doesn't have lots of import code when bundled (use vite?)
 import './index.sass'
 
 
-// Handle errors
+self._error_to_debug = (error:any):string => {
+    // Take an error, convert to string, and add additional debugging info to it
+    let debug = error_to_string(error)
+
+    // SECURITY Remove file paths in stack trace which may expose user's username
+    // NOTE Windows uses forward slashes for file URLs, same as Linux and Mac
+    debug = debug.replaceAll(/file\:\/\/\/.*\/app_dist\//g, '')
+
+    // Detect current route
+    // SECURITY Don't include path which might include a system username
+    // SECURITY Might include an object id but all are so far random strings anyway
+    const route = self.location.hash
+
+    // Add additional info
+    const os = self.navigator.platform
+    debug = `Version: ${app_config.version}\nRoute: ${route}\nOS: ${os}\n\n${debug}`
+
+    return debug
+}
 
 
-self._fail_alert = msg => {
-    // Show alert with option to reload/clear-data or contact developers
+self._debug_to_mailto = (debug:string):string => {
+    // Generate a mailto href for reporting bugs, attaching given debugging details
+    return mailto('support@gracious.tech', "Problem with Stello", ""
+        + "Hi, I was using Stello and encountered an error. This happened when I was trying to..."
+        + "\n\n[ADD AS MUCH DETAIL AS POSSIBLE]"
+        + `\n\n\n\n\n\n----------\n${debug}`)
+}
+
+
+self._fail_splash = (debug:string):void => {
+    // Display debugging details in a user friendly splash
 
     // Don't show if a fail splash already exists
     if (self.document.querySelector('.fail-splash') !== null){
         return
     }
 
-    // TODO Button to reset app or contact developers
-
-    // Show the alert
+    // Insert the splash
     self.document.body.innerHTML += `
-        <div class="fail-splash error">
+        <div class="fail-splash">
             <h1>Fail :(</h1>
-            <p class='btn-wrap'>
+            <p>
+                Something went wrong, sorry about that.
+                Help us prevent this happening again by
+                <a href="${self._debug_to_mailto(debug)}">letting us know</a>.
+            </p>
+            <p>
                 <button onclick="location.assign('#/');location.reload(true)">
-                    TRY RECOVER
+                    RESTART
                 </button>
             </p>
             <pre></pre>
         </div>
     `
-    self.document.body.querySelector('.fail-splash.error pre').textContent = msg
+    self.document.body.querySelector('.fail-splash pre').textContent = debug
 }
 
 
-self._error_to_msg = error => {
-    // Convert an error object into a string (standard toString doesn't include stack)
-    // NOTE Chrome (and probably others too) ONLY has properties name, message, and stack
-    // NOTE While Chrome includes name/message in the stack, Firefox and Safari do not
-    return error ? `${error.name}: ${error.message}\n\n${error.stack}` : "unknown"
-}
-
-
-self._fail = msg => {
-    // Handle app failure
-    self._fail_alert(msg)
-}
-
-self.addEventListener('error', event => {
+self.addEventListener('error', (event:ErrorEvent):void => {
     // Handle uncaught errors
-    // NOTE error property should always exist, but fallback on message (also if a custom throw?)
-    console.error(event)  // tslint:disable-line:no-console
-    const msg = event.error ? self._error_to_msg(event.error) : event.message
-    self._fail(msg)
+
+    // Ignore ResizeObserver loop limit errors
+    // https://stackoverflow.com/questions/49384120/#comment86691361_49384120
+    if (event.message === 'ResizeObserver loop limit exceeded'){
+        console.warn(event.message)
+        return
+    }
+
+    // NOTE error property should usually exist, but fallback on message
+    const error = event.error ?? event.message ?? 'unknown'
+    console.error(error)  // tslint:disable-line:no-console
+    self._fail_splash(self._error_to_debug(error))
 })
 
 
-self.addEventListener('unhandledrejection', event => {
+self.addEventListener('unhandledrejection', (event:PromiseRejectionEvent):void => {
     // Handle uncaught errors in promises
-    // NOTE Don't cause failure as can usually safely continue after promise failures or retry
-    console.error(event)  // tslint:disable-line:no-console
+    // NOTE Don't trigger failure as can usually safely continue after promise failures or retry
+    // NOTE Not even logging to avoid duplication, as Chrome already does this by default
 })
