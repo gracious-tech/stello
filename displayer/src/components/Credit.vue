@@ -34,6 +34,6 @@ p
     font-family: Roboto, sans-serif
 
     a
-        color: inherit
+        color: inherit !important  // Don't stand out
 
 </style>
