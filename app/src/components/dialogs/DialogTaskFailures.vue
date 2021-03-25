@@ -16,7 +16,7 @@ v-card
 
 <script lang='ts'>
 
-import {Component, Vue} from 'vue-property-decorator'
+import {Component, Vue, Watch} from 'vue-property-decorator'
 
 import DialogTaskFailuresItem from './assets/DialogTaskFailuresItem.vue'
 
@@ -28,6 +28,13 @@ export default class extends Vue {
 
     get fails(){
         return this.$tm.data.fails
+    }
+
+    @Watch('fails') watch_fails(){
+        // If fails ever becomes empty (e.g. issue fixed), close the dialog
+        if (!this.fails.length){
+            this.dismiss()
+        }
     }
 
     dismiss(){
