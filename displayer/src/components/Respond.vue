@@ -256,6 +256,7 @@ export default {
             opacity: 0.6
 
         .reactions
+            user-select: none
 
             button
                 border-radius: 30px
