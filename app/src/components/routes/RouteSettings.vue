@@ -11,9 +11,16 @@ div
         v-switch(v-model='dark' label="Dark theme" color='accent' persistent-hint
             hint="Use dark colors for the app's background which are easier on the eyes at night especially")
 
+        hr(class='mt-16')
+
         RouteSettingsProfiles
 
         hr(class='mt-16')
+
+        RouteSettingsContacts
+
+        hr(class='mt-16')
+
         h1(class='text-subtitle-1 text--secondary') Technical tools
         p(class='my-4')
             app-btn(to='storage/' color='' small) Storage manager
@@ -26,11 +33,11 @@ div
 import {Component, Vue} from 'vue-property-decorator'
 
 import RouteSettingsProfiles from './assets/RouteSettingsProfiles.vue'
-import {sort} from '@/services/utils/arrays'
+import RouteSettingsContacts from './assets/RouteSettingsContacts.vue'
 
 
 @Component({
-    components: {RouteSettingsProfiles},
+    components: {RouteSettingsProfiles, RouteSettingsContacts},
 })
 export default class extends Vue {
 
