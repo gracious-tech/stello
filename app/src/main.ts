@@ -15,6 +15,7 @@ import {Database, open_db} from '@/services/database/database'
 import {get_store} from '@/services/store/store'
 import {get_router} from '@/services/router'
 import {error_to_string} from './services/utils/exceptions'
+import {task_manager, TaskManager} from '@/services/tasks/tasks'
 
 // Components
 import App from '@/components/App.vue'
@@ -173,6 +174,15 @@ const vuetify = new Vuetify({
         },
     },
 })
+
+
+// Expose task manager in components
+declare module "vue/types/vue" {
+    interface Vue {
+        $tm:TaskManager
+    }
+}
+Vue.prototype.$tm = task_manager
 
 
 // Init app (once db and store is ready)
