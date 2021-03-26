@@ -116,5 +116,5 @@ self.addEventListener('unhandledrejection', (event:PromiseRejectionEvent):void =
     // Handle uncaught errors in promises
     // NOTE Don't trigger failure as can usually safely continue after promise failures or retry
     // NOTE Not even logging to avoid duplication, as Chrome already does this by default
-    self._fail_report(self._error_to_debug(event.reason))
+    // NOTE Can't prevent this even for user-fault failed tasks (e.g. reauth) then not reporting...
 })
