@@ -69,7 +69,7 @@ export default class extends Vue {
     flex-direction: column
     background-color: $primary
     color: $on_primary
-    padding: 24px
+    padding: 24px 12px
     z-index: 10
     overflow-y: auto
     min-width: $stello_sidebar_width
