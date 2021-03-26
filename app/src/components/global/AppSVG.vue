@@ -47,7 +47,12 @@ export default class extends Vue {
 
     get styles(){
         // Return styles (if any) to add to the element
-        if (!this.responsive){
+        if (this.responsive){
+            return {
+                width: '100%',
+                height: 'auto',
+            }
+        } else {
             return {
                 'min-width': `${this.width}px`,
                 'min-height': `${this.height}px`,
