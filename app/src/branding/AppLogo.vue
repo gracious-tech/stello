@@ -11,8 +11,8 @@ app-svg(name='logo' responsive)
 // Make greek appear on hover
 ::v-deep
     #greek
-        transition: fill-opacity 1s ease-out
+        transition: opacity 1s ease-out
     &:not(:hover) #greek
-        fill-opacity: 0
+        opacity: 0
 
 </style>
