@@ -16,8 +16,9 @@ import {Component, Vue, Watch} from 'vue-property-decorator'
 @Component({})
 export default class extends Vue {
 
-    show = false
+    show:boolean = false
     dialog = null
+    timeout = null
 
     get fullscreen(){
         // Return whether dialog should take up whole screen or leave border
@@ -41,13 +42,21 @@ export default class extends Vue {
 
     @Watch('$store.state.tmp.dialog') watch_dialog(value){
         // Handle change or removal of dialog to show
+
+        // If previously set a delayed change to `this.dialog`, prevent it from overriding new value
+        if (this.timeout !== null){
+            clearTimeout(this.timeout)
+            this.timeout = null
+        }
+
+        // Should be showing dialog if value isn't null
         this.show = !!value
+
+        // If closing the dialog, delay removal of its contents until closing animation done
         if (this.show){
-            // Showing a new dialog so switch straight away
             this.dialog = value
         } else {
-            // Closing an existing dialog so delay to allow closing animation
-            setTimeout(() => {
+            this.timeout = setTimeout(() => {
                 this.dialog = value
             }, 500)
         }
