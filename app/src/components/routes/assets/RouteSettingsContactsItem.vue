@@ -4,7 +4,7 @@
 v-list-item
     v-list-item-content
         v-list-item-title {{ oauth.display }}
-        v-list-item-subtitle {{ last_synced }}
+        v-list-item-subtitle Last synced: {{ last_synced }}
     v-list-item-action
         app-menu-more
             app-list-item(@click='sync') Sync now
@@ -28,7 +28,7 @@ export default class extends Vue {
     @Prop() oauth:OAuth
 
     get last_synced():string{
-        return this.oauth.contacts_sync_last?.toLocaleString() || "Not yet synced"
+        return this.oauth.contacts_sync_last?.toLocaleString() || "None yet"
     }
 
     async remove(){
