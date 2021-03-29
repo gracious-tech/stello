@@ -150,7 +150,7 @@ function activate_app(){
     let window = BrowserWindow.getAllWindows()[0]
     if (window){
         // Window already exists, so bring it to front and focus it
-        if (window.isMinimized){
+        if (window.isMinimized()){
             window.restore()
         }
         window.focus()
