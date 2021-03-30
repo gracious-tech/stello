@@ -14,14 +14,15 @@ export interface SmtpProvider {
     port:number
     starttls:boolean
     domains:string[]
-    app_pass:{
+    app_pass?:{
         url:string,
         url_two_step:string,
     }
+    mx_base?:string
 }
 
 
-const SMTP_PROVIDERS:{[provider:string]:SmtpProvider} = {
+export const SMTP_PROVIDERS:{[provider:string]:SmtpProvider} = {
     google: {
         host: 'smtp.gmail.com',
         port: 465,
@@ -31,6 +32,7 @@ const SMTP_PROVIDERS:{[provider:string]:SmtpProvider} = {
             url: 'https://myaccount.google.com/apppasswords',
             url_two_step: 'https://myaccount.google.com/signinoptions/two-step-verification',
         },
+        mx_base: 'google.com',
     },
     yahoo: {
         host: 'smtp.mail.yahoo.com',
@@ -110,36 +112,34 @@ export class Profile implements RecordProfile {
         return this.host.user ?? this.host.bucket
     }
 
-    get smtp_provider():string{
-        // Return code for known email providers, or otherwise null
+    get smtp_detected():string{
+        // Auto-detect provider based on domain name or host (if given)
         if (!this.email?.includes('@'))
             return null
         const domain = this.email.split('@').pop().toLowerCase()
-        for (const org in SMTP_PROVIDERS){
-            if (SMTP_PROVIDERS[org].domains.includes(domain)){
-                return org
+        for (const [provider, config] of Object.entries(SMTP_PROVIDERS)){
+            if (config.domains.includes(domain) || config.host === this.smtp.host){
+                return provider
             }
         }
         return null
     }
 
-    get smtp_provider_config():SmtpProvider{
+    get smtp_detected_config():SmtpProvider{
         // Return defaults for smtp provider (if detected)
-        return this.smtp_provider && SMTP_PROVIDERS[this.smtp_provider]
+        return this.smtp_detected && SMTP_PROVIDERS[this.smtp_detected]
     }
 
     get smtp_settings():RecordProfileSmtp{
         // Return final smtp settings after accounting for defaults
         // NOTE Address and password are always provided directly by user
         const settings = Object.assign({}, this.smtp)
-        if (this.smtp_provider){
-            settings.host = this.smtp_provider_config.host
-            settings.port = this.smtp_provider_config.port
-            settings.starttls = this.smtp_provider_config.starttls
-            settings.user = this.email
-        } else {
-            settings.port ||= 465
-            settings.user ||= this.email
+        settings.port ||= 465
+        settings.user ||= this.email
+        if (this.smtp_detected){
+            settings.host = this.smtp_detected_config.host
+            settings.port = this.smtp_detected_config.port
+            settings.starttls = this.smtp_detected_config.starttls
         }
         return settings
     }
@@ -224,6 +224,7 @@ export class DatabaseProfiles {
             },
             email: '',
             smtp: {
+                oauth: null,
                 user: '',
                 pass: '',
                 host: '',
