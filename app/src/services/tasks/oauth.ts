@@ -79,7 +79,7 @@ interface AuthCompletion<Meta=Record<string, any>> {
 const REDIRECT_PORT = 44932
 const REDIRECT_URI = `http://127.0.0.1:${REDIRECT_PORT}/oauth`
 
-export const SUPPORTED = {
+export const OAUTH_SUPPORTED = {
     google: {
         endpoint: 'https://accounts.google.com/',
         client_id: '1063868460974-iq39c1ajf4he8gn0d1d4s9snv9pkhqv3.apps.googleusercontent.com',
@@ -123,7 +123,7 @@ async function oauth_authorize_init(issuer:OAuthIssuer, scope_sets:string[],
     // Authenticate with given issuer using OAuth2
 
     // Get issuer config
-    const issuer_config = SUPPORTED[issuer]
+    const issuer_config = OAUTH_SUPPORTED[issuer]
 
     // Work out what scopes are required
     // NOTE email always required so user can identify the account in the UI
@@ -203,7 +203,7 @@ async function oauth_authorize_complete(url:string):Promise<AuthCompletion>{
                     // SECURITY Supports PKCE to prevent auth being stolen during non-https redirect
                     code_verifier: internal.code_verifier,  // Value auto-created by AppAuth
                     // @ts-ignore Client secret may not be required
-                    client_secret: SUPPORTED[issuer].client_secret,
+                    client_secret: OAUTH_SUPPORTED[issuer].client_secret,
                 },
             }),
         )
@@ -222,7 +222,7 @@ async function oauth_authorize_complete(url:string):Promise<AuthCompletion>{
     // Determine which scope sets have been granted
     const granted_scopes = token_resp.scope.split(' ')
     const granted_scope_sets = []
-    for (const [scope_set, scope_set_scopes] of Object.entries(SUPPORTED[issuer].scopes)){
+    for (const [scope_set, scope_set_scopes] of Object.entries(OAUTH_SUPPORTED[issuer].scopes)){
         if (scope_set_scopes.every(scope => granted_scopes.includes(scope))){
             granted_scope_sets.push(scope_set)
         }
@@ -394,13 +394,13 @@ export async function oauth_refresh(oauth:OAuth):Promise<void>{
         token_resp = await handler.performTokenRequest(
             oauth.issuer_config as appauth.AuthorizationServiceConfiguration,
             new appauth.TokenRequest({
-                client_id: SUPPORTED[oauth.issuer].client_id,
+                client_id: OAUTH_SUPPORTED[oauth.issuer].client_id,
                 grant_type: 'refresh_token',
                 refresh_token: oauth.token_refresh,
                 redirect_uri: REDIRECT_URI,
                 extras: {
                     // @ts-ignore Client secret may not be required
-                    client_secret: SUPPORTED[oauth.issuer].client_secret,
+                    client_secret: OAUTH_SUPPORTED[oauth.issuer].client_secret,
                 },
             }),
         )
@@ -429,9 +429,9 @@ export async function oauth_revoke(oauth:OAuth):Promise<void>{
         await handler.performRevokeTokenRequest(
             oauth.issuer_config as appauth.AuthorizationServiceConfiguration,
             new appauth.RevokeTokenRequest({
-                client_id: SUPPORTED[oauth.issuer].client_id,
+                client_id: OAUTH_SUPPORTED[oauth.issuer].client_id,
                 // @ts-ignore Client secret may not be required
-                client_secret: SUPPORTED[oauth.issuer].client_secret,
+                client_secret: OAUTH_SUPPORTED[oauth.issuer].client_secret,
                 token: oauth.token_access,
             }),
         )
