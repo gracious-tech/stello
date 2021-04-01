@@ -255,6 +255,39 @@ function smtp_transport(settings){
 }
 
 
+function normalize_nodemailer_error(error){
+    // Normalize a nodemailer error to a cross-platform standard that app can understand
+    // NOTE May be other codes, as only those raised during initial connection were accounted for
+    let code = 'unknown'
+    if (error.code === 'EDNS'){
+        // Either DNS server couldn't find name, or had trouble communicating with DNS server
+        code = error.message.startsWith('getaddrinfo ENOTFOUND') ? 'dns' : 'network'
+    } else if (error.code === 'ESOCKET'){
+        if (error.message.startsWith('Client network socket disconnected before secure TLS')){
+            // Tried to use TLS on a STARTTLS port but aborted when server didn't support TLS
+            code = 'starttls_required'
+        } else {
+            // Not connected (but cached DNS still knew ip)
+            code = 'network'
+        }
+    } else if (error.code === 'ETIMEDOUT'){
+        if (error.message === 'Greeting never received'){
+            // Slow connection, or tried to use STARTTLS on a TLS port
+            // NOTE If slow connection, probably wouldn't have gotten this far anyway, so assume tls
+            code = 'tls_required'
+        } else {
+            // Wrong host, wrong port, or slow connection (may sometimes be a STARTTLS issue too)
+            code = 'timeout'
+        }
+    } else if (error.code === 'EAUTH'){
+        // Either username or password wrong (may need app password)
+        code = 'auth'
+    }
+    // NOTE error.message already includes error.response (if it exists)
+    return {code, details: `${error.code}: ${error.message}`}
+}
+
+
 function sleep(ms){
     // Await this function to delay execution for given ms
     return new Promise(resolve => setTimeout(resolve, ms))
@@ -276,7 +309,7 @@ ipcMain.handle('dns_mx', async (event, host) => {
 })
 
 
-ipcMain.handle('test_email_settings', async (event, settings) => {
+ipcMain.handle('test_email_settings', async (event, settings, auth=true) => {
     // Tests provided settings to see if they work and returns either null or error string
 
     // Delay during dev so can test UI realisticly
@@ -290,10 +323,10 @@ ipcMain.handle('test_email_settings', async (event, settings) => {
     try {
         await transport.verify()
     } catch (error){
-        result = {
-            code: error.code,
-            message: error.message,
-            response: error.response || null,
+        result = normalize_nodemailer_error(error)
+        // If not testing auth, don't consider auth errors as failure
+        if (!auth && result.code === 'auth'){
+            result = null
         }
     }
     transport.close()
@@ -319,11 +352,7 @@ ipcMain.handle('send_emails', async (event, settings, emails, from, no_reply) =>
                 replyTo: reply_to,
             })
         } catch (error){
-            return {
-                code: error.code,
-                message: error.message,
-                response: error.response || null,
-            }
+            return normalize_nodemailer_error(error)
         }
         return null
     }))
