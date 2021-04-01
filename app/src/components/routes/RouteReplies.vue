@@ -86,8 +86,7 @@ export default class extends Vue {
 
     async download(){
         // Manually trigger a download of responses
-        await this.$store.dispatch('check_for_responses')
-        this.load()
+        this.$tm.start_responses_receive()
     }
 }
 
