@@ -29,7 +29,7 @@ export class Sender {
         this.msg_id = msg_id
     }
 
-    get lifespan(){
+    get lifespan():number{
         // Return lifespan (accounting for inheritance)
         const value = this.msg.draft.options_security.lifespan
             ?? this.profile.msg_options_security.lifespan
@@ -37,7 +37,7 @@ export class Sender {
         return value === Infinity ? null : Math.min(value, 365)
     }
 
-    get max_reads(){
+    get max_reads():number{
         // Return max_reads (accounting for inheritance)
         const value = this.msg.draft.options_security.max_reads
             ?? this.profile.msg_options_security.max_reads
@@ -88,7 +88,7 @@ export class Sender {
         return this._send_emails(copies)
     }
 
-    async _publish_asset(asset:PublishedAsset){
+    async _publish_asset(asset:PublishedAsset):Promise<void>{
         // Encrypt and upload the asset
 
         // Check if latest already uploaded
@@ -106,7 +106,7 @@ export class Sender {
         self._db.messages.set(this.msg)
     }
 
-    async _publish_copy(copy:MessageCopy, pub_copy_base:PublishedCopyBase){
+    async _publish_copy(copy:MessageCopy, pub_copy_base:PublishedCopyBase):Promise<void>{
         // Encrypt and upload the copy
 
         // Check if latest already uploaded
@@ -182,7 +182,7 @@ export class Sender {
 
         // Get native platform to send
         const errors = (await send_emails(this.profile.smtp_settings, emails, from, no_reply)).map(
-            error => error && error.message)  // TODO Make use of other error properties
+            error => error && error.details)  // TODO Make use of other error properties
 
         // Update copies for successes
         // WARN Ensure copies still matches emails/errors in terms of item order etc
