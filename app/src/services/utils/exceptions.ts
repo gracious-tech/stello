@@ -12,6 +12,11 @@ export class MustReauthenticate extends Error {
 }
 
 
+export class MustReconfigure extends Error {
+    // Use for errors that can be resolved by reconfiguring settings
+}
+
+
 export class MustRecover extends Error {
     // Use for missing resource errors that can be resolved by recreating or giving up
 }
