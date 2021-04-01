@@ -14,7 +14,8 @@ import {MustReauthenticate, MustReconfigure, MustReconnect} from '../utils/excep
 
 export type TaskStartArgs = [string, string[]?, string[]?]
 // Task functions return a promise which may resolve to single/array of other subtask promises
-type TaskReturn = Promise<Promise<any>|Promise<any>[]|void>
+export type TaskReturn = Promise<Promise<any>|Promise<any>[]|void>
+export type TaskErrorType = 'network'|'auth'|'oauth_access'|'oauth_scopes'|'settings'|'unknown'
 
 
 // Create a map of task function names to the actual function
@@ -84,7 +85,7 @@ export class Task {
         return Math.floor(this.subtasks_done / this.safe_total * 100)
     }
 
-    get error_type(){  // Allow TS to auto-detect possible strings
+    get error_type():TaskErrorType{
         // Detect the type of error
         if (!this.error){
             return null
