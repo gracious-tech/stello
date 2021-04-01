@@ -233,8 +233,10 @@ function smtp_transport(settings){
         },
         secure: !settings.starttls,
         requireTLS: true,  // Must use either TLS or STARTTLS (cannot be insecure)
-        // Don't keep user waiting (default is in minutes!)
-        connectionTimeout: 5 * 1000, // ms
+        // Don't wait too long as may be testing invalid settings (defaults are in minutes!)
+        connectionTimeout: 5 * 1000,  // ms
+        greetingTimeout: 5 * 1000,  // ms
+        socketTimeout: 5 * 1000,  // ms
         // Reuse same connection for multiple messages
         pool: true,
         maxConnections: 10,
