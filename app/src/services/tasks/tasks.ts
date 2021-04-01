@@ -9,7 +9,7 @@ import {responses_receive} from './responses'
 import {contacts_oauth_setup, contacts_sync, contacts_change_property, contacts_remove,
     } from './contacts'
 import {send_oauth_setup, send_message} from './sending'
-import {MustReauthenticate, MustReconnect} from '../utils/exceptions'
+import {MustReauthenticate, MustReconfigure, MustReconnect} from '../utils/exceptions'
 
 
 export type TaskStartArgs = [string, string[]?, string[]?]
@@ -32,6 +32,8 @@ export class Task {
     // Configurable
     label:string = null
     show_count:boolean = false
+    fix_settings:()=>void = null
+    fix_auth:()=>void = null
     fix_oauth:string = null  // Don't provide actual oauth object as should get fresh when needed
 
     // Readable
@@ -89,9 +91,9 @@ export class Task {
         } else if (this.error instanceof MustReconnect){
             return 'network'
         } else if (this.error instanceof MustReauthenticate){
-            if (this.fix_oauth){
-                return 'oauth'
-            }
+            return 'auth'
+        } else if (this.error instanceof MustReconfigure){
+            return 'settings'
         }
         return 'unknown'
     }
