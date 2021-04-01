@@ -8,6 +8,8 @@ export class Group implements RecordGroup {
     id:string
     name:string
     contacts:string[]
+    service_account:string
+    service_id:string
 
     constructor(db_object:RecordGroup){
         Object.assign(this, db_object)
@@ -34,6 +36,13 @@ export class DatabaseGroups {
         return (await this._conn.getAll('groups')).map(group => new Group(group))
     }
 
+    async list_for_account(issuer:string, issuer_id:string):Promise<Group[]>{
+        // Get all groups belonging to given service account
+        const account = `${issuer}:${issuer_id}`
+        const groups = await this._conn.getAllFromIndex('groups', 'by_service_account', account)
+        return groups.map(group => new Group(group))
+    }
+
     async get(id:string):Promise<Group>{
         // Get single group by id
         const group = await this._conn.get('groups', id)
@@ -45,14 +54,16 @@ export class DatabaseGroups {
         await this._conn.put('groups', group)
     }
 
-    async create(name='', contacts=[]):Promise<Group>{
+    async create(name='', contacts=[], service_account=null, service_id=null):Promise<Group>{
         // Create a new group
         const group = new Group({
             id: generate_token(),
             name,
             contacts,
+            service_account,
+            service_id,
         })
-        this._conn.add('groups', group)
+        await this._conn.add('groups', group)
         return group
     }
 
