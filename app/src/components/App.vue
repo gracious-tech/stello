@@ -37,7 +37,11 @@ import AppSidebar from '@/components/other/AppSidebar.vue'
 import AppDialog from '@/components/dialogs/AppDialog.vue'
 import SplashWelcome from '@/components/splash/SplashWelcome.vue'
 import SplashDisclaimer from '@/components/splash/SplashDisclaimer.vue'
+import {on_oauth} from '@/services/native/native'
+import {oauth_pretask_process} from '@/services/tasks/oauth'
+import {task_manager} from '@/services/tasks/tasks'
 import {sleep} from '@/services/utils/async'
+import {resume_tasks} from '@/services/tasks/resume'
 
 
 @Component({
@@ -67,19 +71,11 @@ export default class extends Vue {
             }
         })
 
-        // Upload configs if they failed to update earlier
-        for (const profile of await self._db.profiles.list()){
-            if (profile.configs_need_uploading){
-                update_configs(await this.$store.dispatch('new_task'), profile)
-            }
-        }
+        // Listen for oauth redirects
+        on_oauth(oauth_pretask_process)
 
-        // Check for new responses now and routinely
-        const check_for_responses = () => {
-            this.$store.dispatch('check_for_responses')
-        }
-        check_for_responses()
-        setInterval(check_for_responses, 1000 * 60 * 15)  // 15 mins
+        // Resume tasks
+        resume_tasks()
     }
 
     get docked(){
