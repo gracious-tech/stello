@@ -28,7 +28,8 @@ export async function resume_tasks():Promise<void>{
     setIntervalPlus(2, 'h', true, async () => {  // Checks every 2 hours but only syncs every 12
         const now = new Date()
         for (const oauth of await self._db.oauths.list()){
-            if (oauth.contacts_sync && differenceInHours(now, oauth.contacts_sync_last) >= 12){
+            const last = oauth.contacts_sync_last
+            if (oauth.contacts_sync && (!last || differenceInHours(now, last) >= 12)){
                 task_manager.start_contacts_sync(oauth.id)
             }
         }
