@@ -1,5 +1,4 @@
 
-import {Task} from '@/services/tasks'
 import {Location} from 'vue-router'
 
 
@@ -32,10 +31,6 @@ export interface AppStoreState {
         snackbar:{msg:string, btn_label?:string, btn_color?:string, btn_handler?:()=>void},
         dialog:StateTmpDialog,
         prev_location:Location,
-
-        // Tasks
-        tasks:Task[],
-        checking_responses:boolean,
     }
 }
 

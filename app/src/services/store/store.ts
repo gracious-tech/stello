@@ -2,15 +2,10 @@
 import Vue from 'vue'
 import {Store, StoreOptions} from 'vuex'
 
-import {sleep} from '@/services/utils/async'
-import {type_of} from '@/services/utils/exceptions'
-import {nested_objects_set, nested_objects_update} from '@/services/utils/objects'
+import {nested_objects_set} from '@/services/utils/objects'
 import {get_initial_state, KEY_SEPARATOR} from './store_state'
 import {AppStoreState, StateTmpDialog} from './types'
 import {Database} from '@/services/database/database'
-import {Task} from '@/services/tasks'
-import {receive_responses} from '../receiving'
-import {Sender} from '../sending'
 
 
 export async function get_store(db:Database):Promise<Store<AppStoreState>>{
@@ -70,13 +65,6 @@ async function get_store_options(db:Database):Promise<StoreOptions<AppStoreState
         },
     },
 
-    getters: {
-        active_tasks(state){
-            // Return only tasks that aren't done yet
-            return state.tmp.tasks.filter(t => !t.done)
-        },
-    },
-
     actions: {
 
         async show_snackbar({commit}, arg:string|object):Promise<void>{
@@ -114,52 +102,6 @@ async function get_store_options(db:Database):Promise<StoreOptions<AppStoreState
             // Change the value of dark and tell Vuetify about it
             commit('dict_set', ['dark', value])
             self._app.$vuetify.theme.dark = value
-        },
-
-        new_task({commit, getters}, args:any[]=[]):Task{
-            // Create a new task
-            // TODO Prevent all/some tasks running simultaneously (e.g. two receive tasks)
-            const task = new Task(...args)
-
-            // Add given task to end of tasks list
-            // Also take opportunity to remove any completed tasks so array doesn't grow forever
-            const tasks = [...getters.active_tasks, task]
-            commit('tmp_set', ['tasks', tasks])
-
-            // Return the created task
-            return task
-        },
-
-        async send_message({dispatch}, msg_id:string):Promise<void>{
-            // Send a message
-            const task:Task = await dispatch('new_task')
-            const sender = new Sender(msg_id)
-            return task.complete(sender.send(task)).then(email_errors => {
-                const actual_errors = email_errors.filter(i => !!i)
-                if (actual_errors.length){
-                    dispatch('show_snackbar', `Failed to send some emails (check sent folder)`)
-                } else {
-                    dispatch('show_snackbar', "Message sent successfully")
-                }
-            })
-        },
-
-        async check_for_responses({commit, dispatch, state}):Promise<void>{
-            // Check for responses unless already doing so
-            if (state.tmp.checking_responses){
-                return
-            }
-            const task:Task = await dispatch('new_task')
-            commit('tmp_set', ['checking_responses', true])
-            try {
-                await receive_responses(task)
-            } catch (error){
-                // TODO Provide better handling
-                dispatch('show_snackbar', `Failed to check for responses (${error})`)
-                console.error(error)
-                task.done = true
-            }
-            commit('tmp_set', ['checking_responses', false])
         },
     },
 }}

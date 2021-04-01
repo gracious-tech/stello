@@ -41,10 +41,6 @@ export async function get_initial_state(db:Database):Promise<AppStoreState>{
             snackbar: null,
             dialog: null,
             prev_location: null,
-
-            // Tasks
-            tasks: [],
-            checking_responses: false,
         },
     }
 
