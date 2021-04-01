@@ -17,8 +17,10 @@ export interface RecordContact {
     created:Date
     name:string
     name_hello:string
-    address:string
+    address:string  // An email address (previously planned to allow links, but never implemented)
     notes:string
+    service_account:string  // issuer:issuer_id
+    service_id:string  // The id for this contact in the service account
 }
 
 
@@ -28,6 +30,29 @@ export interface RecordGroup {
     id:string
     name:string
     contacts:string[]
+    service_account:string  // issuer:issuer_id
+    service_id:string
+}
+
+
+// OAuth
+
+
+export interface RecordOAuth {
+    id:string  // Random internal id
+    issuer:'google'|'microsoft'
+    issuer_id:string  // The issuer's id for the user
+    issuer_config:Record<string, any>
+    email:string
+    name:string  // May be null if not required
+    scope_sets:('email_send'|'contacts')[]
+    token_refresh:string
+    token_access:string
+    token_access_expires:Date  // When access token will expire and need refreshing
+    // Contact syncing
+    contacts_sync:boolean  // Whether to read contacts of this account if possible
+    contacts_sync_last:Date
+    contacts_sync_token:string  // Token representing last sync so can do partials
 }
 
 
@@ -46,7 +71,7 @@ export interface RecordProfile {
 }
 
 export interface RecordProfileHost {
-    cloud:string  // aws, google, etc
+    cloud:'aws'
     bucket:string
     region:string
     user:string  // Absence of user indicates self-hosted (one user per bucket)
@@ -67,6 +92,7 @@ export interface HostCredentialsAws {
 }
 
 export interface RecordProfileSmtp {
+    oauth:string
     user:string
     pass:string
     host:string
@@ -75,7 +101,7 @@ export interface RecordProfileSmtp {
 }
 
 export interface RecordProfileOptions {
-    notify_mode:string  // none, first_new_reply, replies, replies_and_reactions
+    notify_mode:'none'|'first_new_reply'|'replies'|'replies_and_reactions'
     notify_include_contents:boolean  // Only applicable to replies & replies_and_reactions
     allow_replies:boolean
     allow_reactions:boolean
@@ -96,7 +122,7 @@ export interface RecordDraft {
     reply_to:string
     modified:Date
     title:string
-    sections:string[][]
+    sections:([string]|[string, string])[]
     profile:string
     options_identity:MessageOptionsIdentity
     options_security:MessageOptionsSecurity
@@ -252,10 +278,23 @@ export interface AppDatabaseSchema extends DBSchema {
     contacts:{
         key:string,
         value:RecordContact,
+        indexes:{
+            by_service_account:string,
+        },
     }
     groups:{
         key:string,
         value:RecordGroup,
+        indexes:{
+            by_service_account:string,
+        },
+    }
+    oauths:{
+        key:string,
+        value:RecordOAuth,
+        indexes:{
+            by_issuer_id:[string, string],
+        },
     }
     profiles:{
         key:string,
