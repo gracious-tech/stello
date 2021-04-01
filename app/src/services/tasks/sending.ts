@@ -2,20 +2,20 @@
 import {escape} from 'lodash'
 
 import {Task} from './tasks'
-import {Message} from './database/messages'
-import {Profile} from './database/profiles'
-import {MessageCopy} from './database/copies'
+import {Message} from '../database/messages'
+import {Profile} from '../database/profiles'
+import {MessageCopy} from '../database/copies'
 import {concurrent} from '@/services/utils/async'
 import {resize_bitmap, blob_image_size} from '@/services/utils/image'
-import {bitmap_to_canvas, canvas_to_blob, buffer_to_url64} from './utils/coding'
-import {encrypt_sym, export_key} from './utils/crypt'
-import {utf8_to_buffer} from './utils/coding'
-import {SECTION_IMAGE_WIDTH} from './misc'
-import {HostUser} from './hosts/types'
-import {send_emails} from './native'
+import {bitmap_to_canvas, canvas_to_blob, buffer_to_url64} from '../utils/coding'
+import {encrypt_sym, export_key} from '../utils/crypt'
+import {utf8_to_buffer} from '../utils/coding'
+import {SECTION_IMAGE_WIDTH} from '../misc'
+import {HostUser} from '../hosts/types'
+import {send_emails} from '../native/native'
 import type {PublishedCopyBase, PublishedAsset, PublishedCopy, PublishedSection,
     PublishedContentImages} from '@/shared/shared_types'
-import type {RecordSection} from './database/types'
+import type {RecordSection} from '../database/types'
 
 
 export class Sender {
@@ -152,7 +152,7 @@ export class Sender {
         }))
 
         // Filter out copies that don't have email addresses
-        copies = copies.filter(copy => copy.contact_address_type === 'email')
+        copies = copies.filter(copy => copy.contact_address)
 
         // Construct properties common to all emails
         const from = {
