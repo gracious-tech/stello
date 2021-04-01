@@ -110,7 +110,7 @@ import * as zip from '@zip.js/zip.js/dist/zip'
 import {Component, Vue, Watch} from 'vue-property-decorator'
 
 import {drop} from '@/services/utils/exceptions'
-import {oauth_action_init_grant} from '@/services/oauth'
+import {oauth_pretask_new_usage} from '@/services/tasks/oauth'
 
 
 @Component({})
@@ -174,11 +174,13 @@ export default class extends Vue {
     }
 
     oauth_google(){
-        oauth_action_init_grant('google', 'contacts_read')
+        this.dismiss()
+        oauth_pretask_new_usage('contacts_oauth_setup', [], 'google')
     }
 
     oauth_microsoft(){
-        oauth_action_init_grant('microsoft', 'contacts_read')
+        this.dismiss()
+        oauth_pretask_new_usage('contacts_oauth_setup', [], 'microsoft')
     }
 
     async from_file(file:File){
