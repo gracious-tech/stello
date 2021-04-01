@@ -8,8 +8,7 @@ import {configs_update} from './configs'
 import {responses_receive} from './responses'
 import {contacts_oauth_setup, contacts_sync, contacts_change_property, contacts_remove,
     } from './contacts'
-import {email_oauth_setup} from './email'
-import {send_message} from './sending'
+import {send_oauth_setup, send_message} from './sending'
 import {MustReauthenticate, MustReconnect} from '../utils/exceptions'
 
 
@@ -21,9 +20,8 @@ type TaskReturn = Promise<Promise<any>|Promise<any>[]|void>
 // Create a map of task function names to the actual function
 const TASKS:{[name:string]:(task:Task)=>TaskReturn} = Object.fromEntries([
     contacts_oauth_setup, contacts_sync, contacts_change_property, contacts_remove,
-    email_oauth_setup,
+    send_oauth_setup, send_message,
     configs_update,
-    send_message,
     responses_receive,
 ].map(fn => [fn.name, fn]))
 

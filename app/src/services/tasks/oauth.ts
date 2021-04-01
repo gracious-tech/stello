@@ -249,7 +249,7 @@ async function oauth_authorize_complete(url:string):Promise<AuthCompletion>{
 // PRETASK FUNCTIONS (getting auth for tasks that need it)
 
 
-export async function oauth_pretask_new_usage(task_name:'contacts_oauth_setup'|'email_oauth_setup',
+export async function oauth_pretask_new_usage(task_name:'contacts_oauth_setup'|'send_oauth_setup',
     extra_params:string[], issuer:OAuthIssuer, email?:string):Promise<void>{
     // Setup a new usage of an oauth, either using an existing auth or a new one
     // NOTE The chosen oauth's id will be passed as the first parameter when executing the task
