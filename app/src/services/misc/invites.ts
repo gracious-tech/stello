@@ -1,4 +1,6 @@
 
+import {escape as html_escape} from 'lodash'  // Avoid deprecated global `escape()`
+
 import {replace_without_overlap} from '@/services/utils/strings'
 
 
@@ -16,9 +18,9 @@ export function render_invite_html(template:string, {contact, sender, title, url
 
     // Escape and replace placeholders
     let html = replace_without_overlap(template, {
-        CONTACT: escape(contact),
-        SENDER: escape(sender),
-        SUBJECT: escape(title),
+        CONTACT: html_escape(contact),
+        SENDER: html_escape(sender),
+        SUBJECT: html_escape(title),
         LINK: '',  // Link placeholder removed post v0.1.1 (bad UX to have link and main button)
     })
 
@@ -38,10 +40,10 @@ export function render_invite_html(template:string, {contact, sender, title, url
             <div style='padding: 12px; border-radius: 0 0 12px 12px; text-align: center;
                     background-color: #ddeeff; color: #000000; font-family: Roboto, sans-serif;'>
 
-                <h3 style='font-size: 1.2em;'>${escape(title)}</h3>
+                <h3 style='font-size: 1.2em;'>${html_escape(title)}</h3>
 
                 <p style='margin: 36px 0;'>
-                    <a href='${escape(url)}' style='background-color: #224477; color: #ffffff;
+                    <a href='${html_escape(url)}' style='background-color: #224477; color: #ffffff;
                             padding: 12px 18px; border-radius: 12px; text-decoration: none;'>
                         <strong>OPEN MESSAGE</strong>
                     </a>
