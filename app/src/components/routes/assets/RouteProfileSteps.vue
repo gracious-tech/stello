@@ -27,13 +27,15 @@ v-stepper(:value='profile.setup_step' @change='change_step')
                 app-btn(@click='next_step' :disabled='!profile.host.cloud') Next
 
         v-stepper-content(:step='2')
-            h3(class='text-h6 my-6') What are your email account details?
+            h3(class='text-h6 my-6') Which email address do you want to send from?
             p(class='text--secondary body-2 mb-12') Stello will send messages on your behalf, and notify you of any replies.
-            app-email-settings(:profile='profile' ref='app_email_settings')
+            p(class='text-center')
+                span(v-if='profile.smtp_ready') {{ profile.email }}
+                app-btn(@click='show_email_dialog')
+                    | {{ profile.smtp_ready ? "Change" : "Connect email account" }}
             div.nav
-                app-btn(@click='prev_step' :disabled='loading') Prev
-                app-btn(@click='next_step_after_email' :disabled='!email_looks_done'
-                    :loading='loading') Next
+                app-btn(@click='prev_step') Prev
+                app-btn(@click='next_step' :disabled='!profile.smtp_ready') Next
 
         v-stepper-content(:step='3')
             h2(class='text-h6 my-6') How would you like to identify yourself?
@@ -73,20 +75,18 @@ v-stepper(:value='profile.setup_step' @change='change_step')
 import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import RouteProfileHost from '@/components/routes/assets/RouteProfileHost.vue'
-import AppEmailSettings from '@/components/reuseable/AppEmailSettings.vue'
+import DialogEmailSettings from '@/components/dialogs/reuseable/DialogEmailSettings.vue'
 import RouteProfileIdentity from '@/components/routes/assets/RouteProfileIdentity.vue'
 import {Profile} from '@/services/database/profiles'
-import {email_address_like} from '@/services/utils/misc'
 
 
 @Component({
-    components: {RouteProfileHost, AppEmailSettings, RouteProfileIdentity},
+    components: {RouteProfileHost, RouteProfileIdentity},
 })
 export default class extends Vue {
 
     @Prop() profile:Profile
 
-    loading = false
     security_choice = null
     security_options = [
         {
@@ -145,11 +145,6 @@ export default class extends Vue {
         },
     ]
 
-    get email_looks_done(){
-        // Whether email address input looks to be valid
-        return email_address_like(this.profile.email)
-    }
-
     @Watch('security_choice') watch_security_choice(){
         // Apply security choice whenever it changes
         const settings = this.security_options[this.security_choice].settings
@@ -174,20 +169,20 @@ export default class extends Vue {
         self._db.profiles.set(this.profile)
     }
 
-    async next_step_after_email(){
-        // Only go to next step if email setup properly
-        this.loading = true
-        const success = await (this.$refs.app_email_settings as any).test()
-        this.loading = false
-        if (success){
-            this.next_step()
-        }
-    }
-
     change_step(step){
         // Handle changes of step triggered by the stepper component tabs etc
         this.profile.setup_step = step
         self._db.profiles.set(this.profile)
+    }
+
+    show_email_dialog(){
+        // Show dialog for configuring smtp settings
+        this.$store.dispatch('show_dialog', {
+            component: DialogEmailSettings,
+            props: {
+                profile: this.profile,
+            },
+        })
     }
 
     async done(){
