@@ -22,10 +22,10 @@ div
         v-card
             v-card-text
                 p(class='body-2 text--secondary' v-t='"email.p1"')
-                app-email-settings(:profile='profile' ref='app_email_settings')
                 p(class='text-center')
-                    app-btn(@click='test_email_settings' :loading='email_loading')
-                        | Test email settings
+                    span(v-if='profile.smtp_ready') {{ profile.email }}
+                    app-btn(@click='show_email_dialog')
+                        | {{ profile.smtp_ready ? "Change" : "Connect email account" }}
 
 
         h2 Identity
@@ -144,14 +144,14 @@ en:
 
 <script lang='ts'>
 
-import {Component, Vue, Prop} from 'vue-property-decorator'
+import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import RouteProfileHost from '@/components/routes/assets/RouteProfileHost.vue'
-import AppEmailSettings from '@/components/reuseable/AppEmailSettings.vue'
+import DialogEmailSettings from '@/components/dialogs/reuseable/DialogEmailSettings.vue'
 import RouteProfileIdentity from '@/components/routes/assets/RouteProfileIdentity.vue'
 import RouteProfileSteps from '@/components/routes/assets/RouteProfileSteps.vue'
 import {Profile} from '@/services/database/profiles'
-import {update_configs} from '@/services/configs'
+import {Task, task_manager} from '@/services/tasks/tasks'
 
 
 const UPLOADED_CONFIG_OPTIONS = ['notify_mode', 'notify_include_contents', 'allow_replies',
@@ -181,7 +181,7 @@ function options_to_computed_props(props:string[]){
 
 
 @Component({
-    components: {RouteProfileHost, AppEmailSettings, RouteProfileIdentity, RouteProfileSteps},
+    components: {RouteProfileHost, RouteProfileIdentity, RouteProfileSteps},
     computed: {
         ...options_to_computed_props([
             'notify_mode', 'notify_include_contents', 'allow_replies', 'allow_reactions',
@@ -193,7 +193,7 @@ function options_to_computed_props(props:string[]){
 export default class extends Vue {
     // NOTE Code organised by database record, where as template organised by user friendliness
 
-    @Prop() profile_id
+    @Prop() profile_id:string
 
     profile:Profile = null
     groups_ui = []
@@ -203,7 +203,6 @@ export default class extends Vue {
         {value: 'replies', text: "Every reply"},
         {value: 'replies_and_reactions', text: "Every reply & reaction"},
     ]
-    email_loading = false
 
     async created(){
         // Get the profile for the given id, and groups (needed for auto_exclude_exempt_groups)
@@ -254,20 +253,27 @@ export default class extends Vue {
         this.save()
     }
 
+    @Watch('$tm.data.finished') async watch_tm_finished(task:Task):Promise<void>{
+        // Listen to task completions and adjust state as needed
+        if (task.name === 'email_oauth_setup' && task.params[1] === this.profile.id){
+            // Reload profile to get latest email related settings
+            this.profile = await self._db.profiles.get(this.profile.id)
+        }
+    }
+
     save(){
         // Save changes to profile
         self._db.profiles.set(this.profile)
     }
 
-    async test_email_settings(){
-        // Confirm email settings are valid
-        this.email_loading = true
-        const success = await (this.$refs.app_email_settings as any).test()
-        this.email_loading = false
-        if (success){
-            // NOTE Error info handled and displayed by AppEmailSettings
-            this.$store.dispatch('show_snackbar', "Success, your email settings are correct!")
-        }
+    show_email_dialog(){
+        // Show dialog for configurable smtp settings
+        this.$store.dispatch('show_dialog', {
+            component: DialogEmailSettings,
+            props: {
+                profile: this.profile,
+            },
+        })
     }
 
     toggle_auto_exclude(value){
