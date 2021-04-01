@@ -1,11 +1,12 @@
 
 import {openDB} from 'idb/with-async-ittr.js'
 
-import {AppDatabaseSchema, AppDatabaseConnection, RecordReplaction, RecordSectionContent}
-    from './types'
+import {AppDatabaseSchema, AppDatabaseConnection, RecordReplaction, RecordSectionContent,
+    } from './types'
 import {DatabaseState} from './state'
 import {DatabaseContacts} from './contacts'
 import {DatabaseGroups} from './groups'
+import {DatabaseOAuths} from './oauths'
 import {DatabaseProfiles} from './profiles'
 import {DatabaseDrafts, Draft} from './drafts'
 import {DatabaseMessages, Message} from './messages'
@@ -22,7 +23,7 @@ import {remove} from '../utils/arrays'
 
 export function open_db():Promise<AppDatabaseConnection>{
     // Get access to db (and create/upgrade if needed)
-    return openDB<AppDatabaseSchema>('main', 3, {
+    return openDB<AppDatabaseSchema>('main', 4, {
         async upgrade(db, old_version, new_version, transaction){
 
             // Begin upgrade at whichever version is already present (no break statements)
@@ -82,6 +83,26 @@ export function open_db():Promise<AppDatabaseConnection>{
                         cursor.value.draft.sections = cursor.value.draft.sections.map(s => [s])
                         cursor.update(cursor.value)
                     }
+                case 3:
+                    // New table for oauths
+                    const oauths = db.createObjectStore('oauths', {keyPath: 'id'})
+                    oauths.createIndex('by_issuer_id', ['issuer', 'issuer_id'])
+                    // New properties for contacts and groups
+                    for await (const cursor of transaction.objectStore('contacts')){
+                        cursor.value.service_account = null
+                        cursor.value.service_id = null
+                        cursor.update(cursor.value)
+                    }
+                    for await (const cursor of transaction.objectStore('groups')){
+                        cursor.value.service_account = null
+                        cursor.value.service_id = null
+                        cursor.update(cursor.value)
+                    }
+                    // New index for contacts and groups
+                    transaction.objectStore('contacts').createIndex(
+                        'by_service_account', 'service_account')
+                    transaction.objectStore('groups').createIndex(
+                        'by_service_account', 'service_account')
             }
         },
     })
@@ -94,6 +115,7 @@ export class Database {
     state:DatabaseState
     contacts:DatabaseContacts
     groups:DatabaseGroups
+    oauths:DatabaseOAuths
     profiles:DatabaseProfiles
     drafts:DatabaseDrafts
     messages:DatabaseMessages
@@ -108,6 +130,7 @@ export class Database {
         this.state = new DatabaseState(connection)
         this.contacts = new DatabaseContacts(connection)
         this.groups = new DatabaseGroups(connection)
+        this.oauths = new DatabaseOAuths(connection)
         this.profiles = new DatabaseProfiles(connection)
         this.drafts = new DatabaseDrafts(connection)
         this.messages = new DatabaseMessages(connection)
@@ -124,7 +147,7 @@ export class Database {
     // NOTE Transactions are only necessary for the writes of a method, not the reads
 
 
-    async draft_copy(draft_or_id:Draft|string):Promise<Draft>{
+    async draft_copy(draft_or_id:Draft|string, template?:boolean):Promise<Draft>{
         // Create a new draft from existing one, identified by id or object (can be from a msg too)
 
         // Get the original
@@ -144,6 +167,9 @@ export class Database {
         for (const key of safe_fields){
             copy[key] = original[key]
         }
+
+        // Override template property, else use existing
+        copy.template = template ?? original.template
 
         // Also copy sections, but need to create copies of each's record too
         // NOTE The original's sections returned are used as-is with just the id changed
@@ -299,7 +325,7 @@ export class Database {
             copy_id: msg_copy.id,
             msg_id: msg_copy.msg_id,
         })
-        this._conn.add('reads', read)
+        await this._conn.add('reads', read)
         return read
     }
 
@@ -360,7 +386,7 @@ export class Database {
         // Create a new reaction
         const reaction = new Reaction(
             await this._gen_replaction(content, sent, resp_token, section_id, ip, user_agent))
-        this._conn.add('reactions', reaction)
+        await this._conn.add('reactions', reaction)
         return reaction
     }
 
@@ -372,7 +398,7 @@ export class Database {
             replied: false,
             archived: false,
         })
-        this._conn.add('replies', reply)
+        await this._conn.add('replies', reply)
         return reply
     }
 }
