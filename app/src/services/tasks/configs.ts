@@ -1,16 +1,18 @@
 
-import {Profile} from './database/profiles'
 import {Task} from './tasks'
-import {object_to_blob, buffer_to_url64} from './utils/coding'
-import {export_key} from './utils/crypt'
+import {object_to_blob, buffer_to_url64} from '../utils/coding'
+import {export_key} from '../utils/crypt'
 
 
-export async function update_configs(task:Task, profile:Profile){
+export async function configs_update(task:Task){
     // Update config files in host
 
+    // Get profile from params
+    const [profile_id] = task.params
+    let profile = await self._db.profiles.get(profile_id)
+
     // Setup task
-    task.label = "Applying new settings"
-    task.subtasks_total = 2
+    task.label = `Applying new settings for ${profile.display}`
 
     // Extract response public key
     const resp_key_public = buffer_to_url64(await export_key(profile.host_state.resp_key.publicKey))
@@ -41,13 +43,13 @@ export async function update_configs(task:Task, profile:Profile){
         email: profile.email,
     })
 
-    // Complete task when both done
-    await task.complete(task.array([upload_displayer, upload_responder]))
+    // Wait till both uploads complete
+    await task.add(upload_displayer, upload_responder)
 
     // Update profile state
     // WARN Get fresh profile data in case changed while tasks were completing
     profile = await self._db.profiles.get(profile.id)
     profile.host_state.displayer_config_uploaded = true
     profile.host_state.responder_config_uploaded = true
-    self._db.profiles.set(profile)
+    await self._db.profiles.set(profile)
 }
