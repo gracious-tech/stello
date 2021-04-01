@@ -17,6 +17,12 @@ import type {RecordSection} from '../database/types'
 import {render_invite_html} from '../misc/invites'
 
 
+export async function send_message(task:Task):Promise<void>{
+    // Send a message
+    await new Sender().send(task)
+}
+
+
 export class Sender {
 
     msg_id:string
@@ -24,10 +30,6 @@ export class Sender {
     task:Task
     profile:Profile
     host:HostUser
-
-    constructor(msg_id:string){
-        this.msg_id = msg_id
-    }
 
     get lifespan():number{
         // Return lifespan (accounting for inheritance)
@@ -46,14 +48,20 @@ export class Sender {
 
     async send(task:Task):Promise<string[]>{
         // Encrypt and upload assets and copies, and send email invites
-        task.label = "Sending message"
-        task.show_count = false  // Reveal later
 
         // Get the msg data
+        this.msg_id = task.params[0]
         this.msg = await self._db.messages.get(this.msg_id)
+        this.profile = await self._db.profiles.get(this.msg.draft.profile)
+
+        // Setup task
+        // TODO Add tracking of subtasks
+        task.label = `Sending message "${this.msg.display}"`
+        if (this.profile.smtp_settings.oauth){
+            task.fix_oauth = this.profile.smtp_settings.oauth
+        }
 
         // Get the profile and init storage client for the message
-        this.profile = await self._db.profiles.get(this.msg.draft.profile)
         this.host = this.profile.new_host_user()
 
         // Process sections and produce assets

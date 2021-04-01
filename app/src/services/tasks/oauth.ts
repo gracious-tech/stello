@@ -534,7 +534,7 @@ export function scope_set_for_task(task_name:string):ScopeSet{
     // Return the scope set required for given task name
     if (task_name.startsWith('contacts_')){
         return 'contacts'
-    } else if (task_name.startsWith('email_')){
+    } else if (task_name.startsWith('send_')){
         return 'email_send'
     }
     throw new Error("Shouldn't be possible")

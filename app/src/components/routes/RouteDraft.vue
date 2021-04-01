@@ -58,7 +58,6 @@ import {debounce_set} from '@/services/misc'
 import {Draft} from '@/services/database/drafts'
 import {Profile} from '@/services/database/profiles'
 import {Section} from '@/services/database/sections'
-import {update_configs} from '@/services/tasks/configs'
 
 
 @Component({
@@ -238,11 +237,14 @@ export default class extends Vue {
 
         // Upload configs first if needed
         if (this.profile.configs_need_uploading){
-            await update_configs(await this.$store.dispatch('new_task'), this.profile)
+            const error = await (await this.$tm.start_configs_update(this.profile.id)).done
+            if (error){
+                return  // Failed to upload configs / let user fix via failed tasks UI first
+            }
         }
 
         // Start sending task
-        this.$store.dispatch('send_message', msg_id)
+        this.$tm.start_send_message(msg_id)
 
         // Navigate to root
         this.$router.push('/')

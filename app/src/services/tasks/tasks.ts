@@ -2,7 +2,6 @@
 
 import Vue from 'vue'
 import {isEqual} from 'lodash'
-import {RawLocation} from 'vue-router'
 
 import {remove} from '../utils/arrays'
 import {configs_update} from './configs'
@@ -10,6 +9,7 @@ import {responses_receive} from './responses'
 import {contacts_oauth_setup, contacts_sync, contacts_change_property, contacts_remove,
     } from './contacts'
 import {email_oauth_setup} from './email'
+import {send_message} from './sending'
 import {MustReauthenticate, MustReconnect} from '../utils/exceptions'
 
 
@@ -23,6 +23,7 @@ const TASKS:{[name:string]:(task:Task)=>TaskReturn} = Object.fromEntries([
     contacts_oauth_setup, contacts_sync, contacts_change_property, contacts_remove,
     email_oauth_setup,
     configs_update,
+    send_message,
     responses_receive,
 ].map(fn => [fn.name, fn]))
 
@@ -224,6 +225,10 @@ export class TaskManager {
 
     start_configs_update(profile_id:string):Promise<Task>{
         return this.start('configs_update', [profile_id])
+    }
+
+    start_send_message(msg_id:string):Promise<Task>{
+        return this.start('send_message', [msg_id])
     }
 
     start_responses_receive():Promise<Task>{

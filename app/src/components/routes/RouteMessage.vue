@@ -113,8 +113,7 @@ export default class extends Vue {
 
     async send_all(){
         // Ensure all copies have been uploaded, and all emails sent
-        await this.$store.dispatch('send_message', this.msg_id)
-        this.load()
+        this.$tm.start_send_message(this.msg_id)
     }
 }
 
