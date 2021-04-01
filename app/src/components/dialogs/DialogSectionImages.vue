@@ -116,7 +116,7 @@ export default class extends Vue {
             return this.handle_blob(blob)
         })
 
-        // Wait till all have been processed and notify user if none succeded
+        // Wait till all have been processed and notify user if none succeeded
         const some_added = (await Promise.all(results)).some(i => i)
         if (!some_added){
             this.$store.dispatch('show_snackbar',
