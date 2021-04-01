@@ -81,18 +81,24 @@ async function get_store_options(db:Database):Promise<StoreOptions<AppStoreState
                 if (state.tmp.dialog.persistent && !dialog.persistent){
                     return  // Ignore request to open dialog
                 } else {
-                    dialog.resolve()
+                    state.tmp.dialog.resolve()
                 }
             }
 
             // Create a new promise that is resolved with a value when dialog closed
             const p = new Promise(resolve => {
-                commit('tmp_set', ['dialog', {...dialog, resolve}])
+                // Add resolve fn to dialog object
+                // WARN Must keep object same (no ...) so can compare below with ===
+                dialog.resolve = resolve
+                commit('tmp_set', ['dialog', dialog])
             })
 
             // Automatically clear the dialog state when closed
             p.then(() => {
-                commit('tmp_set', ['dialog', null])
+                // WARN Must only clear if is own state (could have been replaced already)
+                if (state.tmp.dialog === dialog){
+                    commit('tmp_set', ['dialog', null])
+                }
             })
 
             return p
