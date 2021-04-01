@@ -94,7 +94,7 @@ export class HostManagerAws implements HostManager {
                 // Fetch completed setup version (else undefined)
                 // NOTE Despite mentioning it, listUsers does NOT include tags in results itself
                 const tags = await this.iam.listUserTags({UserName: user.UserName}).promise()
-                const v = tags.Tags.filter(t => t.Key === 'stello-version').map(t => t.Value)[0]
+                const v = tags.Tags.find(t => t.Key === 'stello-version')?.Value
                 return new HostManagerStorageAws(this.credentials, bucket, region, v)
             }))
 
@@ -159,7 +159,7 @@ export class HostManagerAws implements HostManager {
             // Error not a permissions issue, so reraise
             throw error
         }
-        // headBucket succeded, so bucket exists and we own it, so not available
+        // headBucket succeeded, so bucket exists and we own it, so not available
         return false
     }
 
