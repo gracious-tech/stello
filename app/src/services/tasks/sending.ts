@@ -1,4 +1,5 @@
 
+import DialogEmailSettings from '@/components/dialogs/reuseable/DialogEmailSettings.vue'
 import {Task} from './tasks'
 import {Message} from '../database/messages'
 import {Profile} from '../database/profiles'
@@ -15,6 +16,7 @@ import type {PublishedCopyBase, PublishedAsset, PublishedCopy, PublishedSection,
     PublishedContentImages} from '@/shared/shared_types'
 import type {RecordSection} from '../database/types'
 import {render_invite_html} from '../misc/invites'
+import {MustReauthenticate, MustReconfigure, MustReconnect} from '../utils/exceptions'
 
 
 export async function send_oauth_setup(task:Task):Promise<void>{
@@ -79,7 +81,7 @@ export class Sender {
         return value === Infinity ? null : value
     }
 
-    async send(task:Task):Promise<string[]>{
+    async send(task:Task):Promise<void>{
         // Encrypt and upload assets and copies, and send email invites
 
         // Get the msg data
@@ -92,6 +94,15 @@ export class Sender {
         task.label = `Sending message "${this.msg.display}"`
         if (this.profile.smtp_settings.oauth){
             task.fix_oauth = this.profile.smtp_settings.oauth
+        } else {
+            // Fix by opening email settings dialog
+            task.fix_settings = async () => {
+                const fresh_profile = await self._db.profiles.get(this.profile.id)
+                self._store.dispatch('show_dialog', {
+                    component: DialogEmailSettings, props: {profile: fresh_profile},
+                })
+            }
+            task.fix_auth = task.fix_settings
         }
 
         // Init storage client for the message
@@ -125,8 +136,8 @@ export class Sender {
             return () => this._publish_copy(copy, pub_copy_base)
         }))
 
-        // Sent email invites and return errors if any
-        return this._send_emails(copies)
+        // Sent email invites
+        await this._send_emails(copies)
     }
 
     async _publish_asset(asset:PublishedAsset):Promise<void>{
@@ -171,7 +182,7 @@ export class Sender {
         self._db.copies.set(copy)
     }
 
-    async _send_emails(copies:MessageCopy[]):Promise<string[]>{
+    async _send_emails(copies:MessageCopy[]):Promise<void>{
         // Send emails for the contacts with email addresses
 
         // Filter out copies that have already been sent to
@@ -222,8 +233,7 @@ export class Sender {
         const no_reply = this.profile.options.smtp_no_reply && this.profile.options.allow_replies
 
         // Get native platform to send
-        const errors = (await send_emails(this.profile.smtp_settings, emails, from, no_reply)).map(
-            error => error && error.details)  // TODO Make use of other error properties
+        const errors = await send_emails(this.profile.smtp_settings, emails, from, no_reply)
 
         // Update copies for successes
         // WARN Ensure copies still matches emails/errors in terms of item order etc
@@ -234,7 +244,18 @@ export class Sender {
             }
         }
 
-        return errors
+        // Throw the first error encountered (ignore the rest)
+        const error = errors.find(e => e)
+        if (error){
+            if (['dns', 'starttls_required', 'tls_required', 'timeout'].includes(error.code)){
+                throw new MustReconfigure(error.details)
+            } else if (error.code === 'auth'){
+                throw new MustReauthenticate(error.details)
+            } else if (error.code === 'network'){
+                throw new MustReconnect(error.details)
+            }
+            throw new Error(error.details)
+        }
     }
 }
 
