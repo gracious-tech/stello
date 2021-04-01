@@ -219,7 +219,7 @@ export default class extends Vue {
     async destroyed(){
         // Check if configs need uploading when leaving
         if (this.profile.configs_need_uploading){
-            update_configs(await this.$store.dispatch('new_task'), this.profile)
+            task_manager.start_configs_update(this.profile_id)
         }
     }
 
