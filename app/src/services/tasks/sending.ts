@@ -1,6 +1,4 @@
 
-import {escape} from 'lodash'
-
 import {Task} from './tasks'
 import {Message} from '../database/messages'
 import {Profile} from '../database/profiles'
@@ -16,6 +14,7 @@ import {send_emails} from '../native/native'
 import type {PublishedCopyBase, PublishedAsset, PublishedCopy, PublishedSection,
     PublishedContentImages} from '@/shared/shared_types'
 import type {RecordSection} from '../database/types'
+import {render_invite_html, render_invite_text} from '../misc/invites'
 
 
 export class Sender {
@@ -295,104 +294,6 @@ async function process_section(section:RecordSection):Promise<[PublishedSection,
         }
     }
     return [pub_section, pub_section_assets]
-}
-
-
-function replace_without_overlap(template:string, replacements:{[k:string]:string}):string{
-    // Replace a series of values without replacing any values inserted from a previous replacement
-    // e.g. if "SUBJECT" is replaced with "CONTACT ME", it will not match another key like "CONTACT"
-
-    // First replace placeholders with versions with near zero probability of overlap
-    for (const placeholder of Object.keys(replacements)){
-        template = template.replaceAll(placeholder, `~~NEVER~~${placeholder}~~MATCH~~`)
-    }
-
-    // Now safe(r) to replace with actual values
-    for (const [placeholder, value] of Object.entries(replacements)){
-        template = template.replaceAll(`~~NEVER~~${placeholder}~~MATCH~~`, value)
-    }
-
-    return template
-}
-
-
-export function render_invite_html(template:string, {contact, sender, title, url}, doc=true):string{
-    // Render a HTML invite template with the provided context
-
-    // Escape and replace placeholders
-    let html = replace_without_overlap(template, {
-        CONTACT: escape(contact),
-        SENDER: escape(sender),
-        SUBJECT: escape(title),
-        LINK: '',  // Link placeholder removed post v0.1.1 (bad UX to have link and main button)
-    })
-
-    // Append title and url to end of template
-    // NOTE <hr> used for some separation if css disabled
-    html = `
-        <div style='border-radius: 12px; max-width: 600px; margin: 0 auto; border:
-                1px solid #cccccc;'>
-
-            <div style='padding: 24px;'>
-                ${html}
-            </div>
-
-            <hr style='margin-bottom: 0; border-style: solid; border-color: #cccccc;
-                border-width: 1px 0 0 0;'>
-
-            <div style='padding: 12px; border-radius: 0 0 12px 12px; text-align: center;
-                    background-color: #ddeeff; color: #000000; font-family: Roboto, sans-serif;'>
-
-                <h3 style='font-size: 1.2em;'>${escape(title)}</h3>
-
-                <p style='margin: 36px 0;'>
-                    <a href='${escape(url)}' style='background-color: #224477; color: #ffffff;
-                            padding: 12px 18px; border-radius: 12px; text-decoration: none;'>
-                        <strong>OPEN MESSAGE</strong>
-                    </a>
-                </p>
-
-            </div>
-        </div>
-    `
-
-    // Optionally return without structural html
-    if (!doc){
-        return html
-    }
-
-    // Add doc tags and styles for when not embedding in another page
-    return `
-        <!DOCTYPE html>
-        <html>
-            <head>
-            </head>
-            <body style='margin: 24px;'>
-                ${html}
-            </body>
-        </html>
-    `
-}
-
-
-export function render_invite_text(template:string, {contact, sender, title, url}):string{
-    // Render a text invite template with the provided context
-
-    // Replace placeholders
-    let text = replace_without_overlap(template, {
-        CONTACT: contact,
-        SENDER: sender,
-        SUBJECT: title,
-        LINK: ` ${url} `,  // Pad to ensure not accidently broken by adjacent characters
-    })
-
-    // If template didn't include link placeholder, add url to end
-    // WARN Do this last so that no chance of a placeholder occuring in url and being replaced
-    if (!text.includes(url)){
-        text += `\n\n${url}`
-    }
-
-    return text
 }
 
 
