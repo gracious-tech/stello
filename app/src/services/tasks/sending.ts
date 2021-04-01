@@ -14,7 +14,7 @@ import {send_emails} from '../native/native'
 import type {PublishedCopyBase, PublishedAsset, PublishedCopy, PublishedSection,
     PublishedContentImages} from '@/shared/shared_types'
 import type {RecordSection} from '../database/types'
-import {render_invite_html, render_invite_text} from '../misc/invites'
+import {render_invite_html} from '../misc/invites'
 
 
 export class Sender {
@@ -294,26 +294,4 @@ async function process_section(section:RecordSection):Promise<[PublishedSection,
         }
     }
     return [pub_section, pub_section_assets]
-}
-
-
-export async function get_text_invite_for_copy(copy:MessageCopy){
-    // Get text invite for copy (regardless of contact's address)
-
-    // Get objects needed
-    const msg = await self._db.messages.get(copy.msg_id)
-    const profile = await self._db.profiles.get(msg.draft.profile)
-
-    // Account for inheritance
-    const template = profile.msg_options_identity.invite_tmpl_clipboard  // TODO
-    const sender = msg.draft.options_identity.sender_name
-        || profile.msg_options_identity.sender_name
-
-    // Render invite
-    return render_invite_text(template, {
-        contact: copy.contact_hello,
-        sender: sender,
-        title: msg.draft.title,
-        url: profile.view_url(copy.id, await export_key(copy.secret)),
-    })
 }

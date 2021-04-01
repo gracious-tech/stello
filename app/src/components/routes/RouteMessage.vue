@@ -39,7 +39,7 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 import {sort} from '@/services/utils/arrays'
 import {Message} from '@/services/database/messages'
 import {MessageCopy} from '@/services/database/copies'
-import {get_text_invite_for_copy} from '@/services/tasks/sending'
+import {get_text_invite_for_copy} from '@/services/misc/invites'
 import {Read} from '@/services/database/reads'
 
 

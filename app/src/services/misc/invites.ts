@@ -1,6 +1,8 @@
 
 import {escape as html_escape} from 'lodash'  // Avoid deprecated global `escape()`
 
+import {MessageCopy} from '@/services/database/copies'
+import {export_key} from '@/services/utils/crypt'
 import {replace_without_overlap} from '@/services/utils/strings'
 
 
@@ -91,4 +93,26 @@ export function render_invite_text(template:string, {contact, sender, title, url
     }
 
     return text
+}
+
+
+export async function get_text_invite_for_copy(copy:MessageCopy):Promise<string>{
+    // Get text invite for copy (regardless if normally send a HTML invite)
+
+    // Get objects needed
+    const msg = await self._db.messages.get(copy.msg_id)
+    const profile = await self._db.profiles.get(msg.draft.profile)
+
+    // Account for inheritance
+    const template = profile.msg_options_identity.invite_tmpl_clipboard  // TODO
+    const sender = msg.draft.options_identity.sender_name
+        || profile.msg_options_identity.sender_name
+
+    // Render invite
+    return render_invite_text(template, {
+        contact: copy.contact_hello,
+        sender: sender,
+        title: msg.draft.title,
+        url: profile.view_url(copy.id, await export_key(copy.secret)),
+    })
 }
