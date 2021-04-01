@@ -1,17 +1,19 @@
 
 import {AppDatabaseConnection, RecordContact} from './types'
 import {generate_token} from '@/services/utils/crypt'
-import {address_type} from '@/services/utils/misc'
 
 
 export class Contact implements RecordContact {
 
+    // Stello owned
     id:string
     created:Date
     name:string
     name_hello:string
     address:string
     notes:string
+    service_account:string
+    service_id:string
 
     constructor(db_object:RecordContact){
         Object.assign(this, db_object)
@@ -25,11 +27,6 @@ export class Contact implements RecordContact {
     get name_hello_result():string{
         // Return name_hello result which uses value if given or otherwise defaults to first word
         return this.name_hello.trim() || this.name.trim().split(' ')[0]
-    }
-
-    get address_type():string{
-        // Return the type of address for the contact
-        return address_type(this.address)
     }
 }
 
@@ -47,6 +44,13 @@ export class DatabaseContacts {
         return (await this._conn.getAll('contacts')).map(contact => new Contact(contact))
     }
 
+    async list_for_account(issuer:string, issuer_id:string):Promise<Contact[]>{
+        // Get all contacts belonging to given service account
+        const account = `${issuer}:${issuer_id}`
+        const contacts = await this._conn.getAllFromIndex('contacts', 'by_service_account', account)
+        return contacts.map(contact => new Contact(contact))
+    }
+
     async get(id:string):Promise<Contact>{
         // Get single contact by id
         const contact = await this._conn.get('contacts', id)
@@ -58,17 +62,28 @@ export class DatabaseContacts {
         await this._conn.put('contacts', contact)
     }
 
-    async create(name='', address=''):Promise<Contact>{
-        // Create a new contact
-        const contact = new Contact({
+    create_object():Contact{
+        // Create a new contact object
+        return new Contact({
             id: generate_token(),
             created: new Date(),
-            name: name,
+            name: '',
             name_hello: '',
-            address: address,
+            address: '',
             notes: '',
+            service_account: null,
+            service_id: null,
         })
-        this._conn.add('contacts', contact)
+    }
+
+    async create(name='', address='', service_account=null, service_id=null):Promise<Contact>{
+        // Create a new contact and save to db
+        const contact = this.create_object()
+        contact.name = name
+        contact.address = address
+        contact.service_account = service_account
+        contact.service_id = service_id
+        await this._conn.add('contacts', contact)
         return contact
     }
 
