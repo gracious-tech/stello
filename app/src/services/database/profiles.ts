@@ -7,6 +7,9 @@ import {generate_token, generate_key_asym} from '@/services/utils/crypt'
 import {buffer_to_url64} from '@/services/utils/coding'
 import {HostUser} from '@/services/hosts/types'
 import {HostUserAws} from '@/services/hosts/aws_user'
+import {OAUTH_SUPPORTED} from '@/services/tasks/oauth'
+import {email_address_like} from '../utils/misc'
+import {partition} from '../utils/strings'
 
 
 export interface SmtpProvider {
@@ -112,6 +115,14 @@ export class Profile implements RecordProfile {
         return this.host.user ?? this.host.bucket
     }
 
+    get email_domain():string{
+        // Extract domain part of email address (if any)
+        if (email_address_like(this.email)){
+            return partition(this.email, '@')[1]
+        }
+        return null
+    }
+
     get smtp_detected():string{
         // Auto-detect provider based on domain name or host (if given)
         if (!this.email?.includes('@'))
@@ -134,6 +145,7 @@ export class Profile implements RecordProfile {
         // Return final smtp settings after accounting for defaults
         // NOTE Address and password are always provided directly by user
         const settings = Object.assign({}, this.smtp)
+        settings.host ||= `smtp.${this.email_domain}`
         settings.port ||= 465
         settings.user ||= this.email
         if (this.smtp_detected){
@@ -142,6 +154,16 @@ export class Profile implements RecordProfile {
             settings.starttls = this.smtp_detected_config.starttls
         }
         return settings
+    }
+
+    get smtp_oauth_supported():boolean{
+        // Whether oauth is supported for detected provider (and should therefore be used)
+        return !!this.smtp_detected && this.smtp_detected in OAUTH_SUPPORTED
+    }
+
+    get smtp_ready():boolean{
+        // Whether settings have been fully configured yet or not
+        return !!this.smtp.oauth || !!this.smtp.pass
     }
 
     get configs_need_uploading(){
