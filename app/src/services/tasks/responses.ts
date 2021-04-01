@@ -1,15 +1,15 @@
 
 import {Task} from './tasks'
-import {Profile} from './database/profiles'
-import {concurrent} from './utils/async'
-import {buffer_to_utf8} from './utils/coding'
-import {decrypt_asym} from './utils/crypt'
-import {get_last} from './utils/arrays'
-import {HostUser} from './hosts/types'
-import type {ResponseEvent} from '../shared/shared_types'
+import {Profile} from '../database/profiles'
+import {concurrent} from '../utils/async'
+import {buffer_to_utf8} from '../utils/coding'
+import {decrypt_asym} from '../utils/crypt'
+import {get_last} from '../utils/arrays'
+import {HostUser} from '../hosts/types'
+import type {ResponseEvent} from '../../shared/shared_types'
 
 
-export async function receive_responses(task:Task):Promise<void>{
+export async function responses_receive(task:Task):Promise<void>{
 
     // Configure task
     task.label = "Downloading responses"
@@ -29,6 +29,7 @@ export async function receive_responses(task:Task):Promise<void>{
             (k:string):[Profile, string] => [profile, k],
         ))
     }
+    task.upcoming(responses.length)
 
     // Sort responses by type, prioritising them by importance
     // TODO Currently ignores any other objects not matched
@@ -65,7 +66,7 @@ export async function receive_responses(task:Task):Promise<void>{
             const sent = new Date(timestamp_seconds * 1000)
 
             // Process
-            const success = await process_event(data.event, sent, data.ip)
+            const success = await task.expected(process_event(data.event, sent, data.ip))
 
             // Delete response object from bucket if processed successfully
             // WARN Ensure have awaited all tasks involved with processing event before delete
@@ -76,7 +77,7 @@ export async function receive_responses(task:Task):Promise<void>{
     }))
 
     // Complete task when all done
-    return task.complete(jobs)
+    await jobs
 }
 
 
