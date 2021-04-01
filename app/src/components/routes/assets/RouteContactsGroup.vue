@@ -16,7 +16,7 @@ v-list-item.item(:value='group.id')
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
-import DialogGroupName from '@/components/dialogs/DialogGroupName.vue'
+import DialogGroupName from '@/components/dialogs/reuseable/DialogGroupName.vue'
 import {Group} from '@/services/database/groups'
 
 
