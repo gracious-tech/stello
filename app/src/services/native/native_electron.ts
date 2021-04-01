@@ -21,9 +21,14 @@ export function dns_mx(host:string):Promise<string[]>{
 }
 
 
-export function test_email_settings(settings:EmailSettings):Promise<EmailError>{
+export async function test_email_settings(settings:EmailSettings, auth:boolean=true)
+        :Promise<EmailError>{
     // Tests provided settings to see if they work and returns either null or error string
-    return self.ipcRenderer.invoke('test_email_settings', settings)
+    const error = await self.ipcRenderer.invoke('test_email_settings', settings, auth)
+    if (error){
+        console.warn(error)  // Since specifically for testing, expected that errors will be handled
+    }
+    return error
 }
 
 

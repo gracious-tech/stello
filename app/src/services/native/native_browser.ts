@@ -8,23 +8,16 @@ export async function dns_mx(host:string):Promise<string[]>{
 }
 
 
-export async function test_email_settings(settings:EmailSettings):Promise<EmailError>{
-    return {
-        code: "NOT_SUPPORTED",
-        message: "",
-        response: "",
-    }
+export async function test_email_settings(settings:EmailSettings, auth:boolean=true)
+        :Promise<EmailError>{
+    return {code: 'unsupported', details: ""}
 }
 
 
 export async function send_emails(settings:EmailSettings, emails:Email[], from:EmailIdentity,
         no_reply:boolean):Promise<EmailError[]>{
     return emails.map(email => {
-        return {
-            code: "NOT_SUPPORTED",
-            message: "",
-            response: "",
-        }
+        return {code: 'unsupported', details: ""}
     })
 }
 

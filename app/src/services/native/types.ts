@@ -19,7 +19,6 @@ export interface EmailIdentity {
 }
 
 export interface EmailError {
-    code:string
-    message:string
-    response:string
+    code:'network'|'dns'|'starttls_required'|'tls_required'|'auth'|'timeout'|'unknown'|'unsupported'
+    details:string
 }
