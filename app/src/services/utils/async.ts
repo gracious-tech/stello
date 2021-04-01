@@ -18,7 +18,7 @@ export function setIntervalPlus(amount:number, unit:'ms'|'s'|'m'|'h', instant:bo
             amount *= 1000
     }
     if (instant){
-        self.setTimeout(handler())  // Execute async to avoid errors affecting future setInterval
+        self.setTimeout(handler)  // Execute async to avoid errors affecting future setInterval
     }
     return self.setInterval(handler, amount)
 }
