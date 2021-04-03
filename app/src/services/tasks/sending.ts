@@ -18,6 +18,7 @@ import type {RecordSection} from '../database/types'
 import {render_invite_html} from '../misc/invites'
 import {MustReauthenticate, MustReconfigure, MustReconnect} from '../utils/exceptions'
 import {Email} from '../native/types'
+import {send_emails_oauth} from './email'
 
 
 export async function send_oauth_setup(task:Task):Promise<void>{
@@ -236,19 +237,22 @@ export class Sender {
         const no_reply = this.profile.options.smtp_no_reply && this.profile.options.allow_replies
         const reply_to = no_reply ? dud_recipient : undefined
 
-        // Get native platform to send
-        const error = await send_emails(this.profile.smtp_settings, emails, from, reply_to)
-
-        // Translate email error to standard forms
-        if (error){
-            if (['dns', 'starttls_required', 'tls_required', 'timeout'].includes(error.code)){
-                throw new MustReconfigure(error.details)
-            } else if (error.code === 'auth'){
-                throw new MustReauthenticate(error.details)
-            } else if (error.code === 'network'){
-                throw new MustReconnect(error.details)
+        // Send using oauth or regular SMTP (SMTP requires native platform's help)
+        if (this.profile.smtp_settings.oauth){
+            await send_emails_oauth(this.profile.smtp_settings.oauth, emails, from, reply_to)
+        } else {
+            const error = await send_emails(this.profile.smtp_settings, emails, from, reply_to)
+            // Translate email error to standard forms
+            if (error){
+                if (['dns', 'starttls_required', 'tls_required', 'timeout'].includes(error.code)){
+                    throw new MustReconfigure(error.details)
+                } else if (error.code === 'auth'){
+                    throw new MustReauthenticate(error.details)
+                } else if (error.code === 'network'){
+                    throw new MustReconnect(error.details)
+                }
+                throw new Error(error.details)
             }
-            throw new Error(error.details)
         }
     }
 }
