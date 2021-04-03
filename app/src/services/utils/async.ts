@@ -26,6 +26,7 @@ export function setIntervalPlus(amount:number, unit:'ms'|'s'|'m'|'h', instant:bo
 
 export async function concurrent(tasks:(()=>any)[], status?:{count:number}, limit=10):Promise<void>{
     // Complete the given tasks concurrently and return promise that resolves when all done
+    // NOTE Upon failure this will reject and stop starting tasks (though some may still be ongoing)
     // NOTE AWS S3 CLI concurrency limit defaults to 10
 
     // Create an array to represent channels and default to already resolved promises
