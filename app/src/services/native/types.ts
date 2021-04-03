@@ -8,6 +8,7 @@ export interface EmailSettings {
 }
 
 export interface Email {
+    id:string
     to:EmailIdentity
     subject:string
     html:string

@@ -15,13 +15,16 @@ export async function test_email_settings(settings:EmailSettings, auth:boolean=t
 
 
 export async function send_emails(settings:EmailSettings, emails:Email[], from:EmailIdentity,
-        no_reply:boolean):Promise<EmailError[]>{
-    return emails.map(email => {
-        return {code: 'unsupported', details: ""}
-    })
+        reply_to?:EmailIdentity):Promise<EmailError>{
+    return {code: 'unsupported', details: ""}
 }
 
 
 export function on_oauth(handler:(url:string)=>void):void{
+    // Will never receive events...
+}
+
+
+export function on_email_submitted(handler:(email_id:string, accepted:boolean)=>void):void{
     // Will never receive events...
 }

@@ -334,12 +334,9 @@ ipcMain.handle('test_email_settings', async (event, settings, auth=true) => {
 })
 
 
-ipcMain.handle('send_emails', async (event, settings, emails, from, no_reply) => {
+ipcMain.handle('send_emails', async (event, settings, emails, from, reply_to) => {
     // Send emails and return null for success, else error
     // NOTE Also emits email_submitted event for each individual email
-
-    // Determine value for reply_to header
-    const reply_to = no_reply ? {name: "OPEN MESSAGE TO REPLY", address: "noreply@localhost"} : null
 
     // Setup pooled transport
     const transport = smtp_transport(settings)

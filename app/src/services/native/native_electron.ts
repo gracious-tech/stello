@@ -33,8 +33,9 @@ export async function test_email_settings(settings:EmailSettings, auth:boolean=t
 
 
 export function send_emails(settings:EmailSettings, emails:Email[], from:EmailIdentity,
-        no_reply:boolean):Promise<EmailError[]>{
-    return self.ipcRenderer.invoke('send_emails', settings, emails, from, no_reply)
+        reply_to?:EmailIdentity):Promise<EmailError>{
+    // Send emails
+    return self.ipcRenderer.invoke('send_emails', settings, emails, from, reply_to)
 }
 
 
@@ -42,8 +43,16 @@ export function send_emails(settings:EmailSettings, emails:Email[], from:EmailId
 
 
 export function on_oauth(handler:(url:string)=>void):void{
-    // Listen to oauth redirect events by providing a handler
+    // Listen to oauth redirect events emitted by native platform
     self.ipcRenderer.on('oauth', (event, url) => {
         handler(url)
+    })
+}
+
+
+export function on_email_submitted(handler:(email_id:string, accepted:boolean)=>void):void{
+    // Listen to email_submitted events emitted by native platform
+    self.ipcRenderer.on('email_submitted', (event, email_id, accepted) => {
+        handler(email_id, accepted)
     })
 }

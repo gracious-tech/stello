@@ -17,6 +17,7 @@ import type {PublishedCopyBase, PublishedAsset, PublishedCopy, PublishedSection,
 import type {RecordSection} from '../database/types'
 import {render_invite_html} from '../misc/invites'
 import {MustReauthenticate, MustReconfigure, MustReconnect} from '../utils/exceptions'
+import {Email} from '../native/types'
 
 
 export async function send_oauth_setup(task:Task):Promise<void>{
@@ -215,8 +216,9 @@ export class Sender {
         const template = this.profile.msg_options_identity.invite_tmpl_email
 
         // Generate email objects from copies
-        const emails = await Promise.all(copies.map(async copy => {
+        const emails:Email[] = await Promise.all(copies.map(async copy => {
             return {
+                id: copy.id,  // Use copy's id for email id for matching later
                 to: {name: copy.contact_name, address: copy.contact_address},
                 subject: title,
                 html: render_invite_html(template, {
@@ -230,22 +232,14 @@ export class Sender {
 
         // Determine if should prevent replies
         // NOTE Should only prevent email replies if Stello replies are allowed
+        const dud_recipient = {name: "OPEN MESSAGE TO REPLY", address: "noreply@localhost"}
         const no_reply = this.profile.options.smtp_no_reply && this.profile.options.allow_replies
+        const reply_to = no_reply ? dud_recipient : undefined
 
         // Get native platform to send
-        const errors = await send_emails(this.profile.smtp_settings, emails, from, no_reply)
+        const error = await send_emails(this.profile.smtp_settings, emails, from, reply_to)
 
-        // Update copies for successes
-        // WARN Ensure copies still matches emails/errors in terms of item order etc
-        for (let i = 0; i < copies.length; i++){
-            if (errors[i] === null){
-                copies[i].invited = true
-                self._db.copies.set(copies[i])
-            }
-        }
-
-        // Throw the first error encountered (ignore the rest)
-        const error = errors.find(e => e)
+        // Translate email error to standard forms
         if (error){
             if (['dns', 'starttls_required', 'tls_required', 'timeout'].includes(error.code)){
                 throw new MustReconfigure(error.details)

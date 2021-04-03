@@ -37,11 +37,12 @@ import AppSidebar from '@/components/other/AppSidebar.vue'
 import AppDialog from '@/components/dialogs/AppDialog.vue'
 import SplashWelcome from '@/components/splash/SplashWelcome.vue'
 import SplashDisclaimer from '@/components/splash/SplashDisclaimer.vue'
-import {on_oauth} from '@/services/native/native'
+import {on_email_submitted, on_oauth} from '@/services/native/native'
 import {oauth_pretask_process} from '@/services/tasks/oauth'
 import {task_manager} from '@/services/tasks/tasks'
 import {sleep} from '@/services/utils/async'
 import {resume_tasks} from '@/services/tasks/resume'
+import {handle_email_submitted} from '@/services/tasks/email'
 
 
 @Component({
@@ -71,8 +72,9 @@ export default class extends Vue {
             }
         })
 
-        // Listen for oauth redirects
+        // Handle events emitted from native platform
         on_oauth(oauth_pretask_process)
+        on_email_submitted(handle_email_submitted)
 
         // Resume tasks
         resume_tasks()
