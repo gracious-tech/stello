@@ -365,7 +365,7 @@ ipcMain.handle('send_emails', async (event, settings, emails, from, no_reply) =>
         return normalize_nodemailer_error(error)
     }).finally(() => {
         // Ensure transport always closed when done
-        // NOTE If error thrown then this will interrupt any still pending emails
+        // NOTE If error was thrown then this will interrupt any still pending emails
         transport.close()
     })
 })
