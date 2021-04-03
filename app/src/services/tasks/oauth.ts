@@ -494,7 +494,7 @@ export async function oauth_request(oauth:OAuth, url:string, params?:Record<stri
     }
 
     // Convert body to JSON string if an object
-    if (typeof body === 'object'){
+    if (! (body instanceof Blob)){
         body = new Blob([JSON.stringify(body)], {type: 'application/json'})
     }
 
