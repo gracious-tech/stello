@@ -472,7 +472,7 @@ export async function oauth_revoke_if_obsolete(oauth:OAuth):Promise<void>{
 
 
 export async function oauth_request(oauth:OAuth, url:string, params?:Record<string,string|string[]>,
-        method:string='GET', body?:any):Promise<Record<string, any>>{
+        method:string='GET', body?:object|Blob):Promise<Record<string, any>>{
     // Request a resource using OAuth2
 
     // Add params to url if any
@@ -495,7 +495,7 @@ export async function oauth_request(oauth:OAuth, url:string, params?:Record<stri
 
     // Convert body to JSON string if an object
     if (typeof body === 'object'){
-        body = JSON.stringify(body)
+        body = new Blob([JSON.stringify(body)], {type: 'application/json'})
     }
 
     // Send the request
@@ -504,9 +504,10 @@ export async function oauth_request(oauth:OAuth, url:string, params?:Record<stri
         resp = await fetch(url, {
             method,
             headers: {
-                Authorization: `Bearer ${oauth.token_access}`,
+                'Authorization': `Bearer ${oauth.token_access}`,
+                'Content-Type': (body as Blob).type,
             },
-            body,
+            body: body as Blob,
         })
     } catch (error){
         throw new MustReconnect()
