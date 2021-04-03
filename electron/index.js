@@ -335,31 +335,37 @@ ipcMain.handle('test_email_settings', async (event, settings, auth=true) => {
 
 
 ipcMain.handle('send_emails', async (event, settings, emails, from, no_reply) => {
-    // Send emails and return array of null for success or otherwise error strings
+    // Send emails and return null for success, else error
+    // NOTE Also emits email_submitted event for each individual email
 
-    // Setup transport
+    // Determine value for reply_to header
+    const reply_to = no_reply ? {name: "OPEN MESSAGE TO REPLY", address: "noreply@localhost"} : null
+
+    // Setup pooled transport
     const transport = smtp_transport(settings)
 
-    // Request all be sent and let transport handle the queuing of requests
-    const reply_to = no_reply ? {name: "OPEN MESSAGE TO REPLY", address: "noreply@localhost"} : null
-    const requests = Promise.all(emails.map(async email => {
-        try {
-            await transport.sendMail({
-                from: from,
-                to: email.to,
-                subject: email.subject,
-                html: email.html,
-                replyTo: reply_to,
-            })
-        } catch (error){
-            return normalize_nodemailer_error(error)
-        }
+    // Request all be sent (without waiting) and let transport handle the queuing of requests
+    // NOTE Using `Promise.all()` so can interrupt sending if any one hard fails
+    return Promise.all(emails.map(async email => {
+        const result = await transport.sendMail({
+            from: from,
+            to: email.to,
+            subject: email.subject,
+            html: email.html,
+            replyTo: reply_to,
+        })
+        // Was submitted successfully, so immediately let renderer know
+        // NOTE Also includes whether recipient address was accepted or not (a soft fail)
+        event.sender.send('email_submitted', email.id, result.rejected.length === 0)
+    })).then(() => {
+        // Resolve with null for success (not array)
         return null
-    }))
-
-    // Close the connection when all done (since using pool)
-    requests.finally(() => transport.close())
-
-    // Return results
-    return requests
+    }).catch(error => {
+        // Resolve promise with normalized error
+        return normalize_nodemailer_error(error)
+    }).finally(() => {
+        // Ensure transport always closed when done
+        // NOTE If error thrown then this will interrupt any still pending emails
+        transport.close()
+    })
 })
