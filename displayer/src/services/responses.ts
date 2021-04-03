@@ -3,7 +3,7 @@ import {AwsClient} from 'aws4fetch'
 
 import {deployment_config} from './deployment_config'
 import {displayer_config} from './displayer_config'
-import {utf8_to_buffer} from './utils/coding'
+import {string_to_utf8} from './utils/coding'
 import {encrypt_asym} from './utils/crypt'
 
 
@@ -21,7 +21,7 @@ async function respond(data:any):Promise<boolean>{
     data.encrypted.user_agent = self.navigator.userAgent
 
     // Encrypt data's encrypted field
-    const binary_data = utf8_to_buffer(JSON.stringify(data.encrypted))
+    const binary_data = string_to_utf8(JSON.stringify(data.encrypted))
     data.encrypted = await encrypt_asym(binary_data, displayer_config.resp_key_public)
 
     // Init AWS client

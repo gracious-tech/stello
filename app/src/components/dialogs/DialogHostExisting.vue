@@ -25,7 +25,7 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 
 import {get_clipboard_text} from '@/services/utils/misc'
 import {decrypt_sym, import_key_sym} from '@/services/utils/crypt'
-import {buffer_to_utf8, url64_to_buffer} from '@/services/utils/coding'
+import {utf8_to_string, url64_to_buffer} from '@/services/utils/coding'
 import {Profile} from '@/services/database/profiles'
 import {RecordProfileHost} from '@/services/database/types'
 import {HostCredentialsPackage} from '../types_ui'
@@ -87,7 +87,7 @@ export default class extends Vue {
         try {
             const key = await import_key_sym(url64_to_buffer(secret))
             const decrypted = await decrypt_sym(await resp.arrayBuffer(), key)
-            data = JSON.parse(buffer_to_utf8(decrypted))
+            data = JSON.parse(utf8_to_string(decrypted))
         } catch {
             return "Could not decrypt the credentials (did you miss any characters?)"
         }

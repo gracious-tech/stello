@@ -34,7 +34,7 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 import {HostManagerStorage, HostCredentials} from '@/services/hosts/types'
 import {HostCredentialsPackage} from '@/components/types_ui'
 import {encrypt_sym, generate_key_sym} from '@/services/utils/crypt'
-import {utf8_to_buffer} from '@/services/utils/coding'
+import {string_to_utf8} from '@/services/utils/coding'
 import {HostUserAws} from '@/services/hosts/aws_user'
 import {buffer_to_url64} from '@/services/utils/coding'
 
@@ -83,7 +83,7 @@ export default class extends Vue {
         this.waiting = true
 
         // Encrypt the credentials package
-        const data = utf8_to_buffer(JSON.stringify(this.credentials_package))
+        const data = string_to_utf8(JSON.stringify(this.credentials_package))
         const key = await generate_key_sym(true)
         const encrypted = await encrypt_sym(data, key)
 

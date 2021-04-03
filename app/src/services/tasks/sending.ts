@@ -8,7 +8,7 @@ import {concurrent} from '@/services/utils/async'
 import {resize_bitmap, blob_image_size} from '@/services/utils/image'
 import {bitmap_to_canvas, canvas_to_blob, buffer_to_url64} from '../utils/coding'
 import {encrypt_sym, export_key} from '../utils/crypt'
-import {utf8_to_buffer} from '../utils/coding'
+import {string_to_utf8} from '../utils/coding'
 import {SECTION_IMAGE_WIDTH} from '../misc'
 import {HostUser} from '../hosts/types'
 import {send_emails} from '../native/native'
@@ -172,7 +172,7 @@ export class Sender {
         }
 
         // Encrypt and upload
-        const binary = utf8_to_buffer(JSON.stringify(pub_copy))
+        const binary = string_to_utf8(JSON.stringify(pub_copy))
         const encrypted = await encrypt_sym(binary, copy.secret)
         await this.host.upload_file(`copies/${copy.id}`, encrypted, this.lifespan, this.max_reads)
 

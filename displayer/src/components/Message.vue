@@ -19,7 +19,7 @@ import {ref, provide} from 'vue'
 import MessageContents from './MessageContents.vue'
 import {decrypt_sym, export_key, generate_hash} from '../services/utils/crypt'
 import {request_buffer} from '../services/utils/http'
-import {buffer_to_url64, buffer_to_utf8, url64_to_buffer} from '../services/utils/coding'
+import {buffer_to_url64, utf8_to_string, url64_to_buffer} from '../services/utils/coding'
 import {store, MessageAccess} from '../services/store'
 import {PublishedCopy} from '../shared/shared_types'
 import {import_key_sym} from '../services/utils/crypt'
@@ -77,7 +77,7 @@ setup(props:{msg_access:MessageAccess}, context){
         }
 
         // Parse the data
-        const msg_data = JSON.parse(buffer_to_utf8(decrypted)) as PublishedCopy
+        const msg_data = JSON.parse(utf8_to_string(decrypted)) as PublishedCopy
 
         // Reformat old data structures (v0.1.1 and below)
         if (!Array.isArray(msg_data.sections[0])){

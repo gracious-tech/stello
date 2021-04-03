@@ -26,14 +26,14 @@ export function url64_to_buffer(encoded:string):ArrayBuffer{
 }
 
 
-export function buffer_to_utf8(buffer:ArrayBuffer):string{
-    // Convert an ArrayBuffer to a utf-8 string (i.e. 1 byte = 1 char)
+export function utf8_to_string(buffer:ArrayBuffer):string{
+    // Convert a UTF8 ArrayBuffer to a string
     return new TextDecoder('utf-8').decode(buffer)
 }
 
 
-export function utf8_to_buffer(text:string):ArrayBuffer{
-    // Convert a utf-8 string (i.e. 1 byte = 1 char) to an ArrayBuffer
+export function string_to_utf8(text:string):ArrayBuffer{
+    // Convert a string to a UTF8 ArrayBuffer
     return new TextEncoder().encode(text).buffer
 }
 

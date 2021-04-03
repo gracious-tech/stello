@@ -2,7 +2,7 @@
 import {Task} from './tasks'
 import {Profile} from '../database/profiles'
 import {concurrent} from '../utils/async'
-import {buffer_to_utf8} from '../utils/coding'
+import {utf8_to_string} from '../utils/coding'
 import {decrypt_asym} from '../utils/crypt'
 import {get_last} from '../utils/arrays'
 import {HostUser} from '../hosts/types'
@@ -47,12 +47,12 @@ export async function responses_receive(task:Task):Promise<void>{
             // Download and decrypt the data
             const resp = await storages[profile.id].download_response(key)
             const private_key = profile.host_state.resp_key.privateKey
-            const binary_data = await decrypt_asym(buffer_to_utf8(resp), private_key)
-            const data = JSON.parse(buffer_to_utf8(binary_data))
+            const binary_data = await decrypt_asym(utf8_to_string(resp), private_key)
+            const data = JSON.parse(utf8_to_string(binary_data))
 
             // Decrypt and unpack encrypted fields
             const encrypted_field = await decrypt_asym(data.event.encrypted, private_key)
-            const encrypted_data = JSON.parse(buffer_to_utf8(encrypted_field))
+            const encrypted_data = JSON.parse(utf8_to_string(encrypted_field))
             // SECURITY Ensure attacker can't send different data unencrypted/encrypted
             for (const prop of Object.keys(encrypted_data)){
                 if (prop in data.event){
