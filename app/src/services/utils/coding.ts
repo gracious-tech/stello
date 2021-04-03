@@ -4,15 +4,27 @@
 
 
 export function buffer_to_url64(buffer:ArrayBuffer):string{
-    // Encode binary data as a url-safe base64 string (same as Python version but '=' -> '~')
+    // Custom version of url-safe base64 that also replaces `=` with `~`
+    return buffer_to_standard_url64(buffer).replaceAll('=', '~')
+}
+
+
+export function buffer_to_standard_url64(buffer:ArrayBuffer):string{
+    // Encode binary data as a url-safe base64 string
     // NOTE btoa only works with strings so convert each byte to a char
     const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)))
     // Convert to urlsafe base64
-    return base64.replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '~')
+    return base64.replaceAll('+', '-').replaceAll('/', '_')
 }
 
 
 export function url64_to_buffer(encoded:string):ArrayBuffer{
+    // Custom version of url-safe base64 that also expects `=` to have been replaced with `~`
+    return standard_url64_to_buffer(encoded.replaceAll('~', '='))
+}
+
+
+export function standard_url64_to_buffer(encoded:string):ArrayBuffer{
     // Convert a URL-safe base64 encoded string to an ArrayBuffer
     /* Explanation of decoding
         atob() is weird in that its "binary" output is still a string
@@ -20,7 +32,7 @@ export function url64_to_buffer(encoded:string):ArrayBuffer{
         Which means that charCodeAt() will return integers up to 1 byte only (even if supports 2)
         Which can then be fed into a Uint8Array!
     */
-    const regular_base64 = encoded.replaceAll('-', '+').replaceAll('_', '/').replaceAll('~', '=')
+    const regular_base64 = encoded.replaceAll('-', '+').replaceAll('_', '/')
     const binary_string = atob(regular_base64)
     return Uint8Array.from(binary_string, c => c.charCodeAt(0)).buffer
 }
