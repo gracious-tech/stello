@@ -8,9 +8,10 @@ div
             div.support-inner
                 h3(class='text-h6') Still to come
                 ul
-                    li Adding videos/graphs/subpages
+                    li A helpful dashboard
+                    li Themes for changing background and colors
                     li Editing messages after sending
-                    li Change style of messages
+                p + many more...
                 app-btn(href='https://give.gracious.tech' color='#fa5788' raised small) Help us
 
 </template>
