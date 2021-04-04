@@ -10,7 +10,7 @@ div
                 ul
                     li A helpful dashboard
                     li Themes for changing background and colors
-                    li Editing messages after sending
+                    li Add a header image to emails
                 p + many more...
                 app-btn(href='https://give.gracious.tech' color='#fa5788' raised small) Help us
 
