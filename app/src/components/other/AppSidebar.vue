@@ -74,6 +74,9 @@ export default class extends Vue {
     overflow-y: auto
     min-width: $stello_sidebar_width
 
+.logo
+    flex-shrink: 0  // Don't shrink when sidebar has to scroll
+
 .new
     margin-top: 24px
     margin-bottom: 36px
