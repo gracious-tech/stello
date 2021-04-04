@@ -12,7 +12,7 @@ v-app(:class='app_classes')
             //- WARN key important to stop Vue reusing a route when its params change
             component(:is='docked' :key='$route.fullPath' class='docked')
 
-    app-status
+    app-status(v-if='docked === "router-view"')
 
     v-snackbar(v-model='snackbar_visible' timeout='6000')
         span(v-if='snackbar') {{ snackbar.msg }}
