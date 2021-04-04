@@ -6,6 +6,7 @@ v-text-field(
     v-model='wrapped_value'
     :color='$attrs.color || "accent"'
     :persistent-hint='!hint_on_focus'
+    :spellcheck='spellcheck'
     filled
     v-bind='$attrs'
     v-on='$listeners'
@@ -30,6 +31,9 @@ export default class extends Vue {
     @Prop(String) value:string
     @Prop(String) security:string
     @Prop({type: Boolean, default: false}) hint_on_focus:boolean
+    // Default to not spellchecking as fields usually user-specific data
+    // NOTE value should be inserted in DOM as "true"|"false" string, which converting boolean does
+    @Prop({type: Boolean, default: false}) spellcheck:boolean
 
     get wrapped_value(){
         return this.value
