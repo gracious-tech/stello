@@ -8,7 +8,7 @@ div
         li High quality
         li Secure
         li Free
-    p As such, this app is completely non-profit with no ads, no tracking, and nothing else that would benefit us. This app is for your benefit alone. You can see this for yourself as <a href='https://github.com/gracious-tech/stello' target='_blank'>the code is pubicly available</a>.
+    p As such, this app is completely non-profit with no ads, no tracking, and nothing else that would benefit us. This app is for your benefit alone. You can see this for yourself as <a href='https://github.com/gracious-tech/stello' target='_blank'>the code is publicly available</a>.
     p We hope this app helps you to communicate well with the supporters of your ministry.
     p
         app-btn(href='https://stello.news' target='_blank')
