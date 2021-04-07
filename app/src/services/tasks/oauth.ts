@@ -494,7 +494,7 @@ export async function oauth_request(oauth:OAuth, url:string, params?:Record<stri
     }
 
     // Convert body to JSON string if an object
-    if (! (body instanceof Blob)){
+    if (body && !(body instanceof Blob)){
         body = new Blob([JSON.stringify(body)], {type: 'application/json'})
     }
 
@@ -505,12 +505,15 @@ export async function oauth_request(oauth:OAuth, url:string, params?:Record<stri
             method,
             headers: {
                 'Authorization': `Bearer ${oauth.token_access}`,
-                'Content-Type': (body as Blob).type,
+                'Content-Type': (body as Blob)?.type,
             },
             body: body as Blob,
         })
     } catch (error){
-        throw new MustReconnect()
+        if (error instanceof TypeError){
+            throw new MustReconnect()
+        }
+        throw error
     }
 
     // Return just the data
