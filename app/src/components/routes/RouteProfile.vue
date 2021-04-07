@@ -41,7 +41,7 @@ div
                 app-switch(v-model='allow_replies' v-bind='$t("allow_replies")')
                 app-switch(v-model='allow_reactions' v-bind='$t("allow_reactions")')
                 app-switch(v-model='smtp_no_reply' v-bind='$t("smtp_no_reply")'
-                    :disabled='!allow_replies' :disabled_value='false')
+                    :hint='smtp_no_reply_hint' :disabled='!allow_replies' :disabled_value='false')
                 app-select(v-model='notify_mode' :items='notify_mode_items'
                     v-bind='$t("notify_mode")')
                 app-switch(v-model='notify_include_contents' v-bind='$t("notify_include_contents")'
@@ -98,8 +98,7 @@ en:
         label: "Allow reactions"
         hint: "Allow recipients to react to your messages"
     smtp_no_reply:
-        label: "Prevent replies via email"
-        hint: "Make it more difficult for recipients to reply to email notifications so that they reply securely via Stello instead"
+        label: "Warn against replying by email"
     notify_mode:
         label: "Notification frequency"
         hint: "How often Stello should notify you about responses to your messages"
@@ -225,6 +224,10 @@ export default class extends Vue {
 
     get is_default(){
         return this.profile.id === this.$store.state.default_profile
+    }
+
+    get smtp_no_reply_hint():string{
+        return `If someone tries to reply via email, show: "${this.profile.smtp_reply_to_name}"`
     }
 
     get auto_exclude(){

@@ -166,6 +166,32 @@ export class Profile implements RecordProfile {
         return !!this.smtp.oauth || !!this.smtp.pass
     }
 
+    get smtp_reply_to_name():string{
+        // The "name" to be used for Reply-To contact if smtp_no_reply enabled
+        return "PLEASE DON'T REPLY VIA EMAIL (open message to reply)"
+    }
+
+    get smtp_reply_to():{name:string, address:string}{
+        // Return name/address contact pair for use with Reply-To header
+
+        // If allowing email replies, or in-message replies not enabled, no need for a Reply-To
+        if (!this.options.smtp_no_reply || !this.options.allow_replies){
+            return
+        }
+
+        /* SECURITY Not using a noreply address as it doesn't improve security
+            Main aim is to avoid replier keeping a copy of their own reply
+            Even if a dead address is used, the replier would still end up with a saved draft
+            Gmail also doesn't allow localhost addresses, so that's not an option anyway
+            So best thing to do is to warn the replier before they start typing
+                and otherwise still allow replies (as easy to get around anyway)
+        */
+        return {
+            name: this.smtp_reply_to_name,
+            address: this.email,
+        }
+    }
+
     get configs_need_uploading(){
         // Return whether configs need uploading (and able to do so)
         return this.setup_complete && (

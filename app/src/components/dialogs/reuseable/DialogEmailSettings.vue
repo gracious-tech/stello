@@ -421,6 +421,9 @@ export default class extends Vue {
     align-items: center
     margin: 36px 0
 
+    .v-btn
+        text-transform: none
+
 .v-text-field
     margin: 24px 0
 

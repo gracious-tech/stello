@@ -231,13 +231,8 @@ export class Sender {
             }
         }))
 
-        // Determine if should prevent replies
-        // NOTE Should only prevent email replies if Stello replies are allowed
-        const dud_recipient = {name: "OPEN MESSAGE TO REPLY", address: "noreply@localhost"}
-        const no_reply = this.profile.options.smtp_no_reply && this.profile.options.allow_replies
-        const reply_to = no_reply ? dud_recipient : undefined
-
         // Send using oauth or regular SMTP (SMTP requires native platform's help)
+        const reply_to = this.profile.smtp_reply_to
         if (this.profile.smtp_settings.oauth){
             await send_emails_oauth(this.profile.smtp_settings.oauth, emails, from, reply_to)
         } else {
