@@ -73,7 +73,7 @@ import {uniq} from 'lodash'
 import {Component, Vue, Watch} from 'vue-property-decorator'
 
 import DialogGroupChoice from '../dialogs/DialogGroupChoice.vue'
-import DialogGroupName from '../dialogs/DialogGroupName.vue'
+import DialogGroupName from '../dialogs/reuseable/DialogGroupName.vue'
 import DialogContactsImport from '@/components/dialogs/DialogContactsImport.vue'
 import RouteContactsItem from './assets/RouteContactsItem.vue'
 import RouteContactsGroup from './assets/RouteContactsGroup.vue'
@@ -81,6 +81,7 @@ import {remove, sort} from '@/services/utils/arrays'
 import {download_file} from '@/services/utils/misc'
 import {Group} from '@/services/database/groups'
 import {Contact} from '@/services/database/contacts'
+import {Task} from '@/services/tasks/tasks'
 
 
 interface ContactItem {
@@ -103,6 +104,10 @@ export default class extends Vue {
     pages_visible:number = 1  // So don't make UI laggy if user won't check them all anyway
 
     created():void{
+        // Default to filtering by the group specified in route query if any
+        if (this.$route.query.group){
+            this.filter_group_id = this.$route.query.group as string
+        }
         this.load_contacts()
     }
 
@@ -192,6 +197,15 @@ export default class extends Vue {
         // Whenever matched contacts changes, scroll back to top and show only one page of contacts
         ;(this.$refs.scrollable as Vue).$el.scroll(0, 0)
         this.pages_visible = 1
+    }
+
+    @Watch('$tm.data.finished') watch_tm_finished(task:Task){
+        // Listen to task completions and adjust state as needed
+        if (task.name === 'contacts_remove'){
+            remove(this.contacts, task.params[1], (ai, i) => ai.contact.id === i)
+        } else if (['contacts_sync', 'contacts_oauth_setup'].includes(task.name)){
+            this.load_contacts()
+        }
     }
 
     // Methods
@@ -337,7 +351,7 @@ export default class extends Vue {
             return [
                 c.contact.name,
                 c.contact.name_hello_result,
-                c.contact.address_type === 'email' ? c.contact.address : '',
+                c.contact.address,
                 c.contact.notes,
             ]
         }))
