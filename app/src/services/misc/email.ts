@@ -15,8 +15,9 @@ export function create_email(from:Person, to:Person, subject:string, html:string
     // Create a simple RFC 2822 compatible email and return as utf8 arraybuffer
 
     // Encode non-address values in headers to support unicode (since headers must be ascii)
-    const from_val = `${libmime.encodeWords(from.name)} <${from.address}>`
-    const to_val = `${libmime.encodeWords(to.name)} <${to.address}>`
+    // NOTE Important to use encodeWord (not encodeWords) for contact names in case <>@, etc
+    const from_val = `${libmime.encodeWord(from.name)} <${from.address}>`
+    const to_val = `${libmime.encodeWord(to.name)} <${to.address}>`
     const subject_val = libmime.encodeWords(subject)
 
     // Create the email as an array of lines
@@ -29,7 +30,7 @@ export function create_email(from:Person, to:Person, subject:string, html:string
 
     // Reply-To header is optional
     if (reply_to){
-        const reply_to_val = `${libmime.encodeWords(reply_to.name)} <${reply_to.address}>`
+        const reply_to_val = `${libmime.encodeWord(reply_to.name)} <${reply_to.address}>`
         email.push(`Reply-To: ${reply_to_val}`)
     }
 
