@@ -15,7 +15,7 @@ transition(name='statusbar' appear)
                     div(class='ellipsis') {{ first.status }}
                     div.other(v-if='tasks.length > 1') +{{ tasks.length - 1 }}
             template(v-else)
-                | &nbsp;
+                div.inactive No active tasks
         div.fails(v-if='failure' @click='show_fails_dialog' class='app-bg-error')
             app-svg(name='icon_error')
             div(class='ellipsis') Failed: {{ failure }}
@@ -100,16 +100,20 @@ $statusbar_height: 40px
         flex-direction: column
         overflow-x: hidden  // Trigger ellipsis for .active when appropriate
 
-        .finished
+        .finished, .inactive
             display: flex
             align-items: center
-            height: 100%
             justify-content: center
-            color: $accent_lighter
+            height: 100%
             padding: 0 12px
 
+        .finished
+            color: $accent_lighter
             svg
                 margin-left: 12px
+
+        .inactive
+            opacity: 0.3
 
         .active
             flex-grow: 1
