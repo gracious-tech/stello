@@ -1,13 +1,33 @@
 
 import {Task} from "./tasks"
 import {OAuth} from "../database/oauths"
-import {oauth_request} from "../oauth"
+import {oauth_request} from "./oauth"
 import {partition} from "../utils/strings"
+import {remove} from "../utils/arrays"
 
 
 // Functions which sync contacts in ways specific to the issuer
-const handlers:{[issuer:string]:(task:Task, oauth:OAuth)=>Promise<void>} = {
-    google: contacts_sync_google,
+const HANDLERS = {
+    google: {
+        sync: contacts_sync_google,
+        change_email: contacts_change_email_google,
+        remove: contacts_remove_google,
+    },
+}
+
+
+export async function contacts_oauth_setup(task:Task):Promise<void>{
+    // A task for enabling contact syncing after auth'ing
+
+    // Set syncing property in db
+    // NOTE This isn't done when first receiving new auth, especially when using an existing one
+    const [oauth_id] = task.params
+    const oauth = await self._db.oauths.get(oauth_id)
+    oauth.contacts_sync = true
+    await self._db.oauths.set(oauth)
+
+    // Turn this task into a sync
+    await contacts_sync(task)
 }
 
 
@@ -16,20 +36,39 @@ export async function contacts_sync(task:Task):Promise<void>{
 
     // Extract args from task object and get oauth record
     const [oauth_id] = task.params
-    const oauth = await self._db.oauths.get(oauth_id)
+    let oauth = await self._db.oauths.get(oauth_id)
 
     // Configure task object
     task.label = `Syncing contacts for ${oauth.display_issuer} account ${oauth.email}`
     task.show_count = true
-    task.fix_oauth = oauth
+    task.fix_oauth = oauth_id
 
     // Call handler specific to the oauth's issuer
-    return handlers[oauth.issuer](task, oauth)
+    await HANDLERS[oauth.issuer].sync(task, oauth)
+
+    // Update last synced time
+    // NOTE Get fresh copy of oauth in case changed during the sync
+    oauth = await self._db.oauths.get(oauth_id)
+    oauth.contacts_sync_last = new Date()
+    await self._db.oauths.set(oauth)
 }
 
 
 // GOOGLE
 
+interface GooglePersonsListResp {
+    connections:GooglePerson[]
+    nextSyncToken:string
+    nextPageToken:string
+    totalItems:number
+}
+
+interface GooglePerson {
+    resourceName:string
+    names?:GoogleName[]
+    emailAddresses?:GoogleEmail[]
+    biographies?:GoogleBio[]
+}
 
 interface GoogleGroupsListResp {
     contactGroups:GoogleGroup[]
@@ -47,9 +86,24 @@ interface GoogleGroup {
     memberResourceNames?:string[]  // Only returned for get requests (not list)
 }
 
+interface GoogleName extends GoogleListItem {
+    unstructuredName:string
+}
 
-const URL_GOOGLE_CONTACTS = 'https://people.googleapis.com/v1/people/me/connections'
-const URL_GOOGLE_GROUPS = 'https://people.googleapis.com/v1/contactGroups'
+interface GoogleEmail extends GoogleListItem {
+    value:string
+}
+
+interface GoogleBio extends GoogleListItem {
+    value:string
+    contentType:'TEXT_PLAIN'  // The only one that matters
+}
+
+interface GoogleListItem {
+    metadata: {
+        primary: boolean,
+    }
+}
 
 
 async function contacts_sync_google(task:Task, oauth:OAuth):Promise<void>{
@@ -91,12 +145,13 @@ async function contacts_sync_google_full(task:Task, oauth:OAuth):Promise<Record<
         // Make request
         // NOTE Page size default is 100, and while could do 1000, less better for progress tracking
         // NOTE May raise MustReconnect or MustReauthenticate, which are handled by task manager
-        const resp_data = await task.expected(oauth_request(oauth, URL_GOOGLE_CONTACTS, {
+        const url = 'https://people.googleapis.com/v1/people/me/connections'
+        const resp_data = await task.expected(oauth_request(oauth, url, {
             requestSyncToken: 'true',
-            personFields: 'names,emailAddresses',
+            personFields: 'names,emailAddresses,biographies',
             pageSize: `${page_size}`,
             pageToken: page_token || '',
-        }))
+        })) as GooglePersonsListResp
 
         // Save the contacts
         for (const person of resp_data.connections){
@@ -159,10 +214,11 @@ async function contacts_sync_google_full(task:Task, oauth:OAuth):Promise<Record<
 async function contacts_sync_google_groups(task:Task, oauth:OAuth, confirmed:Record<string, string>,
         ):Promise<void>{
     // Sync contact groups from a Google account
+    const url = 'https://people.googleapis.com/v1/contactGroups'
 
     // Get fresh list of the groups
     // NOTE While could use pagination/syncToken, list likely to be very small and not worth it
-    const list_resp = await task.add(oauth_request(oauth, URL_GOOGLE_GROUPS, {
+    const list_resp = await task.add(oauth_request(oauth, url, {
         groupFields: 'name,groupType,memberCount',
         pageSize: '1000',  // Highest possible and highly unlikely to get anywhere close
     })) as GoogleGroupsListResp
@@ -198,7 +254,14 @@ async function contacts_sync_google_groups(task:Task, oauth:OAuth, confirmed:Rec
 
     // Make batch get requests, as members data isn't returned for list requests
     for (const batch of batches){
-        const get_resp = await task.expected(oauth_request(oauth, `${URL_GOOGLE_GROUPS}:batchGet`, {
+
+        // If no groups at all, first batch will be empty
+        if (!batch.length){
+            continue
+        }
+
+        // Do batch request
+        const get_resp = await task.expected(oauth_request(oauth, `${url}:batchGet`, {
             resourceNames: batch.map(g => g.resourceName),
             maxMembers: '10000',  // Have to put something...
             groupFields: 'name',  // Don't need any, but defaults to more if none set
@@ -241,7 +304,7 @@ async function contacts_sync_google_groups(task:Task, oauth:OAuth, confirmed:Rec
 }
 
 
-function google_primary(options:{metadata:{primary:boolean}}[]):Record<string, any>{
+function google_primary<T extends GoogleListItem>(options:T[]):T{
     // Helper for Google data structures that selects either the primary item, else the first one
     if (!options?.length){
         return  // Arg may be undefined or an empty array if that data wasn't returned by Google
