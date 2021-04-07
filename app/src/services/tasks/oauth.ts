@@ -96,7 +96,7 @@ export const OAUTH_SUPPORTED = {
         endpoint: 'https://login.microsoftonline.com/common/v2.0',
         client_id: '9900ba50-c70b-44dd-ac0c-335cd924e865',
         scopes: {
-            email_send: ['https://graph.microsoft.com/SMTP.Send'],
+            email_send: ['https://graph.microsoft.com/Mail.Send'],
             contacts: ['https://graph.microsoft.com/Contacts.ReadWrite'],
         },
     },
