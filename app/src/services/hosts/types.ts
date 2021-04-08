@@ -55,6 +55,7 @@ export declare class HostManagerStorage {
     // Management access to a single set of storage services
 
     cloud:HostCloud
+    credentials:HostCredentials
     bucket:string
     region:string
     version:number
@@ -77,6 +78,7 @@ export declare class HostUser {
     // User access to host's API for sending messages etc
 
     cloud:HostCloud
+    credentials:HostCredentials
     bucket:string
     region:string
     user:string

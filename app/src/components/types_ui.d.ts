@@ -1,5 +1,5 @@
 
-interface HostCredentialsAws {
+interface Credentials {
     key_id:string
     key_secret:string
 }
@@ -9,6 +9,6 @@ export interface HostCredentialsPackage {
     bucket:string
     region:string
     user:string
-    credentials:HostCredentialsAws
-    credentials_responder:HostCredentialsAws
+    credentials:Credentials
+    credentials_responder:Credentials
 }

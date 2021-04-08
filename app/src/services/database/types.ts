@@ -75,8 +75,8 @@ export interface RecordProfileHost {
     bucket:string
     region:string
     user:string  // Absence of user indicates self-hosted (one user per bucket)
-    credentials:HostCredentialsAws  // May be a JSON string for Google Cloud
-    credentials_responder:HostCredentialsAws  // May not be needed for Google Cloud
+    credentials:HostCredentials  // May be a JSON string for Google Cloud
+    credentials_responder:HostCredentials  // May not be needed for Google Cloud
 }
 
 export interface RecordProfileHostState {
@@ -86,7 +86,7 @@ export interface RecordProfileHostState {
     responder_config_uploaded:boolean  // False when it needs updating
 }
 
-export interface HostCredentialsAws {
+export interface HostCredentials {
     key_id:string
     key_secret:string
 }

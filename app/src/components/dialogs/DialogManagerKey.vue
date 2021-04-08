@@ -21,19 +21,20 @@ v-card
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
 import {debounce_set} from '@/services/misc'
+import {HostCloud} from '@/services/hosts/types'
 
 
 @Component({})
 export default class extends Vue {
 
-    @Prop() host
+    @Prop() cloud:HostCloud
 
     get id_prop(){
-        return `manager_${this.host}_key_id`
+        return `manager_${this.cloud}_key_id`
     }
 
     get secret_prop(){
-        return `manager_${this.host}_key_secret`
+        return `manager_${this.cloud}_key_secret`
     }
 
     get key_id(){

@@ -31,12 +31,12 @@ v-card
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
-import {HostManagerStorage, HostCredentials} from '@/services/hosts/types'
+import {HostManagerStorage, HostStorageCredentials} from '@/services/hosts/types'
 import {HostCredentialsPackage} from '@/components/types_ui'
 import {encrypt_sym, generate_key_sym} from '@/services/utils/crypt'
 import {string_to_utf8} from '@/services/utils/coding'
-import {HostUserAws} from '@/services/hosts/aws_user'
 import {buffer_to_url64} from '@/services/utils/coding'
+import {get_host_user} from '@/services/hosts/hosts'
 
 
 @Component({})
@@ -44,21 +44,21 @@ export default class extends Vue {
 
     @Prop() storage:HostManagerStorage
 
-    credentials:HostCredentials = null
+    storage_credentials:HostStorageCredentials = null
     waiting = false
     sharing_key = null
     sharing_lifespan = 30
 
     get credentials_package():HostCredentialsPackage{
         // Return credentials package for passing to a sending profile
-        if (!this.credentials)
+        if (!this.storage_credentials)
             return null
         return {
             cloud: this.storage.cloud,
             bucket: this.storage.bucket,
             region: this.storage.region,
             user: null,
-            ...this.credentials,
+            ...this.storage_credentials,
         }
     }
 
@@ -66,7 +66,7 @@ export default class extends Vue {
         // Generate new credentials
         this.waiting = true
         try {
-            this.credentials = await this.storage.new_credentials()
+            this.storage_credentials = await this.storage.new_credentials()
         } catch (error){
             // Handle situation where old keys still waiting to be deleted
             if (error.code !== 'LimitExceeded'){
@@ -88,17 +88,14 @@ export default class extends Vue {
         const encrypted = await encrypt_sym(data, key)
 
         // Upload to the bucket
-        // NOTE Use manager credentials since new access keys can take some seconds to work
-        // TODO This is AWS specific (need to make generic)
-        const user_storage = new HostUserAws({
-            credentials: {
-                key_id: this.$store.state.manager_aws_key_id,
-                key_secret: this.$store.state.manager_aws_key_secret,
-            },
-            bucket: this.credentials_package.bucket,
-            region: this.credentials_package.region,
-            user: this.credentials_package.user,
-        })
+        const host_user_class = get_host_user(this.storage.cloud)
+        const user_storage = new host_user_class(
+            // NOTE Use manager credentials since new access keys can take some seconds to work
+            this.storage.credentials,
+            this.credentials_package.bucket,
+            this.credentials_package.region,
+            this.credentials_package.user,
+        )
         try {
             await user_storage.upload_file('credentials', encrypted, this.sharing_lifespan)
         } catch (error) {

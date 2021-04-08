@@ -23,16 +23,14 @@ v-card
 import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import {debounce_method} from '@/services/misc'
-import {HostCloud, HostManager} from '@/services/hosts/types'
-import {get_host_manager} from '@/services/hosts/hosts'
+import {HostManager} from '@/services/hosts/types'
 
 
 @Component({})
 export default class extends Vue {
 
-    @Prop() cloud:HostCloud
+    @Prop() manager:HostManager
 
-    manager:HostManager
     bucket:string = ''
     bucket_dirty:boolean = false
     bucket_available:boolean = null
@@ -40,12 +38,6 @@ export default class extends Vue {
     regions:{value:string, text:string}[] = []
 
     created(){
-        // Create a manager instance and use to get available regions
-        const cls = get_host_manager(this.cloud)
-        this.manager = new cls({
-            key_id: this.$store.state[`manager_${this.cloud}_key_id`],
-            key_secret: this.$store.state[`manager_${this.cloud}_key_secret`],
-        })
         // Fetch the regions
         this.manager.list_regions().then(regions => {
             this.regions = regions.map(region => {

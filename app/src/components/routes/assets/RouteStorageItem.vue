@@ -91,7 +91,7 @@ export default class extends Vue {
         // Show dialog for choosing a bucket id and create services if accepted
         const resp = await this.$store.dispatch('show_dialog', {
             component: DialogStorageCreate,
-            props: {cloud: this.cloud},
+            props: {manager: this.manager},
         })
         if (resp){
             const storage = this.manager.new_storage(resp.bucket, resp.region)

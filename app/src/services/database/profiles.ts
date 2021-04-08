@@ -6,10 +6,10 @@ import {
 import {generate_token, generate_key_asym} from '@/services/utils/crypt'
 import {buffer_to_url64} from '@/services/utils/coding'
 import {HostUser} from '@/services/hosts/types'
-import {HostUserAws} from '@/services/hosts/aws_user'
 import {OAUTH_SUPPORTED} from '@/services/tasks/oauth'
 import {email_address_like} from '../utils/misc'
 import {partition} from '../utils/strings'
+import {get_host_user} from '../hosts/hosts'
 
 
 export interface SmtpProvider {
@@ -218,11 +218,9 @@ export class Profile implements RecordProfile {
 
     new_host_user():HostUser{
         // Return new instance of correct host class with profile's host settings
-        if (this.host.cloud === 'aws'){
-            return new HostUserAws(this.host)
-        } else {
-            throw Error("Invalid cloud platform")
-        }
+        const host_user_class = get_host_user(this.host.cloud)
+        return new host_user_class(this.host.credentials, this.host.bucket, this.host.region,
+            this.host.user)
     }
 }
 

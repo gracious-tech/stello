@@ -157,6 +157,7 @@ export class HostManagerAws implements HostManager {
 export class HostManagerStorageAws extends StorageBaseAws implements HostManagerStorage {
 
     cloud:HostCloud = 'aws'
+    credentials:HostCredentials
     bucket:string
     region:string
     version:number
@@ -172,6 +173,8 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
     constructor(credentials:HostCredentials, bucket:string, region:string, version?:number){
         super()
 
+        // Store args
+        this.credentials = credentials
         this.bucket = bucket
         this.region = region
         this.version = version

@@ -9,6 +9,7 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
     // User access to host's API for sending messages etc
 
     cloud:HostCloud = 'aws'
+    credentials:HostCredentials
     bucket:string
     region:string
     user:string
@@ -24,6 +25,7 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         super()
 
         // Store args
+        this.credentials = credentials
         this.bucket = bucket
         this.region = region
         this.user = user
