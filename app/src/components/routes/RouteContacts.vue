@@ -8,7 +8,10 @@ div
         template(v-if='some_selected')
             app-btn-checkbox(@click='bulk_toggle' :value='bulk_value')
             span(class='text--secondary')
-                | {{ contacts_selected.length }} of {{ contacts.length }} selected
+                | {{ contacts_selected.length }} of
+                |
+                //- Show all total if showing all OR if searching
+                | {{ filter_group_id === '-' ? contacts.length : contacts_matched.length}} selected
             app-menu-more
                 app-list-item(@click='do_selected_new_draft') New message
                 v-divider
@@ -21,22 +24,19 @@ div
                 app-list-item(@click='do_selected_export') Export selected
                 app-list-item(@click='do_selected_delete' color='error'
                     :disabled='!contacts_selected_internal.length') Delete selected
-                v-divider
-                app-list-item(@click='do_selected_invert') Invert selection
         span(v-else-if='search || filter_group' class='text--secondary')
-            | {{ contacts_matched.length }} of {{ contacts.length }}
-            | {{ search ? "matched" : "included" }}
+            | {{ contacts_matched.length }} {{ search ? "matched" : "included" }}
         v-spacer
         app-btn.fab(@click='new_contact' icon='add' fab)
 
     div.groups_contacts
 
-        div.groups(v-if='something_added' :class='{searching: !!search}')
+        div.groups(v-if='something_added')
             app-text.search(v-model='search' placeholder="Search...")
                 template(#append)
                     app-btn(v-if='search' @click='search = ""' icon='close')
             v-list(dense)
-                v-list-item-group(v-model='filter_group_id' color='accent')
+                v-list-item-group(v-model='filter_group_id' mandatory color='accent')
                     app-list-item(value='-') All contacts
                     v-divider
                     v-subheader Groups
@@ -165,18 +165,18 @@ export default class extends Vue {
     }
 
     get some_selected():boolean{
-        // Whether some contacts have been selected or not
+        // Whether some contacts (not necessarily matched) have been selected or not
         return this.contacts_selected.length !== 0
     }
 
-    get all_selected():boolean{
-        // Whether all contacts have been selected (doesn't count if no contacts exist)
-        return this.contacts.length && this.contacts_selected.length === this.contacts.length
+    get all_matched_selected():boolean{
+        // Whether all MATCHED contacts have been selected (doesn't count if no contacts matched)
+        return !!this.contacts_matched.length && this.contacts_matched.every(i => i.selected)
     }
 
     get bulk_value():boolean{
-        // What value the bulk select checkbox should have
-        return this.all_selected ? true : (this.some_selected ? null : false)
+        // What value the bulk select checkbox should display as
+        return this.all_matched_selected ? true : (this.some_selected ? null : false)
     }
 
     get reveal_more_label():string{
@@ -189,12 +189,22 @@ export default class extends Vue {
 
     // Watch
 
-    @Watch('filter_group_id') watch_filter_group_id():void{
+    @Watch('search') watch_search(value:string):void{
+        // Search always applies to whole list and deselects any previous group selection
+        if (value){
+            this.filter_group_id = '-'
+        }
+    }
+
+    @Watch('filter_group_id') watch_filter_group_id(value:string):void{
         // Clear search and/or selected whenever filter by a group triggered
-        // NOTE This includes when showing all contacts ('-')
-        // NOTE This still allows preserving selections across different searches (but not groups)
-        this.search = ''
-        this.clear_selected()
+        // NOTE Not clearing when going back to "all contacts"
+        //      i.e. it's possible to select some in group, and keep selections for all view
+        //      Preserving selections across different searches is also supported
+        if (value !== '-'){
+            this.search = ''
+            this.clear_selected()
+        }
     }
 
     @Watch('contacts_matched') watch_contacts_matched():void{
@@ -311,28 +321,27 @@ export default class extends Vue {
     // Selection changing
 
     bulk_toggle():void{
-        // Select all if not all selected, else select none
-        const value_for_all = !this.all_selected
-        for (const item of this.contacts){
+        // Select all matched contacts if not all selected, else select none
+        const value_for_all = !this.all_matched_selected
+
+        // Ensure all current selections are cleared, as confusing if non-matched still included
+        // NOTE Preserving selection of non-matched items is supported for searches only
+        this.clear_selected()
+
+        // Now apply bulk value to all MATCHED contacts
+        for (const item of this.contacts_matched){
             item.selected = value_for_all
         }
     }
 
     clear_selected():void{
         // Deselect all contacts
-        for (const item of this.contacts){
+        for (const item of this.contacts_selected){
             item.selected = false
         }
     }
 
     // Actions on selected
-
-    do_selected_invert():void{
-        // Invert which contacts are selected
-        for (const item of this.contacts){
-            item.selected = !item.selected
-        }
-    }
 
     do_selected_delete():void{
         // Delete selected contacts (but only those not part of a service account)
@@ -453,13 +462,6 @@ export default class extends Vue {
         max-width: 250px
         @include themed(background-color, $primary_lighter, $primary_darker)
         @include themed(color,  $on_primary_lighter, $on_primary_darker)
-
-        &.searching
-            // Don't suggest that a group is selected when searching (even if it is)
-            .v-list-item
-                @include themed(color, #000, #fff)
-            .v-list-item::before
-                opacity: 0  // Don't highlight selected group while searching as it doesn't apply then
 
         ::v-deep .search
             flex-grow: 0
