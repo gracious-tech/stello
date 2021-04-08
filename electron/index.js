@@ -77,7 +77,7 @@ context_menu({
 // App event handling
 
 // Handle app init
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
 
     // Try to auto-update (if packaging format supports it)
     // NOTE Updates on Windows are currently handled by the Windows Store
@@ -88,7 +88,7 @@ app.whenReady().then(() => {
         const app_path = process.env.APPIMAGE || app.getAppPath()
         let can_update = true
         try {
-            fs.accessSync(app_path, fs.constants.W_OK)
+            await fs.access(app_path, fs.constants.W_OK)
         } catch {
             can_update = false
             let msg = `Stello is not able to auto-update because it doesn't have permission to write to itself. Please correct the permissions for:\n\n${app_path}`
