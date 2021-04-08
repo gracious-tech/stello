@@ -8,7 +8,8 @@ import {buffer_to_hex} from '@/services/utils/coding'
 import {sleep} from '@/services/utils/async'
 import {Task} from '@/services/tasks/tasks'
 import {StorageBaseAws} from './aws_common'
-import {HostManager, HostManagerStorage, HostPermissionError} from './types'
+import {HostCloud, HostCredentials, HostManager, HostManagerStorage, HostPermissionError,
+    HostStorageCredentials} from './types'
 
 // Raw strings for displayer assets
 // @ts-ignore special webpack path
@@ -19,49 +20,31 @@ import displayer_js from '!!raw-loader!@/assets/displayer/index.js'
 import displayer_css from '!!raw-loader!@/assets/displayer/index.css'
 
 
-interface HostManagerAwsSettings {
-    key_id:string
-    key_secret:string
-}
-
-
-interface HostAwsCredentials {
-    credentials:{
-        key_id:string,
-        key_secret:string,
-    },
-    credentials_responder:{
-        key_id:string,
-        key_secret:string,
-    },
-}
-
-
 export class HostManagerAws implements HostManager {
     // Management access to host's API for setting up new users
 
-    credentials:AWS.Credentials
+    cloud:HostCloud = 'aws'
+    credentials:HostCredentials
+
     ssm:AWS.SSM
     s3:AWS.S3
     iam:AWS.IAM
     ec2:AWS.EC2  // Used only to get available regions
     s3_accessible = true
 
-    constructor(settings:HostManagerAwsSettings){
+    constructor(credentials:HostCredentials){
         // Requires key with either root access or all necessary permissions for managing users
-        this.credentials = new AWS.Credentials({
-            accessKeyId: settings.key_id,
-            secretAccessKey: settings.key_secret,
-        })
+        this.credentials = credentials
 
         // Set a default region as some services require it (just to list resources, not create)
         const region = 'us-west-2'
 
         // Init services
-        this.ssm = new AWS.SSM({apiVersion: '2014-11-06', credentials: this.credentials, region})
-        this.s3 = new AWS.S3({apiVersion: '2006-03-01', credentials: this.credentials, region})
-        this.iam = new AWS.IAM({apiVersion: '2010-05-08', credentials: this.credentials, region})
-        this.ec2 = new AWS.EC2({apiVersion: '2016-11-15', credentials: this.credentials, region})
+        const aws_creds = {accessKeyId: credentials.key_id, secretAccessKey: credentials.key_secret}
+        this.ssm = new AWS.SSM({apiVersion: '2014-11-06', credentials: aws_creds, region})
+        this.s3 = new AWS.S3({apiVersion: '2006-03-01', credentials: aws_creds, region})
+        this.iam = new AWS.IAM({apiVersion: '2010-05-08', credentials: aws_creds, region})
+        this.ec2 = new AWS.EC2({apiVersion: '2016-11-15', credentials: aws_creds, region})
 
         // Give best guess as to whether have permission to head/create buckets or not
         // Used to determine if forbidden errors due to someone else owning bucket or not
@@ -94,7 +77,8 @@ export class HostManagerAws implements HostManager {
                 // Fetch completed setup version (else undefined)
                 // NOTE Despite mentioning it, listUsers does NOT include tags in results itself
                 const tags = await this.iam.listUserTags({UserName: user.UserName}).promise()
-                const v = tags.Tags.find(t => t.Key === 'stello-version')?.Value
+                let v = parseInt(tags.Tags.find(t => t.Key === 'stello-version')?.Value, 10)
+                v = Number.isNaN(v) ? undefined : v
                 return new HostManagerStorageAws(this.credentials, bucket, region, v)
             }))
 
@@ -107,7 +91,7 @@ export class HostManagerAws implements HostManager {
         return Promise.all(storages)
     }
 
-    async list_regions(){
+    async list_regions():Promise<string[]>{
         /* List regions that are available for use
 
         AWS stores regions in a public parameter store
@@ -131,14 +115,14 @@ export class HostManagerAws implements HostManager {
         return regions_resp.Regions.map(region => region.RegionName)
     }
 
-    async get_region_name(region){
+    async get_region_name(region:string):Promise<string>{
         // Return human name for given region
         const path = `/aws/service/global-infrastructure/regions/${region}/longName`
         const resp = await this.ssm.getParameter({Name: path}).promise()
         return resp.Parameter.Value
     }
 
-    async bucket_available(bucket){
+    async bucket_available(bucket:string):Promise<boolean>{
         // See if a storage id is available
         // NOTE Returns false if taken (whether by own account or third party)
         try {
@@ -163,7 +147,7 @@ export class HostManagerAws implements HostManager {
         return false
     }
 
-    new_storage(bucket, region){
+    new_storage(bucket:string, region:string):HostManagerStorageAws{
         // Create instance for a new storage set of services (without actually doing anything yet)
         return new HostManagerStorageAws(this.credentials, bucket, region)
     }
@@ -172,11 +156,10 @@ export class HostManagerAws implements HostManager {
 
 export class HostManagerStorageAws extends StorageBaseAws implements HostManagerStorage {
 
-    cloud = 'aws'
-
+    cloud:HostCloud = 'aws'
     bucket:string
     region:string
-    version
+    version:number
 
     iam:AWS.IAM
     s3:AWS.S3
@@ -186,48 +169,52 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
 
     _account_id_cache:string
 
-    constructor(credentials, bucket, region, version?){
+    constructor(credentials:HostCredentials, bucket:string, region:string, version?:number){
         super()
+
         this.bucket = bucket
         this.region = region
         this.version = version
-        this.iam = new AWS.IAM({apiVersion: '2010-05-08', credentials, region})
-        this.s3 = new AWS.S3({apiVersion: '2006-03-01', credentials, region})
-        this.lambda = new AWS.Lambda({apiVersion: '2015-03-31', credentials, region})
-        this.sns = new AWS.SNS({apiVersion: '2010-03-31', credentials, region})
-        this.sts = new AWS.STS({apiVersion: '2011-06-15', credentials, region})
+
+        // Init services
+        const aws_creds = {accessKeyId: credentials.key_id, secretAccessKey: credentials.key_secret}
+        this.iam = new AWS.IAM({apiVersion: '2010-05-08', credentials: aws_creds, region})
+        this.s3 = new AWS.S3({apiVersion: '2006-03-01', credentials: aws_creds, region})
+        this.lambda = new AWS.Lambda({apiVersion: '2015-03-31', credentials: aws_creds, region})
+        this.sns = new AWS.SNS({apiVersion: '2010-03-31', credentials: aws_creds, region})
+        this.sts = new AWS.STS({apiVersion: '2011-06-15', credentials: aws_creds, region})
     }
 
-    async setup_services(t:Task){
+    async setup_services(task:Task):Promise<void>{
         // Ensure host services setup properly (sets up all services, not just storage)
         // NOTE Will create if storage doesn't exist, or fail if storage id taken by third party
 
         // Setup task
-        t.label = `Setting up storage '${this.bucket}'`
-        t.subtasks_total = 9
-        t.show_count = false
+        task.label = `Setting up storage "${this.bucket}"`
+        task.upcoming(9)
+        task.show_count = true
 
         try {
             // Ensure bucket created, as everything else pointless if can't create
             // NOTE Don't need to wait for ready state though, can work on other tasks without that
-            await t.t(this._setup_bucket_create())
+            await task.expected(this._setup_bucket_create())
 
             // Ensure user created first, as detecting storages depends on it
             // NOTE May need to manually resolve if bucket created but nothing else (can't detect)
-            await t.t(this._setup_user_create())
+            await task.expected(this._setup_user_create())
 
             // Resolve when all tasks done
-            await t.array([
+            await task.expected(
                 this._setup_bucket_configure(),
                 this._setup_resp_bucket(),
                 this._setup_user_configure(),
                 this._setup_lambda_role().then(() => this._setup_lambda()),
                 this._setup_lambda_invoke_user(),
                 this._setup_sns(),
-            ])
+            )
 
             // Update setup version tag on user to mark setup as completing successfully
-            await t.t(this.iam.tagUser({
+            await task.expected(this.iam.tagUser({
                 UserName: this._user_id,
                 Tags: [{Key: 'stello-version', Value: '0'}],
             }).promise())
@@ -238,7 +225,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         }
     }
 
-    async new_credentials():Promise<HostAwsCredentials>{
+    async new_credentials():Promise<HostStorageCredentials>{
         // Generate the credentials the user needs to have to access the storage (remove existing)
         // NOTE AWS only allows 2 keys to exist per user
 
@@ -267,16 +254,16 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         }
     }
 
-    async delete_services(t:Task){
+    async delete_services(task:Task):Promise<void>{
         // Delete services for this storage set
 
         // Setup task
-        t.label = `Deleting storage '${this.bucket}'`
-        t.subtasks_total = 8
-        t.show_count = false
+        task.label = `Deleting storage "${this.bucket}"`
+        task.upcoming(7)
+        task.show_count = true
 
         // Delete services
-        await t.array([
+        await task.expected(
             // Buckets
             this._delete_bucket(this.bucket),
             this._delete_bucket(this._bucket_resp_id),
@@ -286,15 +273,15 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
             no404(this.sns.deleteTopic({TopicArn: await this._get_topic_arn()})),
             no404(this.iam.deleteRolePolicy({RoleName: this._lambda_role_id, PolicyName: 'stello'}))
                 .then(() => no404(this.iam.deleteRole({RoleName: this._lambda_role_id}))),
-        ])
+        )
 
         // Delete user last, as a consistant way of knowing if all services deleted
-        await t.t(this._delete_user(this._user_id))
+        await task.expected(this._delete_user(this._user_id))
     }
 
     // PRIVATE METHODS
 
-    async _get_account_id(){
+    async _get_account_id():Promise<string>{
         // Some requests strictly require the account id to be specified
         if (!this._account_id_cache){
             this._account_id_cache = (await this.sts.getCallerIdentity().promise()).Account
@@ -302,25 +289,25 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         return this._account_id_cache
     }
 
-    async _get_topic_arn(){
+    async _get_topic_arn():Promise<string>{
         // SNS always requires the account id in topic arns
         const account_id = await this._get_account_id()
         return `arn:aws:sns:${this.region}:${account_id}:${this._topic_id}`
     }
 
-    async _get_lambda_arn(){
+    async _get_lambda_arn():Promise<string>{
         // Lambda arn must include account id (at least for permissions policies)
         const account_id = await this._get_account_id()
         return `arn:aws:lambda:${this.region}:${account_id}:function:${this._lambda_id}`
     }
 
-    async _get_lambda_role_arn(){
+    async _get_lambda_role_arn():Promise<string>{
         // Arn with account required when creating lambda
         const account_id = await this._get_account_id()
         return `arn:aws:iam::${account_id}:role/${this._lambda_role_id}`
     }
 
-    async _setup_bucket_create(){
+    async _setup_bucket_create():Promise<void>{
         // Ensure bucket has been created
         try {
             await this.s3.headBucket({Bucket: this.bucket}).promise()
@@ -332,7 +319,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         }
     }
 
-    async _setup_bucket_configure(){
+    async _setup_bucket_configure():Promise<void>{
         // Ensure bucket is correctly configured
 
         // Ensure creation has finished, as these tasks rely on it (not just securing id)
@@ -416,7 +403,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         await Promise.all(uploads)
     }
 
-    async _setup_resp_bucket(){
+    async _setup_resp_bucket():Promise<void>{
         // Create and configure responses bucket
         // NOTE Configure tasks can't be run in parallel
 
@@ -447,7 +434,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         }).promise()
     }
 
-    async _setup_user_create(){
+    async _setup_user_create():Promise<void>{
         // Ensure iam user exists
         try {
             await this.iam.createUser({
@@ -462,7 +449,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         }
     }
 
-    async _setup_user_configure(){
+    async _setup_user_configure():Promise<void>{
         // Ensure iam user has correct permissions
 
         // May need to wait if still creating user
@@ -510,7 +497,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         }).promise()
     }
 
-    async _setup_lambda_role(){
+    async _setup_lambda_role():Promise<void>{
         // Create IAM role for the lambda function to assume
 
         // Ensure role exists
@@ -565,7 +552,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         await sleep(12000)
     }
 
-    async _setup_lambda_invoke_user(){
+    async _setup_lambda_invoke_user():Promise<void>{
         // Create a user (to be assumed by all recipients) that is allowed to invoke the lambda
         try {
             await this.iam.createUser({
@@ -597,7 +584,9 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         }).promise()
     }
 
-    async _setup_lambda_config_has_changed(fn_config, fn_config_env, resp){
+    async _setup_lambda_config_has_changed(fn_config:Record<string, any>,
+            fn_config_env:AWS.Lambda.Environment,
+            resp:AWS.Lambda.GetFunctionResponse):Promise<boolean>{
         // Return boolean for whether function config has changed since last updated
 
         // Compare simple config values
@@ -686,7 +675,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         }
     }
 
-    async _setup_sns(){
+    async _setup_sns():Promise<void>{
         // Setup SNS topic for notifying about responses
         try {
             await this.sns.createTopic({
@@ -706,7 +695,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         await no404(this.s3.deleteBucket({Bucket: bucket}))
     }
 
-    async _empty_bucket(bucket){
+    async _empty_bucket(bucket:string):Promise<void>{
         // Delete all the objects in a bucket
 
         // Keep listing objects until none remain (don't need true pagination in that sense)
@@ -765,7 +754,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
 }
 
 
-function no404(request){
+async function no404(request:AWS.Request<any, any>):Promise<any>{
     // Helper for ignoring 404 errors (which usually signify already deleted)
     // NOTE Pass raw request and this will call `promise()` on it
     return request.promise().catch(error => {

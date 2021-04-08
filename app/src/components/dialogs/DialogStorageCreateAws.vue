@@ -2,48 +2,60 @@
 <template lang='pug'>
 
 v-card
-    v-card-title Create new profile in AWS
+    v-card-title Create new storage
 
     v-card-text
-        v-text-field(v-model.trim='bucket' label="Storage container name" :loading='loading'
-            :messages='message' :error='error' color='accent')
+        app-text(v-model.trim='bucket' label="Storage container name" :loading='loading'
+            :messages='message' :error='error')
 
-        v-select(v-model='region' :items='regions' label="Region" persistent-hint
+        app-select(v-model='region' :items='regions' label="Region"
             hint="Choose somewhere close to where your recipients are (not where you are)")
 
     v-card-actions
         app-btn(@click='dismiss') Cancel
-        app-btn(@click='setup' :disabled='!bucket_available') Setup
+        app-btn(@click='setup' :disabled='!bucket_available || !region') Setup
 
 </template>
 
 
 <script lang='ts'>
 
-import {Component, Vue, Watch} from 'vue-property-decorator'
+import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import {debounce_method} from '@/services/misc'
-import {HostManagerAws} from '@/services/hosts/aws_manager'
+import {HostCloud, HostManager} from '@/services/hosts/types'
+import {get_host_manager} from '@/services/hosts/hosts'
 
 
 @Component({})
 export default class extends Vue {
 
-    manager:HostManagerAws
-    bucket = ''
-    bucket_dirty = false
-    bucket_available = null
-    region = 'us-west-2'  // A default low cost region
-    regions = ['us-west-2']
+    @Prop() cloud:HostCloud
+
+    manager:HostManager
+    bucket:string = ''
+    bucket_dirty:boolean = false
+    bucket_available:boolean = null
+    region:string = null
+    regions:{value:string, text:string}[] = []
 
     created(){
         // Create a manager instance and use to get available regions
-        this.manager = new HostManagerAws({
-            key_id: this.$store.state.manager_aws_key_id,
-            key_secret: this.$store.state.manager_aws_key_secret,
+        const cls = get_host_manager(this.cloud)
+        this.manager = new cls({
+            key_id: this.$store.state[`manager_${this.cloud}_key_id`],
+            key_secret: this.$store.state[`manager_${this.cloud}_key_secret`],
         })
+        // Fetch the regions
         this.manager.list_regions().then(regions => {
-            this.regions = regions
+            this.regions = regions.map(region => {
+                const obj = {value: region, text: region}
+                // Fetch region's name, and when done update the item's text
+                this.manager.get_region_name(region).then(name => {
+                    obj.text = name
+                })
+                return obj
+            })
         })
     }
 

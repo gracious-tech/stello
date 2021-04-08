@@ -2,15 +2,34 @@
 import {Task} from '@/services/tasks/tasks'
 
 
+// SIMPLE TYPES
+
+
+export type HostCloud = 'aws'|'google'
+
+
 export interface HostCredentials {
-    // Returned by `new_credentials()`
-    credentials:any
-    credentials_responder:any
+    key_id:string
+    key_secret:string
 }
 
 
-export interface HostManager {
+export interface HostStorageCredentials {
+    credentials:HostCredentials
+    credentials_responder:HostCredentials
+}
+
+
+// CLASSES
+
+
+export declare class HostManager {
     // Management access to host's API for creating and managing sets of storage services
+
+    cloud:HostCloud
+    credentials:HostCredentials
+
+    constructor(credentials:HostCredentials)
 
     // Get list of instances of HostManagerStorage for all detected in host account
     // NOTE Will return instances detected in any relevant services (not just storage service)
@@ -32,26 +51,37 @@ export interface HostManager {
 }
 
 
-export interface HostManagerStorage {
+export declare class HostManagerStorage {
     // Management access to a single set of storage services
-    cloud:string
+
+    cloud:HostCloud
     bucket:string
     region:string
+    version:number
+
+    constructor(credentials:HostCredentials, bucket:string, region:string, version:number)
 
     // Ensure host services setup properly (sets up all services, not just storage)
     // NOTE Will create if storage doesn't exist, or fail if storage id taken by third party
     setup_services(task:Task):Promise<void>
 
     // Generate new credentials for the storage (and remove existing)
-    new_credentials():Promise<HostCredentials>
+    new_credentials():Promise<HostStorageCredentials>
 
     // Delete services for this storage set
     delete_services(task:Task):Promise<void>
 }
 
 
-export interface HostUser {
+export declare class HostUser {
     // User access to host's API for sending messages etc
+
+    cloud:HostCloud
+    bucket:string
+    region:string
+    user:string
+
+    constructor(credentials:HostCredentials, bucket:string, region:string, user:string)
 
     // Upload a file into the storage
     upload_file(path:string, data:Blob|ArrayBuffer, lifespan?:number, max_reads?:number)
@@ -73,8 +103,11 @@ export interface HostUser {
     list_responses(prefix?:string):Promise<string[]>
 
     // Upload config for responder function
-    upload_responder_config(config:object):Promise<void>
+    upload_responder_config(config:Record<string, any>):Promise<void>
 }
+
+
+// ERRORS (real thing, not just types)
 
 
 export class HostPermissionError extends Error {}

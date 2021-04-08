@@ -1,21 +1,14 @@
 
 import AWS from 'aws-sdk'
 
-import {HostUser} from './types'
-import {StorageBaseAws, StorageCredentialsAws} from './aws_common'
-
-
-export interface HostUserAwsInit {
-    credentials:StorageCredentialsAws
-    bucket:string
-    region:string
-    user:string  // If no user then the suite of services is owned by single user
-}
+import {HostCloud, HostCredentials, HostUser} from './types'
+import {StorageBaseAws} from './aws_common'
 
 
 export class HostUserAws extends StorageBaseAws implements HostUser {
     // User access to host's API for sending messages etc
 
+    cloud:HostCloud = 'aws'
     bucket:string
     region:string
     user:string
@@ -27,7 +20,7 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
     iam:AWS.IAM
     sts:AWS.STS
 
-    constructor({credentials, bucket, region, user}:HostUserAwsInit){
+    constructor(credentials:HostCredentials, bucket:string, region:string, user:string){
         super()
 
         // Store args
@@ -46,7 +39,8 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         this.sts = new AWS.STS({apiVersion: '2011-06-15', credentials: aws_creds, region})
     }
 
-    async upload_file(path:string, data:Blob|ArrayBuffer, lifespan?:number, max_reads?:number){
+    async upload_file(path:string, data:Blob|ArrayBuffer, lifespan?:number, max_reads?:number,
+            ):Promise<void>{
         // Upload a file into the storage
 
         // Determine tags
@@ -69,18 +63,18 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         }).promise()
     }
 
-    async delete_file(path:string){
+    async delete_file(path:string):Promise<void>{
         // Delete a file that was uploaded into storage
         await this.s3.deleteObject({Bucket: this.bucket, Key: this._prefix + path}).promise()
     }
 
-    async list_files(prefix:string=''){
+    async list_files(prefix:string=''):Promise<string[]>{
         // List uploaded files (useful for deleting old messages if app lost state)
         // NOTE `_prefix` is the user name if any, while `prefix` is limiting results to a subdir
         return this._list_objects(this.bucket, this._prefix + prefix)
     }
 
-    async download_response(path:string){
+    async download_response(path:string):Promise<ArrayBuffer>{
         // Download a response file
         const resp = await this.s3.getObject({
             Bucket: this._bucket_resp_id,
@@ -89,7 +83,7 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         return (resp.Body as Uint8Array).buffer  // AWS SDK returns Uint8Array when in browser
     }
 
-    async delete_response(path:string){
+    async delete_response(path:string):Promise<void>{
         // Delete a response file
         await this.s3.deleteObject({
             Bucket: this._bucket_resp_id,
@@ -97,13 +91,13 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         }).promise()
     }
 
-    async list_responses(prefix:string=''){
+    async list_responses(prefix:string=''):Promise<string[]>{
         // List responses
         // NOTE `_prefix` is the user name if any, while `prefix` is limiting results to a subdir
         return this._list_objects(this._bucket_resp_id, `${this._prefix}responses/${prefix}`)
     }
 
-    async upload_responder_config(config){
+    async upload_responder_config(config:Record<string, any>):Promise<void>{
         // Upload config for the responder function
         await this.s3.putObject({
             Bucket: this._bucket_resp_id,
@@ -149,7 +143,7 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
 
     // PRIVATE
 
-    async _get_account_id(){
+    async _get_account_id():Promise<string>{
         // Some requests strictly require the account id to be specified
         return (await this.sts.getCallerIdentity().promise()).Account
     }
