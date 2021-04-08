@@ -18,7 +18,8 @@ div
         v-list-item(v-for='storage of storages' :key='storage.bucket')
             v-list-item-title
                 | {{ storage.bucket }}
-                | ({{ storage.version === undefined ? 'incomplete' : `v${storage.version}` }})
+                v-chip(v-if='!storage.up_to_date' small color='error' class='ml-4')
+                    | {{ storage.version === undefined ? 'incomplete' : 'outdated' }}
             v-list-item-action
                 app-menu-more
                     app-list-item(@click='() => new_credentials(storage)'
