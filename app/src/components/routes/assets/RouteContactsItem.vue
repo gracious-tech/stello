@@ -61,11 +61,6 @@ export default class extends Vue {
         .v-btn
             visibility: visible
 
-    .v-list-item__action
-        // Make list more dense by removing excessive margins
-        margin-top: 0
-        margin-bottom: 0
-
     .address
         // Address will cut name off when long, so restrict its width
         max-width: 200px

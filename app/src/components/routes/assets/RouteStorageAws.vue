@@ -9,9 +9,11 @@ div
 
     div.none(v-if='scanning')
         v-progress-circular(indeterminate color='accent')
+
     div.none(v-else-if='!storages.length' class='text--secondary')
         p No storage created yet
-    v-list(v-else)
+
+    v-list(v-else dense)
         v-list-item(v-for='storage of storages' :key='storage.bucket')
             v-list-item-title
                 | {{ storage.bucket }}
@@ -22,7 +24,7 @@ div
                         :disabled='!storage.version') Get new credentials
                     app-list-item(@click='() => setup_services(storage)')
                         | {{ storage.version ? "Update" : "Fix" }}
-                    app-list-item(@click='() => delete_services(storage)') Delete
+                    app-list-item(@click='() => delete_services(storage)' color='error') Delete
 
 </template>
 
@@ -128,5 +130,19 @@ export default class extends Vue {
 .none
     text-align: center
     margin-top: 48px
+
+::v-deep .v-list-item
+
+    &:not(:last-child)
+        border-bottom: 1px solid #7773
+
+    .v-btn
+        visibility: hidden
+
+    &:hover
+        @include themed(background-color, #0001, #fff1)
+        .v-btn
+            visibility: visible
+
 
 </style>

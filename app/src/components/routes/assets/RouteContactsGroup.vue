@@ -50,7 +50,6 @@ export default class extends Vue {
     padding-right: 0  // Menu icon has own padding
 
     .v-list-item__action
-        margin: 0  // Doesn't need padding due to small icon
         visibility: hidden
 
     &:hover

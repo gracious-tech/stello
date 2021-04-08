@@ -116,10 +116,6 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
-.v-list-item__action
-    margin-top: 0
-    margin-bottom: 0
-
 ::v-deep .v-input__append-inner
     margin-top: 8px
 
