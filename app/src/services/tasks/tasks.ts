@@ -10,6 +10,7 @@ import {contacts_oauth_setup, contacts_sync, contacts_change_property, contacts_
     contacts_remove} from './contacts'
 import {send_oauth_setup, send_message} from './sending'
 import {MustReauthenticate, MustReconfigure, MustReconnect} from '../utils/exceptions'
+import {hosts_storage_setup, hosts_storage_delete} from './hosts'
 
 
 export type TaskStartArgs = [string, any[]?, any[]?]
@@ -26,6 +27,7 @@ const TASKS:Record<string, TaskFunction> = Object.fromEntries([
     send_oauth_setup, send_message,
     configs_update,
     responses_receive,
+    hosts_storage_setup, hosts_storage_delete,
 ].map(fn => [fn.name, fn]))
 
 

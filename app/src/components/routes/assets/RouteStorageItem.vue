@@ -109,17 +109,19 @@ export default class extends Vue {
     }
 
     async setup_services(storage:HostManagerStorage){
-        // Setup services for given storage and wrap with task tracking
-        const task = await this.$store.dispatch('new_task')
-        await task.complete(storage.setup_services(task))
+        // Setup services for given storage
+        const task = await this.$tm.start('hosts_storage_setup',
+            [this.cloud, storage.credentials, storage.bucket, storage.region])
+        await task.done
         this.scan()
     }
 
     async delete_services(storage:HostManagerStorage){
-        // Delete services for the given storage and wrap with task tracking
+        // Delete services for the given storage
         // TODO Show a confirmation dialog before deleting for safety
-        const task = await this.$store.dispatch('new_task')
-        await task.complete(storage.delete_services(task))
+        const task = await this.$tm.start('hosts_storage_delete',
+            [this.cloud, storage.credentials, storage.bucket, storage.region])
+        await task.done
         this.scan()
     }
 }

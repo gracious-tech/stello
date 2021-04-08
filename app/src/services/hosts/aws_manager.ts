@@ -191,11 +191,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
     async setup_services(task:Task):Promise<void>{
         // Ensure host services setup properly (sets up all services, not just storage)
         // NOTE Will create if storage doesn't exist, or fail if storage id taken by third party
-
-        // Setup task
-        task.label = `Setting up storage "${this.bucket}"`
         task.upcoming(9)
-        task.show_count = true
 
         try {
             // Ensure bucket created, as everything else pointless if can't create
@@ -259,11 +255,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
 
     async delete_services(task:Task):Promise<void>{
         // Delete services for this storage set
-
-        // Setup task
-        task.label = `Deleting storage "${this.bucket}"`
         task.upcoming(7)
-        task.show_count = true
 
         // Delete services
         await task.expected(
