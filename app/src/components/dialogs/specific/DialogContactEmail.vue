@@ -23,7 +23,7 @@ v-card
                     v-list-item-action
                         app-btn(@click='() => remove(address)' icon='delete')
 
-        app-text(v-model='new_address' placeholder="New email address...")
+        app-text(v-model='new_address' @keyup.enter='add_new' placeholder="New email address...")
             template(#append)
                 app-btn(@click='add_new' :disabled='!new_address_valid') Add
 
@@ -97,7 +97,9 @@ export default class extends Vue {
 
     add_new():void{
         // Add new address to the list
-        this.addresses.push(this.new_address.trim())
+        const input = this.new_address.trim()
+        this.addresses.push(input)
+        this.chosen = input
         this.new_address = ''
     }
 

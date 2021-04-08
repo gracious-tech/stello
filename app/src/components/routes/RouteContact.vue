@@ -199,10 +199,11 @@ export default class extends Vue {
         ]).then(async ([contact, groups]) => {
             sort(groups, 'name')
             this.possible_groups = groups
-            this.oauth = null  // Reset in case a reload
             if (contact.service_account){
                 this.oauth = await self._db.oauths.get_by_issuer_id(
                     ...partition(contact.service_account, ':'))
+            } else {
+                this.oauth = null
             }
             this.contact = contact
         })
