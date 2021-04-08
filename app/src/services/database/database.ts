@@ -103,6 +103,11 @@ export function open_db():Promise<AppDatabaseConnection>{
                         'by_service_account', 'service_account')
                     transaction.objectStore('groups').createIndex(
                         'by_service_account', 'service_account')
+                    // New property for profiles
+                    for await (const cursor of transaction.objectStore('profiles')){
+                        cursor.value.smtp.oauth = null
+                        cursor.update(cursor.value)
+                    }
             }
         },
     })
