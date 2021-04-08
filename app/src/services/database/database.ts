@@ -187,7 +187,7 @@ export class Database {
                 this.sections.set(section)  // Save to db under the new id
                 return section.id  // Replace old id in the sections nested array
             })
-        })
+        }) as ([string]|[string, string])[]
 
         // Save the copy to the database and return
         this.drafts.set(copy)
