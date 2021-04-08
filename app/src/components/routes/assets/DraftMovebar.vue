@@ -30,7 +30,7 @@ export default class extends Vue {
     @Prop() draft:Draft
     @Prop() row_i:number
 
-    get row():string[]{
+    get row():[string]|[string, string]{
         // Get actual row (single or double item array of section ids)
         return this.draft.sections[this.row_i]
     }

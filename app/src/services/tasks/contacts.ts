@@ -16,7 +16,7 @@ interface IssuerHandlers {
     remove:typeof contacts_remove_google,
     get_addresses:typeof contacts_get_addresses_google,
 }
-const HANDLERS:Record<OAuthIssuer, IssuerHandlers> = {
+const HANDLERS:Record<string, IssuerHandlers> = {
     google: {
         sync: contacts_sync_google,
         change_name: contacts_change_name_google,
