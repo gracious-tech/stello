@@ -63,11 +63,15 @@ export declare class HostManagerStorage {
     region:string
     version:number
 
-    constructor(credentials:HostCredentials, bucket:string, region:string, version:number)
+    // NOTE version may not be provided if not known or needed (e.g. when deleting services)
+    constructor(credentials:HostCredentials, bucket:string, region:string, version?:number)
+
+    // Whether storage services are up to date
+    get up_to_date():boolean
 
     // Ensure host services setup properly (sets up all services, not just storage)
     // NOTE Will create if storage doesn't exist, or fail if storage id taken by third party
-    setup_services(task:Task, force:boolean):Promise<void>
+    setup_services(task:Task):Promise<void>
 
     // Generate new credentials for the storage (and remove existing)
     new_credentials():Promise<HostStorageCredentials>

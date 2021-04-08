@@ -188,16 +188,14 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         this.sts = new AWS.STS({apiVersion: '2011-06-15', credentials: aws_creds, region})
     }
 
-    async setup_services(task:Task, force:boolean=false):Promise<void>{
+    get up_to_date():boolean{
+        // Whether storage's services are up to date
+        return this.version === HostStorageVersion
+    }
+
+    async setup_services(task:Task):Promise<void>{
         // Ensure host services setup properly (sets up all services, not just storage)
         // NOTE Will create if storage doesn't exist, or fail if storage id taken by third party
-
-        // Don't setup if appears to already be up-to-date (unless forcing)
-        // NOTE There is no harm in forcing, it just takes longer
-        if (!force && this.version === HostStorageVersion){
-            return
-        }
-
         task.upcoming(9)
         try {
             // Ensure bucket created, as everything else pointless if can't create

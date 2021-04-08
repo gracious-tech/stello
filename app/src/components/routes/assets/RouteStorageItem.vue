@@ -112,7 +112,7 @@ export default class extends Vue {
     async setup_services(storage:HostManagerStorage){
         // Setup services for given storage (force update)
         const task = await this.$tm.start('hosts_storage_setup',
-            [this.cloud, storage.credentials, storage.bucket, storage.region, true])
+            [this.cloud, storage.credentials, storage.bucket, storage.region])
         await task.done
         this.scan()
     }
@@ -129,8 +129,10 @@ export default class extends Vue {
     async update_all():Promise<void>{
         // Update all listed storages (only if needed)
         for (const storage of this.storages){
-            this.$tm.start('hosts_storage_setup',
-                [this.cloud, storage.credentials, storage.bucket, storage.region, false])
+            if (!storage.up_to_date){
+                this.$tm.start('hosts_storage_setup',
+                    [this.cloud, storage.credentials, storage.bucket, storage.region])
+            }
         }
     }
 }
