@@ -49,6 +49,11 @@ export async function send_oauth_setup(task:Task):Promise<void>{
         starttls: false,
     }
 
+    // Set name if available and not set yet
+    if (oauth.name && !profile.msg_options_identity.sender_name){
+        profile.msg_options_identity.sender_name = oauth.name
+    }
+
     // Save changes
     await self._db.profiles.set(profile)
 }
