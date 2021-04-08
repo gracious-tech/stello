@@ -84,9 +84,9 @@ v-card
                 app-btn(@click='oauth_google' raised color='' light)
                     app-svg(name='icon_google' class='mr-3')
                     | Google
-                app-btn(@click='oauth_microsoft' raised color='' light)
-                    app-svg(name='icon_microsoft' class='mr-3')
-                    | Outlook
+                //- app-btn(@click='oauth_microsoft' raised color='' light)
+                //-     app-svg(name='icon_microsoft' class='mr-3')
+                //-     | Outlook
                 app-btn(@click='source = "other"' raised color='' dark) Other
 
 
