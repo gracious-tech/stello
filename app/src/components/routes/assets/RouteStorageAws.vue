@@ -17,7 +17,7 @@ div
         v-list-item(v-for='storage of storages' :key='storage.bucket')
             v-list-item-title
                 | {{ storage.bucket }}
-                | (version {{ storage.version || 'incomplete' }})
+                | ({{ storage.version === undefined ? 'incomplete' : `v${storage.version}` }})
             v-list-item-action
                 app-menu-more
                     app-list-item(@click='() => new_credentials(storage)'
@@ -31,20 +31,22 @@ div
 
 <script lang='ts'>
 
-import {Component, Vue} from 'vue-property-decorator'
+import {Component, Vue, Prop} from 'vue-property-decorator'
 
 import DialogManagerKey from '@/components/dialogs/DialogManagerKey.vue'
-import DialogStorageCreateAws from '@/components/dialogs/DialogStorageCreateAws.vue'
+import DialogStorageCreate from '@/components/dialogs/DialogStorageCreate.vue'
 import DialogCredentials from '@/components/dialogs/DialogCredentials.vue'
-import {HostManagerAws} from '@/services/hosts/aws_manager'
-import {HostManagerStorageAws} from '@/services/hosts/aws_manager'
+import {HostCloud, HostManagerStorage} from '@/services/hosts/types'
+import {get_host_manager} from '@/services/hosts/hosts'
 
 
 @Component({})
 export default class extends Vue {
 
-    storages:HostManagerStorageAws[] = []
-    scanning = false
+    @Prop() cloud:HostCloud
+
+    storages:HostManagerStorage[] = []
+    scanning:boolean = false
 
     async created(){
         // If key set, do an initial scan for storages
@@ -54,24 +56,28 @@ export default class extends Vue {
     }
 
     get key_id(){
-        return this.$store.state.manager_aws_key_id
+        return this.$store.state[`manager_${this.cloud}_key_id`]
     }
 
     get key_secret(){
-        return this.$store.state.manager_aws_key_secret
+        return this.$store.state[`manager_${this.cloud}_key_secret`]
     }
 
     get manager(){
         // Get a new manager instance whenever key changes (since doesn't store state etc)
-        return new HostManagerAws({
-            key_id: this.$store.state.manager_aws_key_id,
-            key_secret: this.$store.state.manager_aws_key_secret,
+        const cls = get_host_manager(this.cloud)
+        return new cls({
+            key_id: this.key_id,
+            key_secret: this.key_secret,
         })
     }
 
     async set_key(){
         // Show a dialog for setting the access key
-        this.$store.dispatch('show_dialog', {component: DialogManagerKey, props: {host: 'aws'}})
+        this.$store.dispatch('show_dialog', {
+            component: DialogManagerKey,
+            props: {cloud: this.cloud},
+        })
     }
 
     async scan(){
@@ -84,7 +90,8 @@ export default class extends Vue {
     async new_storage(){
         // Show dialog for choosing a bucket id and create services if accepted
         const resp = await this.$store.dispatch('show_dialog', {
-            component: DialogStorageCreateAws,
+            component: DialogStorageCreate,
+            props: {cloud: this.cloud},
         })
         if (resp){
             const storage = this.manager.new_storage(resp.bucket, resp.region)
@@ -92,7 +99,7 @@ export default class extends Vue {
         }
     }
 
-    async new_credentials(storage:HostManagerStorageAws){
+    async new_credentials(storage:HostManagerStorage){
         // Show dialog for generating new credentials
         this.$store.dispatch('show_dialog', {
             component: DialogCredentials,
@@ -101,14 +108,14 @@ export default class extends Vue {
         })
     }
 
-    async setup_services(storage:HostManagerStorageAws){
+    async setup_services(storage:HostManagerStorage){
         // Setup services for given storage and wrap with task tracking
         const task = await this.$store.dispatch('new_task')
         await task.complete(storage.setup_services(task))
         this.scan()
     }
 
-    async delete_services(storage:HostManagerStorageAws){
+    async delete_services(storage:HostManagerStorage){
         // Delete services for the given storage and wrap with task tracking
         // TODO Show a confirmation dialog before deleting for safety
         const task = await this.$store.dispatch('new_task')
