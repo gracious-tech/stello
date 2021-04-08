@@ -437,6 +437,7 @@ export default class extends Vue {
 <style lang='sass' scoped>
 
 .navbar
+    z-index: 1  // Prevent list items overlapping fav icon
     .fab
         margin-top: 64px
 
