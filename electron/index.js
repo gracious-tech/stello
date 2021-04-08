@@ -1,5 +1,6 @@
 
 const fs = require('fs').promises
+const fs_constants = require('fs').constants
 const dns = require('dns').promises
 const path = require('path')
 const http = require('http')
@@ -88,7 +89,7 @@ app.whenReady().then(async () => {
         const app_path = process.env.APPIMAGE || app.getAppPath()
         let can_update = true
         try {
-            await fs.access(app_path, fs.constants.W_OK)
+            await fs.access(app_path, fs_constants.W_OK)
         } catch {
             can_update = false
             let msg = `Stello is not able to auto-update because it doesn't have permission to write to itself. Please correct the permissions for:\n\n${app_path}`
