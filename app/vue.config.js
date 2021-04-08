@@ -29,6 +29,9 @@ module.exports = {
     configureWebpack: {
         devtool: 'source-map',  // Needed for vscode debug
         optimization: {
+            // Don't minimize as makes debugging in prod harder and size reduction insignificant
+            // WARN uglifying will break code that relies on function names
+            minimize: false,
             splitChunks: false,
         },
     },
