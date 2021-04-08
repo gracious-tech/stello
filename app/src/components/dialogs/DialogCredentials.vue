@@ -13,7 +13,7 @@ v-card
                 v-textarea(:value='this.sharing_key' readonly)
             template(v-else-if='waiting')
                 v-progress-circular(indeterminate color='accent')
-            template(v-else-if='credentials')
+            template(v-else-if='storage_credentials')
                 p(class='accent--text') New credentials created
                 p
                     app-btn(disabled) Create profile

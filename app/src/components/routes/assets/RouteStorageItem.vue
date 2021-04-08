@@ -21,9 +21,9 @@ div
             v-list-item-action
                 app-menu-more
                     app-list-item(@click='() => new_credentials(storage)'
-                        :disabled='!storage.version') Get new credentials
+                        :disabled='storage.version === undefined') Get new credentials
                     app-list-item(@click='() => setup_services(storage)')
-                        | {{ storage.version ? "Update" : "Fix" }}
+                        | {{ storage.version === undefined ? "Fix" : "Update" }}
                     app-list-item(@click='() => delete_services(storage)' color='error') Delete
 
 </template>
