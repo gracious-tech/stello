@@ -10,11 +10,11 @@ div
         p(class='error--text') This is an advanced feature, and mistakes may result in loss of data or security breaches.
         p If you have root access to your storage account then you are able to share your storage with other users. If other users have high security needs, it is recommended they create their own accounts, unless you have a good knowledge of information security yourself.
 
-        v-btn-toggle.host(v-model='host_ui' color='accent' mandatory)
-            v-btn(value='route-storage-aws') Amazon Web Services
+        v-btn-toggle.host(v-model='cloud' color='accent' mandatory)
+            v-btn(value='aws') Amazon Web Services
             v-btn(disabled) Google Cloud
 
-        component(:is='host_ui')
+        RouteStorageItem(:cloud='cloud')
 
 
 </template>
@@ -24,15 +24,16 @@ div
 
 import {Component, Vue} from 'vue-property-decorator'
 
-import RouteStorageAws from '@/components/routes/assets/RouteStorageAws.vue'
+import RouteStorageItem from '@/components/routes/assets/RouteStorageItem.vue'
+import {HostCloud} from '@/services/hosts/types'
 
 
 @Component({
-    components: {RouteStorageAws},
+    components: {RouteStorageItem},
 })
 export default class extends Vue {
 
-    host_ui = 'route-storage-aws'
+    cloud:HostCloud = 'aws'
 
 }
 
