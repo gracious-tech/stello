@@ -190,9 +190,11 @@ export default class extends Vue {
     // Watch
 
     @Watch('filter_group_id') watch_filter_group_id():void{
-        // Clear search whenever filter by a group instead
+        // Clear search and/or selected whenever filter by a group triggered
         // NOTE This includes when showing all contacts ('-')
+        // NOTE This still allows preserving selections across different searches (but not groups)
         this.search = ''
+        this.clear_selected()
     }
 
     @Watch('contacts_matched') watch_contacts_matched():void{
@@ -203,6 +205,7 @@ export default class extends Vue {
 
     @Watch('$tm.data.finished') watch_tm_finished(task:Task){
         // Listen to task completions and adjust state as needed
+        // TODO handle more events
         if (task.name === 'contacts_remove'){
             remove(this.contacts, task.params[1], (ai, i) => ai.contact.id === i)
         } else if (task.name === 'contacts_sync'){
