@@ -47,6 +47,7 @@ jobs:
                 run: |
                     sudo apt-get install --no-install-recommends awscli
                     tar --create --gzip --file stello_base.tar.gz dist
+                    aws configure set region us-west-2
                     aws s3 cp ./stello_base.tar.gz s3://releases-stello-news/base/$VERSION/stello_base.tar.gz
                 env:
                     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
