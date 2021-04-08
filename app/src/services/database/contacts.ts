@@ -1,6 +1,7 @@
 
 import {AppDatabaseConnection, RecordContact} from './types'
 import {generate_token} from '@/services/utils/crypt'
+import {partition} from '../utils/strings'
 
 
 export class Contact implements RecordContact {
@@ -21,7 +22,10 @@ export class Contact implements RecordContact {
 
     get display():string{
         // Return string for displaying contact (that will never be blank)
-        return this.name.trim() || "[Nameless]"
+        return this.name.trim()
+            || this.name_hello.trim()
+            || partition(this.address ?? '', '@')[0]?.trim()
+            || "[Nameless]"
     }
 
     get name_hello_result():string{

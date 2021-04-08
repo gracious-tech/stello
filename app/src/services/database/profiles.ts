@@ -58,6 +58,7 @@ export const SMTP_PROVIDERS:{[provider:string]:SmtpProvider} = {
             url: 'https://account.live.com/proofs/Manage',
             url_two_step: 'https://account.live.com/proofs/Manage',
         },
+        mx_base: 'outlook.com',
     },
     apple: {
         host: 'smtp.mail.me.com',

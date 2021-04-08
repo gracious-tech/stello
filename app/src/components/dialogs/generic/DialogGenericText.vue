@@ -4,8 +4,9 @@
 v-card
     v-card-title {{ title }}
 
-    v-card-text
-        app-text(v-model='value' :label='label' class='mt-4')
+    v-card-text(class='mt-4')
+        app-textarea(v-if='textarea' v-model='value' :label='label')
+        app-text(v-else v-model='value' :label='label')
 
     v-card-actions
         app-btn(@click='$emit("close")') Cancel
@@ -25,6 +26,7 @@ export default class extends Vue {
     @Prop({required: true}) label:string
     @Prop({default: ''}) initial:string
     @Prop({default: ''}) title:string
+    @Prop({default: false}) textarea:boolean
 
     value:string
 

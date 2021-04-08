@@ -46,7 +46,9 @@ div
                         app-btn(@click='new_group' small class='mt-2') New group
                     template(v-for='account of accounts')
                         v-divider
-                        v-subheader {{account.display}}
+                        v-subheader
+                            div.account_name(class='ellipsis') {{account.display}}
+                            app-btn(@click='account.sync' icon='sync')
                         app-list-item(v-for='group of account.groups' :value='group.id')
                             | {{group.display}}
                     v-divider
@@ -97,7 +99,7 @@ export default class extends Vue {
 
     contacts:ContactItem[] = []
     groups:Group[] = []
-    accounts:{id:string, display:string}[] = []
+    accounts:{id:string, display:string, groups:Group[], sync:()=>Promise<Task>}[] = []
 
     filter_group_id:string = '-'  // Special value for null as empty values don't get highlighted
     search:string = ''
@@ -203,7 +205,7 @@ export default class extends Vue {
         // Listen to task completions and adjust state as needed
         if (task.name === 'contacts_remove'){
             remove(this.contacts, task.params[1], (ai, i) => ai.contact.id === i)
-        } else if (['contacts_sync', 'contacts_oauth_setup'].includes(task.name)){
+        } else if (task.name === 'contacts_sync'){
             this.load_contacts()
         }
     }
@@ -244,6 +246,7 @@ export default class extends Vue {
                 id: oauth.service_account,
                 display: oauth.display,
                 groups: groups.filter(group => group.service_account === oauth.service_account),
+                sync: () => this.$tm.start_contacts_sync(oauth.id),
             }
         })
     }
@@ -442,7 +445,8 @@ export default class extends Vue {
     .groups
         display: flex
         flex-direction: column
-        width: 300px
+        min-width: 250px
+        max-width: 250px
         @include themed(background-color, $primary_lighter, $primary_darker)
         @include themed(color,  $on_primary_lighter, $on_primary_darker)
 
@@ -467,6 +471,10 @@ export default class extends Vue {
 
         .v-list
             overflow-y: auto
+            padding-bottom: 100px
+
+            .account_name
+                width: 100%
 
 .empty
     text-align: center

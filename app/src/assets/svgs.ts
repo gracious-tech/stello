@@ -117,4 +117,5 @@ export default {
     icon_visibility_off:    require('md-icon-svgs/visibility_off.svg').default,
     icon_cancel:            require('md-icon-svgs/cancel.svg').default,
     icon_check_circle:      require('md-icon-svgs/check_circle.svg').default,
+    icon_sync:              require('md-icon-svgs/sync.svg').default,
 }

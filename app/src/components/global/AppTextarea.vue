@@ -9,6 +9,7 @@ v-textarea(
     :filled='!regular'
     auto-grow
     v-bind='$attrs'
+    v-on='$listeners'
 )
 
 </template>

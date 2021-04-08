@@ -1,17 +1,29 @@
 
-import {Task} from "./tasks"
-import {OAuth} from "../database/oauths"
-import {oauth_request} from "./oauth"
-import {partition} from "../utils/strings"
-import {remove} from "../utils/arrays"
+import {uniq, xor} from 'lodash'
+
+import {Task} from './tasks'
+import {OAuth} from '../database/oauths'
+import {OAuthIssuer, oauth_request} from './oauth'
+import {partition} from '../utils/strings'
 
 
 // Functions which sync contacts in ways specific to the issuer
-const HANDLERS = {
+interface IssuerHandlers {
+    sync:typeof contacts_sync_google,
+    change_name:typeof contacts_change_name_google,
+    change_notes:typeof contacts_change_notes_google,
+    change_email:typeof contacts_change_email_google,
+    remove:typeof contacts_remove_google,
+    get_addresses:typeof contacts_get_addresses_google,
+}
+const HANDLERS:Record<OAuthIssuer, IssuerHandlers> = {
     google: {
         sync: contacts_sync_google,
+        change_name: contacts_change_name_google,
+        change_notes: contacts_change_notes_google,
         change_email: contacts_change_email_google,
         remove: contacts_remove_google,
+        get_addresses: contacts_get_addresses_google,
     },
 }
 
@@ -27,7 +39,7 @@ export async function contacts_oauth_setup(task:Task):Promise<void>{
     await self._db.oauths.set(oauth)
 
     // Turn this task into a sync
-    await contacts_sync(task)
+    await task.evolve(contacts_sync)
 }
 
 
@@ -51,6 +63,86 @@ export async function contacts_sync(task:Task):Promise<void>{
     oauth = await self._db.oauths.get(oauth_id)
     oauth.contacts_sync_last = new Date()
     await self._db.oauths.set(oauth)
+}
+
+
+export async function contacts_change_property(task:Task):Promise<void>{
+    // Task for changing a simple property of a contact
+
+    // Extract args from task object and get oauth record
+    const [oauth_id, contact_id, property] = task.params
+    const [value] = task.options
+    const oauth = await self._db.oauths.get(oauth_id)
+
+    // Get the contact's record
+    const contact = await self._db.contacts.get(contact_id)
+
+    // Configure task object
+    task.label = `Changing ${property} for "${contact.display}"`
+    task.fix_oauth = oauth_id
+
+    // Call handler specific to the oauth's issuer
+    await HANDLERS[oauth.issuer][`change_${property}`](oauth, contact.service_id, value)
+
+    // If all went well, update value in own database
+    contact[property] = value
+    await self._db.contacts.set(contact)
+}
+
+
+export async function contacts_change_email(task:Task):Promise<void>{
+    // Task for changing email address for a contact (accounting for multiple being present)
+
+    // Extract args from task object and get oauth record
+    const [oauth_id, contact_id] = task.params
+    const [addresses, chosen] = task.options
+    const oauth = await self._db.oauths.get(oauth_id)
+
+    // Get the contact's record
+    const contact = await self._db.contacts.get(contact_id)
+
+    // Configure task object
+    task.label = `Changing email address for "${contact.display}"`
+    task.fix_oauth = oauth_id
+
+    // Call handler specific to the oauth's issuer
+    await HANDLERS[oauth.issuer].change_email(oauth, contact.service_id, addresses)
+
+    // If all went well, update value in own database
+    contact.address = chosen
+    await self._db.contacts.set(contact)
+}
+
+
+export async function contacts_remove(task:Task):Promise<void>{
+    // Task for removing a contact
+
+    // Extract args from task object and get oauth record
+    const [oauth_id, contact_id] = task.params
+    const oauth = await self._db.oauths.get(oauth_id)
+
+    // Get the contact's record
+    const contact = await self._db.contacts.get(contact_id)
+
+    // Configure task object
+    task.label = `Deleting contact "${contact.display}"`
+    task.fix_oauth = oauth_id
+
+    // Call handler specific to the oauth's issuer
+    await HANDLERS[oauth.issuer].remove(oauth, contact.service_id)
+
+    // If all went well, remove contact in own database
+    await self._db.contacts.remove(contact.id)
+}
+
+
+// NON-TASKS
+
+
+export async function taskless_contact_addresses(oauth:OAuth, service_id:string):Promise<string[]>{
+    // Get all the email addresses currently saved in a contact
+    // NOTE Services (like Google) may allow duplicate items, so remove them
+    return uniq(await HANDLERS[oauth.issuer].get_addresses(oauth, service_id))
 }
 
 
@@ -100,7 +192,7 @@ interface GoogleBio extends GoogleListItem {
 }
 
 interface GoogleListItem {
-    metadata: {
+    metadata?: {
         primary: boolean,
     }
 }
@@ -159,27 +251,41 @@ async function contacts_sync_google_full(task:Task, oauth:OAuth):Promise<Record<
             // Extract relevant data
             const service_id = partition(person.resourceName, '/')[1]  // Google appends 'people/'
             const name = google_primary(person.names)?.unstructuredName?.trim() || ''
-            const email = google_primary(person.emailAddresses)?.value?.trim()
+            const primary_email = google_primary(person.emailAddresses)?.value?.trim()
+            // NOTE Google supports multiple notes, but in UI currently only uses single plain one
+            const notes = person.biographies?.find(i => i.contentType === 'TEXT_PLAIN')?.value || ''
 
             // Ignore contacts without email addresses
             // NOTE If did previously have one that record will be removed in final step
-            if (!email){
+            if (!primary_email){
                 continue
             }
 
             // Either update existing or add new contact
             if (service_id in existing_by_id){
                 const existing = existing_by_id[service_id]
-                if (existing.name !== name || existing.address !== email){
+
+                // Don't update address unless gone (doesn't matter if primary status changed)
+                // NOTE This allows user to select non-primary address without losing it every sync
+                const address_gone = !person.emailAddresses.some(i => i.value === existing.address)
+
+                // Only update if something changed
+                if (address_gone || existing.name !== name || existing.notes !== notes){
                     existing.name = name
-                    existing.address = email
+                    existing.address = address_gone ? primary_email : existing.address
+                    existing.notes = notes
                     self._db.contacts.set(existing)
                 }
                 delete existing_by_id[service_id]  // Prevent deletion during final step
                 confirmed[existing.service_id] = existing.id
             } else {
-                const created = await self._db.contacts.create(
-                    name, email, `google:${oauth.issuer_id}`, service_id)
+                const created = self._db.contacts.create_object()
+                created.name = name
+                created.address = primary_email
+                created.notes = notes
+                created.service_account = `google:${oauth.issuer_id}`
+                created.service_id = service_id
+                self._db.contacts.set(created)
                 confirmed[created.service_id] = created.id
             }
         }
@@ -315,4 +421,90 @@ function google_primary<T extends GoogleListItem>(options:T[]):T{
         }
     }
     return options[0]
+}
+
+
+async function contacts_change_name_google(oauth:OAuth, service_id:string, value:string)
+        :Promise<void>{
+    // Change the name of a contact in Google Contacts
+
+    // Get fresh copy of the person from Google (also need etag to be able to patch)
+    const url = `https://people.googleapis.com/v1/people/${service_id}`
+    const person = await oauth_request(oauth, url, {personFields: 'names'}) as GooglePerson
+
+    // Overwrite any existing names
+    person.names = [{unstructuredName: value}]
+
+    // Submit request
+    await oauth_request(oauth, `${url}:updateContact`,
+        {updatePersonFields: 'names', personFields: ''}, 'PATCH', person)
+}
+
+
+async function contacts_change_notes_google(oauth:OAuth, service_id:string, value:string)
+        :Promise<void>{
+    // Change the notes of a contact in Google Contacts
+
+    // Get fresh copy of the person from Google (also need etag to be able to patch)
+    const url = `https://people.googleapis.com/v1/people/${service_id}`
+    const person = await oauth_request(oauth, url, {personFields: 'biographies'}) as GooglePerson
+
+    // Keep any existing html/other notes, but overwrite any existing plain text
+    person.biographies = person.biographies?.filter(i => i.contentType !== 'TEXT_PLAIN') ?? []
+    person.biographies.push({contentType: 'TEXT_PLAIN', value})
+
+    // Submit request
+    await oauth_request(oauth, `${url}:updateContact`,
+        {updatePersonFields: 'biographies', personFields: ''}, 'PATCH', person)
+}
+
+
+async function contacts_change_email_google(oauth:OAuth, service_id:string, addresses:string[])
+        :Promise<void>{
+    // Change the email addresses of a contact in Google Contacts
+
+    // Get fresh copy of the person from Google (also need etag to be able to patch)
+    const url = `https://people.googleapis.com/v1/people/${service_id}`
+    const person = await oauth_request(oauth, url, {personFields: 'emailAddresses'}) as GooglePerson
+
+    // Ensure emailAddresses exists
+    if (!person.emailAddresses){
+        person.emailAddresses = []
+    }
+
+    // May not need to do anything if user didn't add/remove any address (just chose from existing)
+    const person_address_values = person.emailAddresses.map(i => i.value)
+    if (xor([person_address_values, addresses]).length === 0){
+        return
+    }
+
+    // Remove addresses no longer desired
+    // NOTE Other fields (like displayName) may exist and so be careful to preserve where possible
+    person.emailAddresses = person.emailAddresses.filter(i => addresses.includes(i.value))
+
+    // Insert any new addresses
+    for (const address of addresses){
+        if (!person_address_values.includes(address)){
+            person.emailAddresses.push({value: address})
+        }
+    }
+
+    // Submit request
+    await oauth_request(oauth, `${url}:updateContact`,
+        {updatePersonFields: 'emailAddresses', personFields: ''}, 'PATCH', person)
+}
+
+
+async function contacts_remove_google(oauth:OAuth, service_id:string):Promise<void>{
+    // Remove the given contact in Google Contacts
+    const url = `https://people.googleapis.com/v1/people/${service_id}:deleteContact`
+    await oauth_request(oauth, url, undefined, 'DELETE')
+}
+
+
+async function contacts_get_addresses_google(oauth:OAuth, service_id:string):Promise<string[]>{
+    // Get all email addresses for a Google contact
+    const url = `https://people.googleapis.com/v1/people/${service_id}`
+    const person = await oauth_request(oauth, url, {personFields: 'emailAddresses'}) as GooglePerson
+    return person.emailAddresses?.map(i => i.value) ?? []
 }

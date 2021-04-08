@@ -6,21 +6,23 @@ import {isEqual} from 'lodash'
 import {remove} from '../utils/arrays'
 import {configs_update} from './configs'
 import {responses_receive} from './responses'
-import {contacts_oauth_setup, contacts_sync, contacts_change_property, contacts_remove,
-    } from './contacts'
+import {contacts_oauth_setup, contacts_sync, contacts_change_property, contacts_change_email,
+    contacts_remove} from './contacts'
 import {send_oauth_setup, send_message} from './sending'
 import {MustReauthenticate, MustReconfigure, MustReconnect} from '../utils/exceptions'
 
 
-export type TaskStartArgs = [string, string[]?, string[]?]
+export type TaskStartArgs = [string, any[]?, any[]?]
 // Task functions return a promise which may resolve to single/array of other subtask promises
 export type TaskReturn = Promise<Promise<any>|Promise<any>[]|void>
 export type TaskErrorType = 'network'|'auth'|'oauth_access'|'oauth_scopes'|'settings'|'unknown'
+export type TaskFunction = (task:Task)=>TaskReturn
 
 
 // Create a map of task function names to the actual function
-const TASKS:{[name:string]:(task:Task)=>TaskReturn} = Object.fromEntries([
-    contacts_oauth_setup, contacts_sync, contacts_change_property, contacts_remove,
+const TASKS:Record<string, TaskFunction> = Object.fromEntries([
+    contacts_oauth_setup, contacts_sync, contacts_change_property, contacts_change_email,
+    contacts_remove,
     send_oauth_setup, send_message,
     configs_update,
     responses_receive,
@@ -38,9 +40,9 @@ export class Task {
     fix_oauth:string = null  // Don't provide actual oauth object as should get fresh when needed
 
     // Readable
-    readonly name:string
-    readonly params:string[]  // Must be serializable for storing as post-oauth actions
-    readonly options:string[]  // Must be serializable for storing as post-oauth actions
+    name:string  // May be changed if evolving
+    readonly params:any[]  // Must be serializable for storing as post-oauth actions
+    readonly options:any[]  // Must be serializable for storing as post-oauth actions
     readonly done:Promise<any>  // Resolves with an error value (if any) when task done
     aborted:boolean = false
     error:any = null  // Error value is both resolved for `done` and set as a property
@@ -152,6 +154,13 @@ export class Task {
         this.error = error
         this.done_resolve(error)
     }
+
+    evolve(task_function:TaskFunction):TaskReturn{
+        // Turn into a different task
+        // WARN If task fails the task that will be retried is the new task, not the old
+        this.name = task_function.name
+        return task_function(this)
+    }
 }
 
 
@@ -163,7 +172,7 @@ export class TaskManager {
         finished: null,  // Only stores last task to have finished
     })
 
-    async start(name:string, params:string[]=[], options:string[]=[]):Promise<Task>{
+    async start(name:string, params:any[]=[], options:any[]=[]):Promise<Task>{
         // Register the task identified by given code and params
 
         // See if an existing task matches code and params
@@ -215,9 +224,14 @@ export class TaskManager {
         return this.start('contacts_sync', [oauth_id])
     }
 
-    start_contacts_change_property(oauth_id:string, contact_id:string, property:'name'|'email',
+    start_contacts_change_property(oauth_id:string, contact_id:string, property:'name'|'notes',
             value:string):Promise<Task>{
         return this.start('contacts_change_property', [oauth_id, contact_id, property], [value])
+    }
+
+    start_contacts_change_email(oauth_id:string, contact_id:string, addresses:string[],
+            chosen:string):Promise<Task>{
+        return this.start('contacts_change_email', [oauth_id, contact_id], [addresses, chosen])
     }
 
     start_contacts_remove(oauth_id:string, contact_id:string):Promise<Task>{
