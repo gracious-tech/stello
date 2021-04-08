@@ -2,6 +2,9 @@
 import {Task} from '@/services/tasks/tasks'
 
 
+export const HostStorageVersion = 1  // Bump whenever an update to storage services needed
+
+
 // SIMPLE TYPES
 
 
@@ -64,7 +67,7 @@ export declare class HostManagerStorage {
 
     // Ensure host services setup properly (sets up all services, not just storage)
     // NOTE Will create if storage doesn't exist, or fail if storage id taken by third party
-    setup_services(task:Task):Promise<void>
+    setup_services(task:Task, force:boolean):Promise<void>
 
     // Generate new credentials for the storage (and remove existing)
     new_credentials():Promise<HostStorageCredentials>

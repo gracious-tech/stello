@@ -3,9 +3,10 @@
 
 div
     p(class='btns-row')
-        app-btn(@click='set_key') Set Access Key
-        app-btn(@click='scan' :disabled='!key_id') Scan Storage
-        app-btn(@click='new_storage' :disabled='!key_id') Create storage
+        app-btn(@click='set_key') Set Key
+        app-btn(@click='scan' :disabled='!key_id') Scan
+        app-btn(@click='new_storage' :disabled='!key_id') New
+        app-btn(@click='update_all') Update all
 
     div.none(v-if='scanning')
         v-progress-circular(indeterminate color='accent')
@@ -109,9 +110,9 @@ export default class extends Vue {
     }
 
     async setup_services(storage:HostManagerStorage){
-        // Setup services for given storage
+        // Setup services for given storage (force update)
         const task = await this.$tm.start('hosts_storage_setup',
-            [this.cloud, storage.credentials, storage.bucket, storage.region])
+            [this.cloud, storage.credentials, storage.bucket, storage.region, true])
         await task.done
         this.scan()
     }
@@ -124,6 +125,14 @@ export default class extends Vue {
         await task.done
         this.scan()
     }
+
+    async update_all():Promise<void>{
+        // Update all listed storages (only if needed)
+        for (const storage of this.storages){
+            this.$tm.start('hosts_storage_setup',
+                [this.cloud, storage.credentials, storage.bucket, storage.region, false])
+        }
+    }
 }
 
 </script>
@@ -132,9 +141,9 @@ export default class extends Vue {
 <style lang='sass' scoped>
 
 .btns-row
+    display: flex
+    justify-content: space-around
     margin: 18px 0
-    .v-btn
-        margin-right: 18px
 
 .none
     text-align: center
