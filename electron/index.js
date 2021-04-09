@@ -41,6 +41,7 @@ const http_server = http.createServer(async (request, response) => {
 
 
 // Start the server and close it when app closes
+// TODO Better handling of port-taken errors (currently throws async without stopping app)
 http_server.listen(http_server_port, '127.0.0.1')
 app.on('quit', () => {
     http_server.close()
