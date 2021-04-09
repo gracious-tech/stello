@@ -2,14 +2,14 @@
 <template lang='pug'>
 
 v-card
-    v-card-title Add existing account
+    v-card-title Use existing storage
 
     v-card-text
-        p If you've been provided with account credentials you can copy and paste them in here (they should start with "stello:...").
+        p If you've been provided with storage credentials you can copy and paste them in here.
         app-security-alert Only use credentials from a source you trust
 
         p(class='text-center')
-            app-btn(@click='paste') Paste account credentials
+            app-btn(@click='paste') Paste storage credentials
 
         p(class='text-center error--text mt-4') {{ error }}
 
