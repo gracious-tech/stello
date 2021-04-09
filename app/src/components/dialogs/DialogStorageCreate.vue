@@ -24,6 +24,7 @@ import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import {debounce_method} from '@/services/misc'
 import {HostManager} from '@/services/hosts/types'
+import {validate_subdomain} from '@/services/hosts/common'
 
 
 @Component({})
@@ -62,15 +63,9 @@ export default class extends Vue {
         return this.bucket_dirty && !this.error_msg && this.bucket_available === null
     }
 
-    get error_msg(){
+    get error_msg():string{
         // An error string if bucket name invalid
-        if (this.bucket.length < 3 || this.bucket.length > 63)
-            return "Name must be between 3 to 63 characters long"
-        if (this.bucket[0] === '-' || this.bucket.slice(-1) === '-')
-            return "Name cannot begin or end with a hyphen"
-        if (! /^[A-Za-z0-9\-]+$/.test(this.bucket))
-            return "Name can only contain letters, numbers, and hyphens"
-        return null
+        return validate_subdomain(this.bucket, 3)
     }
 
     get message(){
