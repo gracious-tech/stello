@@ -42,9 +42,19 @@ export default class extends Vue {
         return service_account && partition(service_account, ':')[0]
     }
 
-    toggle_selected(){
+    toggle_selected(event:MouseEvent){
         // Toggle the selected status of the contact item
-        this.item.selected = !this.item.selected
+        if (process.env.NODE_ENV === 'development' && event.shiftKey){
+            // Secret action during dev to duplicate the contact many times
+            for (let i=0; i < 100; i++){
+                const name = `${this.item.contact.name} ${i}`
+                const [email_user, email_domain] = partition(this.item.contact.address, '@')
+                const email = `${email_user}+${i}@${email_domain}`
+                self._db.contacts.create(name, email)
+            }
+        } else {
+            this.item.selected = !this.item.selected
+        }
     }
 }
 
