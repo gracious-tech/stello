@@ -3,7 +3,7 @@
 export function sort(array:string[]|number[]|object[], property:string=null, ascending:boolean=true,
         ):void{
     /* Improved sorting of arrays
-        1. Supports both string and number comparison (builtin sort converts all to strings)
+        1. Supports string/number/date comparison (builtin sort converts all to strings)
         2. Supports any-case and locale-specific sorting for strings
         3. Can sort based on a property if items are objects
     */
@@ -13,8 +13,9 @@ export function sort(array:string[]|number[]|object[], property:string=null, asc
         return
 
     // Check type of first value so know what comparison to do
-    const numeric = typeof (property ? array[0][property] : array[0]) === 'number'
-    let compare = numeric ? (a, b) => a - b : new Intl.Collator().compare
+    const first_val = property ? array[0][property] : array[0]
+    const subtractable = typeof first_val === 'number' || first_val instanceof Date
+    let compare = subtractable ? (a, b) => a - b : new Intl.Collator().compare
 
     // Reverse comparison if decending order
     if (!ascending){
