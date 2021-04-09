@@ -154,7 +154,7 @@ function activate_app(){
         if (window.isMinimized()){
             window.restore()
         }
-        window.focus()
+        window.show()  // Raises and gives focus (just `focus()` doesn't work on Windows/Mac)
     } else {
         // No window yet so open one
         // NOTE Usually just for Macs where it's normal to keep app running despite window close
