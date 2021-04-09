@@ -131,8 +131,9 @@ export default class extends Vue {
         // Update all listed storages (only if needed)
         for (const storage of this.storages){
             if (!storage.up_to_date){
-                this.$tm.start('hosts_storage_setup',
+                const task = await this.$tm.start('hosts_storage_setup',
                     [this.cloud, storage.credentials, storage.bucket, storage.region])
+                await task.done  // Avoid throttling issues by doing sequentially
             }
         }
     }
