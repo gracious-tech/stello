@@ -23,7 +23,7 @@ import {remove} from '../utils/arrays'
 
 export function open_db():Promise<AppDatabaseConnection>{
     // Get access to db (and create/upgrade if needed)
-    return openDB<AppDatabaseSchema>('main', 4, {
+    return openDB<AppDatabaseSchema>('main', 5, {
         async upgrade(db, old_version, new_version, transaction){
 
             // Begin upgrade at whichever version is already present (no break statements)
@@ -107,6 +107,14 @@ export function open_db():Promise<AppDatabaseConnection>{
                     for await (const cursor of transaction.objectStore('profiles')){
                         cursor.value.smtp.oauth = null
                         cursor.update(cursor.value)
+                    }
+                case 4:
+                    // Order of steps changed so reset all progress to start (settings still saved)
+                    for await (const cursor of transaction.objectStore('profiles')){
+                        if (cursor.value.setup_step !== null){  // i.e. not fully setup yet
+                            cursor.value.setup_step = 0
+                            cursor.update(cursor.value)
+                        }
                     }
             }
         },

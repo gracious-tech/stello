@@ -60,7 +60,7 @@ export interface RecordOAuth {
 
 export interface RecordProfile {
     id:string
-    setup_step:number
+    setup_step:number  // null if setup complete
     host:RecordProfileHost
     host_state:RecordProfileHostState
     email:string  // Address used for both sending and receiving notifications

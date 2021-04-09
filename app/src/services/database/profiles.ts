@@ -254,7 +254,7 @@ export class DatabaseProfiles {
         // NOTE Defaults are for 'very_high' security category
         const profile = new Profile({
             id: generate_token(),
-            setup_step: 1,
+            setup_step: 0,
             host: {
                 cloud: null,
                 bucket: null,

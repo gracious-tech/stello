@@ -4,31 +4,27 @@
 v-stepper(:value='profile.setup_step' @change='change_step')
     v-stepper-header
         v-stepper-step(:step='1' :complete='profile.setup_step > 1' :editable='profile.setup_step > 1'
-            edit-icon='$complete' color='accent') Storage
-        v-stepper-step(:step='2' :complete='profile.setup_step > 2' :editable='profile.setup_step > 2'
             edit-icon='$complete' color='accent') Email
+        v-stepper-step(:step='2' :complete='profile.setup_step > 2' :editable='profile.setup_step > 2'
+            edit-icon='$complete' color='accent') Storage
         v-stepper-step(:step='3' :complete='profile.setup_step > 3' :editable='profile.setup_step > 3'
             edit-icon='$complete' color='accent') Identity
         v-stepper-step(:step='4' color='accent') Security
 
     v-stepper-items
 
-        v-stepper-content(:step='1')
+        v-stepper-content(:step='0')
             h1(class='text-h4 text-center mb-4') New sending account
             img.decor(src='_assets/decor_new_account.png')
-            template(v-if='profile.host.cloud')
-                p(class='text-center text--secondary text-h5') Storage confirmed
-            template(v-else)
-                p Accounts are what Stello uses to send your messages, securely storing them for recipients to view.
-                p(class='text--secondary body-2') You can have multiple accounts, such as a personal account and a ministry account.
-            route-profile-host(:profile='profile')
+            p Accounts are what Stello uses to send your messages, securely storing them for recipients to view.
+            p(class='text--secondary body-2') You can have multiple accounts, such as a personal account and a ministry account.
             div.nav
                 span &nbsp;
-                app-btn(@click='next_step' :disabled='!profile.host.cloud') Next
+                app-btn(@click='next_step') Next
 
-        v-stepper-content(:step='2')
+        v-stepper-content(:step='1')
             h3(class='text-h6 my-6') Which email address do you want to send from?
-            p(class='text--secondary body-2 mb-12') Stello will send messages on your behalf, and notify you of any replies.
+            p(class='text--secondary body-2 mb-12') Stello will use it to send messages on your behalf, and notify you of any replies.
             p(class='text-center')
                 span(v-if='profile.smtp_ready') {{ profile.email }}
                 app-btn(@click='show_email_dialog')
@@ -36,6 +32,16 @@ v-stepper(:value='profile.setup_step' @change='change_step')
             div.nav
                 app-btn(@click='prev_step') Prev
                 app-btn(@click='next_step' :disabled='!profile.smtp_ready') Next
+
+        v-stepper-content(:step='2')
+            h3(class='text-h6 my-6') Where should your messages be stored?
+            p(class='text--secondary body-2 mb-12') You can store them with the creators of Stello, or provide your own storage (only recommended for experts). Wherever they are stored they will be securely encrypted.
+            p(v-if='profile.host.cloud' class='text-center text--secondary text-h5')
+                | Storage confirmed
+            route-profile-host(:profile='profile')
+            div.nav
+                app-btn(@click='prev_step') Prev
+                app-btn(@click='next_step' :disabled='!profile.host.cloud') Next
 
         v-stepper-content(:step='3')
             h2(class='text-h6 my-6') How would you like to identify yourself?
@@ -169,7 +175,7 @@ export default class extends Vue {
         self._db.profiles.set(this.profile)
     }
 
-    change_step(step){
+    change_step(step:number){
         // Handle changes of step triggered by the stepper component tabs etc
         this.profile.setup_step = step
         self._db.profiles.set(this.profile)
