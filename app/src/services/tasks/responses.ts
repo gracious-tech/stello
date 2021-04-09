@@ -47,7 +47,15 @@ export async function responses_receive(task:Task):Promise<void>{
             // Download and decrypt the data
             const resp = await storages[profile.id].download_response(key)
             const private_key = profile.host_state.resp_key.privateKey
-            const binary_data = await decrypt_asym(utf8_to_string(resp), private_key)
+            let binary_data:ArrayBuffer
+            try {
+                binary_data = await decrypt_asym(utf8_to_string(resp), private_key)
+            } catch {
+                // Failure to decrypt is likely due to changing keys (e.g. reusing an old storage)
+                // TODO Determine if this would ever occur outside of development
+                storages[profile.id].delete_response(key)
+                return
+            }
             const data = JSON.parse(utf8_to_string(binary_data))
 
             // Decrypt and unpack encrypted fields
