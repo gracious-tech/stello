@@ -3,17 +3,12 @@
 
 div(class='text-center')
     template(v-if='host.cloud')
-        h1(class='text-h6 mb-2 accent--text') {{ profile.host.bucket }}
-        h2(class='text-subtitle-2') {{ $t(`host_cloud.${host.cloud}`) }}
-    template(v-else)
-        app-btn(disabled) Create new account
-        app-btn(@click='show_dialog_existing') Add existing account
-
-        //- TODO tmp
-        v-alert(class='app-bg-accent my-16')
-            template(#prepend)
-                app-svg(name='icon_info' class='mr-3' style='min-width: 36px')
-            | To get free early access to Stello, please email #[a(href='mailto:support@gracious.tech' style='font-weight: bold') support@gracious.tech] with "New account" in subject and we'll create one for you within 24 hours.
+        h1(class='text-h6 mb-2 accent--text') {{ host.bucket }}
+        //- No point identifying cloud until multiple, or can distinguish between private & GT
+        //- h2(class='text-subtitle-2') {{ $t(`host_cloud.${host.cloud}`) }}
+    div.btns(v-else)
+        app-btn(@click='show_dialog_new') New storage
+        app-btn(@click='show_dialog_existing') Use existing storage
 
 
 </template>
@@ -30,6 +25,7 @@ en:
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
+import DialogHostNew from '@/components/dialogs/specific/DialogHostNew.vue'
 import DialogHostExisting from '@/components/dialogs/DialogHostExisting.vue'
 import {Profile} from '@/services/database/profiles'
 
@@ -41,6 +37,14 @@ export default class extends Vue {
 
     get host(){
         return this.profile.host
+    }
+
+    show_dialog_new(event:MouseEvent){
+        // Show dialog for creating new storage
+        this.$store.dispatch('show_dialog', {
+            component: DialogHostNew,
+            props: {profile: this.profile},
+        })
     }
 
     show_dialog_existing(event:MouseEvent){
@@ -61,5 +65,11 @@ export default class extends Vue {
 
 
 <style lang='sass' scoped>
+
+
+.btns
+    display: flex
+    justify-content: space-around
+
 
 </style>
