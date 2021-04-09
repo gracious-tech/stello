@@ -80,6 +80,8 @@ context_menu({
 
 // App event handling
 
+let update_downloaded = false
+
 // Handle app init
 app.whenReady().then(async () => {
 
@@ -94,7 +96,12 @@ app.whenReady().then(async () => {
             provider: 'generic',
             url: 'https://releases.stello.news/electron/',
         })
-        autoUpdater.checkForUpdatesAndNotify()
+        autoUpdater.checkForUpdatesAndNotify().then(result => {
+            // Update variable when download done
+            result?.downloadPromise?.then(() => {
+                update_downloaded = true
+            })
+        })
 
         // Warn if app cannot overwrite itself (and .'. can't update)
         // NOTE If an AppImage, need to test the AppImage file rather than currently unpackaged code
@@ -140,7 +147,8 @@ app.whenReady().then(async () => {
 // Handle no-windows event
 app.on('window-all-closed', () => {
     // End this process if no windows, unless Mac where it's normal to keep app in dock still
-    if (process.platform !== 'darwin'){
+    // NOTE If update downloaded, always do a full quit so update applied when reopened
+    if (process.platform !== 'darwin' || update_downloaded){
         app.quit()
     }
 })
