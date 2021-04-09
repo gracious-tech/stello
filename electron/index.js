@@ -84,14 +84,22 @@ app.whenReady().then(async () => {
     // NOTE Updates on Windows are currently handled by the Windows Store
     if (app.isPackaged && (process.platform === 'darwin' || process.env.APPIMAGE)){
 
+        // Check for updates
+        // WARN Always do this, otherwise can end up with an unupdatable installation
+        //      e.g. `fs.access` test in past has had a bug and was actually fine to update
+        autoUpdater.setFeedURL({
+            provider: 'generic',
+            url: 'https://releases.stello.news/electron/',
+        })
+        autoUpdater.checkForUpdatesAndNotify()
+
         // Warn if app cannot overwrite itself (and .'. can't update)
         // NOTE If an AppImage, need to test the AppImage file rather than currently unpackaged code
         const app_path = process.env.APPIMAGE || app.getAppPath()
-        let can_update = true
         try {
             await fs.access(app_path, fs_constants.W_OK)
-        } catch {
-            can_update = false
+        } catch (error){
+            console.error(error)
             let msg = `Stello is not able to auto-update because it doesn't have permission to write to itself. Please correct the permissions for:\n\n${app_path}`
             if (process.platform === 'darwin' && !app.isInApplicationsFolder()){
                 // App is most likely running from a read-only mount of the DMG
@@ -108,15 +116,6 @@ app.whenReady().then(async () => {
             if (button_i === 0){
                 app.quit()
             }
-        }
-
-        // Check for updates if permissions ok
-        if (can_update){
-            autoUpdater.setFeedURL({
-                provider: 'generic',
-                url: 'https://releases.stello.news/electron/',
-            })
-            autoUpdater.checkForUpdatesAndNotify()
         }
     }
 
