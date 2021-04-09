@@ -1,6 +1,7 @@
 
-const fs = require('fs').promises
-const fs_constants = require('fs').constants
+// WARN Electron overrides `fs` module with magic for asar files, which breaks `access()` test
+const fs = require('original-fs').promises
+const fs_constants = require('original-fs').constants
 const dns = require('dns').promises
 const path = require('path')
 const http = require('http')
