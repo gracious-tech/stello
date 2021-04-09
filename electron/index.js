@@ -15,7 +15,8 @@ const nodemailer = require('nodemailer')
 // Don't open if another instance of Stello is already running
 // NOTE The other instance will receive an event and focus itself instead
 if (!app.requestSingleInstanceLock()){
-    app.quit()
+    // Throw error to immediately stop execution and prevent a server setup attempt etc
+    throw new Error("Already open")
 }
 
 
@@ -116,6 +117,7 @@ app.whenReady().then(async () => {
             })
             if (button_i === 0){
                 app.quit()
+                return  // Avoid brief opening of window (as `app.quit()` is async)
             }
         }
     }
