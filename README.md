@@ -23,7 +23,7 @@ Stello is end-to-end encrypted in the sense that the platform that stores and tr
 
  - **app:** App for authoring and sending messages
     - All of the UI and functionality for Stello (the program) is in here, and it interacts with cloud APIs for publishing messages
-    - Written is JS for browser environment (for packaging with Electron or Cordova etc) using Vue 2 framework
+    - Written in JS for browser environment (for packaging with Electron or Cordova etc) using Vue 2 framework
  - **displayer:** Webpage that is deployed and served whenever a published message is viewed
     - The displayer is responsible for downloading, decrypting, and displaying messages
     - Written in Vue 3 and uses Vite for development and packaging
@@ -31,7 +31,7 @@ Stello is end-to-end encrypted in the sense that the platform that stores and tr
     - The responder notifies the author of new responses, encrypts and stores them for downloading
     - Written in Python, so far for AWS only
  - **electron:** Packager for publishing `app` on desktop platforms
-    - This is very barebones as only does things that are impossible in a browser environment (like sending emails)
+    - This is very barebones as only does things that are impossible in a browser environment (like using SMTP)
     - An electron app that uses Electron Builder to package, sign, and publish binaries
 
 
