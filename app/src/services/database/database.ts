@@ -19,99 +19,14 @@ import {export_key, generate_hash, generate_token} from '../utils/crypt'
 import {generate_key_sym} from '../utils/crypt'
 import {buffer_to_url64} from '../utils/coding'
 import {remove} from '../utils/arrays'
-import * as migrations from './migrations'
+import {migrate, DATABASE_VERSION} from './migrations'
 
 
 export function open_db():Promise<AppDatabaseConnection>{
     // Get access to db (and create/upgrade if needed)
-    return openDB<AppDatabaseSchema>('main', migrations.DATABASE_VERSION, {
+    return openDB<AppDatabaseSchema>('main', DATABASE_VERSION, {
         async upgrade(db, old_version, new_version, transaction){
-
-            // Begin upgrade at whichever version is already present (no break statements)
-            // WARN Ensure all versions accounted for, or none will match
-            switch (old_version){
-                default:
-                    throw new Error("Database version unknown (should never happen)")
-                case 0:  // Version number when db didn't previously exist
-                    // Create object stores
-                    // NOTE If no keyPath is given then must provide a key for every transaction
-                    const state = db.createObjectStore('state', {keyPath: 'key'})
-                    const contacts = db.createObjectStore('contacts', {keyPath: 'id'})
-                    const groups = db.createObjectStore('groups', {keyPath: 'id'})
-                    const profiles = db.createObjectStore('profiles', {keyPath: 'id'})
-                    const drafts = db.createObjectStore('drafts', {keyPath: 'id'})
-                    const messages = db.createObjectStore('messages', {keyPath: 'id'})
-                    const copies = db.createObjectStore('copies', {keyPath: 'id'})
-                    const sections = db.createObjectStore('sections', {keyPath: 'id'})
-                    const reads = db.createObjectStore('reads', {keyPath: 'id'})
-                    const replies = db.createObjectStore('replies', {keyPath: 'id'})
-                    const reactions = db.createObjectStore('reactions', {keyPath: 'id'})
-                    // Create indexes
-                    copies.createIndex('by_msg', 'msg_id')
-                    copies.createIndex('by_contact', 'contact_id')
-                    copies.createIndex('by_resp_token', 'resp_token')
-                    reads.createIndex('by_msg', 'msg_id')
-                    replies.createIndex('by_msg', 'msg_id')
-                    replies.createIndex('by_contact', 'contact_id')
-                    reactions.createIndex('by_msg', 'msg_id')
-                    reactions.createIndex('by_contact', 'contact_id')
-                case 1:
-                    for await (const cursor of transaction.objectStore('profiles')){
-                        // Unintentionally saved in db in v0.0.4 and below
-                        delete (cursor.value as any).smtp_providers
-                        // Previously saved smtp port as string by mistake
-                        // @ts-ignore since port may be string
-                        cursor.value.smtp.port = parseInt(cursor.value.smtp.port, 10) || null
-                        // New property added after v0.0.4 (previously true if port 587)
-                        cursor.value.smtp.starttls = cursor.value.smtp.port === 587
-                        // Save changes
-                        cursor.update(cursor.value)
-                    }
-                case 2:
-                    // half_width property removed from RecordSection post v0.1.1
-                    for await (const cursor of transaction.objectStore('sections')){
-                        delete (cursor.value as any).half_width
-                        cursor.update(cursor.value)
-                    }
-                    // sections became nested arrays post v0.1.1
-                    for await (const cursor of transaction.objectStore('drafts')){
-                        // @ts-ignore old structure was string[]
-                        cursor.value.sections = cursor.value.sections.map(s => [s])
-                        cursor.update(cursor.value)
-                    }
-                    for await (const cursor of transaction.objectStore('messages')){
-                        // @ts-ignore old structure was string[]
-                        cursor.value.draft.sections = cursor.value.draft.sections.map(s => [s])
-                        cursor.update(cursor.value)
-                    }
-                case 3:
-                    // New table for oauths
-                    const oauths = db.createObjectStore('oauths', {keyPath: 'id'})
-                    oauths.createIndex('by_issuer_id', ['issuer', 'issuer_id'])
-                    // New properties for contacts and groups
-                    for await (const cursor of transaction.objectStore('contacts')){
-                        cursor.value.service_account = null
-                        cursor.value.service_id = null
-                        cursor.update(cursor.value)
-                    }
-                    for await (const cursor of transaction.objectStore('groups')){
-                        cursor.value.service_account = null
-                        cursor.value.service_id = null
-                        cursor.update(cursor.value)
-                    }
-                    // New index for contacts and groups
-                    transaction.objectStore('contacts').createIndex(
-                        'by_service_account', 'service_account')
-                    transaction.objectStore('groups').createIndex(
-                        'by_service_account', 'service_account')
-                    // New property for profiles
-                    for await (const cursor of transaction.objectStore('profiles')){
-                        cursor.value.smtp.oauth = null
-                        cursor.update(cursor.value)
-                    }
-                case 4:
-                    migrations.to5(transaction)
-            }
+            migrate(transaction, old_version)
         },
     })
 }
