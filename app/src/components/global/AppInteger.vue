@@ -29,20 +29,20 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 @Component({})
 export default class extends Vue {
 
-    @Prop(Number) value
-    @Prop(Number) inherit  // The placeholder shown if value null (but also affects increments)
-    @Prop({type: Number, default: 0, validator: v => v >= 0}) min
-    @Prop({type: Number, default: 1000000}) max  // Either max possible, or max before infinity
-    @Prop({type: Boolean, default: false}) infinity  // Allowed to be infinity after max reached
-    @Prop({type: Boolean, default: true}) buttons
+    @Prop({type: Number}) value:number
+    @Prop({type: Number, default: null}) inherit:number  // For placeholder, also affects increments
+    @Prop({type: Number, default: 0, validator: v => v >= 0}) min:number
+    @Prop({type: Number, default: 1000000}) max:number  // Either max possible, or max before inf.
+    @Prop({type: Boolean, default: false}) infinity:boolean  // Can be infinity after max reached
+    @Prop({type: Boolean, default: true}) buttons:boolean
 
     error = null
 
-    get text_value(){
+    get text_value():string{
         // The value given to the text field component
         return this.value === Infinity ? '∞' : `${this.value ?? ''}`
     }
-    set text_value(value){
+    set text_value(value:string){
         // Only emit (to update actual value) if input is valid
 
         // Get cleaned input (or error string)
@@ -56,39 +56,40 @@ export default class extends Vue {
         }
     }
 
-    get default_value(){
+    get default_value():number{
         // Either the value to inherit if none set, or min
         return this.inherit ?? this.min
     }
 
-    get virtual_value(){
+    get virtual_value():number{
         // Either the num value, or the default if that is null
         return this.value ?? this.default_value
     }
 
-    get real_max(){
+    get real_max():number{
         // Account for Infinity being the true max (if enabled)
         return this.infinity ? Infinity : this.max
     }
 
-    get is_min(){
+    get is_min():boolean{
         return this.virtual_value <= this.min
     }
 
-    get is_max(){
+    get is_max():boolean{
         return this.virtual_value >= this.real_max
     }
 
-    emit(value){
+    emit(value:number):void{
         // Emit a valid value and ensure error isn't set
         this.error = null
         this.$emit('input', value)
     }
 
-    handle_input(value){
+    handle_input(value:string):string|number{
         // Return a string for an error, otherwise null or number to emit
         if (value === '')
-            return null
+            // If able to inherit then null marks inheritance, but otherwise can't be null
+            return this.inherit === null ? this.default_value : null
         const num = parseFloat(value)
         if (Number.isNaN(num))
             return "Must be a number"
@@ -105,21 +106,21 @@ export default class extends Vue {
         return num
     }
 
-    decrease(){
+    decrease():void{
         // Decrease the current value by 1 (assumed not already at min)
         this.emit(this.virtual_value === Infinity ? this.max : this.virtual_value - 1)
     }
 
-    increase(){
+    increase():void{
         // Increase the current value by 1 (assumed not already at real_max)
         this.emit(this.virtual_value >= this.max ? Infinity : this.virtual_value + 1)
     }
 
-    set_min(){
+    set_min():void{
         this.emit(this.min)
     }
 
-    set_max(){
+    set_max():void{
         this.emit(this.real_max)
     }
 
