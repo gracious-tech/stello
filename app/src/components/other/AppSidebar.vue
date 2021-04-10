@@ -3,7 +3,7 @@
 
 div.sidebar
 
-    div(class='release-banner') ALPHA
+    div(class='release-banner') BETA
 
     app-logo.logo
 
@@ -83,5 +83,24 @@ export default class extends Vue {
 
 .main-nav
     flex-grow: 1
+
+.release-banner
+    // Appear fixed in top left
+    position: absolute
+    pointer-events: none
+    left: 0
+    top: 0
+    z-index: 10
+    // Size and rotation
+    width: 100px
+    transform: rotateZ(-45deg) translate(-30px, -14px)
+    font-size: 11px
+    padding-top: 2px
+    text-align: center
+    // Style
+    color: $on_accent
+    background-color: $accent
+    font-weight: bold
+    letter-spacing: 1px
 
 </style>
