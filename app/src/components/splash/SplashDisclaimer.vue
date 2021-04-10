@@ -13,23 +13,14 @@ app-content.page(class='pa-6')
 
     app-btn(href='https://stello.news' color='') More information
 
-    v-card(dark class='mt-15')
-        v-card-title In legal terms...
-        //- From MIT license (case changed, and first word 'the' -> 'this', otherwise unchanged)
-        v-card-text(class='body-2 text-left') This software is provided "as is", without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement. In no event shall the authors or copyright holders be liable for any claim, damages or other liability, whether in an action of contract, tort or otherwise, arising from, out of or in connection with the software or the use or other dealings in the software.
-
-    v-alert(class='body-2 text-left')
+    v-alert(class='body-2 text-left app-bg-accent')
         template(#prepend)
-            app-svg(name='icon_warning' class='mr-3')
-        | This is an alpha release. It's less stable than a beta, and is for trying out Stello but shouldn't be relied upon for anything important.
-    //- v-alert(class='body-2 text-left app-bg-accent')
-    //-     template(#prepend)
-    //-         app-svg(name='icon_info' class='mr-3')
-    //-     | This is a beta version. It's ready to use but may still have some issues.
-    //-     | If you identify any, please let us know.
+            app-svg(name='icon_info' class='mr-3')
+        | This is a beta/preview version. While ready to use, the coming official version will be even more reliable and secure if you prefer to wait for it.
 
-    p.accept(class='text-center')
-        v-checkbox(v-model='accept' label="I understand and accept the terms & conditions" color='accent')
+    div
+        p To use Stello you must agree to the #[a(href='https://stello.news/terms/') terms of use] and #[a(href='https://stello.news/privacy/') privacy policy]
+        v-checkbox(v-model='accept' label="I agree to the terms of use and privacy policy" color='accent')
 
     p(class='text-center')
         v-btn(@click='done' :disabled='!accept' light) Continue
@@ -82,21 +73,11 @@ h2
         height: 48px
         margin: 0 24px
 
-.v-card
-    background-color: #1e1e1e88
-
-    .v-card__title
-        font-size: 16px
-
 .v-alert
-    margin-top: 20px
-    margin-bottom: 40px
-    background-color: $error_darker
+    margin-top: 40px
+    margin-bottom: 60px
 
     svg
         min-width: 24px
-
-.accept
-    display: inline-block  // So can center horizontally
 
 </style>

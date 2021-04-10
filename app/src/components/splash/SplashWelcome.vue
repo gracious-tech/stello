@@ -5,8 +5,8 @@ app-content.page(class='pa-3 text-center')
 
     app-logo.logo
 
-    h2(class='text-h4') Send newsletters
-    h3(class='text-h6') specially designed for those in ministry
+    h2(class='text-h4') A new way to send newsletters
+    h3(class='text-h6') Specially designed for Christian ministry
 
     v-list(class='text-left')
         v-list-item
