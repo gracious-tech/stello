@@ -8,10 +8,10 @@ div
             div.support-inner
                 h3(class='text-h6') Still to come
                 ul
-                    li A helpful dashboard
-                    li Themes for changing background and colors
-                    li Add a header image to emails
-                p + many more...
+                    li Unsubscribing
+                    li Message themes (background &amp; colors)
+                    li An actually helpful dashboard
+                p + many many more...
                 app-btn(href='https://give.gracious.tech' color='#fa5788' raised small) Help us
 
 </template>
@@ -46,7 +46,6 @@ export default class extends Vue {
     .support-inner
         display: inline-flex
         flex-direction: column
-        margin-top: 100px
         border-radius: 12px
         padding: 24px
         width: auto
