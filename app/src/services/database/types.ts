@@ -197,6 +197,10 @@ export interface RecordMessage {
     draft:RecordDraft  // Entire object preserved for records and to make "edit as new" easier
     assets_key:CryptoKey
     assets_uploaded:{[id:string]:boolean}  // Key exists = uploaded, and boolean whether latest
+    // Must preserve expiration values as determined when message first published
+    //      Otherwise profile's values might change, and if inherited, true values no longer known
+    lifespan:number
+    max_reads:number
 }
 
 
@@ -261,8 +265,8 @@ export interface MessageOptionsIdentity {
 }
 
 export interface MessageOptionsSecurity {
-    lifespan:number  // NOTE may be Infinite (null used for inheritance)
-    max_reads:number  // NOTE may be Infinite (null used for inheritance)
+    lifespan:number  // NOTE may be Infinity (null used for inheritance)
+    max_reads:number  // NOTE may be Infinity (null used for inheritance)
 }
 
 

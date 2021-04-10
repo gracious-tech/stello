@@ -19,11 +19,12 @@ import {export_key, generate_hash, generate_token} from '../utils/crypt'
 import {generate_key_sym} from '../utils/crypt'
 import {buffer_to_url64} from '../utils/coding'
 import {remove} from '../utils/arrays'
+import * as migrations from './migrations'
 
 
 export function open_db():Promise<AppDatabaseConnection>{
     // Get access to db (and create/upgrade if needed)
-    return openDB<AppDatabaseSchema>('main', 5, {
+    return openDB<AppDatabaseSchema>('main', migrations.DATABASE_VERSION, {
         async upgrade(db, old_version, new_version, transaction){
 
             // Begin upgrade at whichever version is already present (no break statements)
@@ -109,13 +110,7 @@ export function open_db():Promise<AppDatabaseConnection>{
                         cursor.update(cursor.value)
                     }
                 case 4:
-                    // Order of steps changed so reset all progress to start (settings still saved)
-                    for await (const cursor of transaction.objectStore('profiles')){
-                        if (cursor.value.setup_step !== null){  // i.e. not fully setup yet
-                            cursor.value.setup_step = 0
-                            cursor.update(cursor.value)
-                        }
-                    }
+                    migrations.to5(transaction)
             }
         },
     })
@@ -258,8 +253,13 @@ export class Database {
     async draft_to_message(draft_id:string):Promise<string>{
         // Publish a draft, converting it to a Message
 
-        // Get the draft
+        // Get the draft and profile
         const draft = await this.drafts.get(draft_id)
+        const profile = await this.profiles.get(draft.profile)
+
+        // Determine expiration values, accounting for inheritance
+        const lifespan = draft.options_security.lifespan ?? profile.msg_options_security.lifespan
+        const max_reads = draft.options_security.max_reads ?? profile.msg_options_security.max_reads
 
         // Create the message object
         const message = new Message({
@@ -268,6 +268,8 @@ export class Database {
             draft: draft,
             assets_key: await generate_key_sym(true),
             assets_uploaded: {},
+            lifespan,
+            max_reads,
         })
 
         // Create copy objects for the recipients

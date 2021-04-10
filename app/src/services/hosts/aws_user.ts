@@ -3,6 +3,7 @@ import AWS from 'aws-sdk'
 
 import {HostCloud, HostCredentials, HostUser} from './types'
 import {StorageBaseAws} from './aws_common'
+import { enforce_range } from '../utils/numbers'
 
 
 export class HostUserAws extends StorageBaseAws implements HostUser {
@@ -41,16 +42,17 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         this.sts = new AWS.STS({apiVersion: '2011-06-15', credentials: aws_creds, region})
     }
 
-    async upload_file(path:string, data:Blob|ArrayBuffer, lifespan?:number, max_reads?:number,
-            ):Promise<void>{
+    async upload_file(path:string, data:Blob|ArrayBuffer, lifespan:number=Infinity,
+            max_reads:number=Infinity):Promise<void>{
         // Upload a file into the storage
 
         // Determine tags
         let tagging:string
-        if (lifespan){
+        if (lifespan !== Infinity){
+            lifespan = enforce_range(lifespan, 1, 365)  // Should have checked already, but do again
             tagging = `stello-lifespan=${lifespan}`
         }
-        if (max_reads){
+        if (max_reads !== Infinity){
             tagging = tagging ? `${tagging}&` : ''
             tagging += `stello-reads=0&stello-max-reads=${max_reads}`
         }

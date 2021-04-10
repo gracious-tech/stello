@@ -73,21 +73,6 @@ export class Sender {
     profile:Profile
     host:HostUser
 
-    get lifespan():number{
-        // Return lifespan (accounting for inheritance)
-        const value = this.msg.draft.options_security.lifespan
-            ?? this.profile.msg_options_security.lifespan
-        // WARN Ensure never exceed 365 if want to expire since no tag will match (for AWS)
-        return value === Infinity ? null : Math.min(value, 365)
-    }
-
-    get max_reads():number{
-        // Return max_reads (accounting for inheritance)
-        const value = this.msg.draft.options_security.max_reads
-            ?? this.profile.msg_options_security.max_reads
-        return value === Infinity ? null : value
-    }
-
     async send(task:Task):Promise<void>{
         // Encrypt and upload assets and copies, and send email invites
 
@@ -130,7 +115,7 @@ export class Sender {
             title: this.msg.draft.title,
             published: this.msg.published,
             base_msg_id: this.msg_id,
-            has_max_reads: this.max_reads !== null,
+            has_max_reads: this.msg.safe_max_reads !== Infinity,
             sections: pub_sections,
             assets_key: buffer_to_url64(await export_key(this.msg.assets_key)),
         }
@@ -157,8 +142,8 @@ export class Sender {
 
         // Encrypt and upload
         const encrypted = await encrypt_sym(asset.data, this.msg.assets_key)
-        await this.host.upload_file(`assets/${this.msg_id}/${asset.id}`, encrypted, this.lifespan,
-            this.max_reads)
+        await this.host.upload_file(`assets/${this.msg_id}/${asset.id}`, encrypted,
+            this.msg.safe_lifespan_remaining, this.msg.safe_max_reads)
 
         // Mark as uploaded
         this.msg.assets_uploaded[asset.id] = true
@@ -181,7 +166,8 @@ export class Sender {
         // Encrypt and upload
         const binary = string_to_utf8(JSON.stringify(pub_copy))
         const encrypted = await encrypt_sym(binary, copy.secret)
-        await this.host.upload_file(`copies/${copy.id}`, encrypted, this.lifespan, this.max_reads)
+        await this.host.upload_file(`copies/${copy.id}`, encrypted,
+            this.msg.safe_lifespan_remaining, this.msg.safe_max_reads)
 
         // Mark as uploaded
         copy.uploaded = true
