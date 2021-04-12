@@ -68,6 +68,7 @@ function _remove<T>(array:T[], checker:(item:T)=>any, single:boolean):T[]{
 export function remove_item<T>(array:T[], item:T):boolean{
     // Remove given item from the array and return whether item existed
     // NOTE Does not remove more than one item if duplicates
+    // WARN May want to use `remove_value` for small arrays in case duplicates
     return _remove(array, array_item => array_item === item, true).length > 0
 }
 
@@ -80,6 +81,7 @@ export function remove_value<T>(array:T[], value:T):number{
 
 export function remove_match<T>(array:T[], checker:(item:T)=>any):T{
     // Remove first item that matches checker fn and return it (undefined if none)
+    // WARN May want to use `remove_matches` for small arrays in case duplicates
     return _remove(array, checker, true)[0]
 }
 
