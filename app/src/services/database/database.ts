@@ -2,7 +2,7 @@
 import {openDB} from 'idb/with-async-ittr.js'
 
 import {AppDatabaseSchema, AppDatabaseConnection, RecordReplaction, RecordSectionContent,
-    } from './types'
+    RecordDraft} from './types'
 import {DatabaseState} from './state'
 import {DatabaseContacts} from './contacts'
 import {DatabaseGroups} from './groups'
@@ -235,6 +235,63 @@ export class Database {
         // Wait till done and then return message id
         await transaction.done
         return message.id
+    }
+
+    draft_recipients_descriptor():(draft:RecordDraft)=>Promise<string>{
+        // Returns a fn for getting as useful a desc of recipients as possible
+        // NOTE Caches group and contact names so can reuse for multiple drafts more efficiently
+
+        const group_names = {}
+        const contact_names = {}
+
+        return async (draft:Draft):Promise<string> => {
+            // Unpack recipient arrays
+            const {include_groups, exclude_groups, include_contacts, exclude_contacts} =
+                draft.recipients
+
+            // Collect known names
+            const names = []
+            if (include_groups.length){
+                // There's groups, and unlikely many, so list them all
+                for (const group_id of include_groups){
+                    // If group not within group_names then haven't attempted to load yet
+                    if (! (group_id in group_names)){
+                        const group = await this.groups.get(group_id)
+                        group_names[group_id] = group?.name ?? null
+                    }
+                    // If group's name isn't null (no longer exists) then add to the list
+                    if (group_names[group_id]){
+                        names.push(group_names[group_id])
+                    }
+                }
+            } else {
+                // There's only contacts, so list a few
+                for (const contact_id of include_contacts.slice(0, 3)){
+                    // If contact not within contact_names then haven't attempted to load yet
+                    if (! (contact_id in contact_names)){
+                        const contact = await this.contacts.get(contact_id)
+                        contact_names[contact_id] = contact?.name ?? null
+                    }
+                    // If contact's name isn't null (no longer exists) then add to the list
+                    if (contact_names[contact_id]){
+                        names.push(contact_names[contact_id])
+                    }
+                }
+            }
+
+            // See if there's more to the story than detected names, and show ... if so
+            const num_possible = include_groups.length + include_contacts.length
+            if (num_possible > names.length || exclude_groups.length || exclude_contacts.length){
+                if (!names.length){
+                    // No names were able to be gotten so add numbers instead
+                    names.push(include_groups.length ? `${include_groups.length} groups`
+                        : `${include_contacts.length} contacts`)
+                }
+                names.push('...')
+            }
+
+            return names.join(', ')
+        }
     }
 
     async read_create(sent:Date, resp_token:string, ip:string, user_agent:string):Promise<Read>{
