@@ -12,7 +12,12 @@
   "rules": {
     "align": false,
     "array-type": [true, "array"],
-    "max-line-length": [true, 100],
+    "max-line-length": [true, {
+        "limit": 100,
+        "check-regex": true,
+        "check-strings": true,
+        "ignore-pattern": "https?\\:"
+    }],
     "max-classes-per-file": false,
     "quotemark": [false],
     "indent": [true, "spaces", 4],

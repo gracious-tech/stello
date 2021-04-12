@@ -46,11 +46,11 @@ export default class extends Vue {
             await Promise.all([
                 self._db.contacts.list_for_account(this.oauth.issuer, this.oauth.issuer_id)
                     .then(contacts => Promise.all(
-                        contacts.map(c => self._db.contacts.remove(c.id))
+                        contacts.map(c => self._db.contacts.remove(c.id)),
                     )),
                 self._db.groups.list_for_account(this.oauth.issuer, this.oauth.issuer_id)
                     .then(groups => Promise.all(
-                        groups.map(g => self._db.groups.remove(g.id))
+                        groups.map(g => self._db.groups.remove(g.id)),
                     )),
             ])
             // Now safe to disable the oauth and revoke if needed

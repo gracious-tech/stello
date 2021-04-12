@@ -101,7 +101,7 @@ async function send_emails_oauth_microsoft(oauth:OAuth, emails:Email[], from:Ema
                             },
                         },
                     }
-                })
+                }),
             }) as MicrosoftBatchResponse
 
             // Process each sub-response individually

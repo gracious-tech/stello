@@ -43,7 +43,7 @@ export default class extends Vue {
 
     get error_type():TaskErrorType{
         // Detect the type of failure based on the error
-        let type = this.task.error_type
+        const type = this.task.error_type
         if (type === 'auth' && this.task.fix_oauth){
             // Since have access to oauth object, can be more specific
             if (this.oauth?.scope_sets.includes(this.required_scope_set)){

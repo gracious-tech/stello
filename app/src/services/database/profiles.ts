@@ -298,7 +298,9 @@ export class DatabaseProfiles {
                     <p>Please see below for latest news.</p>
                     <p>Regards,<br>SENDER</p>
                 `,
-                invite_tmpl_clipboard: 'Dear CONTACT, please see below for latest news. Regards, SENDER\n\nSUBJECT\nLINK',
+                invite_tmpl_clipboard: ""
+                    + "Dear CONTACT, please see below for latest news. Regards, SENDER"
+                    + "\n\nSUBJECT\nLINK",
             },
             msg_options_security: {
                 lifespan: 3,
