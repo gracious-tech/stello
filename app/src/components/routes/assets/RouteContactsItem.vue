@@ -44,17 +44,7 @@ export default class extends Vue {
 
     toggle_selected(event:MouseEvent){
         // Toggle the selected status of the contact item
-        if (process.env.NODE_ENV === 'development' && event.shiftKey){
-            // Secret action during dev to duplicate the contact many times
-            for (let i=0; i < 100; i++){
-                const name = `${this.item.contact.name} ${i}`
-                const [email_user, email_domain] = partition(this.item.contact.address, '@')
-                const email = `${email_user}+${i}@${email_domain}`
-                self._db.contacts.create(name, email)
-            }
-        } else {
-            this.item.selected = !this.item.selected
-        }
+        this.item.selected = !this.item.selected
     }
 }
 

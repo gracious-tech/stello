@@ -18,6 +18,7 @@ import {DatabaseReactions, Reaction} from './reactions'
 import {export_key, generate_hash, generate_token} from '../utils/crypt'
 import {generate_key_sym} from '../utils/crypt'
 import {buffer_to_url64} from '../utils/coding'
+import {range} from '../utils/iteration'
 import {remove_item} from '../utils/arrays'
 import {migrate, DATABASE_VERSION} from './migrations'
 
@@ -165,7 +166,7 @@ export class Database {
         ])
     }
 
-    async draft_to_message(draft_id:string):Promise<string>{
+    async draft_to_message(draft_id:string):Promise<Message>{
         // Publish a draft, converting it to a Message
 
         // Get the draft and profile
@@ -232,9 +233,9 @@ export class Database {
         // Delete the original draft
         store_drafts.delete(draft.id)
 
-        // Wait till done and then return message id
+        // Wait till done and then return message
         await transaction.done
-        return message.id
+        return message
     }
 
     draft_recipients_descriptor():(draft:RecordDraft)=>Promise<string>{
@@ -387,5 +388,58 @@ export class Database {
         })
         await this._conn.add('replies', reply)
         return reply
+    }
+
+    async generate_dummy_data(multiplier:number):Promise<void>{
+        // Generate dummy data for testing (can be called multiple times for even more data)
+
+        // Make multiplier more exponential by timesing by itself
+        // NOTE Multiplier should usually be 1|2|3, so will end up as 1|4|9
+        multiplier *= multiplier
+
+        // Create a profile
+        const profile = await this.profiles.create()
+        profile.email = 'sender@localhost'
+        profile.msg_options_identity.sender_name = "Sender Name"
+        profile.host = JSON.parse(process.env.VUE_APP_DEV_HOST_SETTINGS)
+        profile.setup_step = null
+        await this.profiles.set(profile)
+
+        // Create contacts
+        const contacts = await Promise.all([...range(100 * multiplier)].map(
+            i => this.contacts.create(`User${i} Name`, `user+${i}@localhost`)))
+
+        // Create a section
+        const section = await this.sections.create({
+            type: 'text',
+            html: '<p>Text for section</p>',
+            standout: null,
+        })
+
+        // Create base draft
+        const draft = await this.drafts.create_object()
+        draft.title = "A dummy newsletter"
+        draft.profile = profile.id
+        draft.sections = [[section.id]]
+        draft.recipients.include_contacts = contacts.slice(0, 10 * multiplier).map(c => c.id)
+        await this.drafts.set(draft)
+
+        // Create sent messages
+        const messages = await Promise.all([...range(10 * multiplier)].map(async i => {
+            const draft_copy = await this.draft_copy(
+                new Draft({...draft, title: `A dummy newsletter ${i}`}))
+            const msg = await this.draft_to_message(draft_copy.id)
+            return msg
+        }))
+
+        // Create responses
+        for (const msg of messages){
+            for (const msg_copy of await this.copies.list_for_msg(msg.id)){
+                await this.reaction_create('love', new Date(), msg_copy.resp_token,
+                    msg.draft.sections[0][0], '', '')
+                await this.reply_create('A message', new Date(), msg_copy.resp_token,
+                    msg.draft.sections[0][0], '', '')
+            }
+        }
     }
 }

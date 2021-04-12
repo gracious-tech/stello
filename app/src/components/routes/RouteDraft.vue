@@ -233,7 +233,7 @@ export default class extends Vue {
         }
 
         // Convert to message
-        const msg_id = await self._db.draft_to_message(this.draft_id)
+        const msg = await self._db.draft_to_message(this.draft_id)
 
         // Upload configs first if needed
         if (this.profile.configs_need_uploading){
@@ -244,7 +244,7 @@ export default class extends Vue {
         }
 
         // Start sending task
-        this.$tm.start_send_message(msg_id)
+        this.$tm.start_send_message(msg.id)
 
         // Navigate to root
         this.$router.push('/')

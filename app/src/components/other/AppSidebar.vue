@@ -45,8 +45,19 @@ export default class extends Vue {
         return this.$store.state.default_template
     }
 
-    async new_draft(){
+    async new_draft(event:MouseEvent){
         // Create a new draft and navigate to it
+
+        // If shift click in dev, trigger hidden action for generating dummy data
+        if (process.env.NODE_ENV === 'development' && event.shiftKey){
+            // @ts-ignore adding booleans works for this
+            const multiplier = event.shiftKey + event.altKey + event.ctrlKey
+            this.$store.dispatch('show_snackbar', `Generating dummy data * ${multiplier}...`)
+            await self._db.generate_dummy_data(multiplier)
+            self.location.reload()
+            return
+        }
+
         let draft:Draft
         // NOTE Also double check default template id not just set, but actual template exists still
         if (this.default_template && await self._db.drafts.get(this.default_template)){

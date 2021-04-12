@@ -43,6 +43,12 @@ export class DatabaseCopies {
         this._conn = connection
     }
 
+    async list():Promise<MessageCopy[]>{
+        // Get all copies
+        const copies = await this._conn.getAll('copies')
+        return copies.map(copy => new MessageCopy(copy))
+    }
+
     async list_for_msg(msg_id:string):Promise<MessageCopy[]>{
         // Get all copies for given message id
         const copies = await this._conn.getAllFromIndex('copies', 'by_msg', msg_id)
