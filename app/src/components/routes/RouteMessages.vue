@@ -7,7 +7,8 @@ div
 
     app-content(class='pa-5')
         v-list
-            route-messages-item(v-for='message of messages' :msg='message' :key='message.id')
+            route-messages-item(v-for='message of messages' :msg='message'
+                :recipients='recipients[message.id]' :key='message.id')
 
 </template>
 
@@ -27,10 +28,18 @@ import {Message} from '@/services/database/messages'
 export default class extends Vue {
 
     messages:Message[] = []
+    recipients:Record<string, string> = {}
 
     async created(){
         // Get messages from db
         const messages = await self._db.messages.list()
+        const descriptor = self._db.draft_recipients_descriptor()
+        for (const msg of messages){
+            Vue.set(this.recipients, msg.id, '')
+            descriptor(msg.draft).then(desc => {
+                Vue.set(this.recipients, msg.id, desc)
+            })
+        }
         sort(messages, 'published', false)
         this.messages = messages
     }

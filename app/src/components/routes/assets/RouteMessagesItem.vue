@@ -4,7 +4,11 @@
 v-list-item(:to='to')
     v-list-item-content
         v-list-item-title {{ msg.display }}
-        v-list-item-subtitle {{ msg.published.toLocaleString() }}
+        v-list-item-subtitle {{ recipients }}
+    v-list-item-content
+        v-list-item-subtitle(class='text-right') {{ msg.published.toLocaleString() }}
+        div(v-if='expires' class='text-right')
+            v-chip(small) {{ expires }}
     v-list-item-action
         app-menu-more
             app-list-item(@click='copy') Copy to new draft
@@ -24,9 +28,20 @@ import {Message} from '@/services/database/messages'
 export default class extends Vue {
 
     @Prop() msg:Message
+    @Prop() recipients:string
 
     get to(){
         return {name: 'message', params: {msg_id: this.msg.id}}
+    }
+
+    get expires():string{
+        // A useful description of the msg's expiry time
+        if (this.msg.expired){
+            return "Expired"
+        } else if (this.msg.expires){
+            return `Expires in ${this.msg.safe_lifespan_remaining} days`
+        }
+        return null
     }
 
     async copy(){
