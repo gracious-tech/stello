@@ -50,6 +50,46 @@ export function remove<AT, IT>(array:AT[], item:IT,
 }
 
 
+function _remove<T>(array:T[], checker:(item:T)=>any, single:boolean):T[]{
+    // Remove items from array whose return from checker fn is truthy and return removed items
+    const removed:T[] = []
+    for (let i = array.length - 1; i >= 0; i--){
+        if (checker(array[i])){
+            removed.push(...array.splice(i, 1))
+            if (single){
+                break
+            }
+        }
+    }
+    return removed
+}
+
+
+export function remove_item<T>(array:T[], item:T):boolean{
+    // Remove given item from the array and return whether item existed
+    // NOTE Does not remove more than one item if duplicates
+    return _remove(array, array_item => array_item === item, true).length > 0
+}
+
+
+export function remove_value<T>(array:T[], value:T):number{
+    // Remove given value from all of the array and return how many times removed
+    return _remove(array, array_item => array_item === value, false).length
+}
+
+
+export function remove_match<T>(array:T[], checker:(item:T)=>any):T{
+    // Remove first item that matches checker fn and return it (undefined if none)
+    return _remove(array, checker, true)[0]
+}
+
+
+export function remove_matches<T>(array:T[], checker:(item:T)=>any):T[]{
+    // Remove items that match checker fn and return them (empty array if none)
+    return _remove(array, checker, false)
+}
+
+
 export function get_last(array:any[]):any{
     // Return the last item in the array, or undefined (useful when array name very long)
     return array[array.length-1]
