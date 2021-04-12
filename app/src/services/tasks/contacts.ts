@@ -3,7 +3,7 @@ import {uniq, xor} from 'lodash'
 
 import {Task} from './tasks'
 import {OAuth} from '../database/oauths'
-import {OAuthIssuer, oauth_request} from './oauth'
+import {oauth_request} from './oauth'
 import {partition} from '../utils/strings'
 
 

@@ -53,7 +53,7 @@ import {partition} from '@/services/utils/strings'
 import {Contact} from '@/services/database/contacts'
 import {Group} from '@/services/database/groups'
 import {OAuth} from '@/services/database/oauths'
-import {sort} from '@/services/utils/arrays'
+import {remove_item, sort} from '@/services/utils/arrays'
 import {Task, task_manager} from '@/services/tasks/tasks'
 
 
@@ -169,7 +169,7 @@ export default class extends Vue {
                 if (group_ids.includes(group.id)){
                     group.contacts.push(this.contact.id)
                 } else {
-                    group.contacts = group.contacts.filter(c => c !== this.contact.id)
+                    remove_item(group.contacts, this.contact.id)
                 }
                 // Save changes
                 self._db.groups.set(group)

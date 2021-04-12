@@ -20,7 +20,7 @@ div(class='my-6')
 import {Component, Vue} from 'vue-property-decorator'
 
 import RouteSettingsProfilesItem from '@/components/routes/assets/RouteSettingsProfilesItem.vue'
-import {sort} from '@/services/utils/arrays'
+import {remove_match, sort} from '@/services/utils/arrays'
 import {Profile} from '@/services/database/profiles'
 
 
@@ -48,9 +48,9 @@ export default class extends Vue {
         })
     }
 
-    removed(profile_id){
+    removed(profile_id:string){
         // Handle profile removal events
-        this.profiles = this.profiles.filter(profile => profile.id !== profile_id)
+        remove_match(this.profiles, profile => profile.id === profile_id)
     }
 
 }

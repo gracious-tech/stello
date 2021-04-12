@@ -79,7 +79,7 @@ import DialogGroupName from '../dialogs/reuseable/DialogGroupName.vue'
 import DialogContactsImport from '@/components/dialogs/DialogContactsImport.vue'
 import RouteContactsItem from './assets/RouteContactsItem.vue'
 import RouteContactsGroup from './assets/RouteContactsGroup.vue'
-import {remove_item, remove_match, sort} from '@/services/utils/arrays'
+import {remove_item, remove_match, remove_matches, sort} from '@/services/utils/arrays'
 import {download_file} from '@/services/utils/misc'
 import {Group} from '@/services/database/groups'
 import {Contact} from '@/services/database/contacts'
@@ -227,14 +227,14 @@ export default class extends Vue {
 
     async load_contacts():Promise<void>{
         // Load all contacts and groups from db
-        let [contacts, groups, oauths] = await Promise.all([
+        const [contacts, groups, oauths] = await Promise.all([
             self._db.contacts.list(),
             self._db.groups.list(),
             self._db.oauths.list(),
         ])
 
         // Only consider oauths that have contact syncing enabled
-        oauths = oauths.filter(oauth => oauth.contacts_sync)
+        remove_matches(oauths, oauth => !oauth.contacts_sync)
 
         // Sort all
         // NOTE Not using `display` so that empty names appear first
@@ -355,8 +355,10 @@ export default class extends Vue {
         const skipped_text = skipped ? `(skipped ${skipped} synced contacts)` : ''
         this.$store.dispatch('show_snackbar', `Deleted ${count} contacts ${skipped_text}`)
 
-        // Remove deleted from list by filtering them out
-        this.contacts = this.contacts.filter(item => !item.selected || item.contact.service_account)
+        // Remove deleted from list
+        for (const item of this.contacts_selected_internal){
+            remove_item(this.contacts, item)
+        }
     }
 
     do_selected_export():void{
@@ -414,9 +416,9 @@ export default class extends Vue {
     do_selected_leave_group():void{
         // Remove selected contacts from currently selected group (if not external)
         if (this.filter_group && !this.filter_group.service_account){
-            const selected_ids = this.contacts_selected.map(item => item.contact.id)
-            this.filter_group.contacts = this.filter_group.contacts.filter(
-                id => !selected_ids.includes(id))
+            for (const item of this.contacts_selected){
+                remove_item(this.filter_group.contacts, item.contact.id)
+            }
             self._db.groups.set(this.filter_group)
             // Clear selection so user doesn't get confused
             this.clear_selected()

@@ -33,7 +33,7 @@ div
 import {Component, Vue} from 'vue-property-decorator'
 
 import RouteDraftsItem from './assets/RouteDraftsItem.vue'
-import {sort} from '@/services/utils/arrays'
+import {remove_match, sort} from '@/services/utils/arrays'
 import {Draft} from '@/services/database/drafts'
 
 
@@ -78,9 +78,9 @@ export default class extends Vue {
         this.new_draft(true)
     }
 
-    removed(removed_id){
+    removed(removed_id:string){
         // Handle removal of a draft
-        this.drafts = this.drafts.filter(draft => draft.id !== removed_id)
+        remove_match(this.drafts, draft => draft.id === removed_id)
     }
 
     copied(copy){

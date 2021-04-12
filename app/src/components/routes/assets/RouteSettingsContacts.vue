@@ -21,7 +21,7 @@ import {Component, Vue} from 'vue-property-decorator'
 
 import DialogContactsImport from '@/components/dialogs/DialogContactsImport.vue'
 import RouteSettingsContactsItem from '@/components/routes/assets/RouteSettingsContactsItem.vue'
-import {sort} from '@/services/utils/arrays'
+import {remove_match, sort} from '@/services/utils/arrays'
 import {OAuth} from '@/services/database/oauths'
 
 
@@ -41,7 +41,7 @@ export default class extends Vue {
 
     removed(oauth_id:string):void{
         // Handle oauth removal events
-        this.oauths = this.oauths.filter(oauth => oauth.id !== oauth_id)
+        remove_match(this.oauths, oauth => oauth.id === oauth_id)
     }
 
     async import_contacts(){
