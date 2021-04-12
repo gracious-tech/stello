@@ -8,14 +8,20 @@ export function sort(array:string[]|number[]|object[], property:string=null, asc
         3. Can sort based on a property if items are objects
     */
 
-    // If empty, can't check first value's type, so return now
+    // If empty, nothing to sort, and can't check first value's type, so return now
     if (!array.length)
         return
 
     // Check type of first value so know what comparison to do
     const first_val = property ? array[0][property] : array[0]
-    const subtractable = typeof first_val === 'number' || first_val instanceof Date
-    let compare = subtractable ? (a, b) => a - b : new Intl.Collator().compare
+    let compare:(a:any, b:any)=>number
+    if (typeof first_val === 'number'){
+        compare = (a:number, b:number):number => a - b
+    } else if (first_val instanceof Date){
+        compare = (a:Date, b:Date):number => a.getTime() - b.getTime()
+    } else {
+        compare = new Intl.Collator().compare
+    }
 
     // Reverse comparison if decending order
     if (!ascending){
