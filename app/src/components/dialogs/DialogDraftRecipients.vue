@@ -56,7 +56,7 @@ v-card
 
 import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
-import {sort, remove} from '@/services/utils/arrays'
+import {sort, remove_item} from '@/services/utils/arrays'
 import {Draft} from '@/services/database/drafts'
 import {Group} from '@/services/database/groups'
 import {Contact} from '@/services/database/contacts'
@@ -202,11 +202,11 @@ export default class extends Vue {
         // A three state toggle for groups: include -> exclude -> undefined
         if (this.draft.recipients.include_groups.includes(group_id)){
             // Was included, so now exclude
-            remove(this.draft.recipients.include_groups, group_id)
+            remove_item(this.draft.recipients.include_groups, group_id)
             this.draft.recipients.exclude_groups.push(group_id)
         } else if (this.draft.recipients.exclude_groups.includes(group_id)){
             // Was excluded, so now leave undefined
-            remove(this.draft.recipients.exclude_groups, group_id)
+            remove_item(this.draft.recipients.exclude_groups, group_id)
         } else {
             // Was undefined, so now include
             this.draft.recipients.include_groups.push(group_id)
@@ -218,11 +218,11 @@ export default class extends Vue {
         // A three state toggle for contacts: include -> exclude -> undefined
         if (this.draft.recipients.include_contacts.includes(contact_id)){
             // Was included, so now exclude
-            remove(this.draft.recipients.include_contacts, contact_id)
+            remove_item(this.draft.recipients.include_contacts, contact_id)
             this.draft.recipients.exclude_contacts.push(contact_id)
         } else if (this.draft.recipients.exclude_contacts.includes(contact_id)){
             // Was excluded, so now leave undefined
-            remove(this.draft.recipients.exclude_contacts, contact_id)
+            remove_item(this.draft.recipients.exclude_contacts, contact_id)
         } else {
             // Was undefined, so now include
             this.draft.recipients.include_contacts.push(contact_id)

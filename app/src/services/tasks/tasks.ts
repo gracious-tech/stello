@@ -3,7 +3,7 @@
 import Vue from 'vue'
 import {isEqual} from 'lodash'
 
-import {remove} from '../utils/arrays'
+import {remove_item, remove_matches} from '../utils/arrays'
 import {configs_update} from './configs'
 import {responses_receive} from './responses'
 import {contacts_oauth_setup, contacts_sync, contacts_change_property, contacts_change_email,
@@ -193,7 +193,9 @@ export class TaskManager {
         this.data.tasks.push(task)
 
         // Clear any existing fail
-        remove(this.data.fails, task, (a, b)=>a.name === b.name && isEqual(a.params, b.params))
+        remove_matches(this.data.fails, (failed_task:Task) => {
+            return failed_task.name === task.name && isEqual(failed_task.params, task.params)
+        })
 
         // Start doing the work
         TASKS[name](task).then(async subtasks => {
@@ -205,7 +207,7 @@ export class TaskManager {
             return error
         }).then((error:any) => {
             task.finish(error)
-            remove(this.data.tasks, task)
+            remove_item(this.data.tasks, task)
             if (error === null){
                 this.data.finished = task
             } else {

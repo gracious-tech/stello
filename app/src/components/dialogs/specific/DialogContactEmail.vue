@@ -41,7 +41,7 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 import {Contact} from '@/services/database/contacts'
 import {OAuth} from '@/services/database/oauths'
 import {taskless_contact_addresses} from '@/services/tasks/contacts'
-import {remove} from '@/services/utils/arrays'
+import {remove_item} from '@/services/utils/arrays'
 import {email_address_like} from '@/services/utils/misc'
 
 
@@ -89,7 +89,7 @@ export default class extends Vue {
 
     remove(address:string):void{
         // Remove an address from the list
-        remove(this.addresses, address)
+        remove_item(this.addresses, address)
         if (this.chosen === address){
             this.chosen = this.addresses[0]
         }

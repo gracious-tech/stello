@@ -5,7 +5,7 @@ import {
 } from './types'
 import {Group} from './groups'
 import {generate_token} from '@/services/utils/crypt'
-import {remove} from '@/services/utils/arrays'
+import {remove_item} from '@/services/utils/arrays'
 
 
 export class Draft implements RecordDraft {
@@ -32,10 +32,10 @@ export class Draft implements RecordDraft {
 
     get_final_recipients(groups:Group[]):string[]{
         // Return array of contact ids to send to after accounting for all includes/excludes
-        const recipients = []
+        const recipients:string[] = []
 
         // Create a mapping of group ids to their contacts
-        const groups_dict = {}
+        const groups_dict:Record<string, string[]> = {}
         for (const group of groups){
             groups_dict[group.id] = group.contacts
         }
@@ -51,7 +51,7 @@ export class Draft implements RecordDraft {
         for (const group_id of this.recipients.exclude_groups){
             if (group_id in groups_dict){  // WARN Group may no longer exist
                 for (const contact_id of groups_dict[group_id]){
-                    remove(recipients, contact_id)
+                    remove_item(recipients, contact_id)
                 }
             }
         }
@@ -61,7 +61,7 @@ export class Draft implements RecordDraft {
 
         // Remove all contacts excluded explicitly (overrides all)
         for (const contact_id of this.recipients.exclude_contacts){
-            remove(recipients, contact_id)
+            remove_item(recipients, contact_id)
         }
 
         // Deduplicate

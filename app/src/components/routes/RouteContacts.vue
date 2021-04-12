@@ -79,7 +79,7 @@ import DialogGroupName from '../dialogs/reuseable/DialogGroupName.vue'
 import DialogContactsImport from '@/components/dialogs/DialogContactsImport.vue'
 import RouteContactsItem from './assets/RouteContactsItem.vue'
 import RouteContactsGroup from './assets/RouteContactsGroup.vue'
-import {remove, sort} from '@/services/utils/arrays'
+import {remove_item, remove_match, sort} from '@/services/utils/arrays'
 import {download_file} from '@/services/utils/misc'
 import {Group} from '@/services/database/groups'
 import {Contact} from '@/services/database/contacts'
@@ -217,7 +217,7 @@ export default class extends Vue {
         // Listen to task completions and adjust state as needed
         // TODO handle more events
         if (task.name === 'contacts_remove'){
-            remove(this.contacts, task.params[1], (ai, i) => ai.contact.id === i)
+            remove_match(this.contacts, item => item.contact.id === task.params[1])
         } else if (task.name === 'contacts_sync'){
             this.load_contacts()
         }
@@ -436,7 +436,7 @@ export default class extends Vue {
 
     on_group_removed(group:Group):void{
         // When a group is removed, also remove from this component's array
-        remove(this.groups, group)
+        remove_item(this.groups, group)
     }
 }
 

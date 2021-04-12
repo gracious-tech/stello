@@ -18,7 +18,7 @@ import {DatabaseReactions, Reaction} from './reactions'
 import {export_key, generate_hash, generate_token} from '../utils/crypt'
 import {generate_key_sym} from '../utils/crypt'
 import {buffer_to_url64} from '../utils/coding'
-import {remove} from '../utils/arrays'
+import {remove_item} from '../utils/arrays'
 import {migrate, DATABASE_VERSION} from './migrations'
 
 
@@ -156,7 +156,7 @@ export class Database {
     async draft_section_remove(draft:Draft, section:Section):Promise<void>{
         // Remove a section from a draft
         draft.sections = draft.sections.filter(row => {
-            remove(row, section.id)  // Remove from inner array if present (can since row is a ref)
+            remove_item(row, section.id)  // Remove from inner array if exists (row is a ref)
             return row.length  // Keep row if still has a section
         })
         await Promise.all([
