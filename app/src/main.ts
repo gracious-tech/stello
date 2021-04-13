@@ -28,6 +28,7 @@ import AppFile from '@/components/global/AppFile.vue'
 import AppSwitch from '@/components/global/AppSwitch.vue'
 import AppSelect from '@/components/global/AppSelect.vue'
 import AppContent from '@/components/global/AppContent.vue'
+import AppContentList from '@/components/global/AppContentList.vue'
 import AppInteger from '@/components/global/AppInteger.vue'
 import AppPassword from '@/components/global/AppPassword.vue'
 import AppMenuMore from '@/components/global/AppMenuMore.vue'
@@ -112,6 +113,7 @@ Vue.component('app-file', AppFile)
 Vue.component('app-switch', AppSwitch)
 Vue.component('app-select', AppSelect)
 Vue.component('app-content', AppContent)
+Vue.component('app-content-list', AppContentList)
 Vue.component('app-integer', AppInteger)
 Vue.component('app-password', AppPassword)
 Vue.component('app-menu-more', AppMenuMore)

@@ -5,10 +5,10 @@ div
     v-toolbar
         v-toolbar-title Sent Messages
 
-    app-content(class='pa-5')
-        v-list
-            route-messages-item(v-for='message of messages' :msg='message'
-                :recipients='recipients[message.id]' :key='message.id')
+    app-content-list(:items='messages' height='80' class='pt-6')
+        template(#default='{item, height_styles}')
+            route-messages-item(:msg='item' :recipients='recipients[item.id]' :key='item.id'
+                :style='height_styles')
 
 </template>
 
