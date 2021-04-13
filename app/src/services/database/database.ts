@@ -181,6 +181,7 @@ export class Database {
         const message = new Message({
             id: generate_token(),
             published: new Date(),
+            expired: false,
             draft: draft,
             assets_key: await generate_key_sym(true),
             assets_uploaded: {},
@@ -211,6 +212,7 @@ export class Database {
                 uploaded: false,
                 uploaded_latest: false,
                 invited: false,
+                expired: false,
                 contact_id: contact.id,
                 contact_name: contact.name,
                 contact_hello: contact.name_hello_result,

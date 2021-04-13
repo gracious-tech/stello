@@ -194,6 +194,7 @@ export interface ContentFile {
 export interface RecordMessage {
     id:string
     published:Date
+    expired:boolean  // True if all copies and assets gone from server, false if unknown
     draft:RecordDraft  // Entire object preserved for records and to make "edit as new" easier
     assets_key:CryptoKey
     assets_uploaded:{[id:string]:boolean}  // Key exists = uploaded, and boolean whether latest
@@ -214,6 +215,7 @@ export interface RecordMessageCopy {
     uploaded:boolean
     uploaded_latest:boolean
     invited:boolean
+    expired:boolean  // True if server copy definitely gone, false if unknown
     contact_id:string
     // Preserve contact details in case contact object later deleted
     contact_name:string

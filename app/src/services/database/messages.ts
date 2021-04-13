@@ -9,6 +9,7 @@ export class Message implements RecordMessage {
 
     id:string
     published:Date
+    expired:boolean
     draft:RecordDraft
     assets_key:CryptoKey
     assets_uploaded:{[id:string]:boolean}
@@ -49,8 +50,11 @@ export class Message implements RecordMessage {
         return this.safe_lifespan === Infinity ? null : addDays(this.published, this.safe_lifespan)
     }
 
-    get expired():boolean{
-        // Whether this message has expired
+    get probably_expired():boolean{
+        // Whether this message has probably expired (may or may not know for sure yet)
+        if (this.expired){
+            return true  // Have confirmed with server that it's gone
+        }
         if (this.expires === null){
             return false
         }

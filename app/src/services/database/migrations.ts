@@ -134,6 +134,7 @@ async function to4(transaction:VersionChangeTransaction){
 
 
 async function to5(transaction:VersionChangeTransaction){
+
     // Order of steps changed so reset all progress to start (settings still saved)
     const profiles:Record<string, RecordProfile> = {}
     for await (const cursor of transaction.objectStore('profiles')){
@@ -143,14 +144,26 @@ async function to5(transaction:VersionChangeTransaction){
             cursor.update(cursor.value)
         }
     }
-    // Previously didn't store determined expiration values on messages
+
     for await (const cursor of transaction.objectStore('messages')){
+
+        // Previously didn't store determined expiration values on messages
         // NOTE Slight chance profile may have changed or been deleted but low risk
         const profile = profiles[cursor.value.draft.profile]
         cursor.value.lifespan = cursor.value.draft.options_security.lifespan
             ?? profile?.msg_options_security.lifespan ?? Infinity
         cursor.value.max_reads = cursor.value.draft.options_security.max_reads
             ?? profile?.msg_options_security.max_reads ?? Infinity
+
+        // Add new expired property
+        cursor.value.expired = false
+
+        cursor.update(cursor.value)
+    }
+
+    // Add new expired property to copies
+    for await (const cursor of transaction.objectStore('copies')){
+        cursor.value.expired = false
         cursor.update(cursor.value)
     }
 }

@@ -11,6 +11,7 @@ export class MessageCopy implements RecordMessageCopy {
     uploaded:boolean
     uploaded_latest:boolean
     invited:boolean
+    expired:boolean
     contact_id:string
     contact_name:string
     contact_hello:string
