@@ -17,6 +17,9 @@ v-card
 
         app-select(v-model='use_case' :items='use_cases' label="What will you use this for?")
 
+        v-checkbox(v-model='subscribe' color='accent'
+            label="Tell me when more free apps are available (~4 emails/year)")
+
 
     v-card-actions
         app-btn(@click='dismiss') Cancel
@@ -50,6 +53,7 @@ export default class extends Vue {
     username_checked_available:boolean = null  // Whether the checked username is available
 
     use_case:string = null
+    subscribe:boolean = false
 
     use_cases = [
         {value: 'ministry', text: "Christian ministry"},
@@ -122,6 +126,7 @@ export default class extends Vue {
                 email: this.email,
                 username: this.username,
                 use_case: this.use_case,
+                subscribe: this.subscribe,
             }),
         }))
         if (resp?.ok){
