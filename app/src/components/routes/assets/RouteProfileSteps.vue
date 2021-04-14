@@ -15,7 +15,7 @@ v-stepper(:value='profile.setup_step' @change='change_step')
 
         v-stepper-content(:step='0')
             h1(class='text-h4 text-center mb-4') New sending account
-            img.decor(src='_assets/decor_new_account.png')
+            img.decor_intro(src='_assets/decor_new_account.png')
             p Accounts are what Stello uses to send your messages, securely storing them for recipients to view.
             p(class='text--secondary body-2') You can have multiple accounts, such as a personal account and a ministry account.
             div.nav
@@ -23,6 +23,7 @@ v-stepper(:value='profile.setup_step' @change='change_step')
                 app-btn(@click='next_step') Next
 
         v-stepper-content(:step='1')
+            img.decor(src='_assets/decor/setup_email.png')
             h3(class='text-h6 my-6') Which email address do you want to send from?
             p(class='text--secondary body-2 mb-12') Stello will use it to send messages on your behalf, and notify you of any replies.
             p(class='text-center')
@@ -34,6 +35,7 @@ v-stepper(:value='profile.setup_step' @change='change_step')
                 app-btn(@click='next_step' :disabled='!profile.smtp_ready') Next
 
         v-stepper-content(:step='2')
+            img.decor(src='_assets/decor/setup_storage.png')
             h3(class='text-h6 my-6') Where should your messages be stored?
             p(class='text--secondary body-2 mb-12') You can store them with the creators of Stello, or provide your own storage (only recommended for experts). Wherever they are stored they will be securely encrypted.
             p(v-if='profile.host.cloud' class='text-center text--secondary text-h5')
@@ -44,6 +46,7 @@ v-stepper(:value='profile.setup_step' @change='change_step')
                 app-btn(@click='next_step' :disabled='!profile.host.cloud') Next
 
         v-stepper-content(:step='3')
+            img.decor(src='_assets/decor/setup_id.png')
             h2(class='text-h6 my-6') How would you like to identify yourself?
             p(class='text--secondary body-2') When inviting contacts to read your messages
             app-security-alert(class='my-12') This information is used outside of actual messages, so does not expire and should not include anything sensitive
@@ -53,6 +56,7 @@ v-stepper(:value='profile.setup_step' @change='change_step')
                 app-btn(@click='next_step' :disabled='!profile.msg_options_identity.sender_name') Next
 
         v-stepper-content(:step='4')
+            img.decor(src='_assets/decor/setup_security.png')
             h2(class='text-h6 my-6') How important is security to you?
             p(class='text--secondary body-2 mb-8') These can be customised in more detail later on.
             v-list
@@ -234,6 +238,7 @@ export default class extends Vue {
     width: 100%
     margin: 0 auto
     background-color: transparent
+    flex-grow: 1
 
     .v-stepper__header
         width: 100%
@@ -263,12 +268,14 @@ export default class extends Vue {
     .v-stepper__items
         width: 100%
         overflow-y: auto  // Allow scrolling of page
+        flex-grow: 1
 
         .v-stepper__content
             // Limit content area width and center
             width: 100%
             max-width: $content-width
             margin: 0 auto
+            padding-bottom: 300px
 
 .nav
     display: flex
@@ -290,6 +297,13 @@ export default class extends Vue {
 
 
 .decor
+    position: absolute
+    opacity: 0.3
+    margin-left: -400px
+    min-width: 350px
+    max-width: 350px
+
+.decor_intro
     margin: 48px auto
     width: 100%
     max-width: 300px
