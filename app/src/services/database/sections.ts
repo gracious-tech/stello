@@ -7,6 +7,7 @@ export class Section<TContent extends RecordSectionContent=RecordSectionContent>
         implements RecordSection<TContent> {
 
     id:string
+    respondable:boolean
     content:TContent
 
     constructor(db_object:RecordSection){
@@ -51,6 +52,7 @@ export class DatabaseSections {
         // WARN copying drafts assumes all properties copyable and id is from `generate_token()`
         return new Section({
             id: generate_token(),
+            respondable: null,
             content,
         })
     }

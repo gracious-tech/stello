@@ -7,7 +7,7 @@ section(:class='classes')
         Slideshow(v-if='content.type === "images"' :content='content')
         SharedVideo(v-if='content.type === "video"' :format='content.format' :id='content.id'
             :start='content.start' :end='content.end')
-    Respond(:section_id='section.id')
+    Respond(:section='section')
 
 </template>
 

@@ -63,6 +63,7 @@ import {ref, watch, computed, nextTick, inject} from 'vue'
 import Progress from './Progress.vue'
 import {displayer_config} from '../services/displayer_config'
 import {respond_reply, respond_reaction} from '../services/responses'
+import {PublishedSection} from '../shared/shared_types'
 
 
 export default {
@@ -70,12 +71,12 @@ export default {
     components: {Progress},
 
     props: {
-        section_id: {
-            type: String,
+        section: {
+            type: Object,
         },
     },
 
-    setup(props:{section_id:string}){
+    setup(props:{section:PublishedSection}){
 
         // Refs
         const text = ref('')
@@ -88,8 +89,11 @@ export default {
         const resp_token:any = inject('resp_token')
 
         // Computed
-        const allow_replies = computed(() => displayer_config.allow_replies)
-        const allow_reactions = computed(() => displayer_config.allow_reactions)
+        // NOTE `respondable` didn't exist v0.3.6 and below, so may be undefined in old messages
+        const allow_replies = computed(
+            () => props.section.respondable !== false && displayer_config.allow_replies)
+        const allow_reactions = computed(
+            () => props.section.respondable !== false && displayer_config.allow_reactions)
 
         // Watch
         watch(text, () => {
@@ -125,7 +129,7 @@ export default {
             // Try send reaction
             success.value = null
             waiting.value = true
-            success.value = await respond_reaction(resp_token.value, type, props.section_id)
+            success.value = await respond_reaction(resp_token.value, type, props.section.id)
             waiting.value = false
         }
         const send_comment = async () => {
@@ -138,7 +142,7 @@ export default {
 
             // Try send comment
             waiting.value = true
-            success.value = await respond_reply(resp_token.value, text.value, props.section_id)
+            success.value = await respond_reply(resp_token.value, text.value, props.section.id)
             waiting.value = false
 
             // Reset if success (but don't close so can see result)

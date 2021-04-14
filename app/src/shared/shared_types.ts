@@ -16,6 +16,7 @@ export interface PublishedCopy extends PublishedCopyBase {
 
 export interface PublishedSection {
     id:string  // Required to match reactions with appropriate sections (in case order edited later)
+    respondable:boolean  // Unlike in db, this cannot be null
     content:PublishedSectionContent
 }
 

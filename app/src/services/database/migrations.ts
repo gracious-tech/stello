@@ -166,4 +166,10 @@ async function to5(transaction:VersionChangeTransaction){
         cursor.value.expired = false
         cursor.update(cursor.value)
     }
+
+    // Add new respondable property to sections
+    for await (const cursor of transaction.objectStore('sections')){
+        cursor.value.respondable = true  // Previously always true though new default is null
+        cursor.update(cursor.value)
+    }
 }

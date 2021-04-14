@@ -141,6 +141,7 @@ export interface RecordDraftRecipients {
 
 export interface RecordSection<TContent extends RecordSectionContent=RecordSectionContent> {
     id:string
+    respondable:boolean  // null for auto decide
     content:TContent
 }
 
