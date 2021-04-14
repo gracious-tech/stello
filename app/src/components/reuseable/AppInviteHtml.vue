@@ -92,9 +92,11 @@ export default class extends Vue {
 
         label
             color: $accent
+            opacity: 1
 
     label
         font-size: 12px
+        opacity: 0.7
 
     .input
         font-size: 16px
