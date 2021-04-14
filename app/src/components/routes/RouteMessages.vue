@@ -15,11 +15,12 @@ div
 
 <script lang='ts'>
 
-import {Component, Vue} from 'vue-property-decorator'
+import {Component, Vue, Watch} from 'vue-property-decorator'
 
 import RouteMessagesItem from '@/components/routes/assets/RouteMessagesItem.vue'
-import {sort} from '@/services/utils/arrays'
+import {remove_match, sort} from '@/services/utils/arrays'
 import {Message} from '@/services/database/messages'
+import {Task} from '@/services/tasks/tasks'
 
 
 @Component({
@@ -42,6 +43,14 @@ export default class extends Vue {
         }
         sort(messages, 'published', false)
         this.messages = messages
+    }
+
+    @Watch('$tm.data.finished') watch_finished(task:Task){
+        // Respond to finished tasks
+        if (task.name === 'retract_message' && task.options[0]){  // remove option
+            // Message has been deleted
+            remove_match(this.messages, msg => msg.id === task.params[0])
+        }
     }
 }
 

@@ -4,12 +4,13 @@ import {concurrent} from '../utils/async'
 
 
 export async function retract_message(task:Task):Promise<void>{
-    // Task for revoking a sent message's copies and assets
+    // Task for revoking a sent message's copies and assets, and optionally also deleting afterwards
 
     // Unpack task params
     const [msg_id] = task.params as [string]
-    const msg = await self._db.messages.get(msg_id)
-    task.label = `Retracting message "${msg.draft.title}"`
+    const [remove] = task.options as [boolean]
+    let msg = await self._db.messages.get(msg_id)
+    task.label = `${remove ? "Deleting" : "Retracting"} message "${msg.draft.title}"`
 
     // Get access to storage
     const profile = await self._db.profiles.get(msg.draft.profile)
@@ -34,7 +35,15 @@ export async function retract_message(task:Task):Promise<void>{
         return async () => task.expected(storage.delete_file(asset))
     }))
 
-    // Update message's expired property
-    msg.expired = true
-    await self._db.messages.set(msg)
+    // Either delete or update message's expired property
+    if (remove){
+        await self._db.messages.remove(msg.id)
+    } else {
+        // WARN Always get fresh copy of objects from db after async stuff (could have been deleted)
+        msg = await self._db.messages.get(msg_id)
+        if (msg && !msg.expired){
+            msg.expired = true
+            await self._db.messages.set(msg)
+        }
+    }
 }

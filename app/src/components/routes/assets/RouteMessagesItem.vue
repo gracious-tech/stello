@@ -78,7 +78,11 @@ export default class extends Vue {
         }
 
         // Retract the message
-        this.$tm.start('retract_message', [this.msg.id])
+        const task = await this.$tm.start('retract_message', [this.msg.id], [false])
+        const error = await task.done
+        if (!error){
+            this.msg.expired = true  // Reflect change already made to msg in db
+        }
     }
 
     async remove(){
@@ -98,9 +102,8 @@ export default class extends Vue {
         }
 
         // Retract and then delete the message
-        const task = await this.$tm.start('retract_message', [this.msg.id])
-        await task.done
-        self._db.messages.remove(this.msg.id)
+        // NOTE Parent component responsible for detecting a successful delete
+        this.$tm.start('retract_message', [this.msg.id], [true])
     }
 
 }
