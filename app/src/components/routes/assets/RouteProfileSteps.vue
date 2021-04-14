@@ -49,7 +49,7 @@ v-stepper(:value='profile.setup_step' @change='change_step')
             img.decor(src='_assets/decor/setup_id.png')
             h2(class='text-h6 my-6') How would you like to identify yourself?
             p(class='text--secondary body-2') When inviting contacts to read your messages
-            app-security-alert(class='my-12') This information is used outside of actual messages, so does not expire and should not include anything sensitive
+            app-security-alert(class='my-12') Personalize enough for recipients to trust it's you, but don't include anything sensitive as this info won't expire with messages
             route-profile-identity(:profile='profile' :clipboard='false')
             div.nav
                 app-btn(@click='prev_step') Prev
