@@ -86,4 +86,38 @@ export class DatabaseMessages {
         // Insert or update given message
         await this._conn.put('messages', message)
     }
+
+    async remove(id:string):Promise<void>{
+        // Remove the message with given id (and its sections and copies and reads)
+
+        // Start transaction and get stores
+        const transaction = this._conn.transaction(['messages', 'sections', 'copies', 'reads'],
+            'readwrite')
+        const store_messages = transaction.objectStore('messages')
+        const store_sections = transaction.objectStore('sections')
+        const store_copies = transaction.objectStore('copies')
+        const store_reads = transaction.objectStore('reads')
+
+        // Remove message's reads
+        for (const read_id of await store_reads.index('by_msg').getAllKeys(id)){
+            store_reads.delete(read_id)
+        }
+
+        // Remove message's copies
+        for (const copy_id of await store_copies.index('by_msg').getAllKeys(id)){
+            store_copies.delete(copy_id)
+        }
+
+        // Get the message's sections and remove them
+        const section_ids = (await store_messages.get(id)).draft.sections.flat()
+        for (const section_id of section_ids){
+            store_sections.delete(section_id)
+        }
+
+        // Remove the message
+        store_messages.delete(id)
+
+        // Task done when transaction completes
+        await transaction.done
+    }
 }

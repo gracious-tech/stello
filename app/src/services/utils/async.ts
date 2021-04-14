@@ -24,7 +24,7 @@ export function setIntervalPlus(amount:number, unit:'ms'|'s'|'m'|'h', instant:bo
 }
 
 
-export async function concurrent(tasks:(()=>any)[], status?:{count:number}, limit=10):Promise<void>{
+export async function concurrent(tasks:(()=>Promise<any>)[], limit=10):Promise<void>{
     // Complete the given tasks concurrently and return promise that resolves when all done
     // NOTE Upon failure this will reject and stop starting tasks (though some may still be ongoing)
     // NOTE AWS S3 CLI concurrency limit defaults to 10
@@ -38,10 +38,7 @@ export async function concurrent(tasks:(()=>any)[], status?:{count:number}, limi
         // Wait till at least one channel is free
         const free_channel = await Promise.race(channels)
         channels[free_channel] = task().then(() => {
-            // Increment status' count and return channel so next task knows which is free
-            if (status){
-                status.count += 1
-            }
+            // Return channel so next task knows which is free
             return free_channel
         })
     }

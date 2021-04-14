@@ -63,7 +63,7 @@ async function send_emails_oauth_google(oauth:OAuth, emails:Email[], from:EmailI
             await oauth_request(oauth, url, undefined, 'POST', body)
             handle_email_submitted(email.id, true)
         }
-    }), undefined, limit)
+    }), limit)
 }
 
 
@@ -112,5 +112,5 @@ async function send_emails_oauth_microsoft(oauth:OAuth, emails:Email[], from:Ema
                 }
             }
         }
-    }), undefined, limit_concurrent_requests)
+    }), limit_concurrent_requests)
 }

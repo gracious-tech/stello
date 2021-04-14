@@ -12,6 +12,9 @@ v-list-item(:to='to')
     v-list-item-action
         app-menu-more
             app-list-item(@click='copy') Copy to new draft
+            app-list-item(@click='retract' :disabled='msg.expired' color='error')
+                | {{ retract_label }}
+            app-list-item(@click='remove' color='error') Delete
 
 </template>
 
@@ -20,6 +23,7 @@ v-list-item(:to='to')
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
+import DialogGenericConfirm from '@/components/dialogs/generic/DialogGenericConfirm.vue'
 import {Draft} from '@/services/database/drafts'
 import {Message} from '@/services/database/messages'
 
@@ -34,9 +38,17 @@ export default class extends Vue {
         return {name: 'message', params: {msg_id: this.msg.id}}
     }
 
+    get retract_label():string{
+        // Get most appropriate text for retract button label
+        if (this.msg.expired || !this.msg.probably_expired){
+            return "Retract"
+        }
+        return "Retract (confirm expired)"
+    }
+
     get expires():string{
         // A useful description of the msg's expiry time
-        if (this.msg.expired){
+        if (this.msg.probably_expired){
             return "Expired"
         } else if (this.msg.expires){
             return `Expires in ${this.msg.safe_lifespan_remaining} days`
@@ -47,6 +59,48 @@ export default class extends Vue {
     async copy(){
         const copy = await self._db.draft_copy(new Draft(this.msg.draft), false)
         this.$router.push({name: 'draft', params: {draft_id: copy.id}})
+    }
+
+    async retract(){
+        // Remove a message from server
+        if (!this.msg.probably_expired){
+            const confirmed = await this.$store.dispatch('show_dialog', {
+                component: DialogGenericConfirm,
+                props: {
+                    title: "All your recipients will lose access to this message",
+                    confirm: "Retract",
+                    confirm_danger: true,
+                },
+            })
+            if (!confirmed){
+                return
+            }
+        }
+
+        // Retract the message
+        this.$tm.start('retract_message', [this.msg.id])
+    }
+
+    async remove(){
+        // Remove a message from server and Stello
+        if (!this.msg.probably_expired){
+            const confirmed = await this.$store.dispatch('show_dialog', {
+                component: DialogGenericConfirm,
+                props: {
+                    title: "Message will be deleted for both you and your recipients",
+                    confirm: "Delete",
+                    confirm_danger: true,
+                },
+            })
+            if (!confirmed){
+                return
+            }
+        }
+
+        // Retract and then delete the message
+        const task = await this.$tm.start('retract_message', [this.msg.id])
+        await task.done
+        self._db.messages.remove(this.msg.id)
     }
 
 }
