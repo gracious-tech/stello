@@ -277,6 +277,11 @@ export default class extends Vue {
             margin: 0 auto
             padding-bottom: 300px
 
+            &.tab-reverse-transition-leave-active
+                // Fix reserve animation that doesn't make old tab fully leave before disappearing
+                padding-left: $stello_sidebar_width !important
+                min-width: 100vw !important
+
 .nav
     display: flex
     justify-content: space-between
@@ -307,6 +312,5 @@ export default class extends Vue {
     margin: 48px auto
     width: 100%
     max-width: 300px
-
 
 </style>
