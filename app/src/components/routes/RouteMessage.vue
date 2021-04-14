@@ -9,9 +9,14 @@ div
     app-content(v-if='message' class='pa-5 pt-8')
 
         p #[strong Sent:] {{ published }}
+        p #[strong Expires:] {{ expires }}
         p #[strong Read by:] {{ num_copies_read }} of {{ copies.length }} recipients
 
-        v-data-table(:items='copies_ui' :headers='copies_ui_headers' :items-per-page='15')
+        p(v-if='num_failures' class='error--text')
+            | {{ num_failures }} messages were not sent
+            app-btn(@click='send_all' small) Finish sending
+
+        v-data-table(:items='copies_ui' :headers='copies_ui_headers')
 
             template(v-slot:item.contact_link='{item}')
                 router-link(:to='item.to') {{ item.display }}
@@ -22,12 +27,7 @@ div
             template(v-slot:item.actions='{item}')
                 app-menu-more
                     app-list-item(@click='item.copy_invite') Copy notification
-
-        p(v-if='email_failures' class='error--text')
-            | {{ email_failures }} emails could not be delivered
-        p
-            app-btn(@click='send_all' :disabled='all_sent')
-                | {{ all_sent ? "Send successful" : "Finish sending" }}
+                    app-list-item(@click='item.retract' :disabled='item.expired' color='error') Retract
 
 </template>
 
@@ -41,16 +41,18 @@ import {Message} from '@/services/database/messages'
 import {MessageCopy} from '@/services/database/copies'
 import {get_text_invite_for_copy} from '@/services/misc/invites'
 import {Read} from '@/services/database/reads'
+import {Profile} from '@/services/database/profiles'
 
 
 @Component({})
 export default class extends Vue {
 
-    @Prop() msg_id
+    @Prop() msg_id:string
 
     message:Message = null
     copies:MessageCopy[] = []
     reads:Read[] = []
+    profile:Profile = null
 
     copies_ui_headers = [
         {value: 'contact_link', text: "Recipient"},
@@ -69,6 +71,14 @@ export default class extends Vue {
         return this.message.published.toLocaleString()
     }
 
+    get expires():string{
+        // Human friendly string for indicating expiry
+        if (this.message.probably_expired){
+            return "already expired"
+        }
+        return this.message.expires ? this.message.expires.toLocaleDateString() : "never"
+    }
+
     get copies_ui(){
         // Get UI view of copies for use in table
         return this.copies.map(copy => {
@@ -79,6 +89,12 @@ export default class extends Vue {
                     const text = await get_text_invite_for_copy(copy)
                     self.navigator.clipboard.writeText(text)
                     this.$store.dispatch('show_snackbar', "Invite copied")
+                },
+                expired: copy.expired,
+                retract: async () => {
+                    await this.profile.new_host_user().delete_file(`copies/${copy.id}`)
+                    copy.expired = true
+                    self._db.copies.set(copy)
                 },
                 sent_icon: copy.sent === null ? 'help' : (copy.sent ? 'check_circle' : 'cancel'),
                 sent_class: copy.sent === null ? '' : (copy.sent ? 'accent--text' : 'error--text'),
@@ -97,8 +113,8 @@ export default class extends Vue {
         return new Set(this.reads.map(read => read.copy_id)).size
     }
 
-    get email_failures(){
-        // Return how many emails failed to be delivered
+    get num_failures(){
+        // Return how many copies failed to be uploaded and/or emailed
         return this.copies.filter(copy => copy.sent === false).length
     }
 
@@ -108,6 +124,7 @@ export default class extends Vue {
         const copies = await self._db.copies.list_for_msg(this.msg_id)
         sort(copies, 'display')
         this.copies = copies
+        this.profile = await self._db.profiles.get(this.message.draft.profile)
         this.reads = await self._db.reads.list_for_msg(this.msg_id)
     }
 
@@ -123,8 +140,18 @@ export default class extends Vue {
 <style lang='sass' scoped>
 
 
-.v-data-table
+::v-deep .v-data-table
     margin: 48px 0
+
+    td:last-child
+        text-align: right !important
+
+        .v-btn
+            visibility: hidden
+
+    td:last-child:hover
+        .v-btn
+            visibility: visible
 
 
 </style>
