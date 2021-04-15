@@ -10,7 +10,6 @@ import App from './App.vue'
 
 
 // Embed stello styles in JS (so doesn't block first render)
-import './shared/shared_styles.sass'
 import './styles.sass'
 
 

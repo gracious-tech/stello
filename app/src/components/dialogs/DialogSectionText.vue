@@ -57,8 +57,6 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
-@import '@/shared/shared_mixins'
-
 .standout
     .v-radio
         padding: 12px !important

@@ -1,10 +1,23 @@
 
+// Make selector functions available
+@use 'sass:selector'
+
+
 $stello_gutter: 48px
 $stello_content_width: 700px
 $stello_full_width: 700px + $stello_gutter * 2
 $stello_float_width: ($stello_content_width / 2) - ($stello_gutter / 2)
 $stello_layout_width: 0px !default  // Draft editor has sidebar/scrollbar etc in addition to content
 $stello_full_plus_sidebar: $stello_full_width + $stello_layout_width
+
+
+@mixin themed($property, $light, $dark)
+    // Set property with $light, but also create same selector prefixed with .dark set to $dark
+    //     e.g. div p span -> .dark div p span
+    // NOTE '*' needed in between so scoped styles aren't ".dark[scoped]" but ".dark *[scoped]"
+    #{$property}: $light
+    @at-root #{selector.nest('.dark', '*', &)}
+        #{$property}: $dark
 
 
 @mixin standout

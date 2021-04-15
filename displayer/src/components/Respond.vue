@@ -162,7 +162,7 @@ export default {
 
 <style lang='sass' scoped>
 
-@import '../styles_mixins'
+@import '../shared/shared_mixins'
 
 
 .bar

@@ -21,7 +21,10 @@ NOTE .secondary--text & .text--secondary are different!
 
 
 // Generate string to inject into beginning of all sass files and components' sass
-let inject = "@import 'src/styles/globals.sass'"
+let inject = `
+    @import 'src/shared/shared_mixins.sass'
+    @import 'src/styles/globals.sass'
+`
 for (const [key, value] of Object.entries(app_config.theme)){
     inject += `\n$${key}: ${value}`
 }

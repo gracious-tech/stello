@@ -81,9 +81,6 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
-@import '@/shared/shared_mixins'
-
-
 .content
     position: relative
 

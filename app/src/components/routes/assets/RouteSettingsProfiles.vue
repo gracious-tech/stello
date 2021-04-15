@@ -2,7 +2,7 @@
 <template lang='pug'>
 
 div(class='my-6')
-    h1(class='text-h6') Accounts
+    h1(class='text-h6') Sending Accounts
     p(class='body-2 text--secondary') Accounts are what Stello uses to send your messages, securely storing them for recipients to view. You can have multiple accounts, such as a personal account and a ministry account.
 
     v-list
