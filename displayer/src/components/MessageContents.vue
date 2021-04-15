@@ -5,6 +5,8 @@ div.srow(v-for='row of floatified_rows' :class='row.display')
     div.sections
         MessageSection(v-for='section of row.sections' :key='section.id' :section='section')
 
+MessageReply
+
 //- Should credit only when message decrypted (unauthenticated readers shouldn't know about Stello)
 Credit
 
@@ -17,13 +19,14 @@ import {computed, PropType} from 'vue'
 
 import Credit from './Credit.vue'
 import MessageSection from './MessageSection.vue'
+import MessageReply from './MessageReply.vue'
 import {PublishedCopy} from '../shared/shared_types'
 import {floatify_rows} from '../shared/shared_functions'
 
 
 export default {
 
-    components: {Credit, MessageSection},
+    components: {Credit, MessageSection, MessageReply},
 
     props: {
         msg: {

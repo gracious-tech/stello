@@ -1,7 +1,7 @@
 
 <template lang='pug'>
 
-p
+p.credit
     | Encrypted with
     |
     a(href='https://stello.news/' target='_blank') {{ app_name }}
@@ -26,7 +26,7 @@ export default {
 
 <style lang='sass' scoped>
 
-p
+.credit
     text-align: center
     opacity: 0.3
     font-size: 13px
