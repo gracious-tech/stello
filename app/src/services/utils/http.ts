@@ -1,7 +1,7 @@
 
 
 export async function request(input:string|Request, init?:RequestInit, forbidden404:boolean=false)
-        :Promise<Response>{
+        :Promise<Response|null>{
     // Wrapper around `fetch` which returns null for 404s and throws for other non-200s
     // NOTE AWS S3 returns 403 for 404s when user doesn't have ListBucket permission
     const resp = await fetch(input, init)
@@ -23,14 +23,14 @@ export function request_json(input:string|Request, init?:RequestInit, forbidden4
 
 
 export function request_blob(input:string|Request, init?:RequestInit, forbidden404:boolean=false)
-        :Promise<Blob>{
+        :Promise<Blob|null>{
     // Same as `request` but get response's blob if any
     return request(input, init, forbidden404).then(resp => resp && resp.blob())
 }
 
 
 export function request_buffer(input:string|Request, init?:RequestInit, forbidden404:boolean=false)
-        :Promise<ArrayBuffer>{
+        :Promise<ArrayBuffer|null>{
     // Same as `request` but get response's body as an ArrayBuffer
     return request(input, init, forbidden404).then(resp => resp && resp.arrayBuffer())
 }

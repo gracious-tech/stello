@@ -76,7 +76,7 @@ export function bitmap_to_canvas(bitmap:ImageBitmap):OffscreenCanvas{
     // Convert an image bitmap into a canvas (can then use canvas to generate blobs)
     // WARN You cannot use the original bitmap after `transferFromImageBitmap()` is used
     const canvas = new OffscreenCanvas(bitmap.width, bitmap.height)
-    canvas.getContext('bitmaprenderer').transferFromImageBitmap(bitmap)
+    canvas.getContext('bitmaprenderer')?.transferFromImageBitmap(bitmap)
     return canvas
 }
 

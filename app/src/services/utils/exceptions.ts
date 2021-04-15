@@ -56,7 +56,7 @@ export function catch_only(error_class:any, error:Error):void{
 }
 
 
-export function silence<A, R>(fn:(...args:A[])=>R, args:A[]=[]):R{
+export function silence<A, R>(fn:(...args:A[])=>R, args:A[]=[]):R|undefined{
     // Call given function and silence any errors that occur
     try {
         return fn(...args)
@@ -64,7 +64,7 @@ export function silence<A, R>(fn:(...args:A[])=>R, args:A[]=[]):R{
 }
 
 
-export function drop<T>(promise:Promise<T>):Promise<T>{
+export async function drop<T>(promise:Promise<T>):Promise<T|undefined>{
     // Drop (rather than catch) any errors for promise (resolving to undefined instead)
     return promise.catch(() => undefined)
 }

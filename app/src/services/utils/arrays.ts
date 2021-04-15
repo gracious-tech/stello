@@ -1,7 +1,7 @@
 
 
-export function sort(array:string[]|number[]|object[], property:string=null, ascending:boolean=true,
-        ):void{
+export function sort(array:string[]|number[]|Record<string, any>[], property:string|null=null,
+        ascending:boolean=true):void{
     /* Improved sorting of arrays
         1. Supports string/number/date comparison (builtin sort converts all to strings)
         2. Supports any-case and locale-specific sorting for strings
@@ -13,7 +13,7 @@ export function sort(array:string[]|number[]|object[], property:string=null, asc
         return
 
     // Check type of first value so know what comparison to do
-    const first_val = property ? array[0][property] : array[0]
+    const first_val = property ? (array[0] as Record<string, any>)[property] : array[0]
     let compare:(a:any, b:any)=>number
     if (typeof first_val === 'number'){
         compare = (a:number, b:number):number => a - b
@@ -30,7 +30,7 @@ export function sort(array:string[]|number[]|object[], property:string=null, asc
     }
 
     // Do the sorting
-    array.sort((a, b) => {
+    array.sort((a:any, b:any) => {
         if (property){
             // Compare based on property if one given
             a = a[property]

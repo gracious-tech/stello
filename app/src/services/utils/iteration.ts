@@ -7,7 +7,7 @@ export function* range(start_or_amount:number, end?:number, step:number=1):Gener
 
     // Single arg is amount, double or triple is start/end/step
     let start = 0
-    if (arguments.length === 1){
+    if (end === undefined){
         end = start_or_amount  // amount
     } else {
         start = start_or_amount  // start

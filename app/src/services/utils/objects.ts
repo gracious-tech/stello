@@ -12,7 +12,7 @@ export class NestedStructureChanged extends Error {
 }
 
 
-export function nested_objects_set(container:object, keys:string[], value:any):void{
+export function nested_objects_set(container:Record<string, any>, keys:string[], value:any):void{
     // Set a value in a nested set of objects
     // NOTE Doesn't allow adding new properties (important as Vue wouldn't be able to detect)
 
@@ -21,7 +21,7 @@ export function nested_objects_set(container:object, keys:string[], value:any):v
 
     // Traverse the container until only one key remains
     while (keys.length > 1){
-        const key = keys.shift()
+        const key = keys.shift() as string
         container = container[key]
         if (container === undefined){
             throw new NestedKeyMissing(key)
@@ -37,7 +37,7 @@ export function nested_objects_set(container:object, keys:string[], value:any):v
 }
 
 
-export function nested_objects_update(base:object, update:object):void{
+export function nested_objects_update(base:Record<string, any>, update:Record<string, any>):void{
     // Do a deep update of a base object by merging in values from the given update object
     // Update can be partial but can't add new keys, and can't change structure of base
     // Intended use case is merging in changes from an API response
@@ -75,7 +75,7 @@ export function nested_objects_update(base:object, update:object):void{
 }
 
 
-export function sorted_json(object:object):string{
+export function sorted_json(object:Record<string, any>):string{
     // Return an idempotent JSON string by ensuring keys are sorted
     // NOTE Does not support objects as values (i.e. nested within root object)
 
@@ -86,7 +86,7 @@ export function sorted_json(object:object):string{
     // Get jsonified key:value items but without commas or outer braces
     const parts = []
     for (const key of keys){
-        const tmp_object = {}
+        const tmp_object:Record<string, any> = {}
         tmp_object[key] = object[key]
         const naked_kv = JSON.stringify(tmp_object).trim().slice(1, -1)
         parts.push(naked_kv)

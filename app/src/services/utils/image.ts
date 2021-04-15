@@ -1,6 +1,6 @@
 
 
-export async function blob_image_size(blob:Blob):Promise<{width:number, height:number}>{
+export async function blob_image_size(blob:Blob):Promise<{width:number, height:number}|null>{
     // Get the width/height of an image blob (null if can't read)
     try {
         const bitmap = await createImageBitmap(blob)
@@ -31,8 +31,8 @@ export async function resize_bitmap(bitmap:ImageBitmap, max_width:number, max_he
 
     // The args needed for resizing
     let src_args:[number, number, number, number] = [0, 0, bitmap.width, bitmap.height]
-    let output_width:number
-    let output_height:number
+    let output_width:number|undefined
+    let output_height:number|undefined
 
     // If not cropping or ratio already correct, just need a simple scale down
     if (!crop || actual_ratio === desired_ratio){
