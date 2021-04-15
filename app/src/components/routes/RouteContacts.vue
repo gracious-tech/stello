@@ -40,8 +40,8 @@ div
                     app-list-item(value='-') All contacts
                     v-divider
                     v-subheader Groups
-                    route-contacts-group(v-for='group of groups_internal' :group='group'
-                        @removed='on_group_removed')
+                    route-contacts-group(v-for='group of groups_internal' :key='group.id'
+                        :group='group' @removed='on_group_removed')
                     div(class='text-center')
                         app-btn(@click='new_group' small class='mt-2') New group
                     template(v-for='account of accounts')
@@ -49,8 +49,8 @@ div
                         v-subheader
                             div.account_name(class='ellipsis') {{account.display}}
                             app-btn(@click='account.sync' icon='sync')
-                        app-list-item(v-for='group of account.groups' :value='group.id')
-                            | {{group.display}}
+                        app-list-item(v-for='group of account.groups' :key='group.id'
+                            :value='group.id') {{group.display}}
                     v-divider
                     div(class='text-center')
                         app-btn(@click='show_import_dialog' small) Import contacts

@@ -16,7 +16,7 @@ v-card
 
         v-list
             v-list-item-group(v-model='chosen' mandatory color='accent')
-                v-list-item(v-for='address of addresses' :value='address')
+                v-list-item(v-for='address of addresses' :key='address' :value='address')
                     v-list-item-icon
                         app-svg(:name='address === chosen ? "icon_radio_checked" : "icon_radio_unchecked"')
                     v-list-item-title {{ address }}
