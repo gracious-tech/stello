@@ -12,6 +12,9 @@ form(v-if='allow_replies' @submit.prevent='send_reply')
             svg(v-else viewBox='0 0 24 24')
                 path(d='M2.01 21L23 12 2.01 3 2 10l15 2-15 2z')
 
+    div.result(v-if='success !== null' :class='{success}')
+        | {{ success ? "Reply has been sent" : "Could not send reply" }}
+
 </template>
 
 
@@ -110,12 +113,17 @@ form
         text-align: center
         margin: 12px 0
 
-        button
-            border-style: solid
-            border-width: 2px
-            &.success
-                border-color: #0f09
-            &.error
-                border-color: #f009
+    .result
+        display: inline-block
+        align-self: center
+        padding: 4px 18px
+        border-radius: 10px
+        background-color: rgba(red, 0.3)
+        font-family: Roboto, Arial, sans-serif
+        font-weight: bold
+        font-size: 14px
+
+        &.success
+            background-color: rgba(green, 0.3)
 
 </style>
