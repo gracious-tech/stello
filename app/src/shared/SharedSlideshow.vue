@@ -29,11 +29,42 @@ div
 
 <script lang='ts'>
 
+import type {PropType} from 'vue'  // Importing just as type should still keep compatible with Vue 2
+
+
+export interface SlideshowImage {
+    id:string
+    data:Blob|null  // Null while still loading
+    caption:string
+}
+
+
+// Generate a placeholder image
+const PLACEHOLDER = URL.createObjectURL(
+    new Blob(
+        [`
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="24" viewBox="0 0 48 24">
+                <path d="M0 0h48v24H0z" fill="#55555522"/>
+                <path fill="#55555533" d="
+                    m14 4c-1.1 0-2.2157 0.92136-2 2v5h1v-5c0-0.4714 0.5286-1 1-1h9v-1zm11 0v1h9c0.4714
+                    0 1.0924 0.53775 1 1v5h1v-5c0-1.1-0.9-2-2-2zm2.5 4c-0.83 0-1.5 0.67-1.5 1.5s0.67
+                    1.5 1.5 1.5 1.5-0.67 1.5-1.5-0.67-1.5-1.5-1.5zm-6.5 2-5 6h16l-4-4-3.0293 2.7109zm-9
+                    3v5c0 1.1 0.9 2 2 2h9v-1h-9c-0.4714 0-1.0924-0.53775-1-1v-5zm23 0v5c0 0.4714-0.5286
+                    1-1 1h-9v1h9c1.1 0 2-0.9 2-2v-5z
+                "/>
+            </svg>
+        `],
+        {type: 'image/svg+xml'},
+    ),
+)
+
+
 export default {
 
     props: {
         images: {
-            type: Array,
+            type: Array as PropType<SlideshowImage[]>,
+            required: true,
         },
         crop: {
             type: Boolean,
@@ -48,54 +79,37 @@ export default {
     data(){
         return {
             current: 0,
-            placeholder: null,
+            placeholder: null as null|string,
         }
-    },
-
-    created(){
-        // Generate a placeholder image
-        const svg = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="24" viewBox="0 0 48 24">
-            <path d="M0 0h48v24H0z" fill="#55555522"/>
-            <path fill="#55555533" d="
-                m14 4c-1.1 0-2.2157 0.92136-2 2v5h1v-5c0-0.4714 0.5286-1 1-1h9v-1zm11 0v1h9c0.4714
-                0 1.0924 0.53775 1 1v5h1v-5c0-1.1-0.9-2-2-2zm2.5 4c-0.83 0-1.5 0.67-1.5 1.5s0.67
-                1.5 1.5 1.5 1.5-0.67 1.5-1.5-0.67-1.5-1.5-1.5zm-6.5 2-5 6h16l-4-4-3.0293 2.7109zm-9
-                3v5c0 1.1 0.9 2 2 2h9v-1h-9c-0.4714 0-1.0924-0.53775-1-1v-5zm23 0v5c0 0.4714-0.5286
-                1-1 1h-9v1h9c1.1 0 2-0.9 2-2v-5z
-            "/>
-        </svg>`
-        const blob = new Blob([svg], {type: 'image/svg+xml'})
-        this.placeholder = URL.createObjectURL(blob)
     },
 
     computed: {
 
-        object_urls(){
+        object_urls():string[]{
             return this.images.map(image =>
-                image.data ? URL.createObjectURL(image.data) : this.placeholder)
+                image.data ? URL.createObjectURL(image.data) : PLACEHOLDER)
         },
 
-        empty(){
+        empty():boolean{
             return this.images.length === 0
         },
 
-        first_src(){
-            return this.empty ? this.placeholder : this.object_urls[0]
+        first_src():string{
+            return this.empty ? PLACEHOLDER : this.object_urls[0]
         },
 
-        current_url(){
-            return this.empty ? this.placeholder : this.object_urls[this.current]
+        current_url():string{
+            return this.empty ? PLACEHOLDER : this.object_urls[this.current]
         },
 
-        current_style(){
+        current_style():Record<string, string>{
             return {
                 'background-image': `url(${this.current_url})`,
                 'background-size': this.crop ? 'cover' : 'contain',
             }
         },
 
-        caption(){
+        caption():string|null{
             // Get caption for current image
             if (this.empty){
                 // No images added, must be in editor, so display help text
@@ -109,12 +123,12 @@ export default {
             return this.images[this.current].caption.trim() || "\u00A0"
         },
 
-        captions_exist(){
+        captions_exist():boolean{
             // Whether at least one image has a caption (and should .'. make room for it)
             return this.images.some(image => image.caption.trim())
         },
 
-        buttons(){
+        buttons():{id:string, style:Record<string, string>, activate:()=>void}[]{
             return this.images.map((image, i) => {
                 return {
                     id: image.id,
@@ -124,11 +138,11 @@ export default {
             })
         },
 
-        is_first(){
+        is_first():boolean{
             return this.current === 0
         },
 
-        is_last(){
+        is_last():boolean{
             return this.current === this.images.length - 1
         },
     },
