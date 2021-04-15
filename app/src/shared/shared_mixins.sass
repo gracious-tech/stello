@@ -16,8 +16,9 @@ $stello_full_plus_sidebar: $stello_full_width + $stello_layout_width
     //     e.g. div p span -> .dark div p span
     // NOTE '*' needed in between so scoped styles aren't ".dark[scoped]" but ".dark *[scoped]"
     #{$property}: $light
-    @at-root #{selector.nest('.dark', '*', &)}
-        #{$property}: $dark
+    @media screen  // Theme always light for printing
+        @at-root #{selector.nest('.dark', '*', &)}
+            #{$property}: $dark
 
 
 @mixin standout
