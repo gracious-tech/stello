@@ -2,6 +2,7 @@
 import DialogEmailSettings from '@/components/dialogs/reuseable/DialogEmailSettings.vue'
 import {Task} from './tasks'
 import {Message} from '../database/messages'
+import {Section} from '../database/sections'
 import {Profile} from '../database/profiles'
 import {MessageCopy} from '../database/copies'
 import {concurrent} from '@/services/utils/async'
@@ -14,7 +15,6 @@ import {HostUser} from '../hosts/types'
 import {send_emails} from '../native/native'
 import type {PublishedCopyBase, PublishedAsset, PublishedCopy, PublishedSection,
     PublishedContentImages} from '@/shared/shared_types'
-import type {RecordSection} from '../database/types'
 import {render_invite_html} from '../misc/invites'
 import {MustReauthenticate, MustReconfigure, MustReconnect} from '../utils/exceptions'
 import {Email} from '../native/types'
@@ -244,7 +244,7 @@ export class Sender {
 }
 
 
-async function process_sections(sections:RecordSection[][])
+async function process_sections(sections:Section[][])
         :Promise<[PublishedSection[][], PublishedAsset[]]>{
     // Process sections and produce assets
     // WARN Avoid deep copying sections in case includes sensitive data (e.g. added in future)
@@ -264,7 +264,7 @@ async function process_sections(sections:RecordSection[][])
 }
 
 
-async function process_section(section:RecordSection):Promise<[PublishedSection, PublishedAsset[]]>{
+async function process_section(section:Section):Promise<[PublishedSection, PublishedAsset[]]>{
     // Take section and produce publishable form and any assets required
     let pub_section:PublishedSection
     const pub_section_assets:PublishedAsset[] = []
@@ -273,7 +273,7 @@ async function process_section(section:RecordSection):Promise<[PublishedSection,
     if (section.content.type === 'text'){
         pub_section = {
             id: section.id,
-            respondable: section.respondable !== false,  // TODO more intelligent conversion
+            respondable: section.respondable_final,
             content: {
                 type: 'text',
                 html: section.content.html,
@@ -285,7 +285,7 @@ async function process_section(section:RecordSection):Promise<[PublishedSection,
     } else if (section.content.type === 'video'){
         pub_section = {
             id: section.id,
-            respondable: section.respondable !== false,  // TODO more intelligent conversion
+            respondable: section.respondable_final,
             content: {...section.content},  // All props same and are primitives
         }
 
@@ -302,7 +302,7 @@ async function process_section(section:RecordSection):Promise<[PublishedSection,
         // Define and add section first, then add to its images array
         pub_section = {
             id: section.id,
-            respondable: section.respondable !== false,  // TODO more intelligent conversion
+            respondable: section.respondable_final,
             content: {
                 type: 'images',
                 images: [],

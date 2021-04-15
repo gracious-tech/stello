@@ -14,6 +14,23 @@ export class Section<TContent extends RecordSectionContent=RecordSectionContent>
         Object.assign(this, db_object)
     }
 
+    get respondable_final():boolean{
+        // Respondable value that has converted null to true/false depending on different factors
+        if (this.respondable !== null){
+            return this.respondable
+        }
+        if (this.content.type === 'text'){
+            const standout = (this.content as ContentText).standout
+            if (standout === 'subtle' || standout === 'important'){
+                return false  // Subtle and important unlikely to be appropriate for comments
+            }
+            if (!(this.content as ContentText).html.includes('<p>')){
+                return false  // Sections without paragraphs unlikely appropriate for comments
+            }
+        }
+        return true
+    }
+
     get is_plain_text():boolean{
         // Boolean for whether section is text without any standout
         return this.content.type === 'text' && !(this.content as ContentText).standout
