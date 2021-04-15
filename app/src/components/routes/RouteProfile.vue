@@ -35,7 +35,7 @@ div
                 route-profile-identity(:profile='profile')
 
 
-        h2 Replies
+        h2 Responses
         v-card
             v-card-text
                 app-switch(v-model='allow_replies' v-bind='$t("allow_replies")')
@@ -58,25 +58,25 @@ div
                 app-switch(disabled v-model='allow_resend_requests' v-bind='$t("allow_resend_requests")')
 
 
-        h2 Auto-exclude recipients
-        v-card
-            v-card-text
-                div(class='body-2 text--secondary')
-                    p(v-t='"auto_exclude.p1"')
-                    p(v-t='"auto_exclude.p2"')
-                    p(v-t='"auto_exclude.p3"')
-                app-switch(:value='auto_exclude' @input='toggle_auto_exclude'
-                    v-bind='$t("auto_exclude_switch")' disabled)
-                app-integer(v-model='auto_exclude_threshold' v-bind='$t("auto_exclude_threshold")'
-                    :min='1' :max='100' :disabled='!auto_exclude' style='max-width: 400px')
-                app-select(v-model='auto_exclude_exempt_groups' :items='groups_ui' multiple
-                    v-bind='$t("auto_exclude_exempt_groups")' :disabled='!auto_exclude')
+        //- h2 Auto-exclude recipients
+        //- v-card
+        //-     v-card-text
+        //-         div(class='body-2 text--secondary')
+        //-             p(v-t='"auto_exclude.p1"')
+        //-             p(v-t='"auto_exclude.p2"')
+        //-             p(v-t='"auto_exclude.p3"')
+        //-         app-switch(:value='auto_exclude' @input='toggle_auto_exclude'
+        //-             v-bind='$t("auto_exclude_switch")' disabled)
+        //-         app-integer(v-model='auto_exclude_threshold' v-bind='$t("auto_exclude_threshold")'
+        //-             :min='1' :max='100' :disabled='!auto_exclude' style='max-width: 400px')
+        //-         app-select(v-model='auto_exclude_exempt_groups' :items='groups_ui' multiple
+        //-             v-bind='$t("auto_exclude_exempt_groups")' :disabled='!auto_exclude')
 
 
-        h2 Additional security
-        v-card
-            v-card-text
-                app-switch(disabled v-model='social_referral_ban' v-bind='$t("social_referral_ban")')
+        //- h2 Additional security
+        //- v-card
+        //-     v-card-text
+        //-         app-switch(disabled v-model='social_referral_ban' v-bind='$t("social_referral_ban")')
 
 
 </template>
@@ -92,11 +92,11 @@ en:
         p1: "How emails and other notifications identify you prior to opening messages. Unlike messages, this information does not expire and will remain in recipients' inboxes, likely for all eternity."
     # Replies
     allow_replies:
-        label: "Allow replies"
-        hint: "Allow recipients to reply to your messages"
+        label: "Allow comments"
+        hint: "Allow recipients to comment on message sections"
     allow_reactions:
         label: "Allow reactions"
-        hint: "Allow recipients to react to your messages"
+        hint: "Allow recipients to react to message sections"
     smtp_no_reply:
         label: "Warn against replying by email"
     notify_mode:
