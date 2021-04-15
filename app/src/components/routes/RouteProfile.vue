@@ -9,15 +9,6 @@ div
     route-profile-steps(v-if='profile && !profile.setup_complete' :profile='profile')
     app-content(v-else-if='profile' class='pa-3')
 
-        h2 Message Storage
-        v-card
-            v-card-text
-                p Where your messages are stored for recipients to view them
-                route-profile-host(:profile='profile')
-            v-card-actions
-                app-btn(disabled color='error') Remove account
-
-
         h2 Email
         v-card
             v-card-text
