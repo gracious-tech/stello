@@ -47,8 +47,10 @@ export default {
 
         // Watch
         watch(text, () => {
-            // Reset past success value
-            success.value = null
+            // Reset past success value on input (if didn't just trigger from clearing input)
+            if (text.value !== ''){
+                success.value = null
+            }
             // Auto grow textarea to fit content
             textarea.value.style.height = `${textarea.value.scrollHeight}px`
         })
