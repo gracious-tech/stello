@@ -5,6 +5,9 @@ set -e
 cd `dirname "$0"`
 cd ../displayer
 
+# Run type checks (vite doesn't)
+./node_modules/.bin/tsc --noEmit
+
 # NOTE Ensures all assets inlined so don't need to upload extra files
 # NOTE Sticks assets at root for flat structure
 # WARN Passing an empty string '' as an arg converts to 0 for some reason

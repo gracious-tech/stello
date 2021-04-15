@@ -6,6 +6,7 @@ import {createApp} from 'vue'
 
 import {store} from './services/store'
 import {database} from './services/database'
+// @ts-ignore For some reason TS imports below fine but says it can't when checking types
 import App from './App.vue'
 
 
