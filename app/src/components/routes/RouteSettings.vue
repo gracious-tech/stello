@@ -7,6 +7,11 @@ div
 
     app-content(class='pa-6')
 
+        div.note
+            div(class='text-body-2')
+                app-svg(name='icon_info' class='mr-3')
+                | Most settings are in sending accounts
+
         h1(class='text-h6') Preferences
         v-switch(v-model='dark' label="Dark theme" color='accent' persistent-hint
             hint="Use dark colors for the app's background which are easier on the eyes at night especially")
@@ -55,6 +60,19 @@ export default class extends Vue {
 
 
 <style lang='sass' scoped>
+
+
+.note
+    margin-bottom: 36px
+    text-align: center
+
+    > div
+        padding: 6px 12px
+        border-radius: 24px
+        display: inline-flex
+        align-items: center
+        background-color: $primary
+        color: $on_primary
 
 
 </style>

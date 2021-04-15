@@ -5,6 +5,7 @@ import {OAuth} from '../database/oauths'
 import {create_email} from '../misc/email'
 import {Email, EmailIdentity} from '../native/types'
 import {concurrent} from '../utils/async'
+import {MustInterpret} from '../utils/exceptions'
 import {oauth_request} from './oauth'
 
 
@@ -60,7 +61,18 @@ async function send_emails_oauth_google(oauth:OAuth, emails:Email[], from:EmailI
             // NOTE Ignore Google's rubbish about base64 encoding the message
             const raw_email = create_email(from, email.to, email.subject, email.html, reply_to)
             const body = new Blob([raw_email], {type: 'message/rfc822'})
-            await oauth_request(oauth, url, undefined, 'POST', body)
+            try {
+                await oauth_request(oauth, url, undefined, 'POST', body)
+            } catch (error){
+                if (error instanceof MustInterpret){
+                    if (error.data?.body?.error?.message?.toLowerCase() === 'invalid to header'){
+                        // Contact's address is probably invalid
+                        handle_email_submitted(email.id, false)
+                        return
+                    }
+                }
+                throw error
+            }
             handle_email_submitted(email.id, true)
         }
     }), limit)

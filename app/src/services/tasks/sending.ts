@@ -273,6 +273,7 @@ async function process_section(section:RecordSection):Promise<[PublishedSection,
     if (section.content.type === 'text'){
         pub_section = {
             id: section.id,
+            respondable: section.respondable !== false,  // TODO more intelligent conversion
             content: {
                 type: 'text',
                 html: section.content.html,
@@ -284,6 +285,7 @@ async function process_section(section:RecordSection):Promise<[PublishedSection,
     } else if (section.content.type === 'video'){
         pub_section = {
             id: section.id,
+            respondable: section.respondable !== false,  // TODO more intelligent conversion
             content: {...section.content},  // All props same and are primitives
         }
 
@@ -300,6 +302,7 @@ async function process_section(section:RecordSection):Promise<[PublishedSection,
         // Define and add section first, then add to its images array
         pub_section = {
             id: section.id,
+            respondable: section.respondable !== false,  // TODO more intelligent conversion
             content: {
                 type: 'images',
                 images: [],

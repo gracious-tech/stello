@@ -12,7 +12,8 @@ import {AuthorizationServiceConfiguration} from '@openid/appauth'
 import DialogOAuthExisting from '@/components/dialogs/specific/DialogOAuthExisting.vue'
 import {OAuth} from '../database/oauths'
 import {task_manager, TaskStartArgs} from './tasks'
-import {drop, MustReauthenticate, MustReconnect, MustRecover} from '../utils/exceptions'
+import {drop, MustInterpret, MustReauthenticate, MustReconnect, MustRecover,
+    } from '../utils/exceptions'
 
 
 // TYPES
@@ -527,7 +528,19 @@ export async function oauth_request(oauth:OAuth, url:string, params?:Record<stri
     } else if (resp.status === 410){  // Gone
         throw new MustRecover()  // e.g. Google sync token expired
     }
-    throw new Error(await resp.text())
+
+    // Try to parse JSON data if possible, but otherwise at least include status of resp
+    const error_data = {
+        status_code: resp.status,
+        status_text: resp.statusText,
+        body: null,
+    }
+    try {
+        // WARN Don't use `resp.json()` as if not JSON then body lost as can only read once
+        error_data.body = await resp.text()
+        error_data.body = JSON.parse(error_data.body)
+    } catch {}
+    throw new MustInterpret(error_data)
 }
 
 

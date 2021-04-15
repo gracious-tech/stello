@@ -22,6 +22,18 @@ export class MustRecover extends Error {
 }
 
 
+export class MustInterpret extends Error {
+    // Use for unknown errors that have data available that could be interpreted
+    data:Record<string, any>
+
+    constructor(data:Record<string, any>){
+        // Ensure data available when printed by stringifying as error's message
+        super(JSON.stringify(data))
+        this.data = data
+    }
+}
+
+
 // HELPERS
 
 

@@ -40,7 +40,7 @@ div(v-if='draft')
 
     div.stello-container(:class='{dark: dark_message}')
         shared-dark-toggle(v-model='dark_message')
-        draft-content(ref='content' :draft='draft' :sections='sections')
+        draft-content(ref='content' :draft='draft' :profile='profile' :sections='sections')
 
 </template>
 

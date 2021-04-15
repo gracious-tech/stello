@@ -8,8 +8,11 @@ div.content
         div.srow(:class='row.display')
             draft-movebar(:draft='draft' :row_i='row_i')
             div.sections
-                draft-section.section(v-for='section of row.sections' :key='section.id'
-                    :draft='draft' :section='section' @modify='modify_section')
+                template(v-for='section of row.sections')
+                    draft-section.section(:key='section.id' :draft='draft' :section='section'
+                        @modify='modify_section')
+                    draft-section-respond(:key='`respond-${section.id}`' :profile='profile'
+                        :section='section')
 
     draft-add-section.add-end(:draft='draft' :position='draft.sections.length'
         :visible='!draft.sections.length')
@@ -30,17 +33,20 @@ import DraftAddSection from './DraftAddSection.vue'
 import DialogSectionText from '@/components/dialogs/DialogSectionText.vue'
 import DialogSectionImages from '@/components/dialogs/DialogSectionImages.vue'
 import DialogSectionVideo from '@/components/dialogs/DialogSectionVideo.vue'
+import DraftSectionRespond from './DraftSectionRespond.vue'
 import {Draft} from '@/services/database/drafts'
 import {Section} from '@/services/database/sections'
 import {floatify_rows} from '@/shared/shared_functions'
+import {Profile} from '@/services/database/profiles'
 
 
 @Component({
-    components: {DraftSection, DraftAddSection, DraftGuide, DraftMovebar},
+    components: {DraftSection, DraftAddSection, DraftGuide, DraftMovebar, DraftSectionRespond},
 })
 export default class extends Vue {
 
     @Prop() draft:Draft
+    @Prop() profile:Profile
     @Prop() sections:{[id:string]: Section}
 
     modify_dialogs = {
