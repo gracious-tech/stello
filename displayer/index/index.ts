@@ -38,7 +38,7 @@ self.__fail_alert = (heading, msg) => {
             <pre></pre>
         </div>
     `
-    self.document.body.querySelector('.fail-splash.error pre').textContent = msg
+    self.document.body.querySelector('.fail-splash.error pre')!.textContent = msg
 }
 
 
