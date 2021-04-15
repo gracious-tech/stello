@@ -151,7 +151,7 @@ export type RecordSectionContent =
 export interface ContentText {
     type:'text'
     html:string
-    standout:string
+    standout:null|'subtle'|'distinct'|'notice'|'important'
 }
 
 export interface ContentImages {
