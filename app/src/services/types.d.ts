@@ -38,11 +38,6 @@ declare module 'Custom' {
             _toggle_dark():void
         }
 
-        interface Clipboard {
-            // Missing
-            read():Promise<Array<any>>
-        }
-
         interface Selection {
             // Missing
             modify
