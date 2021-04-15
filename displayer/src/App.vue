@@ -16,7 +16,7 @@ div(class='stello-container' :class='{dark}')
 
 <script lang='ts'>
 
-import {computed, watch, onMounted} from 'vue'
+import {computed, watch, onMounted, nextTick} from 'vue'
 
 import Message from './components/Message.vue'
 import SharedDarkToggle from './shared/SharedDarkToggle.vue'
@@ -35,7 +35,8 @@ export default {
 
         // When can access DOM, keep background of root element up-to-date with container bg
         onMounted(() => {
-            watch(dark, () => {
+            watch(dark, async () => {
+                await nextTick()  // Wait for container style to change before knowing new value
                 const container = self.document.querySelector('.stello-container')
                 const bg = self.getComputedStyle(container).backgroundColor
                 self.document.documentElement.style.backgroundColor = bg
