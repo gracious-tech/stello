@@ -11,9 +11,9 @@ teleport(v-if='fullscreen_img_style' to='.content')
 
 <script lang='ts'>
 
-import {ref, reactive, computed, watch, onUnmounted, inject} from 'vue'
+import {ref, reactive, computed, watch, onUnmounted, inject, PropType, Ref} from 'vue'
 
-import SharedSlideshow from '../shared/SharedSlideshow.vue'
+import SharedSlideshow, {SlideshowImage} from '../shared/SharedSlideshow.vue'
 import {store} from '../services/store'
 import {buffer_to_blob} from '../services/utils/coding'
 import {GetAsset} from '../services/types'
@@ -26,31 +26,32 @@ export default {
 
     props: {
         content: {
-            type: Object,
+            type: Object as PropType<PublishedContentImages>,
+            required: true,
         },
     },
 
-    setup(props:{content:PublishedContentImages}){
+    setup(props){
 
         // Injections
-        const get_asset = inject<{value:GetAsset}>('get_asset')
+        const get_asset = inject('get_asset') as Ref<GetAsset>
 
         // Create ref for images
-        const images = ref([])
+        const images = ref<SlideshowImage[]>([])
 
         // Determine image format desired
         const asset_type = store.state.webp_supported ? 'webp' : 'jpeg'
 
         // Add object for each image
         for (const image_meta of props.content.images){
-            const asset_id = image_meta[`asset_${asset_type}`]
+            const asset_id = image_meta[`asset_${asset_type}` as 'asset_webp'|'asset_jpeg']
 
             // Create reactive image object in structure slideshow expects
             const image = reactive({
                 id: asset_id,  // Uniqueness is all that matters here
                 data: null,
                 caption: image_meta.caption,
-            })
+            } as SlideshowImage)
 
             // Add object now so order is kept, while waiting for asset download
             images.value.push(image)
@@ -63,7 +64,7 @@ export default {
 
 
         // Fullscreen mode
-        const fullscreen_img = ref(null)
+        const fullscreen_img = ref<string|null>(null)
         const fullscreen_img_style = computed(() => {
             return fullscreen_img.value && {'background-image': `url(${fullscreen_img.value})`}
         })
@@ -80,7 +81,7 @@ export default {
             // Set whether whole page can scroll or not (so can disable when image fullscreen)
             self.document.body.style.overflowY = value ? 'auto' : 'hidden'
         }
-        watch(fullscreen_img, (value:string) => {
+        watch(fullscreen_img, value => {
             set_page_scroll(!value)
         })
         onUnmounted(() => {

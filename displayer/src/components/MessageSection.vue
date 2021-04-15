@@ -14,7 +14,7 @@ section(:class='classes')
 
 <script lang='ts'>
 
-import {computed} from 'vue'
+import {computed, PropType} from 'vue'
 
 import Slideshow from './Slideshow.vue'
 import SharedVideo from '../shared/SharedVideo.vue'
@@ -29,11 +29,12 @@ export default {
 
     props: {
         section: {
-            type: Object,
+            type: Object as PropType<PublishedSection>,
+            required: true,
         },
     },
 
-    setup(props:{section:PublishedSection}){
+    setup(props){
         return {
             section: props.section,
             content: computed(() => props.section.content),

@@ -15,11 +15,12 @@ export default {
     props: {
         value: {
             type: Boolean,
+            required: true,
         },
     },
 
     computed: {
-        fill(){
+        fill():'white'|'black'{
             return this.value ? 'white' : 'black'
         },
     },

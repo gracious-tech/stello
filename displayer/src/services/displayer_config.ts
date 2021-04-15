@@ -29,10 +29,10 @@ class DisplayerConfig {
     allow_delete:boolean = false
     allow_resend_requests:boolean = false
     social_referral_ban:boolean = true
-    credentials_responder:{key_id:string,key_secret:string} = null
-    resp_key_public:CryptoKey = null
+    credentials_responder:{key_id:string,key_secret:string}|null = null
+    resp_key_public:CryptoKey|null = null
 
-    async load(name_in_hash:string, prev_name:string):Promise<string>{
+    async load(name_in_hash?:string, prev_name?:string|null):Promise<string|null>{
         // Download and apply config
         let worked = null
         let config = null

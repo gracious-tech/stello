@@ -14,7 +14,7 @@ div.no_msg(v-else)
 
 <script lang='ts'>
 
-import {ref, provide} from 'vue'
+import {ref, provide, PropType} from 'vue'
 
 import MessageContents from './MessageContents.vue'
 import {decrypt_sym, export_key, generate_hash} from '../services/utils/crypt'
@@ -34,17 +34,18 @@ components: {MessageContents},
 
 props: {
     msg_access: {
-        type: Object,
+        type: Object as PropType<MessageAccess>,
+        required: true,
     },
 },
 
-setup(props:{msg_access:MessageAccess}, context){
+setup(props, context){
 
     // State
-    const msg = ref<PublishedCopy>(null)
-    const error = ref(null)
-    const get_asset = ref(null)
-    const resp_token = ref(null)
+    const msg = ref<PublishedCopy>()
+    const error = ref<string|null>(null)
+    const get_asset = ref<(asset_id:string) => Promise<ArrayBuffer>>()
+    const resp_token = ref<string>()
 
     // Provides
     provide('resp_token', resp_token)
@@ -55,7 +56,7 @@ setup(props:{msg_access:MessageAccess}, context){
 
         // Try download the message
         const url = `${deployment_config.url_msgs}copies/${props.msg_access.id}`
-        let encrypted:ArrayBuffer
+        let encrypted:ArrayBuffer|null
         try {
             encrypted = await request_buffer(url, {}, true)
         } catch {
@@ -94,7 +95,7 @@ setup(props:{msg_access:MessageAccess}, context){
         get_asset.value = async (asset_id:string):Promise<ArrayBuffer> => {
             const url = `${deployment_config.url_msgs}assets/${msg_data.base_msg_id}/${asset_id}`
             const encrypted = await request_buffer(url, {}, true)
-            return decrypt_sym(encrypted, assets_key)
+            return decrypt_sym(encrypted!, assets_key)
         }
 
         // Expose the message data

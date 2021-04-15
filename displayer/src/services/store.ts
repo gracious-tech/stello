@@ -11,13 +11,13 @@ import {check_webp_support} from './webp'
 
 export interface StoreStateDict {
     dark:boolean
-    last_read:MessageAccess
-    prev_config_name:string
+    last_read:MessageAccess|null
+    prev_config_name:string|null
 }
 
 export interface StoreState {
     dict:StoreStateDict
-    current_msg:MessageAccess
+    current_msg:MessageAccess|null
     show_unsubscribe:boolean
     webp_supported:boolean
 }
@@ -32,8 +32,8 @@ export interface MessageAccess {
 
 export class DisplayerStore {
 
-    _state:StoreState
-    state:DeepReadonly<StoreState>  // Public read-only version
+    _state!:StoreState
+    state!:DeepReadonly<StoreState>  // Public read-only version
 
     async init():Promise<void>{
         // Make store ready for use

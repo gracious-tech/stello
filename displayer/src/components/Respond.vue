@@ -58,7 +58,7 @@ teleport(v-if='responding' to='.content')
 
 <script lang='ts'>
 
-import {ref, watch, computed, nextTick, inject} from 'vue'
+import {ref, watch, computed, nextTick, inject, PropType, Ref} from 'vue'
 
 import Progress from './Progress.vue'
 import {displayer_config} from '../services/displayer_config'
@@ -72,18 +72,19 @@ export default {
 
     props: {
         section: {
-            type: Object,
+            type: Object as PropType<PublishedSection>,
+            required: true,
         },
     },
 
-    setup(props:{section:PublishedSection}){
+    setup(props){
 
         // Refs
         const text = ref('')
-        const responding = ref(null)
-        const textarea = ref(null)
+        const responding = ref<'commenting'|'reacting'|null>(null)
+        const textarea = ref() as Ref<HTMLTextAreaElement>
         const waiting = ref(false)
-        const success = ref(null)
+        const success = ref<boolean|null>(null)
 
         // Injected
         const resp_token:any = inject('resp_token')
@@ -125,7 +126,7 @@ export default {
         const init_react = () => {
             responding.value = 'reacting'
         }
-        const react_with = async type => {
+        const react_with = async (type:string) => {
             // Try send reaction
             success.value = null
             waiting.value = true

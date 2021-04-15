@@ -22,7 +22,7 @@ async function respond(data:any):Promise<boolean>{
 
     // Encrypt data's encrypted field
     const binary_data = string_to_utf8(JSON.stringify(data.encrypted))
-    data.encrypted = await encrypt_asym(binary_data, displayer_config.resp_key_public)
+    data.encrypted = await encrypt_asym(binary_data, displayer_config.resp_key_public!)
 
     // Init AWS client
     const aws = new AwsClient({
@@ -62,7 +62,8 @@ export function respond_read(resp_token:string, copy_id:string, has_max_reads:bo
 }
 
 
-export function respond_reply(resp_token:string, text:string, section_id:string):Promise<boolean>{
+export function respond_reply(resp_token:string, text:string, section_id:string|null,
+        ):Promise<boolean>{
     // Send text response
     const data:any = {
         type: 'reply',

@@ -32,9 +32,9 @@ export default {
 
     computed: {
 
-        safe_id(){
+        safe_id():string{
             // Get escaped version of video id
-            return encodeURIComponent(this.id)
+            return encodeURIComponent(this.id!)
         },
 
         src(){
@@ -48,11 +48,11 @@ export default {
                     ['modestbranding', '1'],  // Hide Youtube button in toolbar
                     ['rel', '0'],  // Only show related videos from same channel (can't disable)
                 ])
-                if (this.start !== null){
-                    params.set('start', this.start)
+                if (typeof this.start === 'number'){
+                    params.set('start', `${this.start}`)
                 }
-                if (this.end !== null){
-                    params.set('end', this.end)
+                if (typeof this.end === 'number'){
+                    params.set('end', `${this.end}`)
                 }
                 return `https://www.youtube-nocookie.com/embed/${this.safe_id}?${params}`
             } else if (this.format === 'iframe_vimeo'){

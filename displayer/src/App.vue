@@ -37,7 +37,7 @@ export default {
         onMounted(() => {
             watch(dark, async () => {
                 await nextTick()  // Wait for container style to change before knowing new value
-                const container = self.document.querySelector('.stello-container')
+                const container = self.document.querySelector('.stello-container')!
                 const bg = self.getComputedStyle(container).backgroundColor
                 self.document.documentElement.style.backgroundColor = bg
             }, {immediate: true})

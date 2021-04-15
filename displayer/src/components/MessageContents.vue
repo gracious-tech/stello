@@ -13,7 +13,7 @@ Credit
 
 <script lang='ts'>
 
-import {computed} from 'vue'
+import {computed, PropType} from 'vue'
 
 import Credit from './Credit.vue'
 import MessageSection from './MessageSection.vue'
@@ -27,11 +27,12 @@ export default {
 
     props: {
         msg: {
-            type: Object,
+            type: Object as PropType<PublishedCopy>,
+            required: true,
         },
     },
 
-    setup(props:{msg:PublishedCopy}){
+    setup(props){
         const floatified_rows = computed(() => {
             // Return rows of sections data and how to display them
             return floatify_rows(props.msg.sections)

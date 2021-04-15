@@ -30,7 +30,7 @@ export interface MessageRecord {
 
 class DisplayerDatabase {
 
-    _conn:IDBPDatabase<DisplayerDatabaseSchema>|any
+    _conn!: IDBPDatabase<DisplayerDatabaseSchema>
 
     async connect():Promise<void>{
         // Init connection to the database
@@ -49,7 +49,7 @@ class DisplayerDatabase {
                 get: async () => undefined,
                 getAll: async () => [],
                 put: async () => undefined,
-            }
+            } as unknown as IDBPDatabase<DisplayerDatabaseSchema>
         })
     }
 
@@ -59,13 +59,13 @@ class DisplayerDatabase {
         return obj ? obj.value : null
     }
 
-    async dict_get_all():Promise<object>{
+    async dict_get_all():Promise<Record<string, any>>{
         // Get all key/values as an object
         const items = await this._conn.getAll('dict')
         return items.reduce((obj, item) => {
             obj[item.key] = item.value
             return obj
-        }, {})
+        }, {} as Record<string, any>)
     }
 
     async dict_set(key:string, value:any):Promise<void>{
