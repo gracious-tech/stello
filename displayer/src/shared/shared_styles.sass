@@ -95,30 +95,39 @@
         min-height: $stello_gutter * 2 - 12px  // Allow enough room for actions bar (less margin)
         width: 100%
 
-    button.respond
-        display: inline-flex
-        align-items: center
-        background-color: transparent
-        border-style: none
-        padding: 6px 12px
-        border-radius: 6px
+    .respondbar
+        display: flex
+        justify-content: space-around
         opacity: 0.5
-        font-family: Roboto, Arial, sans-serif
-        font-size: 14px
-        font-weight: bold
+        margin: 12px 0
 
-        &:hover:not([disabled])
-            cursor: pointer
-            opacity: 0.8
-            @include themed(background-color, #0002, #fff2)
+        &:hover
+            opacity: 1
 
-        svg
-            width: 24px
-            height: 24px
-            margin-right: 12px
+        button
+            display: inline-flex
+            align-items: center
+            background-color: transparent
+            border-style: none
+            padding: 6px 12px
+            border-radius: 6px
+            opacity: 0.5
+            font-family: Roboto, Arial, sans-serif
+            font-size: 14px
+            font-weight: bold
 
-            path
-                fill: currentColor
+            &:hover:not([disabled])
+                cursor: pointer
+                opacity: 0.8
+                @include stello_themed_contained(background-color, #0002, #fff2)
+
+            svg
+                width: 24px
+                height: 24px
+                margin-right: 12px
+
+                path
+                    fill: currentColor
 
     // Standout
 

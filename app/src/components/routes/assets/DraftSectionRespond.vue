@@ -54,12 +54,7 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
-.respondbar
-    display: flex
-    justify-content: space-around
-    align-items: center
-
-    &:not(.respondable)
-        opacity: 0.5
+.respondbar:not(.respondable)
+    opacity: 0.25 !important
 
 </style>

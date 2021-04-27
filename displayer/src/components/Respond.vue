@@ -1,15 +1,9 @@
 
 <template lang='pug'>
 
-div.bar
-    button(v-if='allow_replies' @click='init_comment')
-        svg(viewBox='0 0 24 24')
-            path(d='M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z')
-        | Comment
-    button(v-if='allow_reactions' @click='init_react')
-        svg(viewBox='0 0 24 24')
-            path(d='M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z')
-        | React
+div.respondbar
+    SharedRespondReply(v-if='allow_replies' @click='init_comment')
+    SharedRespondReact(v-if='allow_reactions' @click='init_react')
 
 teleport(v-if='responding' to='.content')
     div.overlay(@click.self='close')
@@ -61,6 +55,8 @@ teleport(v-if='responding' to='.content')
 import {ref, watch, computed, nextTick, inject, PropType, Ref} from 'vue'
 
 import Progress from './Progress.vue'
+import SharedRespondReact from '../shared/SharedRespondReact.vue'
+import SharedRespondReply from '../shared/SharedRespondReply.vue'
 import {displayer_config} from '../services/displayer_config'
 import {respond_reply, respond_reaction} from '../services/responses'
 import {PublishedSection} from '../shared/shared_types'
@@ -68,7 +64,7 @@ import {PublishedSection} from '../shared/shared_types'
 
 export default {
 
-    components: {Progress},
+    components: {Progress, SharedRespondReact, SharedRespondReply},
 
     props: {
         section: {
@@ -166,39 +162,6 @@ export default {
 @import '../shared/shared_mixins'
 
 
-.bar
-    display: flex
-    justify-content: space-around
-    opacity: 0.5
-    margin: 12px 0
-
-    &:hover
-        opacity: 1
-
-    button
-        display: inline-flex
-        align-items: center
-        background-color: transparent
-        border-style: none
-        font-weight: bold
-        cursor: pointer
-        padding: 6px 12px
-        border-radius: 6px
-        opacity: 0.5
-
-        &:hover
-            opacity: 0.8
-            @include themed(background-color, #0002, #fff2)
-
-        svg
-            width: 24px
-            height: 24px
-            margin-right: 12px
-
-            path
-                fill: currentColor
-
-
 .overlay
     position: fixed
     top: 0
@@ -232,7 +195,7 @@ export default {
         display: flex
         flex-direction: column
         align-items: center
-        @include themed(background-color, #fff, #222)
+        @include stello_themed(background-color, #fff, #222)
         border-radius: 12px
         padding: 18px
         max-width: 600px
@@ -276,7 +239,7 @@ export default {
             flex-direction: column
 
             textarea
-                @include themed(background-color, #0001, #0006)
+                @include stello_themed(background-color, #0001, #0006)
                 border-style: none
                 box-sizing: border-box
                 width: 100%
