@@ -13,15 +13,15 @@ $stello_full_plus_sidebar: $stello_full_width + $stello_layout_width
 
 @mixin stello_themed($property, $light, $dark)
     // Set property with $light, but also create same selector prefixed with .dark set to $dark
-    // NOTE Applies only to .stello-container to avoid affecting rest of app
+    // NOTE Applies only to .stello-displayer to avoid affecting rest of app
     #{$property}: $light
     @media screen  // Theme always light for printing
-        .stello-container.dark &
+        .stello-displayer.dark &
             #{$property}: $dark
 
 
 @mixin stello_themed_contained($property, $light, $dark)
-    // Same as `stello_themed` but for use when already nested within `.stello-container`
+    // Same as `stello_themed` but for use when already nested within `.stello-displayer`
     #{$property}: $light
     @media screen  // Theme always light for printing
         // NOTE @at-root required since `&` is within interpolation and so sass still prefixes it

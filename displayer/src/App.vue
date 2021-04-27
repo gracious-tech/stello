@@ -1,7 +1,7 @@
 
 <template lang='pug'>
 
-div(class='stello-container' :class='{dark}')
+div(class='stello-displayer' :class='{dark}')
 
     SharedDarkToggle(:value='dark' @input='toggle_dark')
 
@@ -37,7 +37,7 @@ export default {
         onMounted(() => {
             watch(dark, async () => {
                 await nextTick()  // Wait for container style to change before knowing new value
-                const container = self.document.querySelector('.stello-container')!
+                const container = self.document.querySelector('.stello-displayer')!
                 const bg = self.getComputedStyle(container).backgroundColor
                 self.document.documentElement.style.backgroundColor = bg
             }, {immediate: true})
@@ -59,7 +59,7 @@ export default {
 
 <style lang='sass' scoped>
 
-.stello-container .content
+.stello-displayer .content
     // Show narrower gutters for displayer since don't need space for menus
     padding-left: 24px
     padding-right: 24px

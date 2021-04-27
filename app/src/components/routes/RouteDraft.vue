@@ -38,7 +38,7 @@ div(v-if='draft')
         //- NOTE Using "Subject" since users already familiar with email subjects not being in body
         input(v-model.trim='title' placeholder="Subject...")
 
-    div.stello-container(:class='{dark: dark_message}')
+    div.stello-displayer(:class='{dark: dark_message}')
         shared-dark-toggle(v-model='dark_message')
         draft-content(ref='content' :draft='draft' :profile='profile' :sections='sections')
 
@@ -311,7 +311,7 @@ export default class extends Vue {
         margin: 6px
 
 
-.stello-container
+.stello-displayer
     width: 100%
     flex-grow: 1
     overflow-y: auto
