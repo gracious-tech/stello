@@ -16,7 +16,7 @@ Public key encryption is used for any responses from recipients, with responses 
 
 ## End-to-end encryption
 
-Stello is end-to-end encrypted in the sense that the platform that stores and transfers the actual messages never has access to the decryption key. However, we avoid describing Stello as end-to-end encrypted because there are other aspects of Stello that make it less secure than well known end-to-end encryption apps.
+Stello is end-to-end encrypted in the sense that the platform that stores and transfers the actual messages never has access to the decryption key. However, we avoid describing Stello as end-to-end encrypted because there are other aspects of Stello that make it less secure than well known end-to-end encryption apps. Namely, the fact that the decryption code is served by the server that also stores the encrypted files, such that a malicious server could modify the decryption code to transmit unencrypted data back to itself. This is a known risk, but still a better scenario than most apps that give the server full access to decrypted files.
 
 
 ## Components
@@ -33,6 +33,22 @@ Stello is end-to-end encrypted in the sense that the platform that stores and tr
  - **electron:** Packager for publishing `app` on desktop platforms
     - This is very barebones as only does things that are impossible in a browser environment (like using SMTP)
     - An electron app that uses Electron Builder to package, sign, and publish binaries
+
+
+## Browser support
+
+The displayer of messages currently supports all browsers that have implemented the Subtle Crypto API, as well as all ES2015 features (since most have when crypto supported).
+
+ - Chrome 51+
+ - Edge 79+
+ - Samusung 6.2+
+ - Safari 10.1+
+ - iOS 10.3+
+ - Firefox 54+
+
+Notes:
+* Supports around 95% of users (Apr 2021)
+* [webkitSubtle is not compatible](https://webkit.org/blog/7790/update-on-web-cryptography/)
 
 
 ## Credits

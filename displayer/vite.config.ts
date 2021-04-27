@@ -1,11 +1,23 @@
 
-const path = require('path')
+import plugin_vue from '@vitejs/plugin-vue'
+import {defineConfig} from 'vite'
 
-module.exports = {
-    esbuildTarget: 'es2015',
+import plugin_index from './vite_index_plugin'
+
+
+export default defineConfig({
+    plugins: [plugin_index(), plugin_vue()],
+    build: {
+        target: 'es2015',  // Currently supporting browsers ES2015+
+        rollupOptions: {
+            output: {
+                manualChunks: undefined,  // Don't split vendor code out
+            },
+        },
+    },
     optimizeDeps: {
         include: [
             'core-js/features/string/replace-all',
         ],
     },
-}
+})

@@ -1,0 +1,192 @@
+doctype html
+html
+
+    head
+        meta(charset='utf-8')
+        meta(name='viewport' content='user-scalable=no, width=device-width, initial-scale=1')
+        title Message Viewer
+        //- Icon link href dynamically set so can inline image in JS
+        link(rel='icon')
+        //- Add a light blue theme color, just to stand out from other tabs (not configurable)
+        meta(name='theme-color' content='#b3e5fc')
+        style
+            :sass
+                // BASIC STYLING
+                html
+                    background-color: #111111  // Don't have access to dark setting on initial load
+                    font-family: Roboto, sans-serif
+                    // Enable momentum scroll for iOS
+                    -webkit-overflow-scrolling: touch
+
+                body
+                    margin: 0
+
+
+                // LOADING SCREEN
+                @keyframes loading
+                    from
+                        transform: rotate(0deg)
+                    to
+                        transform: rotate(360deg)
+
+                #app > svg.loading
+                    // Not reusable in other parts of app
+                    position: absolute
+                    top: 46%
+                    left: 46%
+
+                svg.loading
+                    height: 50px
+                    width: 50px
+                    animation-name: loading
+                    animation-duration: 2.5s  // NOTE need to adjust steps if this changes
+                    // NOTE 60's quality close to linear, and ~1/2 CPU usage
+                    animation-timing-function: steps(60)
+                    animation-iteration-count: infinite
+
+                svg.loading circle
+                    fill: transparent
+                    stroke: #2196f3
+
+
+                // FAILURE
+                .fail-splash
+                    // Display full screen
+                    position: fixed
+                    top: 0
+                    bottom: 0
+                    left: 0
+                    right: 0
+                    // Cover all
+                    z-index: 1000
+                    // Scroll if needed (for long error messages)
+                    overflow: auto
+                    // Style
+                    padding: 20px
+                    padding-top: 100px
+                    background-color: #303030
+                    color: #fff
+
+                    h1, h2
+                        text-align: center
+                        margin-bottom: 20px
+
+                    &.error
+
+                        pre
+                            white-space: pre-wrap
+                            margin-top: 100px  // Don't distract users from recovery button
+
+                        .btn-wrap
+                            text-align: center
+                            padding: 20px
+
+                            button
+                                background-color: #fff
+                                color: #000
+                                border-style: none
+                                border-radius: 6px
+                                padding: 10px
+                                cursor: pointer
+                                // box-shadow copied from Vuetify to make button look pressable
+                                box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12)
+
+
+    body
+        div#app
+            //- Simplified low-CPU-cost Material progress circle (proportions same)
+            svg.loading(viewBox='0 0 100 100' preserveAspectRatio='xMidYMid meet')
+                //- Place in middle with radius 40 (stroke length of 250 surrounds whole circle)
+                circle(cx='50' cy='50' r='40' stroke-width='10' stroke-dasharray='190')
+
+        //- WARN All scripts (even inline) must come last so that DOM ready for immediate errors
+        //- Display of unsupported message (if error and not supported)
+        //- This code is intentionally inline as must be simple and support ES4/5 etc
+        //- WARN Should ONLY display if an error, in case feature detection is incorrect
+        script.
+            self._browser_supported = !! (crypto && crypto.subtle)
+            self.addEventListener('error', function(){
+                if (!self._browser_supported){
+                    self.document.body.innerHTML += '<div class="fail-splash"><h1>Sorry, your browser is too old.</h1><h2>Update it to view this message.</h2></div>'
+                }
+            })
+
+
+        script
+            :ts
+                // ERRORS
+                self._fail = msg => {
+                    // Handle app failure
+
+                    // Do nothing if not supported, as don't want to fill error logs, and splash shown by index.pug
+                    if (!self._browser_supported){
+                        return
+                    }
+
+                    // Show alert
+                    self.__fail_alert("Something went wrong", msg)
+                }
+
+
+                self._fail_network = () => {
+                    // Handle connection issues
+                    self.__fail_alert("Could not connect", "Please check your internet connection and try again")
+                }
+
+
+                self.__fail_alert = (heading, msg) => {
+                    // Show alert with recovery buttons
+                    // TODO Button to reset app or contact developers
+
+                    // Don't show if a fail splash already exists
+                    if (self.document.querySelector('.fail-splash') !== null){
+                        return
+                    }
+
+                    // Show the alert
+                    self.document.body.innerHTML += `
+                        <div class="fail-splash error">
+                            <h1>${heading}</h1>
+                            <p class='btn-wrap'><button onclick="location.reload(true)">RETRY</button></p>
+                            <pre></pre>
+                        </div>
+                    `
+                    self.document.body.querySelector('.fail-splash.error pre')!.textContent = msg
+                }
+
+
+                self._error_to_msg = error => {
+                    // Convert an error object into a string (standard toString doesn't include stack)
+                    // NOTE Chrome (and probably others too) ONLY has properties name, message, and stack
+                    // NOTE While Chrome includes name/message in the stack, Firefox and Safari do not
+                    return error ? `${error.name}: ${error.message}\n\n${error.stack}` : "unknown"
+                }
+
+
+                self.addEventListener('error', event => {
+                    // Handle uncaught errors
+                    // NOTE error property should always exist, but fallback on message (also if a custom throw?)
+                    console.error(event)  // tslint:disable-line:no-console
+                    const msg = event.error ? self._error_to_msg(event.error) : event.message
+                    self._fail(msg)
+                })
+
+
+                self.addEventListener('unhandledrejection', event => {
+                    // Handle uncaught errors in promises
+                    console.error(event)  // tslint:disable-line:no-console
+                    let msg = event.reason
+                    if (msg instanceof Error){
+                        msg = self._error_to_msg(msg)
+                    }
+                    self._fail('[rejection] ' + msg)
+                })
+
+
+                // INIT
+                // Immediately remove hash and store internally for security
+                self._hash = self.location.hash
+                self.location.hash = ''
+
+
+        script(src='/src/main.ts' type='module' onerror='_fail("Download interrupted")')

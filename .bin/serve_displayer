@@ -7,4 +7,4 @@ echo
 cat public/dev/url.txt
 echo
 
-./node_modules/.bin/vite
+./node_modules/.bin/vite --clearScreen false

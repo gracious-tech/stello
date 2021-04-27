@@ -14,7 +14,6 @@
 /electron/dist/
 /electron/app_dist
 
-/displayer/index.html
 /displayer/dist/
 /displayer/node_modules/
 /displayer/public/dev/

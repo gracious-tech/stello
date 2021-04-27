@@ -11,12 +11,20 @@ cd ../displayer
 # NOTE Ensures all assets inlined so don't need to upload extra files
 # NOTE Sticks assets at root for flat structure
 # WARN Passing an empty string '' as an arg converts to 0 for some reason
-./node_modules/.bin/vite build --outDir ../app/src/assets/displayer  --assetsInlineLimit 99999 --assetsDir './' --base './' "$@"
+./node_modules/.bin/vite build --emptyOutDir --outDir ../app/src/assets/displayer  --assetsInlineLimit 99999 --assetsDir './' --base './' "$@"
 
-# Remove hashes for simpler uploads
+# Move hashes out of filename and into query instead for simpler uploads
 cd ../app/src/assets/displayer
 mv *.js index.js
 mv *.css index.css
-sed --in-place -e 's/index\..*\.js/index\.js/' -e 's/style\..*\.css/index\.css/' index.html
+sed --in-place -e 's/index\.\(.*\)\.js/index\.js\?h\=\1/' index.html
+sed --in-place -e 's/index\.\(.*\)\.css/index\.css\?h\=\1/' index.html
 
-# TODO Ensure only three files created, so don't create more and fail to upload and break things
+# Ensure only expected files were created (i.e. vite inlined all other assets properly)
+# NOTE Ignores "dev" dir that may exist during development with sample data
+EXPECTED="index.css, index.html, index.js"
+ACTUAL=`ls -A -m --ignore=dev`
+if [ "$ACTUAL" != "$EXPECTED" ]; then
+    echo "$ACTUAL != $EXPECTED"
+    exit 1
+fi
