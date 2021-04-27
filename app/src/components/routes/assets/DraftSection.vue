@@ -138,6 +138,9 @@ section
             &:hover
                 opacity: 1  // Give full opacity if hovering over the toolbar itself
 
+        .respondbar
+            visibility: visible !important
+
     .actions
         // Style (but initially hide) actions toolbar in right gutter
         display: flex
@@ -149,5 +152,8 @@ section
         // Default to hiding bar contents only, so that bar itself can still receive hover
         > *
             visibility: hidden
+
+    .respondbar:not(.respondable)
+        visibility: hidden
 
 </style>

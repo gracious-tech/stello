@@ -1,14 +1,9 @@
 
 <template lang='pug'>
 
-div.respondbar
-    shared-respond-reply(v-if='can_reply' :class='{invisible: !respondable_final}' disabled)
-    v-tooltip(v-if='can_reply || can_react' top)
-        | Toggle ability to respond to a section
-        template(#activator='tooltip')
-            app-btn-checkbox.toggle(v-bind='tooltip.attrs' v-on='tooltip.on'
-                :value='section.respondable' @click='toggle_respondable' color='')
-    shared-respond-react(v-if='can_react' :class='{invisible: !respondable_final}' disabled)
+div.respondbar(:class='{respondable: respondable_final}')
+    shared-respond-reply(v-if='can_reply' @click='toggle_respondable')
+    shared-respond-react(v-if='can_react' @click='toggle_respondable')
 
 </template>
 
@@ -63,7 +58,9 @@ export default class extends Vue {
     display: flex
     justify-content: space-around
     align-items: center
-    opacity: 0.5  // Don't distract from editing message (not addition to buttons' transparency)
+
+    &:not(.respondable)
+        opacity: 0.5
 
     .toggle
         opacity: 0.5  // To match normal opacity of buttons
