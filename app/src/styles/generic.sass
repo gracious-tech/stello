@@ -24,6 +24,13 @@ video:focus
     outline-style: none
 
 
+input, textarea
+    &::placeholder
+        // Inherit rather than having a solid grey color
+        color: inherit
+        opacity: 0.5
+
+
 strong, th
     // Bold is too strong, especially for other languages
     font-weight: 500
