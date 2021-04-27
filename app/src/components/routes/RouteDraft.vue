@@ -32,9 +32,9 @@ div(v-if='draft')
 
         //- Second row of toolbar
         template(#extension)
-            div.status {{ status }}
+            div.status(class='app-fg-accent-relative') {{ status }}
 
-    div.msg-title
+    div.msg-title(class='app-bg-primary-relative')
         //- NOTE Using "Subject" since users already familiar with email subjects not being in body
         input(v-model.trim='title' placeholder="Subject...")
 
@@ -297,24 +297,18 @@ export default class extends Vue {
             position: absolute
             top: 0
             margin-top: -18px
-            color: $accent_lighter
             user-select: none
 
 
 .msg-title  // .title used by Vuetify
-    background-color: $primary_darker
     padding: 6px
 
     input
-        color: rgba($on_primary_darker, 1)  // Full opacity since user's own text
         text-align: center
         width: 100%
         outline-style: none
         font-size: 20px
         margin: 6px
-
-        &::placeholder
-            color: rgba($on_primary, 0.6)
 
 
 .stello-container
