@@ -97,7 +97,7 @@ form
     margin-top: 36px
 
     textarea
-        @include themed(background-color, #0001, #0006)
+        @include stello_themed(background-color, #0001, #0006)
         border-style: none
         box-sizing: border-box
         width: 100%

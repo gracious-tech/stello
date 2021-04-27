@@ -100,7 +100,6 @@ export default class extends Vue {
 
     .input
         font-size: 16px
-        @include themed_color(primary)
 
         &:focus
             outline-style: none  // Disable webkit's default
@@ -108,6 +107,7 @@ export default class extends Vue {
 .msgs
     font-size: 12px
     margin: 6px 12px
+    @include themed_color(secondary)
 
 .preview-label
     float: right

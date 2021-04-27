@@ -22,12 +22,22 @@ $stello_layout_width: $stello_sidebar_width + $stello_scrollbar_width
 // Own utils
 
 
+@mixin themed($property, $light, $dark)
+    // Set property with $light, but also create same selector prefixed with .dark set to $dark
+    //     e.g. div p span -> #app.dark div p span
+    #{$property}: $light
+    @media screen  // Theme always light for printing
+        #app.dark &
+            #{$property}: $dark
+
+
 @mixin themed_color($type: 'primary')
     // Shortcut for `themed` that sets color to given type
     // NOTE Possible types: primary, secondary, disabled
     color: map-get(map-get($material-light, 'text'), $type)
-    @at-root #{selector.nest('.dark', '*', &)}
-        color: map-get(map-get($material-dark, 'text'), $type)
+    @media screen  // Theme always light for printing
+        #app.dark &
+            color: map-get(map-get($material-dark, 'text'), $type)
 
 
 @mixin themed_opacity($type: 'primary')
@@ -35,5 +45,6 @@ $stello_layout_width: $stello_sidebar_width + $stello_scrollbar_width
     // NOTE Possible types: primary, secondary, disabled
     $types: ('primary': 'primary-text-percent', 'secondary': 'secondary-text-percent', 'disabled': 'disabledORhints-text-percent')
     opacity: map-get($material-light, map-get($types, $type))
-    @at-root #{selector.nest('.dark', '*', &)}
-        opacity: map-get($material-dark, map-get($types, $type))
+    @media screen  // Theme always light for printing
+        #app.dark &
+            opacity: map-get($material-dark, map-get($types, $type))
