@@ -62,7 +62,4 @@ export default class extends Vue {
     &:not(.respondable)
         opacity: 0.5
 
-    .toggle
-        opacity: 0.5  // To match normal opacity of buttons
-
 </style>
