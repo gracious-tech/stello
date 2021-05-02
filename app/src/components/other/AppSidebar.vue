@@ -15,7 +15,9 @@ div.sidebar
         v-divider
         app-list-item(to='/drafts/') Drafts
         app-list-item(to='/messages/') Sent
-        app-list-item(to='/replies/') Responses
+        app-list-item(to='/replies/')
+            v-badge(:value='unread' :content='unread_replies || ""' color='error' inline)
+                | Responses
         v-divider
         app-list-item(to='/contacts/') Contacts
 
@@ -30,10 +32,11 @@ div.sidebar
 
 <script lang='ts'>
 
-import {Component, Vue} from 'vue-property-decorator'
+import {Component, Vue, Watch} from 'vue-property-decorator'
 
 import AppLogo from '@/branding/AppLogo.vue'
 import {Draft} from '@/services/database/drafts'
+import {Task} from '@/services/tasks/tasks'
 
 
 @Component({
@@ -41,8 +44,27 @@ import {Draft} from '@/services/database/drafts'
 })
 export default class extends Vue {
 
+    unread_replies = 0
+    unread_reactions = 0
+
+    async created(){
+        this.load_unread()
+    }
+
     get default_template(){
         return this.$store.state.default_template
+    }
+
+    get unread():boolean{
+        // Whether there are any unread replies or reactions
+        return this.unread_replies > 0 || this.unread_reactions > 0
+    }
+
+    @Watch('$tm.data.finished') watch_finished(task:Task){
+        // Respond to finished tasks
+        if (task.name === 'responses_receive'){
+            this.load_unread()
+        }
     }
 
     async new_draft(event:MouseEvent){
@@ -66,6 +88,13 @@ export default class extends Vue {
             draft = await self._db.drafts.create()
         }
         this.$router.push({name: 'draft', params: {draft_id: draft.id}})
+    }
+
+    async load_unread():Promise<void>{
+        // Update unread counts of responses
+        // TODO Indexing `read` and using `count` much quicker, but booleans not indexable
+        this.unread_replies = (await self._db.replies.list()).filter(i => !i.read).length
+        this.unread_reactions = (await self._db.reactions.list()).filter(i => !i.read).length
     }
 
 }
@@ -113,5 +142,8 @@ export default class extends Vue {
     background-color: $accent
     font-weight: bold
     letter-spacing: 1px
+
+.v-badge
+    margin-top: 0
 
 </style>
