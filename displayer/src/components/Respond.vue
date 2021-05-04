@@ -71,6 +71,10 @@ export default {
             type: Object as PropType<PublishedSection>,
             required: true,
         },
+        subsection: {
+            type: String as PropType<string|null>,
+            required: true,
+        },
     },
 
     setup(props){
@@ -126,7 +130,8 @@ export default {
             // Try send reaction
             success.value = null
             waiting.value = true
-            success.value = await respond_reaction(resp_token.value, type, props.section.id)
+            success.value = await respond_reaction(resp_token.value, type, props.section.id,
+                props.subsection)
             waiting.value = false
         }
         const send_comment = async () => {
@@ -139,7 +144,8 @@ export default {
 
             // Try send comment
             waiting.value = true
-            success.value = await respond_reply(resp_token.value, text.value, props.section.id)
+            success.value = await respond_reply(resp_token.value, text.value, props.section.id,
+                props.subsection)
             waiting.value = false
 
             // Reset if success (but don't close so can see result)

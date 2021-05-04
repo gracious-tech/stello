@@ -4,17 +4,17 @@
 section(:class='classes')
     div.inner
         div(v-if='content.type === "text"' v-html='content.html')
-        Slideshow(v-if='content.type === "images"' :content='content')
+        Slideshow(v-if='content.type === "images"' :content='content' @displayed='on_displayed_change')
         SharedVideo(v-if='content.type === "video"' :format='content.format' :id='content.id'
             :start='content.start' :end='content.end')
-    Respond(:section='section')
+    Respond(:section='section' :subsection='subsection')
 
 </template>
 
 
 <script lang='ts'>
 
-import {computed, PropType} from 'vue'
+import {computed, PropType, ref} from 'vue'
 
 import Slideshow from './Slideshow.vue'
 import SharedVideo from '../shared/SharedVideo.vue'
@@ -35,10 +35,19 @@ export default {
     },
 
     setup(props){
+
+        // Ref for transfering subsection id between slideshow and respond
+        const subsection = ref<string|null>(null)
+        const on_displayed_change = (id:string) => {
+            subsection.value = id
+        }
+
         return {
             section: props.section,
             content: computed(() => props.section.content),
             classes: computed(() => section_classes(props.section)),
+            subsection,
+            on_displayed_change,
         }
     },
 }

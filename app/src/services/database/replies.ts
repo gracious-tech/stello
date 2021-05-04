@@ -16,6 +16,7 @@ export class Reply implements RecordReply {
     section_id:string
     section_num:number
     section_type:string
+    subsection_id:string|null
     content:string
     read:boolean
     replied:boolean

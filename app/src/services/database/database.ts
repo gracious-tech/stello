@@ -320,7 +320,7 @@ export class Database {
     }
 
     async _gen_replaction(content:string, sent:Date, resp_token:string, section_id:string,
-            ip:string, user_agent:string):Promise<RecordReplaction>{
+            subsection_id:string|null, ip:string, user_agent:string):Promise<RecordReplaction>{
         // Generate a replaction object that can be used for a reply or reaction
 
         // Construct new object with data already known
@@ -337,6 +337,7 @@ export class Database {
             section_id: section_id,
             section_num: null,
             section_type: null,
+            subsection_id: subsection_id,
             content: content,
             read: false,
         }
@@ -372,19 +373,21 @@ export class Database {
     }
 
     async reaction_create(content:string, sent:Date, resp_token:string, section_id:string,
-            ip:string, user_agent:string):Promise<Reaction>{
+            subsection_id:string|null, ip:string, user_agent:string):Promise<Reaction>{
         // Create a new reaction
         const reaction = new Reaction(
-            await this._gen_replaction(content, sent, resp_token, section_id, ip, user_agent))
+            await this._gen_replaction(content, sent, resp_token, section_id, subsection_id, ip,
+                user_agent))
         await this._conn.add('reactions', reaction)
         return reaction
     }
 
     async reply_create(content:string, sent:Date, resp_token:string, section_id:string,
-            ip:string, user_agent:string):Promise<Reply>{
+            subsection_id:string|null, ip:string, user_agent:string):Promise<Reply>{
         // Create a new reply
         const reply = new Reply({
-            ...await this._gen_replaction(content, sent, resp_token, section_id, ip, user_agent),
+            ...await this._gen_replaction(content, sent, resp_token, section_id, subsection_id, ip,
+                user_agent),
             replied: false,
             archived: false,
         })
@@ -438,9 +441,9 @@ export class Database {
         for (const msg of messages){
             for (const msg_copy of await this.copies.list_for_msg(msg.id)){
                 await this.reaction_create('love', new Date(), msg_copy.resp_token,
-                    msg.draft.sections[0][0], '', '')
+                    msg.draft.sections[0][0], null, '', '')
                 await this.reply_create('A message', new Date(), msg_copy.resp_token,
-                    msg.draft.sections[0][0], '', '')
+                    msg.draft.sections[0][0], null, '', '')
             }
         }
     }

@@ -9,10 +9,16 @@ from traceback import format_exc
 from contextlib import suppress
 
 import boto3
+from botocore.config import Config
 from cryptography.hazmat.primitives.hashes import SHA256
 from cryptography.hazmat.primitives.serialization import load_der_public_key
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.asymmetric.padding import OAEP, MGF1
+
+
+# Constants
+# TODO VALID_TYPES = ('error', 'read', 'reply', 'reaction', 'delete', 'subscription', 'resend', 'change_address')
+VALID_TYPES = ('error', 'read', 'reply', 'reaction')
 
 
 # Config from env
@@ -23,9 +29,11 @@ TOPIC_ARN = os.environ['stello_topic_arn']
 REGION = os.environ['stello_region']
 
 
-# Constants
-# TODO VALID_TYPES = ('error', 'read', 'reply', 'reaction', 'delete', 'subscription', 'resend')
-VALID_TYPES = ('error', 'read', 'reply', 'reaction')
+# Access to AWS services
+# NOTE Important to set region to avoid unnecessary redirects for e.g. s3
+AWS_CONFIG = Config(region_name=REGION)
+S3 = boto3.client('s3', config=AWS_CONFIG)
+SNS = boto3.client('sns', config=AWS_CONFIG)
 
 
 def entry(event, context):
@@ -105,13 +113,12 @@ def handle_read(config, event):
         return
 
     # Get object's tags
-    s3_client = boto3.client('s3')
     try:
-        resp = s3_client.get_object_tagging(
+        resp = S3.get_object_tagging(
             Bucket=MSGS_BUCKET,
             Key=f"copies/{event['copy_id']}",
         )
-    except s3_client.exceptions.NoSuchKey:
+    except S3.exceptions.NoSuchKey:
         return  # If msg already deleted, no reason to do any further processing (still report resp)
     tags = {d['Key']: d['Value'] for d in resp['TagSet']}
 
@@ -122,12 +129,13 @@ def handle_read(config, event):
     tags['stello-reads'] = str(reads)
 
     # Either delete message or update reads
+    object_key = f"copies/{event['copy_id']}"
     if reads >= max_reads:
-        _get_copy(event['copy_id']).delete()
+        S3.delete_object(Bucket=MSGS_BUCKET, Key=object_key)
     else:
-        s3_client.put_object_tagging(
+        S3.put_object_tagging(
             Bucket=MSGS_BUCKET,
-            Key=f"copies/{event['copy_id']}",
+            Key=object_key,
             Tagging={
                 # WARN MUST preserve other tags (like stello-lifespan!)
                 'TagSet': [{'Key': k, 'Value': v} for k, v in tags.items()],
@@ -183,9 +191,9 @@ def handle_delete(config, event):
     SECURITY Ensure this lambda fn can only delete messages (not other objects in bucket)
 
     """
-    msg = _get_copy(event['msg_id'])
-    with suppress(msg.meta.client.exceptions.NoSuchKey):  # Already deleted is not a failure
-        msg.delete()
+    copy_id = event['copy_id']
+    with suppress(S3.exceptions.NoSuchKey):  # Already deleted is not a failure
+        S3.delete_object(Bucket=MSGS_BUCKET, Key=f'copies/{copy_id}')
 
 
 # HELPERS
@@ -204,7 +212,7 @@ def _bytes_to_url64(bytes_data):
 def _get_config():
     """Download and parse responder config"""
     # TODO Add prefix for multi-user buckets
-    data = boto3.resource('s3').Bucket(RESP_BUCKET).Object('config').get()['Body'].read()
+    data = S3.get_object(Bucket=RESP_BUCKET, Key='config')['Body'].read()
     return json.loads(data)
 
 
@@ -279,16 +287,7 @@ def _put_resp(config, event, error=None):
     })
 
     # Store in bucket
-    resp_bucket = boto3.resource('s3').Bucket(RESP_BUCKET)
-    resp_bucket.put_object(Key=object_id, Body=output.encode())
-
-
-def _get_copy(copy_id):
-    """Get object for message with given id"""
-    # SECURITY Ensure cannot get any object other than messages (otherwise could delete displayer!)
-    msgs_bucket = boto3.resource('s3').Bucket(MSGS_BUCKET)
-    object_id = f'copies/{copy_id}'
-    return msgs_bucket.Object(object_id)
+    S3.put_object(Bucket=RESP_BUCKET, Key=object_id, Body=output.encode())
 
 
 def _count_resp_objects(resp_type):
@@ -297,7 +296,7 @@ def _count_resp_objects(resp_type):
     TODO Paginates at 1000, which may be a concern when counting reactions for popular users
 
     """
-    resp = boto3.client('s3').list_objects_v2(
+    resp = S3.list_objects_v2(
         Bucket=RESP_BUCKET,
         Prefix=f'responses/{resp_type}/',
     )
@@ -372,4 +371,4 @@ def _send_notification(config, event):
     subject += f" ({MSGS_BUCKET})"
 
     # Send notification
-    boto3.resource('sns').Topic(TOPIC_ARN).publish(Subject=subject, Message=msg)
+    SNS.publish(TopicArn=TOPIC_ARN, Subject=subject, Message=msg)

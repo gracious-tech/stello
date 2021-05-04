@@ -55,8 +55,8 @@ for row in data['sections']:
         if section['content']['type'] == 'images':
             for image in section['content']['images']:
                 print("Downloading image assets")
-                download(f'assets/{base_msg_id}/{image["asset_jpeg"]}')
-                download(f'assets/{base_msg_id}/{image["asset_webp"]}')
+                download(f'assets/{base_msg_id}/{image["id"]}')
+                download(f'assets/{base_msg_id}/{image["id"]}j')
 
 # Print and save URL for testing
 displayer_url = f'http://localhost:3000/#{raw_hash}'

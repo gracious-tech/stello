@@ -69,7 +69,7 @@ export default {
 
             // Try send
             waiting.value = true
-            success.value = await respond_reply(resp_token.value, text.value, null)
+            success.value = await respond_reply(resp_token.value, text.value, null, null)
             waiting.value = false
 
             // Clear text if success

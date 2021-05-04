@@ -45,8 +45,7 @@ export interface PublishedContentVideo {
 }
 
 export interface PublishedImage {
-    asset_webp:string
-    asset_jpeg:string
+    id:string
     caption:string
 }
 
@@ -80,4 +79,5 @@ export interface ResponseEventReplaction {
     user_agent:string
     content:string
     section_id:string
+    subsection_id:string|null
 }

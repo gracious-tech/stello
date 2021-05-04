@@ -328,16 +328,14 @@ async function process_section(section:Section):Promise<[PublishedSection, Publi
                 noting the patterns for webp/jpeg ids. But if you have admin access, there are
                 far worse threats to make it negligable anyway.
             */
-            const jpeg_id = `${image.id}j`
             pub_section_assets.push({
-                id: jpeg_id,
+                id: `${image.id}j`,  // Image id with 'j' appended
                 data: await (await canvas_to_blob(bitmap_canvas, 'jpeg')).arrayBuffer(),
             })
 
             // Add image to published section data
             ;(pub_section.content as PublishedContentImages).images.push({
-                asset_webp: image.id,
-                asset_jpeg: jpeg_id,
+                id: image.id,
                 caption: image.caption,
             })
         }

@@ -83,9 +83,16 @@ export default class extends Vue {
         return hint.trim() || `Section #${this.replaction.section_num + 1}`
     }
 
-    get section_image(){
+    get section_image():string{
+        // Return url for an image that represents the section (if any)
+        const subsection = this.replaction.subsection_id
         if (this.section?.content.type === 'images'){
-            return URL.createObjectURL(this.section.content.images[0].data)
+            const images = this.section.content.images
+            const image = images.find(i => i.id === subsection)
+            if (image){
+                // NOTE Not defaulting to first as would be confusing if wrong image
+                return URL.createObjectURL(image.data)
+            }
         }
     }
 

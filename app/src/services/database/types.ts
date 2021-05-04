@@ -246,6 +246,7 @@ export interface RecordReplaction extends RecordResponse {
     section_id:string  // May be null if a general reply to whole message
     section_num:number  // So can at least know order of sections if later delete them
     section_type:string  // So can at least know the type of section if later deleted
+    subsection_id:string|null  // Some section types have subsections (e.g. image in slideshow)
     content:string
     read:boolean
 }

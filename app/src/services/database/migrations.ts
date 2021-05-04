@@ -11,7 +11,7 @@ type VersionChangeTransaction = IDBPTransaction<
 >
 
 
-export const DATABASE_VERSION = 5
+export const DATABASE_VERSION = 6
 
 
 export function migrate(transaction:VersionChangeTransaction, old_version:number){
@@ -30,6 +30,8 @@ export function migrate(transaction:VersionChangeTransaction, old_version:number
             to4(transaction)
         case 4:
             to5(transaction)
+        case 5:
+            to6(transaction)
     }
 }
 
@@ -170,6 +172,20 @@ async function to5(transaction:VersionChangeTransaction){
     // Add new respondable property to sections
     for await (const cursor of transaction.objectStore('sections')){
         cursor.value.respondable = true  // Previously always true though new default is null
+        cursor.update(cursor.value)
+    }
+}
+
+
+async function to6(transaction:VersionChangeTransaction):Promise<void>{
+
+    // Added subsection_id to replies and reactions
+    for await (const cursor of transaction.objectStore('replies')){
+        cursor.value.subsection_id = null
+        cursor.update(cursor.value)
+    }
+    for await (const cursor of transaction.objectStore('reactions')){
+        cursor.value.subsection_id = null
         cursor.update(cursor.value)
     }
 }

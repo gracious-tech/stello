@@ -37,7 +37,7 @@ async function respond(data:any):Promise<boolean>{
             body: JSON.stringify(data),
             /* TODO Can't test properly yet since sam local server doesn't support CORS yet
                     HOWEVER, real lambda does, so affects dev only, not production
-                    See https://github.com/aws/aws-sam-cli/pull/2082
+                    See https://github.com/aws/aws-sam-cli/issues/2851
             */
             mode: import.meta.env.MODE === 'development' ? 'no-cors' : 'cors',
         })
@@ -63,13 +63,14 @@ export function respond_read(resp_token:string, copy_id:string, has_max_reads:bo
 
 
 export function respond_reply(resp_token:string, text:string, section_id:string|null,
-        ):Promise<boolean>{
+        subsection_id:string|null):Promise<boolean>{
     // Send text response
     const data:any = {
         type: 'reply',
         encrypted: {
             resp_token,
             section_id,
+            subsection_id,
         },
     }
 
@@ -82,13 +83,14 @@ export function respond_reply(resp_token:string, text:string, section_id:string|
 
 
 export function respond_reaction(resp_token:string, reaction:string, section_id:string,
-        ):Promise<boolean>{
+        subsection_id:string|null):Promise<boolean>{
     // Send reaction response
     const data:any = {
         type: 'reaction',
         encrypted: {
             resp_token,
             section_id,
+            subsection_id,
         },
     }
 

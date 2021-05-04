@@ -1,7 +1,7 @@
 
 <template lang='pug'>
 
-SharedSlideshow(:images='images' @img_click='fullscreen_enable')
+SharedSlideshow(:images='images' @img_click='fullscreen_enable' @displayed='on_displayed_change')
 
 teleport(v-if='fullscreen_img_style' to='.content')
     div.fullscreen(@click='fullscreen_disable' :style='fullscreen_img_style')
@@ -31,7 +31,7 @@ export default {
         },
     },
 
-    setup(props){
+    setup(props, {emit}){
 
         // Injections
         const get_asset = inject('get_asset') as Ref<GetAsset>
@@ -44,11 +44,14 @@ export default {
 
         // Add object for each image
         for (const image_meta of props.content.images){
-            const asset_id = image_meta[`asset_${asset_type}` as 'asset_webp'|'asset_jpeg']
+
+            // Determine the image's id
+            // @ts-ignore v0.4.1 and less had `asset_webp` & `asset_jpeg` instead of `id`
+            const image_id = image_meta.id ?? image_meta.asset_webp
 
             // Create reactive image object in structure slideshow expects
             const image = reactive({
-                id: asset_id,  // Uniqueness is all that matters here
+                id: image_id,
                 data: null,
                 caption: image_meta.caption,
             } as SlideshowImage)
@@ -57,6 +60,7 @@ export default {
             images.value.push(image)
 
             // Get the asset's data
+            const asset_id = image_id + (asset_type === 'jpeg' ? 'j' : '')
             get_asset.value(asset_id).then(decrypted => {
                 image.data = buffer_to_blob(decrypted, `image/${asset_type}`)
             }).catch(() => {})  // Will show placeholder if getting asset fails
@@ -90,8 +94,15 @@ export default {
         })
 
 
+        // Reporting of currently displayed image's id
+        const on_displayed_change = (index:number) => {
+            emit('displayed', images.value[index].id)
+        }
+
+
         // Expose template's requirements
-        return {images, fullscreen_img_style, fullscreen_enable, fullscreen_disable}
+        return {images, fullscreen_img_style, fullscreen_enable, fullscreen_disable,
+            on_displayed_change}
     },
 }
 

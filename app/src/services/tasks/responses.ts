@@ -59,6 +59,7 @@ export async function responses_receive(task:Task):Promise<void>{
             const data = JSON.parse(utf8_to_string(binary_data))
 
             // Decrypt and unpack encrypted fields
+            // TODO Account for failure to decrypt or parse etc
             const encrypted_field = await decrypt_asym(data.event.encrypted, private_key)
             const encrypted_data = JSON.parse(utf8_to_string(encrypted_field))
             // SECURITY Ensure attacker can't send different data unencrypted/encrypted
@@ -93,11 +94,12 @@ export async function responses_receive(task:Task):Promise<void>{
 async function process_event(data:ResponseEvent, sent:Date, ip:string):Promise<boolean>{
     // Process and save event to db
     if (data.type === 'reaction'){
-        await self._db.reaction_create(data.content, sent, data.resp_token, data.section_id, ip,
-            data.user_agent)
+        // NOTE `data.subsection_id` did not exist in v0.4.1 and less
+        await self._db.reaction_create(data.content, sent, data.resp_token, data.section_id,
+            data.subsection_id ?? null, ip, data.user_agent)
     } else if (data.type === 'reply'){
-        await self._db.reply_create(data.content, sent, data.resp_token, data.section_id, ip,
-            data.user_agent)
+        await self._db.reply_create(data.content, sent, data.resp_token, data.section_id,
+            data.subsection_id ?? null, ip, data.user_agent)
     } else if (data.type === 'read'){
         await self._db.read_create(sent, data.resp_token, ip, data.user_agent)
     } else {

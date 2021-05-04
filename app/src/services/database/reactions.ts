@@ -16,6 +16,7 @@ export class Reaction implements RecordReaction {
     section_id:string
     section_num:number
     section_type:string
+    subsection_id:string|null
     content:string
     read:boolean
 

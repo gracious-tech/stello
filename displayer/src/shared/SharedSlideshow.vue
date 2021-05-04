@@ -147,6 +147,16 @@ export default {
         },
     },
 
+    watch: {
+        current: {
+            immediate: true,
+            handler(value:number){
+                // Emit current index whenever it changes
+                this.$emit('displayed', value)
+            },
+        },
+    },
+
     methods: {
 
         prev(){
