@@ -1,5 +1,4 @@
 
-/tsconfig.json
 /.venv/
 
 /app/.env.development.local
@@ -19,3 +18,5 @@
 /displayer/public/dev/
 
 /responder/aws/.aws-sam/
+/responder/aws/.dev_env.json
+/responder/aws/.dev_env_key

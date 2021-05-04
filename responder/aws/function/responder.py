@@ -204,10 +204,7 @@ def _bytes_to_url64(bytes_data):
 def _get_config():
     """Download and parse responder config"""
     # TODO Add prefix for multi-user buckets
-    if DEV:
-        data = b'{"notify_mode":"replies","notify_include_contents":true,"allow_replies":false,"allow_reactions":true,"allow_delete":false,"allow_resend_requests":true,"resp_key_public":"MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAmd5k2txzKWFwsJJ4LSSGc7SczQMsEWhuI_Hp4ZhTsPV_PsrP1nLiBux0IpKAYUUc5_0Uzb-b7rf7lHbl0DgSMSWREHSwWYZIpx7DPSd7K2yoGH75On0t_tfAjcQdpijRRl5r8NiIwNYbj3F8MDoZE8CZ0w3-xWQD9nVQ7V7N4vcxcCqk4Eq6bNm-7oCb_gvCDNlJSxqP5qMFmzCc5jrxBBjRQzh3QFpKwXBLSUPwoxXADKesdCfZ8nTtGQZ-HHytyBbvTkeqRqYPoDNA1YRJCBS5RdeJ3ORJPmeZwb9yNu2msZbDtFfp3Gp7klWMFnNAD2ahx6u-XvpW6d1xO_ZnNnRMAIlaz0JA-ZvI3CLdVL5un_KlX7F5-2jJgRr3zvj6B_X3N9u8knxkwhLCdY4WBumWw1gc99hInjRKQDpH3ycwgNBYp08nVOife4fhS7eGOK5joA5vTCWqWaQbaQ2_D01tpSYP8bHEijSheEP_1LQ384G73GcRLT6tZjILbFcm2vbc8czNpEWmxNHgQvg9soFEFaehI934qZgYgIsAThOWhqwYccYRiF6dXE3a1ib3t5nVrqo3nvnqIMX3-WfTGoC4f4sTlunx5IstL_G6nbG-MLdNo2Rz4L60s2KwtQ7OU8OyToxyHO_xFVzvIAh-X_836rVRXVEaWUfU0mplwekCAwEAAQ~~","email":"user@localhost"}'
-    else:
-        data = boto3.resource('s3').Bucket(RESP_BUCKET).Object('config').get()['Body'].read()
+    data = boto3.resource('s3').Bucket(RESP_BUCKET).Object('config').get()['Body'].read()
     return json.loads(data)
 
 

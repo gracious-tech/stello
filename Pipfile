@@ -7,6 +7,7 @@ name = "pypi"
 "ruamel.yaml" = "*"
 invoke = "*"
 cryptography = "*"
+aws-sam-cli = "*"
 
 [dev-packages]
 

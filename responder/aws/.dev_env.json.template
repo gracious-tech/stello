@@ -1,0 +1,11 @@
+// A JSON file with environment variables used by `serve_responder_aws` for local development
+
+{
+    "Function": {
+        "stello_env": "dev",
+        "stello_msgs_bucket": "...",
+        "stello_resp_bucket": "...-stello-responses",
+        "stello_topic_arn": "arn:aws:sns:...",
+        "stello_region": "..."
+    }
+}

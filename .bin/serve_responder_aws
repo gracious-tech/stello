@@ -3,7 +3,16 @@
 cd `dirname "$0"`
 cd ../responder/aws
 
-# NOTE Must build beforehand so that requirements are available
+
+# Executing lambda locally requires credentials for a user with same permissions as lambda role
+# NOTE Can't set in .dev_env.json as sam will override them if in there
+source .dev_env_key
+
+
+# Must build beforehand so that requirements are available
 sam build
+
+
+# Serve lambda locally
 # NOTE sudo required to run docker
-sudo /home/me/brd/.venv/bin/sam local start-lambda
+sudo --preserve-env="AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY" ../../.venv/bin/sam local start-lambda  --env-vars .dev_env.json

@@ -1,0 +1,5 @@
+# This must be credentials for a user with same permissions as test-lambda role has
+# It's easiest to just copy and paste the permissions from the role rather than "assume role"
+
+export AWS_ACCESS_KEY_ID="..."
+export AWS_SECRET_ACCESS_KEY="..."
