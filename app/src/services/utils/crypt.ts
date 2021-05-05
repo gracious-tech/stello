@@ -119,7 +119,7 @@ export async function decrypt_sym(buffer:ArrayBuffer, key:CryptoKey):Promise<Arr
     try {
         return await crypto.subtle.decrypt(algorithm, key, encrypted)
     } catch (error){
-        throw new Error(error)  // May be a DOMException which has no stack trace
+        throw error instanceof DOMException ? new Error(`${error.name}: Failed to decrypt`) : error
     }
 }
 
@@ -130,7 +130,7 @@ export async function decrypt_asym_primitive(buffer:ArrayBuffer, key:CryptoKey)
     try {
         return await crypto.subtle.decrypt({name: 'RSA-OAEP'}, key, buffer)
     } catch (error){
-        throw new Error(error)  // May be a DOMException which has no stack trace
+        throw error instanceof DOMException ? new Error(`${error.name}: Failed to decrypt`) : error
     }
 }
 
