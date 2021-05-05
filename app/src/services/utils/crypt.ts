@@ -116,13 +116,22 @@ export async function decrypt_sym(buffer:ArrayBuffer, key:CryptoKey):Promise<Arr
 
     // Decrypt
     const algorithm = {name: 'AES-GCM', tagLength: SYM_TAG_BITS, iv}
-    return crypto.subtle.decrypt(algorithm, key, encrypted)
+    try {
+        return await crypto.subtle.decrypt(algorithm, key, encrypted)
+    } catch (error){
+        throw new Error(error)  // May be a DOMException which has no stack trace
+    }
 }
 
 
-export function decrypt_asym_primitive(buffer:ArrayBuffer, key:CryptoKey):Promise<ArrayBuffer>{
+export async function decrypt_asym_primitive(buffer:ArrayBuffer, key:CryptoKey)
+        :Promise<ArrayBuffer>{
     // Do primitive asymmetric decryption of given buffer
-    return crypto.subtle.decrypt({name: 'RSA-OAEP'}, key, buffer)
+    try {
+        return await crypto.subtle.decrypt({name: 'RSA-OAEP'}, key, buffer)
+    } catch (error){
+        throw new Error(error)  // May be a DOMException which has no stack trace
+    }
 }
 
 
