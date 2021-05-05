@@ -47,7 +47,6 @@ export async function responses_receive(task:Task):Promise<void>{
             deferred_throw = error
         }
     }
-    task.upcoming(responses.length)
 
     // Ignore and report any invalid types
     // NOTE Not deleting as might be able to fix later with a patch
@@ -64,54 +63,17 @@ export async function responses_receive(task:Task):Promise<void>{
     })
 
     // Concurrently process batches in order
+    task.upcoming(responses.length)
     const jobs = concurrent(responses.map(([profile, type, key]) => {
+        // Return a function/job that triggers downloading the response
+        const decrypt_key = profile.host_state.resp_key.privateKey
         return async () => {
-
-            // Download and decrypt the data
-            const resp = await storages[profile.id].download_response(key)
-            const private_key = profile.host_state.resp_key.privateKey
-            let binary_data:ArrayBuffer
             try {
-                binary_data = await decrypt_asym(utf8_to_string(resp), private_key)
-            } catch {
-                // Likely failed due to _responder_ having an old key of a profile
-                // Since unlikely ever able to recover, delete response but do throw
-                deferred_throw = new Error("Could not decrypt response")
-                storages[profile.id].delete_response(key)
-                return
+                await task.expected(download_response(storages[profile.id], decrypt_key, key))
+            } catch (error){
+                // Don't throw so don't prevent processing of the rest of responses
+                deferred_throw = error
             }
-            const data = JSON.parse(utf8_to_string(binary_data))
-
-            // Decrypt and unpack encrypted fields
-            let encrypted_field:ArrayBuffer
-            try {
-                encrypted_field = await decrypt_asym(data.event.encrypted, private_key)
-            } catch {
-                // Likely failed due to _displayer_ having an old key of a profile
-                // Since unlikely ever able to recover, delete response but do throw
-                deferred_throw = new Error("Could not decrypt response's encrypted field")
-                storages[profile.id].delete_response(key)
-                return
-            }
-            const encrypted_data = JSON.parse(utf8_to_string(encrypted_field))
-            // SECURITY Ensure attacker can't send different data unencrypted/encrypted
-            for (const prop of Object.keys(encrypted_data)){
-                if (prop in data.event){
-                    throw new Error("Encrypted prop overwrites existing")  // TODO handle errors
-                }
-                data.event[prop] = encrypted_data[prop]
-            }
-
-            // Get sent date from object key
-            const timestamp_seconds = Number(get_last(key.split('/')).split('_')[0])
-            const sent = new Date(timestamp_seconds * 1000)
-
-            // Process
-            await task.expected(process_event(data.event, sent, data.ip))
-
-            // Delete response object from bucket if processed successfully
-            // WARN Ensure have awaited all tasks involved with processing event before delete
-            storages[profile.id].delete_response(key)
         }
     }))
 
@@ -122,6 +84,55 @@ export async function responses_receive(task:Task):Promise<void>{
     }
 }
 
+
+async function download_response(storage:HostUser, decrypt_key:CryptoKey, object_key:string)
+        :Promise<void>{
+    // Download a response and process it
+
+    // Download and decrypt the data
+    const resp = await storage.download_response(object_key)
+    let binary_data:ArrayBuffer
+    try {
+        binary_data = await decrypt_asym(utf8_to_string(resp), decrypt_key)
+    } catch {
+        // Likely failed due to _responder_ having an old key of a profile
+        // Since unlikely ever able to recover, delete response and throw
+        storage.delete_response(object_key)
+        throw new Error("Could not decrypt response")
+    }
+    const data = JSON.parse(utf8_to_string(binary_data))
+
+    // Decrypt and unpack encrypted fields
+    let encrypted_field:ArrayBuffer
+    try {
+        encrypted_field = await decrypt_asym(data.event.encrypted, decrypt_key)
+    } catch {
+        // Likely failed due to _displayer_ having an old key of a profile
+        // Since unlikely ever able to recover, delete response and throw
+        storage.delete_response(object_key)
+        throw new Error("Could not decrypt response's encrypted field")
+    }
+    const encrypted_data = JSON.parse(utf8_to_string(encrypted_field))
+
+    // SECURITY Ensure attacker can't send different data unencrypted/encrypted
+    for (const prop of Object.keys(encrypted_data)){
+        if (prop in data.event){
+            throw new Error("Encrypted prop overwrites existing")  // TODO handle errors
+        }
+        data.event[prop] = encrypted_data[prop]
+    }
+
+    // Get sent date from object key
+    const timestamp_seconds = Number(get_last(object_key.split('/')).split('_')[0])
+    const sent = new Date(timestamp_seconds * 1000)
+
+    // Process
+    await process_event(data.event, sent, data.ip)
+
+    // Delete response object from bucket if processed successfully
+    // WARN Ensure have awaited all tasks involved with processing event before delete
+    storage.delete_response(object_key)
+}
 
 
 async function process_event(data:ResponseEvent, sent:Date, ip:string):Promise<void>{
