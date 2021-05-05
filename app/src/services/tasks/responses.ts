@@ -14,6 +14,9 @@ type ResponseType = typeof BY_PRIORITY[number]
 
 
 export async function responses_receive(task:Task):Promise<void>{
+    /* SECURITY Recieving responses has to protect against malicious readers and also responder fn
+        While responder fn should generally be trustworthy, it is still worth minimizing any risk
+    */
 
     // Configure task
     task.label = "Downloading responses"
