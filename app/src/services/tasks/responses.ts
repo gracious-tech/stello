@@ -9,6 +9,9 @@ import {HostUser} from '../hosts/types'
 import type {ResponseEvent} from '../../shared/shared_types'
 
 
+const BY_PRIORITY = ['error', 'read', 'reaction', 'reply']  // least to greatest
+
+
 export async function responses_receive(task:Task):Promise<void>{
 
     // Configure task
@@ -40,16 +43,14 @@ export async function responses_receive(task:Task):Promise<void>{
     task.upcoming(responses.length)
 
     // Sort responses by type, prioritising them by importance
-    // TODO Currently ignores any other objects not matched
-    // TODO Account for error responses which may not have a valid event property
-    const ordered:[Profile, string][] = []
-    const ordered_types = ['reply', 'reaction', 'read']
-    for (const type of ordered_types){
-        ordered.push(...responses.filter(i => i[1].includes(`/${type}/`)))
-    }
+    responses.sort((a, b) => {
+        // BY_PRIORITY is ordered from least to greatest, which works well for the -1 no match
+        // But want to sort from greatest to least, hence b - a (negative puts a first)
+        return BY_PRIORITY.indexOf(b[1].split('/')[1]) - BY_PRIORITY.indexOf(a[1].split('/')[1])
+    })
 
     // Concurrently process batches in order
-    const jobs = concurrent(ordered.map(([profile, key]) => {
+    const jobs = concurrent(responses.map(([profile, key]) => {
         return async () => {
 
             // Download and decrypt the data
