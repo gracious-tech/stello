@@ -1,4 +1,25 @@
 
+
+/* GUIDE
+
+Generating stack trace for non-error throws
+    You can throw anything in JS, but only error objects include stack traces
+        Even builtin exceptions like DOMException don't include a stack trace (crypto throws this)
+    So any instances of non-error throws, whether own or other, should be wrapped in an error object
+    It isn't wise to create a utility for this as then that will be the first in the stack
+        It's clearer to always create the error object as close to the original as possible
+        The stack is generated when error object first created (not when rethrown etc)
+    Example:
+        try {
+            await crypto.subtle.decrypt(...)
+        } catch (error){
+            throw new Error(error)
+            // OR: throw error instanceof Error && error.stack ? error : new Error(error)
+        }
+*/
+
+
+
 // GENERICS
 
 
