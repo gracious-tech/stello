@@ -45,6 +45,7 @@ export async function responses_receive(task:Task):Promise<void>{
     task.upcoming(responses.length)
 
     // Ignore and report any invalid types
+    // NOTE Not deleting as might be able to fix later with a patch
     const invalid = remove_matches(responses, ([p, type, k]) => !BY_PRIORITY.includes(type))
     if (invalid.length){
         self._fail_report(`Invalid response type: ${invalid[0][1]}`)  // Just report first
