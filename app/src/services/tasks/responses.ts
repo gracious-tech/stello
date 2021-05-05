@@ -101,12 +101,19 @@ async function download_response(storage:HostUser, decrypt_key:CryptoKey, object
         storage.delete_response(object_key)
         throw new Error("Could not decrypt response")
     }
-    const data = JSON.parse(utf8_to_string(binary_data))
+    const data = JSON.parse(utf8_to_string(binary_data)) as ResponseData
+
+    // Deal with errors
+    if (data.error){
+        // TODO Do something with errors (for now just deleting and throwing)
+        storage.delete_response(object_key)
+        throw new Error(`Response with error: ${data.error}`)
+    }
 
     // Decrypt and unpack encrypted fields
     let encrypted_field:ArrayBuffer
     try {
-        encrypted_field = await decrypt_asym(data.event.encrypted, decrypt_key)
+        encrypted_field = await decrypt_asym((data.event as any).encrypted, decrypt_key)
     } catch {
         // Likely failed due to _displayer_ having an old key of a profile
         // Since unlikely ever able to recover, delete response and throw
