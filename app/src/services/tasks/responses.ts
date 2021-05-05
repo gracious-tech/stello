@@ -6,7 +6,7 @@ import {utf8_to_string} from '../utils/coding'
 import {decrypt_asym} from '../utils/crypt'
 import {get_last, remove_matches} from '../utils/arrays'
 import {HostUser} from '../hosts/types'
-import type {ResponseEvent} from '../../shared/shared_types'
+import type {ResponseData} from '../../shared/shared_types'
 
 
 const BY_PRIORITY = ['error', 'read', 'reaction', 'reply'] as const  // least to greatest
@@ -52,7 +52,7 @@ export async function responses_receive(task:Task):Promise<void>{
     // NOTE Not deleting as might be able to fix later with a patch
     const invalid = remove_matches(responses, ([p, type, k]) => !BY_PRIORITY.includes(type))
     if (invalid.length){
-        self._fail_report(`Invalid response type: ${invalid[0][1]}`)  // Just report first
+        deferred_throw = new Error(`Invalid response type: ${invalid[0][1]}`)  // Just report first
     }
 
     // Sort responses by type, prioritising them by importance
@@ -88,6 +88,7 @@ export async function responses_receive(task:Task):Promise<void>{
 async function download_response(storage:HostUser, decrypt_key:CryptoKey, object_key:string)
         :Promise<void>{
     // Download a response and process it
+    // NOTE Can generally allow throws, except sometimes may want to delete object if safe to do so
 
     // Download and decrypt the data
     const resp = await storage.download_response(object_key)
@@ -117,7 +118,7 @@ async function download_response(storage:HostUser, decrypt_key:CryptoKey, object
     // SECURITY Ensure attacker can't send different data unencrypted/encrypted
     for (const prop of Object.keys(encrypted_data)){
         if (prop in data.event){
-            throw new Error("Encrypted prop overwrites existing")  // TODO handle errors
+            throw new Error("Encrypted prop overwrites existing")
         }
         data.event[prop] = encrypted_data[prop]
     }
@@ -127,7 +128,7 @@ async function download_response(storage:HostUser, decrypt_key:CryptoKey, object
     const sent = new Date(timestamp_seconds * 1000)
 
     // Process
-    await process_event(data.event, sent, data.ip)
+    await process_data(data, sent)
 
     // Delete response object from bucket if processed successfully
     // WARN Ensure have awaited all tasks involved with processing event before delete
@@ -135,17 +136,29 @@ async function download_response(storage:HostUser, decrypt_key:CryptoKey, object
 }
 
 
-async function process_event(data:ResponseEvent, sent:Date, ip:string):Promise<void>{
-    // Process and save event to db
-    if (data.type === 'reaction'){
-        // NOTE `data.subsection_id` did not exist in v0.4.1 and less
-        await self._db.reaction_create(data.content, sent, data.resp_token, data.section_id,
-            data.subsection_id ?? null, ip, data.user_agent)
-    } else if (data.type === 'reply'){
-        await self._db.reply_create(data.content, sent, data.resp_token, data.section_id,
-            data.subsection_id ?? null, ip, data.user_agent)
-    } else if (data.type === 'read'){
-        await self._db.read_create(sent, data.resp_token, ip, data.user_agent)
+async function process_data(data:ResponseData, sent:Date):Promise<void>{
+    // Process and save data to db
+    // SECURITY data contains untrusted user input and some responder function input
+
+    // Force type of common fields
+    const ip = data.ip ? String(data.ip) : null
+    const resp_token = String(data.event.resp_token)
+    const user_agent = String(data.event.user_agent)
+
+    if (data.event.type === 'reaction' || data.event.type === 'reply'){
+        const method = data.event.type === 'reply' ? 'reply_create' : 'reaction_create'
+        await self._db[method](
+            String(data.event.content),
+            sent,
+            resp_token,
+            data.event.section_id ? String(data.event.section_id) : null,
+            // NOTE `event.subsection_id` did not exist in v0.4.1 and less
+            data.event.subsection_id ? String(data.event.subsection_id) : null,
+            ip,
+            user_agent,
+        )
+    } else if (data.event.type === 'read'){
+        await self._db.read_create(sent, resp_token, ip, user_agent)
     } else {
         throw new Error("Invalid type")
     }
