@@ -59,10 +59,10 @@ Vue.config.errorHandler = (error:any, vm, info) => {
     // Use `error_to_string` so can ensure error is string before attaching info arg to it
     console.error(error_to_string(error) + '\n\n' + info_string)  // tslint:disable-line:no-console
 
+    // Use `_error_to_debug` for below (as only want debug info in UI, not console)
     const debug = self._error_to_debug(error) + '\n\n' + info_string
     self._fail_report(debug)
     if (process.env.NODE_ENV !== 'production'){
-        // NOTE Using `_error_to_debug` this time (as only want debug info in UI, not console)
         self._fail_splash(debug)
     }
 }
