@@ -20,14 +20,22 @@ export async function responses_receive(task:Task):Promise<void>{
     // Preserve instances of storage for each profile
     const storages:{[id:string]:HostUser} = {}
 
+    // Preserve any error in obtaining a profile's responses list for reraising later
+    let list_responses_error:any
+
     // Form list of [profile, key] pairs for all responses in all profiles
     const responses:[Profile, string][] = []
     for (const profile of profiles){
         storages[profile.id] = profile.new_host_user()
-        const keys_for_profile = await storages[profile.id].list_responses()
-        responses.push(...keys_for_profile.map(
-            (k:string):[Profile, string] => [profile, k],
-        ))
+        try {
+            const keys_for_profile = await storages[profile.id].list_responses()
+            responses.push(...keys_for_profile.map(
+                (k:string):[Profile, string] => [profile, k],
+            ))
+        } catch (error){
+            // Other profiles may still work fine so reraise this later instead of interrupting
+            list_responses_error = error
+        }
     }
     task.upcoming(responses.length)
 
@@ -87,6 +95,9 @@ export async function responses_receive(task:Task):Promise<void>{
 
     // Complete task when all done
     await jobs
+    if (list_responses_error){
+        throw list_responses_error
+    }
 }
 
 
