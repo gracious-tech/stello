@@ -4,12 +4,13 @@ import {Profile} from '../database/profiles'
 import {concurrent} from '../utils/async'
 import {utf8_to_string} from '../utils/coding'
 import {decrypt_asym} from '../utils/crypt'
-import {get_last} from '../utils/arrays'
+import {get_last, remove_matches} from '../utils/arrays'
 import {HostUser} from '../hosts/types'
 import type {ResponseEvent} from '../../shared/shared_types'
 
 
-const BY_PRIORITY = ['error', 'read', 'reaction', 'reply']  // least to greatest
+const BY_PRIORITY = ['error', 'read', 'reaction', 'reply'] as const  // least to greatest
+type ResponseType = typeof BY_PRIORITY[number]
 
 
 export async function responses_receive(task:Task):Promise<void>{
@@ -26,15 +27,16 @@ export async function responses_receive(task:Task):Promise<void>{
     // Preserve any error in obtaining a profile's responses list for reraising later
     let list_responses_error:any
 
-    // Form list of [profile, key] pairs for all responses in all profiles
-    const responses:[Profile, string][] = []
+    // Form list of [profile, type, key] tuples for all responses in all profiles
+    const responses:[Profile, ResponseType, string][] = []
     for (const profile of profiles){
         storages[profile.id] = profile.new_host_user()
         try {
             const keys_for_profile = await storages[profile.id].list_responses()
-            responses.push(...keys_for_profile.map(
-                (k:string):[Profile, string] => [profile, k],
-            ))
+            responses.push(...keys_for_profile.map(k => {
+                const type = k.split('/')[1] as ResponseType
+                return [profile, type, k] as [Profile, ResponseType, string]
+            }))
         } catch (error){
             // Other profiles may still work fine so reraise this later instead of interrupting
             list_responses_error = error
@@ -42,15 +44,21 @@ export async function responses_receive(task:Task):Promise<void>{
     }
     task.upcoming(responses.length)
 
+    // Ignore and report any invalid types
+    const invalid = remove_matches(responses, ([p, type, k]) => !BY_PRIORITY.includes(type))
+    if (invalid.length){
+        self._fail_report(`Invalid response type: ${invalid[0][1]}`)  // Just report first
+    }
+
     // Sort responses by type, prioritising them by importance
     responses.sort((a, b) => {
         // BY_PRIORITY is ordered from least to greatest, which works well for the -1 no match
         // But want to sort from greatest to least, hence b - a (negative puts a first)
-        return BY_PRIORITY.indexOf(b[1].split('/')[1]) - BY_PRIORITY.indexOf(a[1].split('/')[1])
+        return BY_PRIORITY.indexOf(b[1]) - BY_PRIORITY.indexOf(a[1])
     })
 
     // Concurrently process batches in order
-    const jobs = concurrent(responses.map(([profile, key]) => {
+    const jobs = concurrent(responses.map(([profile, type, key]) => {
         return async () => {
 
             // Download and decrypt the data
