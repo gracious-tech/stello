@@ -107,13 +107,11 @@ export async function responses_receive(task:Task):Promise<void>{
             const sent = new Date(timestamp_seconds * 1000)
 
             // Process
-            const success = await task.expected(process_event(data.event, sent, data.ip))
+            await task.expected(process_event(data.event, sent, data.ip))
 
             // Delete response object from bucket if processed successfully
             // WARN Ensure have awaited all tasks involved with processing event before delete
-            if (success){
-                storages[profile.id].delete_response(key)
-            }
+            storages[profile.id].delete_response(key)
         }
     }))
 
@@ -126,7 +124,7 @@ export async function responses_receive(task:Task):Promise<void>{
 
 
 
-async function process_event(data:ResponseEvent, sent:Date, ip:string):Promise<boolean>{
+async function process_event(data:ResponseEvent, sent:Date, ip:string):Promise<void>{
     // Process and save event to db
     if (data.type === 'reaction'){
         // NOTE `data.subsection_id` did not exist in v0.4.1 and less
@@ -138,7 +136,6 @@ async function process_event(data:ResponseEvent, sent:Date, ip:string):Promise<b
     } else if (data.type === 'read'){
         await self._db.read_create(sent, data.resp_token, ip, data.user_agent)
     } else {
-        return false  // TODO Can't process (handle better)
+        throw new Error("Invalid type")
     }
-    return true
 }
