@@ -71,7 +71,7 @@ export async function responses_receive(task:Task):Promise<void>{
             try {
                 binary_data = await decrypt_asym(utf8_to_string(resp), private_key)
             } catch {
-                // Failure to decrypt is likely due to changing keys (e.g. reusing an old storage)
+                // Likely failed due to _responder_ having an old key of a profile
                 // Since unlikely ever able to recover, delete response but do throw
                 deferred_throw = new Error("Could not decrypt response")
                 storages[profile.id].delete_response(key)
@@ -80,8 +80,16 @@ export async function responses_receive(task:Task):Promise<void>{
             const data = JSON.parse(utf8_to_string(binary_data))
 
             // Decrypt and unpack encrypted fields
-            // TODO Account for failure to decrypt or parse etc
-            const encrypted_field = await decrypt_asym(data.event.encrypted, private_key)
+            let encrypted_field:ArrayBuffer
+            try {
+                encrypted_field = await decrypt_asym(data.event.encrypted, private_key)
+            } catch {
+                // Likely failed due to _displayer_ having an old key of a profile
+                // Since unlikely ever able to recover, delete response but do throw
+                deferred_throw = new Error("Could not decrypt response's encrypted field")
+                storages[profile.id].delete_response(key)
+                return
+            }
             const encrypted_data = JSON.parse(utf8_to_string(encrypted_field))
             // SECURITY Ensure attacker can't send different data unencrypted/encrypted
             for (const prop of Object.keys(encrypted_data)){
