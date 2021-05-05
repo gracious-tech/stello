@@ -9,6 +9,7 @@ Generating stack trace for non-error throws
     It isn't wise to create a utility for this as then that will be the first in the stack
         It's clearer to always create the error object as close to the original as possible
         The stack is generated when error object first created (not when rethrown etc)
+        It's especially bad to use a utility for promises, as you lose all stack before first await
     Example:
         try {
             await crypto.subtle.decrypt(...)
