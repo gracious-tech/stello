@@ -104,6 +104,7 @@ async function download_response(storage:HostUser, decrypt_key:CryptoKey, object
     const data = JSON.parse(utf8_to_string(binary_data)) as ResponseData
 
     // Deal with errors
+    // NOTE the response type in the object key will be error, but in the data will be other value
     if (data.error){
         // TODO Do something with errors (for now just deleting and throwing)
         storage.delete_response(object_key)
