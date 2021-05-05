@@ -59,8 +59,8 @@ export interface PublishedAsset {
 
 export interface ResponseData {
     event:ResponseEvent
-    ip:string
-    error:string
+    ip:string|null  // May not be available for some setups
+    error:string|null
 }
 
 export type ResponseEvent = ResponseEventRead|ResponseEventReplaction
@@ -78,6 +78,6 @@ export interface ResponseEventReplaction {
     resp_token:string
     user_agent:string
     content:string
-    section_id:string
+    section_id:string|null
     subsection_id:string|null
 }
