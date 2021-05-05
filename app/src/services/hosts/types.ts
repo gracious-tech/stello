@@ -109,7 +109,7 @@ export declare class HostUser {
     delete_response(path:string):Promise<void>
 
     // List all responses
-    list_responses(prefix?:string):Promise<string[]>
+    list_responses(type?:string):Promise<string[]>
 
     // Upload config for responder function
     upload_responder_config(config:Record<string, any>):Promise<void>

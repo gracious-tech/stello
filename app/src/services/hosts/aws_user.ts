@@ -75,7 +75,7 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
     async list_files(prefix:string=''):Promise<string[]>{
         // List uploaded files (useful for deleting old messages if app lost state)
         // NOTE `_prefix` is the user name if any, while `prefix` is limiting results to a subdir
-        return this._list_objects(this.bucket, this._prefix + prefix)
+        return this._list_objects(this.bucket, prefix)
     }
 
     async download_response(path:string):Promise<ArrayBuffer>{
@@ -95,10 +95,10 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         }).promise()
     }
 
-    async list_responses(prefix:string=''):Promise<string[]>{
+    async list_responses(type:string=''):Promise<string[]>{
         // List responses
         // NOTE `_prefix` is the user name if any, while `prefix` is limiting results to a subdir
-        return this._list_objects(this._bucket_resp_id, `${this._prefix}responses/${prefix}`)
+        return this._list_objects(this._bucket_resp_id, `responses/${type}`)
     }
 
     async upload_responder_config(config:Record<string, any>):Promise<void>{
@@ -152,17 +152,18 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         return (await this.sts.getCallerIdentity().promise()).Account
     }
 
-    async _list_objects(bucket:string, prefix?:string):Promise<string[]>{
+    async _list_objects(bucket:string, prefix:string=''):Promise<string[]>{
         // List objects in a bucket
-        const objects = []
-        let continuation_token
+        const objects:string[] = []
+        let continuation_token:string
         while (true){
             const resp = await this.s3.listObjectsV2({
                 Bucket: bucket,
-                Prefix: prefix,
+                Prefix: this._prefix + prefix,
                 ContinuationToken: continuation_token,
             }).promise()
-            objects.push(...resp.Contents.map(object => object.Key))
+            // NOTE Keys returned have any user-prefix already removed (but not prefix arg)
+            objects.push(...resp.Contents.map(object => object.Key.slice(this._prefix.length)))
             continuation_token = resp.NextContinuationToken
             if (!continuation_token){
                 break
