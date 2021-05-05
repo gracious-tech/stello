@@ -77,8 +77,8 @@ self._fail_splash = (debug:string):void => {
 }
 
 
-self._fail_report = (debug:string):void => {
-    // Report bugs by posting to author's contact API
+self._fail_report_preprepared = (debug:string):void => {
+    // Report bugs by posting to author's contact API (takes a preprepared debug string)
     if (process.env.NODE_ENV === 'production'){
         drop(fetch(app_config.author.post, {
             method: 'POST',
@@ -90,6 +90,15 @@ self._fail_report = (debug:string):void => {
             }),
         }))
     }
+}
+
+
+self._fail_report = (error:any):string => {
+    // Report error and return debug string that was generated for the report (so can reuse)
+    console.error(error)
+    const debug = self._error_to_debug(error)
+    self._fail_report_preprepared(debug)
+    return debug
 }
 
 
@@ -107,7 +116,7 @@ self.addEventListener('error', (event:ErrorEvent):void => {
     const error = event.error ?? event.message ?? 'unknown'
     console.error(error)  // tslint:disable-line:no-console
     const debug = self._error_to_debug(error)
-    self._fail_report(debug)
+    self._fail_report_preprepared(debug)
     self._fail_splash(debug)
 })
 

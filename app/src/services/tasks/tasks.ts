@@ -216,8 +216,7 @@ export class TaskManager {
                 this.data.fails.push(task)
                 // Report if an unknown error
                 if (task.error_type === 'unknown'){
-                    console.error(error)
-                    self._fail_report(self._error_to_debug(error))
+                    self._fail_report(error)
                 }
             }
         })

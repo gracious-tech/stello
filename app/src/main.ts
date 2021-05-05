@@ -61,7 +61,7 @@ Vue.config.errorHandler = (error:any, vm, info) => {
 
     // Use `_error_to_debug` for below (as only want debug info in UI, not console)
     const debug = self._error_to_debug(error) + '\n\n' + info_string
-    self._fail_report(debug)
+    self._fail_report_preprepared(debug)
     if (process.env.NODE_ENV !== 'production'){
         self._fail_splash(debug)
     }
@@ -71,7 +71,7 @@ Vue.config.warnHandler = (msg, vm, trace) => {
     const error_string = `${msg}\n(Vue warning)\n\n${trace}`
     console.error(error_string)  // tslint:disable-line:no-console
     const debug = self._error_to_debug(error_string)
-    self._fail_report(debug)
+    self._fail_report_preprepared(debug)
     if (process.env.NODE_ENV !== 'production'){
         self._fail_splash(debug)
     }
@@ -132,7 +132,7 @@ const i18n = new VueI18n({
         // Consider missing an i18n string (entirely) a hard fail during development
         const debug = self._error_to_debug(`Missing i18n path: ${path}\nLocale: ${locale}`)
         console.error(debug)  // tslint:disable-line:no-console
-        self._fail_report(debug)
+        self._fail_report_preprepared(debug)
         if (process.env.NODE_ENV !== 'production'){
             self._fail_splash(debug)
         }
