@@ -18,14 +18,16 @@ export async function responses_receive(task:Task):Promise<void>{
     // Configure task
     task.label = "Downloading responses"
 
+    // Don't want to interrupt processing as a single error could block all response receiving
+    // And errors may often be isolated to a single response or single profile
+    // So use this var to store any error for throwing at the end (overwritten by future errors)
+    let deferred_throw:any
+
     // Get all active profiles
     const profiles = (await self._db.profiles.list()).filter(profile => profile.setup_complete)
 
     // Preserve instances of storage for each profile
     const storages:{[id:string]:HostUser} = {}
-
-    // Preserve any error in obtaining a profile's responses list for reraising later
-    let list_responses_error:any
 
     // Form list of [profile, type, key] tuples for all responses in all profiles
     const responses:[Profile, ResponseType, string][] = []
@@ -39,7 +41,7 @@ export async function responses_receive(task:Task):Promise<void>{
             }))
         } catch (error){
             // Other profiles may still work fine so reraise this later instead of interrupting
-            list_responses_error = error
+            deferred_throw = error
         }
     }
     task.upcoming(responses.length)
@@ -70,7 +72,8 @@ export async function responses_receive(task:Task):Promise<void>{
                 binary_data = await decrypt_asym(utf8_to_string(resp), private_key)
             } catch {
                 // Failure to decrypt is likely due to changing keys (e.g. reusing an old storage)
-                // TODO Determine if this would ever occur outside of development
+                // Since unlikely ever able to recover, delete response but do throw
+                deferred_throw = new Error("Could not decrypt response")
                 storages[profile.id].delete_response(key)
                 return
             }
@@ -105,8 +108,8 @@ export async function responses_receive(task:Task):Promise<void>{
 
     // Complete task when all done
     await jobs
-    if (list_responses_error){
-        throw list_responses_error
+    if (deferred_throw){
+        throw deferred_throw
     }
 }
 
