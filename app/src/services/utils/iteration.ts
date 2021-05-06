@@ -22,6 +22,8 @@ export function* range(start_or_amount:number, end?:number, step:number=1):Gener
 
 export function* cycle<T>(options:T[]):Generator<T>{
     // Generator that endlessly cycles through given options
-    yield options[0]
-    options.push(options.shift())
+    while (true){
+        yield options[0]
+        options.push(options.shift())
+    }
 }
