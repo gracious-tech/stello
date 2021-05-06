@@ -18,7 +18,7 @@ import {DatabaseReactions, Reaction} from './reactions'
 import {export_key, generate_hash, generate_token} from '../utils/crypt'
 import {generate_key_sym} from '../utils/crypt'
 import {buffer_to_url64} from '../utils/coding'
-import {range} from '../utils/iteration'
+import {cycle, range} from '../utils/iteration'
 import {remove_item} from '../utils/arrays'
 import {migrate, DATABASE_VERSION} from './migrations'
 
@@ -438,9 +438,10 @@ export class Database {
         }))
 
         // Create responses
+        const reactions = cycle(['like', 'love', 'laugh', 'wow', 'yay', 'pray', 'sad'])
         for (const msg of messages){
             for (const msg_copy of await this.copies.list_for_msg(msg.id)){
-                await this.reaction_create('love', new Date(), msg_copy.resp_token,
+                await this.reaction_create(reactions.next().value, new Date(), msg_copy.resp_token,
                     msg.draft.sections[0][0], null, '', '')
                 await this.reply_create('A message', new Date(), msg_copy.resp_token,
                     msg.draft.sections[0][0], null, '', '')
