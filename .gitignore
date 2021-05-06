@@ -16,7 +16,7 @@
 /displayer/dist/
 /displayer/node_modules/
 /displayer/public/dev/
-/displayer/src/shared/reactions_proprietary
+/displayer/src/shared/reactions/
 
 /responder/aws/.aws-sam/
 /responder/aws/.dev_env.json
