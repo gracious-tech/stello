@@ -383,11 +383,15 @@ export class Database {
         // Delete any previous reactions for same contact & section
         // TODO Could improve performance by indexing on copy_id instead of contact_id
         if (reaction.contact_id){
-            const old_reactions = await this._conn.getAllFromIndex(
+            const existing_reactions = await this._conn.getAllFromIndex(
                 'reactions', 'by_contact', reaction.contact_id)
-            for (const old of old_reactions){
-                if (old.section_id === section_id && old.subsection_id === subsection_id){
-                    this.reactions.remove(old.id)
+            for (const existing of existing_reactions){
+                if (existing.section_id === section_id && existing.subsection_id === subsection_id){
+                    // If existing reaction is newer, cancel save, otherwise delete existing
+                    if (existing.sent > reaction.sent){
+                        return  // Existing is newer
+                    }
+                    this.reactions.remove(existing.id)
                 }
             }
         }
