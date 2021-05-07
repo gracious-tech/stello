@@ -448,11 +448,15 @@ export class Database {
         for (const msg of percent(messages)){
             for (const msg_copy of percent(await this.copies.list_for_msg(msg.id))){
                 if (Math.random() > 0.5){
-                    await this.reaction_create(reactions.next().value, new Date(),
+                    const date = new Date()
+                    date.setDate(date.getDate() - Math.random() * 365)
+                    await this.reaction_create(reactions.next().value, date,
                         msg_copy.resp_token, msg.draft.sections[0][0], null, '', '')
                 }
                 if (Math.random() > 0.5){
-                    await this.reply_create('A message', new Date(), msg_copy.resp_token,
+                    const date = new Date()
+                    date.setDate(date.getDate() - Math.random() * 365)
+                    await this.reply_create('A message', date, msg_copy.resp_token,
                         msg.draft.sections[0][0], null, '', '')
                 }
             }
