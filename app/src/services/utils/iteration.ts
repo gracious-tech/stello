@@ -27,3 +27,16 @@ export function* cycle<T>(options:T[]):Generator<T>{
         options.push(options.shift())
     }
 }
+
+
+export function* percent<T>(items:T[], percentage:number=Math.random()):Generator<T>{
+    // Iterate over a certain percentage of the given items
+    // Items will be semi-randomly selected resulting in a total number matching given percentage
+    let yielded = 0
+    for (const item of items){
+        if (yielded / items.length < percentage){
+            yield item
+            yielded++
+        }
+    }
+}
