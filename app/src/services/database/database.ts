@@ -373,12 +373,30 @@ export class Database {
         return replaction
     }
 
-    async reaction_create(content:string, sent:Date, resp_token:string, section_id:string,
+    async reaction_create(content:string|null, sent:Date, resp_token:string, section_id:string,
             subsection_id:string|null, ip:string, user_agent:string):Promise<Reaction>{
         // Create a new reaction
         const reaction = new Reaction(
             await this._gen_replaction(content, sent, resp_token, section_id, subsection_id, ip,
                 user_agent))
+
+        // Delete any previous reactions for same contact & section
+        // TODO Could improve performance by indexing on copy_id instead of contact_id
+        if (reaction.contact_id){
+            const old_reactions = await this._conn.getAllFromIndex(
+                'reactions', 'by_contact', reaction.contact_id)
+            for (const old of old_reactions){
+                if (old.section_id === section_id && old.subsection_id === subsection_id){
+                    this.reactions.remove(old.id)
+                }
+            }
+        }
+
+        // If a null reaction then just needed to delete, not save
+        if (content === null){
+            return
+        }
+
         await this._conn.add('reactions', reaction)
         return reaction
     }
