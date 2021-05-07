@@ -156,7 +156,7 @@ async function process_data(data:ResponseData, sent:Date):Promise<void>{
     if (data.event.type === 'reaction' || data.event.type === 'reply'){
         const method = data.event.type === 'reply' ? 'reply_create' : 'reaction_create'
         await self._db[method](
-            String(data.event.content),
+            data.event.content ? String(data.event.content) : null,
             sent,
             resp_token,
             data.event.section_id ? String(data.event.section_id) : null,

@@ -77,7 +77,7 @@ export interface ResponseEventReplaction {
     type:'reply'|'reaction'
     resp_token:string
     user_agent:string
-    content:string
+    content:string|null  // Reaction can be null to clear any previous
     section_id:string|null
     subsection_id:string|null
 }
