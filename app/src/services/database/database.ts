@@ -1,4 +1,5 @@
 
+import {sample} from 'lodash'
 import {openDB} from 'idb/with-async-ittr.js'
 
 import {AppDatabaseSchema, AppDatabaseConnection, RecordReplaction, RecordSectionContent,
@@ -18,7 +19,7 @@ import {DatabaseReactions, Reaction} from './reactions'
 import {export_key, generate_hash, generate_token} from '../utils/crypt'
 import {generate_key_sym} from '../utils/crypt'
 import {buffer_to_url64} from '../utils/coding'
-import {cycle, range} from '../utils/iteration'
+import {cycle, percent, range} from '../utils/iteration'
 import {remove_item} from '../utils/arrays'
 import {migrate, DATABASE_VERSION} from './migrations'
 
@@ -411,8 +412,13 @@ export class Database {
         await this.profiles.set(profile)
 
         // Create contacts
+        const first_names = ['Adam', 'Ben', 'Charlie', 'David', 'Edward', 'Fred', 'Greg',
+            'Harry']
+        const last_names = ['Andrews', 'Beaver', 'Chapman', 'Driver', 'Edmonds', 'Fudge',
+            'Goods', 'Harvard']
         const contacts = await Promise.all([...range(100 * multiplier)].map(
-            i => this.contacts.create(`User${i} Name`, `user+${i}@localhost`)))
+            i => this.contacts.create(
+                `${sample(first_names)} ${sample(last_names)}`, `user+${i}@localhost`)))
 
         // Create a section
         const section = await this.sections.create({
@@ -439,12 +445,16 @@ export class Database {
 
         // Create responses
         const reactions = cycle(['like', 'love', 'laugh', 'wow', 'yay', 'pray', 'sad'])
-        for (const msg of messages){
-            for (const msg_copy of await this.copies.list_for_msg(msg.id)){
-                await this.reaction_create(reactions.next().value, new Date(), msg_copy.resp_token,
-                    msg.draft.sections[0][0], null, '', '')
-                await this.reply_create('A message', new Date(), msg_copy.resp_token,
-                    msg.draft.sections[0][0], null, '', '')
+        for (const msg of percent(messages)){
+            for (const msg_copy of percent(await this.copies.list_for_msg(msg.id))){
+                if (Math.random() > 0.5){
+                    await this.reaction_create(reactions.next().value, new Date(),
+                        msg_copy.resp_token, msg.draft.sections[0][0], null, '', '')
+                }
+                if (Math.random() > 0.5){
+                    await this.reply_create('A message', new Date(), msg_copy.resp_token,
+                        msg.draft.sections[0][0], null, '', '')
+                }
             }
         }
     }
