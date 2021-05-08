@@ -40,6 +40,8 @@ export default {
     icon_section_separate:  require('@/assets/icon_section_separate.svg').default,
 
     // Material icons
+    icon_reply:             require('md-icon-svgs/reply.svg').default,
+    icon_archive:           require('md-icon-svgs/archive.svg').default,
     icon_swap_horiz:        require('md-icon-svgs/swap_horiz.svg').default,
     icon_expand_more:       require('md-icon-svgs/expand_more.svg').default,
     icon_invert_colors:     require('md-icon-svgs/invert_colors.svg').default,
