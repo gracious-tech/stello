@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Collect reactions into app, choosing between free or proprietary (must set $REACTIONS_PASSWORD)
+
+set -e
+
+cd `dirname "$0"`
+cd ..
+
+
+# Clear existing reactions
+rm --force displayer/public/assets/reactions/*
+mkdir --parents displayer/public/assets/reactions
+
+
+# Copy across either proprietary or free reactions
+if [[ "$REACTIONS_PASSWORD" ]]; then
+    gpg --quiet --batch --decrypt --passphrase="$REACTIONS_PASSWORD" displayer/sources/reactions_proprietary.tar.gpg | tar --extract --one-top-level="displayer/public/assets/reactions"
+else
+    # NOTE Only copy json files, as svgs are just the sources of the json
+    cp --archive displayer/sources/reactions_free/*.json displayer/public/assets/reactions
+fi
+
+
+# Also copy custom reactions
+# TODO Optimise SVGs since will not be optimised by vite as in public dir
+cp --archive displayer/sources/reactions_custom/* displayer/public/assets/reactions
