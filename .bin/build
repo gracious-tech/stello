@@ -6,6 +6,10 @@ set -e
 PLATFORM="$1"
 
 
+# Load reactions
+.bin/reactions
+
+
 # Install packages
 cd displayer
 npm ci

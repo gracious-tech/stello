@@ -41,6 +41,7 @@ jobs:
                 run: .bin/build electron
                 env:
                     VUE_APP_OAUTH_SECRET_GOOGLE: ${{ secrets.OAUTH_SECRET_GOOGLE }}
+                    REACTIONS_PASSWORD: ${{ secrets.REACTIONS_PASSWORD }}
 
             -   name: Upload app base for package jobs to use
                 working-directory: ./app
