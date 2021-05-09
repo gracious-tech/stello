@@ -2,7 +2,16 @@
 # Animations
 
 ## SVG
-SVGs are best as both very small and infinitely scalable, and can animate with embedded CSS.
+SVGs are by far the best option
+
+ * Very small size
+ * Scalable
+ * Can control animation
+ * Easy to edit (both image and animation)
+
+
+[Lottie](https://github.com/airbnb/lottie-web) is acceptable when the animations have been created
+in After Effects, but otherwise regular CSS or JS is preferrable as much easier to edit than Lottie.
 
 ## Animated PNG
 This is the next best option
@@ -10,6 +19,13 @@ This is the next best option
  * Full browser support
  * Fallback on still when not supported
  * Way better transparency than GIF
+
+But compared to SVGs
+
+ * Much larger size
+ * Not scalable
+ * Can't control animation
+ * Not easy to edit
 
 Animated WebP/AVIF/JXL may be better in future but currently has support issues.
 
