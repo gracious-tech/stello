@@ -188,4 +188,11 @@ async function to6(transaction:VersionChangeTransaction):Promise<void>{
         cursor.value.subsection_id = null
         cursor.update(cursor.value)
     }
+
+    // New option in profiles
+    for await (const cursor of transaction.objectStore('profiles')){
+        cursor.value.options.reaction_options =
+            ['like', 'love', 'yay', 'pray', 'laugh', 'wow', 'sad'],
+        cursor.update(cursor.value)
+    }
 }

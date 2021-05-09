@@ -111,6 +111,7 @@ export interface RecordProfileOptions {
     auto_exclude_exempt_groups:string[]
     smtp_no_reply:boolean
     social_referral_ban:boolean
+    reaction_options:('like'|'love'|'yay'|'pray'|'laugh'|'wow'|'sad')[]
 }
 
 

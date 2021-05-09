@@ -29,6 +29,7 @@ export async function configs_update(task:Task){
         social_referral_ban: profile.options.social_referral_ban,
         credentials_responder: profile.host.credentials_responder,
         resp_key_public,
+        reaction_options: profile.options.reaction_options,
     }))
 
     // Upload responder config

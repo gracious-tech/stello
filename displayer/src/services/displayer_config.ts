@@ -31,6 +31,8 @@ class DisplayerConfig {
     social_referral_ban:boolean = true
     credentials_responder:{key_id:string,key_secret:string}|null = null
     resp_key_public:CryptoKey|null = null
+    // NOTE `reaction_options` didn't exist till after v0.4.1, so default needed for old configs
+    reaction_options:string[] = ['like', 'love', 'yay', 'pray', 'laugh', 'wow', 'sad']
 
     async load(name_in_hash?:string, prev_name?:string|null):Promise<string|null>{
         // Download and apply config

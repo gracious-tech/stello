@@ -144,8 +144,10 @@ import {Profile} from '@/services/database/profiles'
 import {Task, task_manager} from '@/services/tasks/tasks'
 
 
-const UPLOADED_CONFIG_OPTIONS = ['notify_mode', 'notify_include_contents', 'allow_replies',
-    'allow_reactions', 'allow_delete', 'allow_resend_requests', 'social_referral_ban']
+const UPLOADED_CONFIG_OPTIONS = [
+    'notify_mode', 'notify_include_contents', 'allow_replies', 'allow_reactions', 'allow_delete',
+    'allow_resend_requests', 'social_referral_ban', 'reaction_options',
+]
 
 
 // Helper for adding getters/setters for profile options

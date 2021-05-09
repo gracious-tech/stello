@@ -289,6 +289,7 @@ export class DatabaseProfiles {
                 auto_exclude_exempt_groups: [],
                 smtp_no_reply: true,
                 social_referral_ban: true,
+                reaction_options: ['like', 'love', 'yay', 'pray', 'laugh', 'wow', 'sad'],
             },
             msg_options_identity: {
                 sender_name: '',
