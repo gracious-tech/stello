@@ -9,19 +9,19 @@ cd ..
 
 
 # Clear existing reactions
-rm --force displayer/public/assets/reactions/*
-mkdir --parents displayer/public/assets/reactions
+rm --force displayer/public/displayer/reactions/*
+mkdir --parents displayer/public/displayer/reactions
 
 
 # Copy across either proprietary or free reactions
 if [[ "$REACTIONS_PASSWORD" ]]; then
-    gpg --quiet --batch --decrypt --passphrase="$REACTIONS_PASSWORD" displayer/sources/reactions_proprietary.tar.gpg | tar --extract --one-top-level="displayer/public/assets/reactions"
+    gpg --quiet --batch --decrypt --passphrase="$REACTIONS_PASSWORD" displayer/sources/reactions_proprietary.tar.gpg | tar --extract --one-top-level="displayer/public/displayer/reactions"
 else
     # NOTE Only copy json files, as svgs are just the sources of the json
-    cp --archive displayer/sources/reactions_free/*.json displayer/public/assets/reactions
+    cp --archive displayer/sources/reactions_free/*.json displayer/public/displayer/reactions
 fi
 
 
 # Also copy custom reactions
 # TODO Optimise SVGs since will not be optimised by vite as in public dir
-cp --archive displayer/sources/reactions_custom/* displayer/public/assets/reactions
+cp --archive displayer/sources/reactions_custom/* displayer/public/displayer/reactions

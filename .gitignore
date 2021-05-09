@@ -4,7 +4,7 @@
 /app/.env.development.local
 /app/dist/
 /app/node_modules/
-/app/src/assets/displayer.tar
+/app/static/displayer.tar
 /app/src/services/native/native.ts
 
 /app_config/node_modules/
@@ -16,7 +16,7 @@
 /displayer/dist/
 /displayer/node_modules/
 /displayer/public/dev/
-/displayer/public/assets/reactions/
+/displayer/public/displayer/reactions/
 
 /responder/aws/.aws-sam/
 /responder/aws/.dev_env.json

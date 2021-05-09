@@ -10,9 +10,10 @@ cd ../displayer
 
 # NOTE Ensures all synchronous assets inlined so ready when app loads
 # WARN Passing an empty string '' as an arg converts to 0 for some reason
-./node_modules/.bin/vite build --assetsInlineLimit 99999 --assetsDir 'assets' --base './'
+./node_modules/.bin/vite build --assetsInlineLimit 99999 --assetsDir 'displayer' --base './'
 
 # Tar index and assets and place in app
 # WARN Be sure to avoid including a dev dir in the tar
+# WARN `assets` dir is reserved for message assets, so displayer assets put in `displayer` dir
 cd dist
-tar --create --file ../../app/src/assets/displayer.tar index.html assets
+tar --create --file ../../app/static/displayer.tar index.html displayer
