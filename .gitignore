@@ -4,7 +4,7 @@
 /app/.env.development.local
 /app/dist/
 /app/node_modules/
-/app/src/assets/displayer/
+/app/src/assets/displayer.tar
 /app/src/services/native/native.ts
 
 /app_config/node_modules/

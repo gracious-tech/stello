@@ -8,23 +8,11 @@ cd ../displayer
 # Run type checks (vite doesn't)
 ./node_modules/.bin/tsc --noEmit
 
-# NOTE Ensures all assets inlined so don't need to upload extra files
-# NOTE Sticks assets at root for flat structure
+# NOTE Ensures all synchronous assets inlined so ready when app loads
 # WARN Passing an empty string '' as an arg converts to 0 for some reason
-./node_modules/.bin/vite build --emptyOutDir --outDir ../app/src/assets/displayer  --assetsInlineLimit 99999 --assetsDir './' --base './' "$@"
+./node_modules/.bin/vite build --assetsInlineLimit 99999 --assetsDir 'assets' --base './'
 
-# Move hashes out of filename and into query instead for simpler uploads
-cd ../app/src/assets/displayer
-mv *.js index.js
-mv *.css index.css
-sed --in-place -e 's/index\.\(.*\)\.js/index\.js\?h\=\1/' index.html
-sed --in-place -e 's/index\.\(.*\)\.css/index\.css\?h\=\1/' index.html
-
-# Ensure only expected files were created (i.e. vite inlined all other assets properly)
-# NOTE Ignores "dev" dir that may exist during development with sample data
-EXPECTED="index.css, index.html, index.js"
-ACTUAL=`ls -A -m --ignore=dev`
-if [ "$ACTUAL" != "$EXPECTED" ]; then
-    echo "$ACTUAL != $EXPECTED"
-    exit 1
-fi
+# Tar index and assets and place in app
+# WARN Be sure to avoid including a dev dir in the tar
+cd dist
+tar --create --file ../../app/src/assets/displayer.tar index.html assets
