@@ -16,6 +16,7 @@
         "date-fns": "^2.19.0",
         "electron": "^11.2.0",
         "idb": "^6.0.0",
+        "js-untar": "^2.0.0",
         "libmime": "^5.0.0",
         "lodash": "^4.17.20",
         "md-icon-svgs": "https://github.com/shadow-light/md-icon-svgs/tarball/master",
