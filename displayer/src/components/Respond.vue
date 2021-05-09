@@ -21,21 +21,9 @@ teleport(v-if='responding' to='.content')
 
             template(v-if='responding === "reacting"')
                 div.reactions
-                    button(@click='react_with("like")' class='btn-icon')
-                        img(src='../shared/reactions/like.png' title='Like')
-                    button(@click='react_with("love")' class='btn-icon')
-                        img(src='../shared/reactions/love.png' title='Love')
-                    button(@click='react_with("yay")' class='btn-icon')
-                        img(src='../shared/reactions/yay.png' title='Yay!')
-                    button(@click='react_with("pray")' class='btn-icon')
-                        img(src='../shared/reactions/pray.png' title='Praying')
-                div.reactions
-                    button(@click='react_with("laugh")' class='btn-icon')
-                        img(src='../shared/reactions/laugh.png' title='Lol')
-                    button(@click='react_with("wow")' class='btn-icon')
-                        img(src='../shared/reactions/wow.png' title='Wow!')
-                    button(@click='react_with("sad")' class='btn-icon')
-                        img(src='../shared/reactions/sad.png' title='Sad')
+                    button(v-for='reaction of reaction_options' @click='react_with(reaction)')
+                        SvgAnimated(v-if='reaction === "pray"' url='assets/reactions/pray.svg')
+                        SvgLottie(v-if='reaction !== "pray"' :url='`assets/reactions/${reaction}.json`')
 
             //- Using form important for enabling submit button in virtual keyboards
             form(v-else @submit.prevent='send_comment')
@@ -55,6 +43,8 @@ teleport(v-if='responding' to='.content')
 import {ref, watch, computed, nextTick, inject, PropType, Ref} from 'vue'
 
 import Progress from './Progress.vue'
+import SvgLottie from './SvgLottie.vue'
+import SvgAnimated from './SvgAnimated.vue'
 import SharedRespondReact from '../shared/SharedRespondReact.vue'
 import SharedRespondReply from '../shared/SharedRespondReply.vue'
 import {displayer_config} from '../services/displayer_config'
@@ -64,7 +54,7 @@ import {PublishedSection} from '../shared/shared_types'
 
 export default {
 
-    components: {Progress, SharedRespondReact, SharedRespondReply},
+    components: {Progress, SharedRespondReact, SharedRespondReply, SvgLottie, SvgAnimated},
 
     props: {
         section: {
@@ -95,6 +85,7 @@ export default {
             () => props.section.respondable !== false && displayer_config.allow_replies)
         const allow_reactions = computed(
             () => props.section.respondable !== false && displayer_config.allow_reactions)
+        const reaction_options = computed(() => displayer_config.reaction_options)
 
         // Watch
         watch(text, () => {
@@ -156,7 +147,7 @@ export default {
 
         // Expose
         return {responding, init_comment, init_react, close, react_with, textarea, text,
-            send_comment, waiting, success, allow_replies, allow_reactions}
+            send_comment, waiting, success, allow_replies, allow_reactions, reaction_options}
     }
 }
 
@@ -231,13 +222,16 @@ export default {
 
         .reactions
             user-select: none
+            text-align: center
 
             button
-                border-radius: 30px
+                border-style: none
+                background-color: transparent
+                cursor: pointer
 
-                img
-                    width: 36px
-                    height: 36px
+                :deep(svg)
+                    width: 64px !important
+                    height: 64px !important
 
         form
             width: 100%
