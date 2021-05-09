@@ -24,7 +24,7 @@ export function* cycle<T>(options:T[]):Generator<T>{
     // Generator that endlessly cycles through given options
     while (true){
         yield options[0]
-        options.push(options.shift())
+        options.push(options.shift()!)
     }
 }
 
