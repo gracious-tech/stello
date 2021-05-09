@@ -83,7 +83,7 @@ export function remove_matches<T>(array:T[], checker:(item:T)=>any):T[]{
 }
 
 
-export function get_last(array:any[]):any{
+export function get_last<T>(array:T[]):T{
     // Return the last item in the array, or undefined (useful when array name very long)
     return array[array.length-1]
 }
