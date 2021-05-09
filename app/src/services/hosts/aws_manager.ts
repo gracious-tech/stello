@@ -3,6 +3,7 @@
 
 import AWS from 'aws-sdk'
 import pako from 'pako'
+import untar from 'js-untar'
 
 import {buffer_to_hex} from '@/services/utils/coding'
 import {sleep} from '@/services/utils/async'
@@ -10,14 +11,7 @@ import {Task} from '@/services/tasks/tasks'
 import {StorageBaseAws} from './aws_common'
 import {HostCloud, HostCredentials, HostManager, HostManagerStorage, HostPermissionError,
     HostStorageCredentials, HostStorageVersion} from './types'
-
-// Raw strings for displayer assets
-// @ts-ignore special webpack path
-import displayer_html from '!!raw-loader!@/assets/displayer/index.html'
-// @ts-ignore special webpack path
-import displayer_js from '!!raw-loader!@/assets/displayer/index.js'
-// @ts-ignore special webpack path
-import displayer_css from '!!raw-loader!@/assets/displayer/index.css'
+import {displayer_asset_type} from './common'
 
 
 export class HostManagerAws implements HostManager {
@@ -324,35 +318,91 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         // Ensure creation has finished, as these tasks rely on it (not just securing id)
         await this.s3.waitFor('bucketExists', {Bucket: this.bucket}).promise()
 
-        // Begin uploading displayer code
-        const uploads = []
-        const displayer_config = {
+        // Define displayer's deployment config for later embedding in displayer code
+        const deployment_config = btoa(JSON.stringify({
             url_msgs: `./`,  // Same URL as displayer for self-hosted AWS
             url_msgs_append_subdomain: false,
             url_responder: `https://lambda.${this.region}.amazonaws.com/2015-03-31/functions/${this._lambda_id}/invocations`,
+        }))
+
+        // Get list of files in displayer tar
+        // WARN js-untar is unmaintained and readAsString() is buggy so not using
+        interface TarFile {name:string, type:string, buffer:ArrayBuffer}
+        const files:TarFile[] = await untar(await (await fetch('displayer.tar')).arrayBuffer())
+
+        // Start uploading displayer assets and collect promises that resolve with their path
+        const uploads:Promise<string>[] = []
+        let index_contents:string
+        for (const file of files){
+
+            // Actual files have type ''|'0' (others may be directory etc)
+            if (file.type !== '' && file.type !== '0'){
+                continue
+            }
+
+            // Process file contents
+            // WARN Currently assume all assets are text (and suitable for gzip compressing)
+            let contents = new TextDecoder().decode(file.buffer)
+            const type = displayer_asset_type(file.name)
+            if (type === 'text/javascript'){
+                contents = contents.replace('DEPLOYMENT_CONFIG_DATA_UfWFTF5axRWX',
+                    deployment_config)
+            }
+
+            // Index should be uploaded last so that assets are ready (important for updates)
+            if (file.name === 'index.html'){
+                index_contents = contents
+                continue
+            }
+
+            // Upload
+            uploads.push(this.s3.putObject({
+                Bucket: this.bucket,
+                Key: file.name,
+                ContentType: type,
+                ContentEncoding: 'gzip',
+                Body: pako.gzip(contents),
+            }).promise().then(() => file.name))
         }
-        uploads.push(this.s3.putObject({
-            Bucket: this.bucket,
-            Key: '_',  // TODO For org hosting, probably leave as index.html to serve from '/'
-            ContentType: 'text/html',
-            ContentEncoding: 'gzip',
-            Body: pako.gzip(displayer_html),
-        }).promise())
-        uploads.push(this.s3.putObject({
-            Bucket: this.bucket,
-            Key: 'index.js',
-            ContentType: 'text/javascript',
-            ContentEncoding: 'gzip',
-            Body: pako.gzip(displayer_js.replace('DEPLOYMENT_CONFIG_DATA_UfWFTF5axRWX',
-                btoa(JSON.stringify(displayer_config)))),
-        }).promise())
-        uploads.push(this.s3.putObject({
-            Bucket: this.bucket,
-            Key: 'index.css',
-            ContentType: 'text/css',
-            ContentEncoding: 'gzip',
-            Body: pako.gzip(displayer_css),
-        }).promise())
+
+        // Once other files have been uploaded, can upload index and remove old assets
+        const assets_promise = Promise.all(uploads).then(async upload_paths => {
+
+            // Upload the index
+            // TODO For org hosting, probably leave as index.html to serve from '/'
+            await this.s3.putObject({
+                Bucket: this.bucket,
+                Key: '_',
+                ContentType: 'text/html',
+                ContentEncoding: 'gzip',
+                Body: pako.gzip(index_contents),
+            }).promise()
+
+            // List all old assets
+            // NOTE Pagination not used since limit is 1000
+            const list_resp = await this.s3.listObjectsV2({
+                Bucket: this.bucket,
+                Prefix: 'displayer/',
+            }).promise()
+            const old_assets = list_resp.Contents.filter(asset => !upload_paths.includes(asset.Key))
+            if (!old_assets.length){
+                return
+            }
+
+            // Delete old assets (and wait till all deleted)
+            const delete_resp = await this.s3.deleteObjects({
+                Bucket: this.bucket,
+                Delete: {
+                    Objects: old_assets.map(asset => ({Key: asset.Key})),
+                    Quiet: true,  // Don't bother returning success data
+                },
+            }).promise()
+
+            // Delete request may still have errors, even if doesn't throw itself
+            if (delete_resp.Errors.length){
+                throw new Error("Could not delete all objects")
+            }
+        })
 
         // While uploading, also configure bucket
         // NOTE The following tasks conflict (409 errors) and cannot be run in parallel
@@ -398,8 +448,8 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
             }),
         }).promise()
 
-        // Resolve when uploads also complete
-        await Promise.all(uploads)
+        // Resolve when assets promise also completes
+        await assets_promise
     }
 
     async _setup_resp_bucket():Promise<void>{
