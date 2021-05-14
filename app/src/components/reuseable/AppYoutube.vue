@@ -10,15 +10,13 @@ iframe(:src='src' allow='autoplay; encrypted-media; gyroscope; accelerometer')
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
-import app_config from '@/app_config.json'
-
 
 @Component({})
 export default class extends Vue {
 
-    @Prop() video_id
+    @Prop({type: String, required: true}) video_id:string
     // NOTE type/default required so argless prop works (https://git.io/JfsWs)
-    @Prop({type: Boolean, default: false}) hide_controls
+    @Prop({type: Boolean, default: false}) hide_controls:boolean
 
     get src(){
         // Get the src for the iframe
