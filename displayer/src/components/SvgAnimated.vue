@@ -52,6 +52,7 @@ export default {
 <style lang='sass' scoped>
 
 div.paused :deep(*)
-    animation-play-state: paused !important
+    // Set animation-name rather than animation-play-state so paused at first keyframe
+    animation-name: none !important
 
 </style>
