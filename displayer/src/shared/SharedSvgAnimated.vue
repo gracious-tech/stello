@@ -1,7 +1,7 @@
 
 <template lang='pug'>
 
-component(:is='comp' :url='url' :playing='playing')
+component.root(:is='comp' :url='url' :playing='playing')
 
 </template>
 
@@ -36,5 +36,10 @@ export default {
 
 
 <style lang='sass' scoped>
+
+.root, .root ::v-deep svg
+    display: flex
+    width: 100%
+    height: 100%
 
 </style>
