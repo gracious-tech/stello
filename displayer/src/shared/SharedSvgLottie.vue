@@ -8,7 +8,7 @@ div(ref='container')
 
 <script lang='ts'>
 
-import {ref, onMounted, watch} from 'vue'
+// Import type (careful to avoid importing module as will do so dynamically)
 import type {AnimationItem} from 'lottie-web'
 
 
@@ -33,16 +33,18 @@ export default {
         },
     },
 
-    setup(props){
+    data(){
+        return {
+            lottie_instance: null as (AnimationItem|null),
+        }
+    },
 
-        // Refs for div container and initiated lottie instance
-        const container = ref<HTMLDivElement>()
-        const lottie_instance = ref<AnimationItem>()
+    watch: {
 
-        // Can't call lottie until DOM ready
-        onMounted(() => {
-            // Recreate lottie instance whenever url changes
-            watch(() => props.url, async url => {
+        url: {
+            immediate: true,
+            async handler(url){
+                // Recreate lottie instance whenever url changes
 
                 // Store response in cache
                 if (! (url in lottie_cache)){
@@ -53,24 +55,24 @@ export default {
                 const lottie = await lottie_promise
 
                 // Load the animation
-                lottie_instance.value = lottie.default.loadAnimation({
-                    container: container.value!,
+                this.lottie_instance = lottie.default.loadAnimation({
+                    container: this.$refs.container as HTMLDivElement,
                     renderer: 'svg',
                     loop: true,
-                    autoplay: props.playing,
+                    autoplay: this.playing,
                     animationData: JSON.parse(lottie_cache[url]),
                 })
-            }, {immediate: true})
-        })
+            },
+        },
 
         // Pause/play animation when `playing` property changes
-        watch(() => props.playing, playing => {
-            if (lottie_instance.value){
-                playing ? lottie_instance.value.play() : lottie_instance.value.pause()
-            }
-        })
-
-        return {container}
+        playing: {
+            handler(playing){
+                if (this.lottie_instance){
+                    playing ? this.lottie_instance.play() : this.lottie_instance.pause()
+                }
+            },
+        },
     },
 }
 

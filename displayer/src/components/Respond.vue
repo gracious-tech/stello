@@ -22,8 +22,7 @@ teleport(v-if='responding' to='.content')
             template(v-if='responding === "reacting"')
                 div.reactions
                     button(v-for='reaction of reaction_options' @click='react_with(reaction)')
-                        SvgAnimated(v-if='reaction === "pray"' url='displayer/reactions/pray.svg')
-                        SvgLottie(v-if='reaction !== "pray"' :url='`displayer/reactions/${reaction}.json`')
+                        SharedSvgAnimated(:url='`displayer/reactions/${reaction}.${reaction === "pray" ? "svg" : "json"}`')
 
             //- Using form important for enabling submit button in virtual keyboards
             form(v-else @submit.prevent='send_comment')
@@ -43,8 +42,7 @@ teleport(v-if='responding' to='.content')
 import {ref, watch, computed, nextTick, inject, PropType, Ref} from 'vue'
 
 import Progress from './Progress.vue'
-import SvgLottie from './SvgLottie.vue'
-import SvgAnimated from './SvgAnimated.vue'
+import SharedSvgAnimated from '../shared/SharedSvgAnimated.vue'
 import SharedRespondReact from '../shared/SharedRespondReact.vue'
 import SharedRespondReply from '../shared/SharedRespondReply.vue'
 import {displayer_config} from '../services/displayer_config'
@@ -54,7 +52,7 @@ import {PublishedSection} from '../shared/shared_types'
 
 export default {
 
-    components: {Progress, SharedRespondReact, SharedRespondReply, SvgLottie, SvgAnimated},
+    components: {Progress, SharedRespondReact, SharedRespondReply, SharedSvgAnimated},
 
     props: {
         section: {
