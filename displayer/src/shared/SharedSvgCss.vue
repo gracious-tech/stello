@@ -50,7 +50,7 @@ export default {
 
 <style lang='sass' scoped>
 
-.root:not(.playing) :deep(*)
+.root:not(.playing) ::v-deep *
     // Set animation-name rather than animation-play-state so stopped at first keyframe
     animation-name: none !important
 
