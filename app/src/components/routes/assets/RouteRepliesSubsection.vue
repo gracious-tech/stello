@@ -17,7 +17,7 @@ v-card(class='my-8')
 
     v-card-text
         RouteRepliesReplaction(v-for='replaction of replactions' :key='replaction.id'
-            :replaction='replaction')
+            :replaction='replaction' @removed='on_removed')
 
 
 </template>
@@ -128,6 +128,11 @@ export default class extends Vue {
                 self._db[replaction.is_reply ? 'replies' : 'reactions'].set(replaction)
             }
         }
+    }
+
+    on_removed(replaction_id:string){
+        // Pass removed event up to parent
+        this.$emit('removed', replaction_id)
     }
 
 }

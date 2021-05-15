@@ -21,6 +21,7 @@ div
             v-for='replactions of subsections_visible'
             :replactions='replactions'
             :key='replactions[0].subsection_id || replactions[0].section_id || replactions[0].id'
+            @removed='on_removed'
         )
 
         div(v-if='!subsections_visible.length' class='text-center text--secondary text-h5 my-10')
@@ -37,7 +38,7 @@ div
 import {Component, Vue} from 'vue-property-decorator'
 
 import RouteRepliesSubsection from './assets/RouteRepliesSubsection.vue'
-import {sort} from '@/services/utils/arrays'
+import {remove_match, sort} from '@/services/utils/arrays'
 import {Reply} from '@/services/database/replies'
 import {Reaction} from '@/services/database/reactions'
 
@@ -157,6 +158,11 @@ export default class extends Vue {
     async download(){
         // Manually trigger a download of responses
         this.$tm.start_responses_receive()
+    }
+
+    on_removed(replaction_id:string):void{
+        // Handle the removal of a replaction
+        remove_match(this.replactions, item => item.id === replaction_id)
     }
 }
 
