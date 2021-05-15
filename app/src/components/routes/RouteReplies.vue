@@ -60,7 +60,7 @@ export default class extends Vue {
 
     get replactions_matched(){
         // Get replactions filtered by all the active filters
-        const lower_search = this.filter_search.toLowerCase()
+        const lower_search = this.filter_search?.toLowerCase()
         return this.replactions.filter(replaction => {
             if (this.filter_current && replaction.archived)
                 return false
