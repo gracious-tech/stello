@@ -3,7 +3,7 @@ import {sample} from 'lodash'
 import {openDB} from 'idb/with-async-ittr.js'
 
 import {AppDatabaseSchema, AppDatabaseConnection, RecordReplaction, RecordSectionContent,
-    RecordDraft} from './types'
+    RecordDraft, ContentImages} from './types'
 import {DatabaseState} from './state'
 import {DatabaseContacts} from './contacts'
 import {DatabaseGroups} from './groups'
@@ -341,6 +341,8 @@ export class Database {
             subsection_id: subsection_id,
             content: content,
             read: false,
+            replied: false,
+            archived: false,
         }
 
         // Try to get msg copy identified by resp_token (if valid and copy not deleted yet)
@@ -411,8 +413,6 @@ export class Database {
         const reply = new Reply({
             ...await this._gen_replaction(content, sent, resp_token, section_id, subsection_id, ip,
                 user_agent),
-            replied: false,
-            archived: false,
         })
         await this._conn.add('replies', reply)
         return reply

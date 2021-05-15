@@ -179,13 +179,22 @@ async function to5(transaction:VersionChangeTransaction){
 
 async function to6(transaction:VersionChangeTransaction):Promise<void>{
 
-    // Added subsection_id to replies and reactions
+    // Changes to replies and reactions
+    // Added `subsection_id` to replies and reactions
+    // Also added `replied` and `archived` to reactions (matching replies model)
+    // And set `archived` to value of `read` since previously functioned like `archive` now does
+    // And set `read` to true since all old replies likely to have already been read
     for await (const cursor of transaction.objectStore('replies')){
         cursor.value.subsection_id = null
+        cursor.value.archived = cursor.value.read
+        cursor.value.read = true
         cursor.update(cursor.value)
     }
     for await (const cursor of transaction.objectStore('reactions')){
         cursor.value.subsection_id = null
+        cursor.value.replied = false
+        cursor.value.archived = cursor.value.read
+        cursor.value.read = true
         cursor.update(cursor.value)
     }
 

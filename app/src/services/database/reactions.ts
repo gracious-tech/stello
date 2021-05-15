@@ -19,9 +19,19 @@ export class Reaction implements RecordReaction {
     subsection_id:string|null
     content:string
     read:boolean
+    replied:boolean
+    archived:boolean
 
     constructor(db_object:RecordReaction){
         Object.assign(this, db_object)
+    }
+
+    get is_reaction(){
+        return true  // So can access when dealing with a replaction (type unknown)
+    }
+
+    get is_reply(){
+        return false  // So can access when dealing with a replaction (type unknown)
     }
 }
 

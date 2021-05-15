@@ -250,14 +250,14 @@ export interface RecordReplaction extends RecordResponse {
     subsection_id:string|null  // Some section types have subsections (e.g. image in slideshow)
     content:string
     read:boolean
+    replied:boolean
+    archived:boolean
 }
 
 export interface RecordReaction extends RecordReplaction {
 }
 
 export interface RecordReply extends RecordReplaction {
-    replied:boolean
-    archived:boolean
 }
 
 

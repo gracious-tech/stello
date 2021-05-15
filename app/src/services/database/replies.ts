@@ -25,6 +25,14 @@ export class Reply implements RecordReply {
     constructor(db_object:RecordReply){
         Object.assign(this, db_object)
     }
+
+    get is_reaction(){
+        return false  // So can access when dealing with a replaction (type unknown)
+    }
+
+    get is_reply(){
+        return true  // So can access when dealing with a replaction (type unknown)
+    }
 }
 
 
