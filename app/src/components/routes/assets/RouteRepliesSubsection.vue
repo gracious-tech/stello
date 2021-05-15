@@ -1,0 +1,187 @@
+
+<template lang='pug'>
+
+v-card(class='my-8')
+
+    div.header(class='d-flex align-center justify-space-between'
+            :class='{"app-bg-primary-relative": sectionless}')
+        span(@click='go_to_msg' class='text-subtitle-2 ml-4') {{ msg_title }}
+        app-btn(v-if='!all_archived' @click='archive_all' icon='archive' class='mr-2')
+
+    div.section_content(v-if='!sectionless' :class='{img: section_image, expanded: section_expanded}')
+        img(v-if='section_image' :src='section_image')
+        div(v-else v-html='section_text' class='ma-4 text--secondary')
+
+    div.expand(v-if='!sectionless' class='d-flex justify-end')
+        app-btn(@click='section_expanded = !section_expanded' :icon='expand_icon' fab small color='')
+
+    v-card-text
+        RouteRepliesReplaction(v-for='replaction of replactions' :key='replaction.id'
+            :replaction='replaction')
+
+
+</template>
+
+
+<script lang='ts'>
+
+import {Component, Vue, Prop} from 'vue-property-decorator'
+
+import RouteRepliesReplaction from '@/components/routes/assets/RouteRepliesReplaction.vue'
+import {Reply} from '@/services/database/replies'
+import {Reaction} from '@/services/database/reactions'
+import {Section} from '@/services/database/sections'
+
+
+@Component({
+    components: {RouteRepliesReplaction},
+})
+export default class extends Vue {
+
+    @Prop() replactions:(Reply|Reaction)[]
+
+    section:Section = null
+    section_image_vimeo:string = null
+    section_expanded:boolean = false
+
+    async created(){
+        // Get the section (if not sectionless)
+        if (this.first.section_id){
+            this.section = await self._db.sections.get(this.first.section_id)
+
+            // If a vimeo section then need to do an API request to get the placeholder image
+            if (this.section?.content.type === 'video'
+                    && this.section.content.format === 'iframe_vimeo'){
+                const video_id = this.section.content.id
+                const url = `https://vimeo.com/api/oembed.json?url=https://vimeo.com/${video_id}`
+                try {
+                    const oembed_resp = await (await fetch(url)).json()
+                    this.section_image_vimeo = oembed_resp.thumbnail_url
+                } catch {
+                    self._fail_report(new Error(`Failed to get vimeo thumbnail: ${url}`))
+                }
+            }
+        }
+    }
+
+    get first(){
+        // The first replaction which is used to get basic info about the subsection
+        return this.replactions[0]
+    }
+
+    get sectionless(){
+        // Whether reply is to the whole message (sectionless) or to a section
+        return !this.first.section_id
+    }
+
+    get msg_title(){
+        // Title of the message being responded to
+        return this.first.msg_title
+    }
+
+    get section_image():string{
+        // Return url for an image that represents the section (if any)
+        if (this.section?.content.type === 'images'){
+            const images = this.section.content.images
+            const image = images.find(i => i.id === this.first.subsection_id)
+            if (image){
+                return URL.createObjectURL(image.data)
+            }
+        } else if (this.section?.content.type === 'video'){
+            const video_id = this.section.content.id
+            if (this.section.content.format === 'iframe_youtube'){
+                return `https://img.youtube.com/vi/${video_id}/hqdefault.jpg`
+            } else if (this.section.content.format === 'iframe_vimeo'){
+                return this.section_image_vimeo
+            }
+        }
+    }
+
+    get section_text(){
+        // Text content for the section (as HTML)
+        if (this.section?.content.type === 'text'){
+            return this.section.content.html
+        }
+        return `<h1>Section #${this.first.section_num + 1}</h1>`
+    }
+
+    get expand_icon(){
+        // Icon for section content expansion button
+        return this.section_expanded ? 'unfold_less' : 'unfold_more'
+    }
+
+    get all_archived(){
+        // Whether all replactions in section have been archived yet
+        return this.replactions.every(replaction => replaction.archived)
+    }
+
+    go_to_msg(){
+        // Navigate to the message of the replactions
+        this.$router.push({name: 'message', params: {msg_id: this.first.msg_id}})
+    }
+
+    archive_all(){
+        // Archive all replactions of the section
+        for (const replaction of this.replactions){
+            if (!replaction.archived){
+                replaction.archived = true
+                self._db[replaction.is_reply ? 'replies' : 'reactions'].set(replaction)
+            }
+        }
+    }
+
+}
+
+</script>
+
+
+<style lang='sass' scoped>
+
+.header
+    height: 48px  // Match archive button so same when it isn't present
+
+    &:not(.app-bg-primary-relative)
+        // Make header standout a little if representing a section (rather than a lot with primary bg)
+        @include themed(background-color, #0002, #fff2)
+
+    span
+        cursor: pointer  // Message title navigates to message
+
+
+.section_content
+
+    &.img
+        // Center image when overflowed
+        display: flex
+        flex-direction: column  // Row messes up image sizing
+        justify-content: center
+
+        img
+            // Prevent image aspect ratio from changing
+            width: 100%
+            flex-grow: 0
+            flex-shrink: 0
+
+    &:not(.img):not(.expanded)
+        // Fade out text when not expanded
+        -webkit-mask-image: linear-gradient(180deg, #000 60%, transparent)
+
+    &:not(.expanded)
+        // Clip content when not expanded
+        height: 160px
+        overflow-y: hidden
+
+
+.expand
+    // Float expand button over content at bottom-right
+    .v-btn
+        position: absolute
+        margin-top: -40px + -12px
+        margin-right: 12px
+        opacity: 0.5
+
+        &:hover
+            opacity: 1
+
+
+</style>
