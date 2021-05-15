@@ -7,9 +7,27 @@ div
         v-spacer
         app-btn(@click='download' icon='cloud_download')
 
+    div.filters(class='app-bg-primary-relative')
+        div.inner(class='d-flex justify-space-around align-center pa-3')
+            app-switch(v-model='filter_current' label="Hide archived")
+            app-select(v-model='filter_contact' :items='contacts_ui' label="Contact" outlined dense
+                clearable append-icon='')
+            app-select(v-model='filter_message' :items='messages_ui' label="Message" outlined dense
+                clearable append-icon='')
+
     app-content(class='pa-5')
-        route-replies-subsection(v-for='replactions of subsections' :replactions='replactions'
-            :key='replactions[0].subsection_id || replactions[0].section_id || replactions[0].id')
+
+        route-replies-subsection(
+            v-for='replactions of subsections_visible'
+            :replactions='replactions'
+            :key='replactions[0].subsection_id || replactions[0].section_id || replactions[0].id'
+        )
+
+        div(v-if='!subsections_visible.length' class='text-center text--secondary text-h5 my-10')
+            | No responses
+
+        div(v-if='subsections_visible.length < subsections.length' class='text-center')
+            app-btn(@click='pages *= 2' small) Show More
 
 </template>
 
@@ -29,32 +47,45 @@ import {Reaction} from '@/services/database/reactions'
 })
 export default class extends Vue {
 
-    subsections:(Reply|Reaction)[][] = []
+    replactions:(Reply|Reaction)[] = []
+    pages = 1
+    filter_current = true  // Only show current (non-archived)
+    filter_contact:string = null
+    filter_message:string = null
+    filter_search:string = null  // TODO Not yet implemented
 
     created(){
         this.load()
     }
 
-    async load(){
+    get replactions_matched(){
+        // Get replactions filtered by all the active filters
+        const lower_search = this.filter_search.toLowerCase()
+        return this.replactions.filter(replaction => {
+            if (this.filter_current && replaction.archived)
+                return false
+            if (this.filter_contact && replaction.contact_id !== this.filter_contact)
+                return false
+            if (this.filter_message && replaction.msg_id !== this.filter_message)
+                return false
+            if (this.filter_search && (replaction.is_reaction ||
+                    !replaction.content.toLowerCase().includes(lower_search)))
+                return false
+            return true
+        })
+    }
 
-        // Get items from db
-        const [replies, reactions] =
-            await Promise.all([self._db.replies.list(), self._db.reactions.list()])
-
-        // Merge into one array and sort by date
-        const responses = [...replies, ...reactions]
-        sort(responses, 'sent', false)
-
-        // Reset array of subsections where the item is an array of responses to that subsection
+    get subsections(){
+        // Get array of subsections where the item is an array of responses to that subsection
         // NOTE Some items will be sectionless, containing a single response to a whole message
-        this.subsections = []
+        const subsections:(Reply|Reaction)[][] = []
 
         // Keep a mapping of section/subsection id to the array of responses (so can look up)
         // NOTE Sectionless responses will not be included in this
         const subsections_map:Record<string, (Reply|Reaction)[]> = {}
 
         // Group responses by section/subsection
-        for (const response of responses){
+        for (const response of this.replactions_matched){
 
             // Either use the subsection id, or section id, if either available
             // NOTE Both are random uuids, so shouldn't be any conflicts
@@ -65,15 +96,62 @@ export default class extends Vue {
                     // This is the first response to the subsection, so create new array
                     // NOTE Important that item in map points to same item in `subsections`
                     subsections_map[subsection_id] = []
-                    this.subsections.push(subsections_map[subsection_id])
+                    subsections.push(subsections_map[subsection_id])
                 }
                 // Add response to the subsection's array
                 subsections_map[subsection_id].push(response)
             } else {
                 // This response is sectionless (a general response to whole message)
-                this.subsections.push([response])
+                subsections.push([response])
             }
         }
+
+        return subsections
+    }
+
+    get subsections_visible(){
+        // The subsections present in the DOM, optionally limited to reduce lag
+
+        // Detect the average number of replactions per subsection (so can measure based on them)
+        const avg_items_per_subsection = this.replactions_matched.length / this.subsections.length
+
+        // Calculate desired number of items, and then subsections, to display
+        const num_items = 100 * this.pages
+        const num_subsections = Math.round(num_items / avg_items_per_subsection)
+
+        return this.subsections.slice(0, num_subsections)
+    }
+
+    get contacts_ui(){
+        // Get contacts that have responded in UI form for use in select component
+        const contacts:Record<string, string> = {}
+        for (const replaction of this.replactions){
+            contacts[replaction.contact_id] = replaction.contact_name
+        }
+        const ui_array = Object.entries(contacts).map(([k, v]) => ({value: k, text: v}))
+        sort(ui_array, 'text')
+        return ui_array
+    }
+
+    get messages_ui(){
+        // Get messages that have been responded to in UI form for use in select component
+        const messages:Record<string, string> = {}
+        for (const replaction of this.replactions){
+            messages[replaction.msg_id] = replaction.msg_title
+        }
+        const ui_array = Object.entries(messages).map(([k, v]) => ({value: k, text: v}))
+        // NOTE Not sorting as, since replactions sorted by date, should end up close to msg date
+        return ui_array
+    }
+
+    async load(){
+        // Get items from db
+        const [replies, reactions] =
+            await Promise.all([self._db.replies.list(), self._db.reactions.list()])
+
+        // Merge into one array and sort by date
+        this.replactions = [...replies, ...reactions]
+        sort(this.replactions, 'sent', false)
     }
 
     async download(){
@@ -86,5 +164,25 @@ export default class extends Vue {
 
 
 <style lang='sass' scoped>
+
+.filters
+
+    .inner
+        max-width: $header-width
+        margin-left: auto
+        margin-right: auto
+
+    .v-input
+        margin: 0 12px  // Space items out
+
+    .v-select
+        flex-basis: 0  // Stop fields changing size based on their contents
+
+    ::v-deep
+        .v-input__slot
+            margin-bottom: 0  // Rm to correct vertical alignment
+
+        .v-text-field__details, .v-messages
+            display: none  // Rm to correct vertical alignment
 
 </style>
