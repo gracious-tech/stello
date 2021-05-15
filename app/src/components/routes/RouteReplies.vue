@@ -35,12 +35,13 @@ div
 
 <script lang='ts'>
 
-import {Component, Vue} from 'vue-property-decorator'
+import {Component, Vue, Watch} from 'vue-property-decorator'
 
 import RouteRepliesSubsection from './assets/RouteRepliesSubsection.vue'
 import {remove_match, sort} from '@/services/utils/arrays'
 import {Reply} from '@/services/database/replies'
 import {Reaction} from '@/services/database/reactions'
+import {Task} from '@/services/tasks/tasks'
 
 
 @Component({
@@ -143,6 +144,13 @@ export default class extends Vue {
         const ui_array = Object.entries(messages).map(([k, v]) => ({value: k, text: v}))
         // NOTE Not sorting as, since replactions sorted by date, should end up close to msg date
         return ui_array
+    }
+
+    @Watch('$tm.data.finished') watch_tm_finished(task:Task){
+        // Listen to task completions and adjust state as needed
+        if (task.name === 'responses_receive'){
+            this.load()
+        }
     }
 
     async load(){
