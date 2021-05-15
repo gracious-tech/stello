@@ -19,6 +19,7 @@
         "js-untar": "^2.0.0",
         "libmime": "^5.0.0",
         "lodash": "^4.17.20",
+        "lottie-web": "^5.7.8",
         "md-icon-svgs": "https://github.com/shadow-light/md-icon-svgs/tarball/master",
         "medium-editor": "^5.23.3",
         "pako": "^2.0.3",
