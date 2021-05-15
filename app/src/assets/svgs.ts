@@ -41,6 +41,7 @@ export default {
 
     // Material icons
     icon_reply:             require('md-icon-svgs/reply.svg').default,
+    icon_clear:             require('md-icon-svgs/clear.svg').default,
     icon_unfold_more:       require('md-icon-svgs/unfold_more.svg').default,
     icon_unfold_less:       require('md-icon-svgs/unfold_less.svg').default,
     icon_archive:           require('md-icon-svgs/archive.svg').default,

@@ -164,6 +164,7 @@ const vuetify = new Vuetify({
             dropdown: {component: AppSVG, props: {name: 'icon_arrow_drop_down'}},
             complete: {component: AppSVG, props: {name: 'icon_done'}},
             expand: {component: AppSVG, props: {name: 'icon_expand_more'}},
+            clear: {component: AppSVG, props: {name: 'icon_clear'}},
         },
     },
     lang: {
