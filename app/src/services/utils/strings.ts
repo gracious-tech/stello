@@ -24,3 +24,10 @@ export function replace_without_overlap(template:string, replacements:Record<str
 
     return template
 }
+
+
+export function escape_for_html(input:string):string{
+    // Escape given text for use within HTML
+    // NOTE Option element's constructor's first arg is converted to a text node
+    return new Option(input).innerHTML
+}
