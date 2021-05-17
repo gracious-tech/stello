@@ -42,9 +42,9 @@ export async function get_initial_state(db:Database):Promise<AppStoreState>{
             dialog: null,
             prev_location: null,
 
-            // Response counts
-            unread_replies: 0,
-            unread_reactions: 0,
+            // Unread responses
+            unread_replies: {},
+            unread_reactions: {},
         },
     }
 

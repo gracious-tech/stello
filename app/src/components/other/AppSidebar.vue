@@ -16,7 +16,7 @@ div.sidebar
         app-list-item(to='/drafts/') Drafts
         app-list-item(to='/messages/') Sent
         app-list-item(to='/replies/')
-            v-badge(:value='unread' :content='unread_replies || ""' color='error' inline)
+            v-badge(:value='unread' :content='unread_replies_count || ""' color='error' inline)
                 | Responses
         v-divider
         app-list-item(to='/contacts/') Contacts
@@ -52,17 +52,17 @@ export default class extends Vue {
         return this.$store.state.default_template
     }
 
-    get unread_replies(){
-        return this.$store.state.tmp.unread_replies
+    get unread_replies_count(){
+        return Object.keys(this.$store.state.tmp.unread_replies).length
     }
 
-    get unread_reactions(){
-        return this.$store.state.tmp.unread_reactions
+    get unread_reactions_count(){
+        return Object.keys(this.$store.state.tmp.unread_reactions).length
     }
 
     get unread():boolean{
         // Whether there are any unread replies or reactions
-        return this.unread_replies > 0 || this.unread_reactions > 0
+        return this.unread_replies_count > 0 || this.unread_reactions_count > 0
     }
 
     @Watch('$tm.data.finished') watch_finished(task:Task){
@@ -96,12 +96,18 @@ export default class extends Vue {
     }
 
     async load_unread():Promise<void>{
-        // Update unread counts of responses
+        // Update unread responses tracking
         // TODO Indexing `read` and using `count` much quicker, but booleans not indexable
-        const num_replies = (await self._db.replies.list()).filter(i => !i.read).length
-        const num_reactions = (await self._db.reactions.list()).filter(i => !i.read).length
-        this.$store.commit('tmp_set', ['unread_replies', num_replies])
-        this.$store.commit('tmp_set', ['unread_reactions', num_reactions])
+        for (const reply of await self._db.replies.list()){
+            if (!reply.read){
+                Vue.set(this.$store.state.tmp.unread_replies, reply.id, true)
+            }
+        }
+        for (const reaction of await self._db.reactions.list()){
+            if (!reaction.read){
+                Vue.set(this.$store.state.tmp.unread_reactions, reaction.id, true)
+            }
+        }
     }
 
 }

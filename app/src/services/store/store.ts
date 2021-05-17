@@ -26,8 +26,8 @@ export async function get_store(db:Database):Promise<Store<AppStoreState>>{
 
 async function get_store_options(db:Database):Promise<StoreOptions<AppStoreState>>{return {
 
-    // Strict mode disabled as wouldn't allow manipulation of dialog properties
-    // strict: process.env.NODE_ENV !== 'production',  // Expensive, so don't run in production
+    // NOTE Mutations allowed directly on `state` since Vuex is painful to use
+    // TODO Convert from Vuex to a custom store
 
     state: await get_initial_state(db),
 

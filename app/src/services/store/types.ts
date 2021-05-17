@@ -32,9 +32,10 @@ export interface AppStoreState {
         dialog:StateTmpDialog,
         prev_location:Location,
 
-        // Response counts
-        unread_replies:number,
-        unread_reactions:number,
+        // Unread responses
+        // NOTE Using objects with `true` constant for performance and reactivity
+        unread_replies:Record<string, true>,
+        unread_reactions:Record<string, true>,
     }
 }
 
