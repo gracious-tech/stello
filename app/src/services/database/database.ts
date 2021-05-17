@@ -221,6 +221,17 @@ export class Database {
             })
         }))
 
+        // Update replaction's `replied` property (if `reply_to` set)
+        // NOTE Not part of transaction since not a critical part of message publishing
+        if (draft.reply_to){
+            const replaction = await this.replies.get(draft.reply_to)
+                || await this.reactions.get(draft.reply_to)
+            if (replaction && !replaction.replied){
+                replaction.replied = true
+                this[replaction.is_reply ? 'replies' : 'reactions'].set(replaction)
+            }
+        }
+
         // Start transaction (now that all non-db async stuff is done)
         const transaction = this._conn.transaction(['drafts', 'messages', 'copies'], 'readwrite')
         const store_drafts = transaction.objectStore('drafts')
