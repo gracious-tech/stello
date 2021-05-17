@@ -6,8 +6,10 @@ div
         app-btn(to='../' icon='arrow_back')
         v-toolbar-title {{ profile ? profile.display : "" }}
 
-    route-profile-steps(v-if='profile && !profile.setup_complete' :profile='profile')
-    app-content(v-else-if='profile' class='pa-3')
+    app-content(v-if='!profile' class='text-center pt-10')
+        h1(class='text--secondary text-h6') Sending account does not exist
+    route-profile-steps(v-else-if='!profile.setup_complete' :profile='profile')
+    app-content(v-else class='pa-3')
 
         h2 Email
         v-card
@@ -210,7 +212,7 @@ export default class extends Vue {
 
     async destroyed(){
         // Check if configs need uploading when leaving
-        if (this.profile.configs_need_uploading){
+        if (this.profile?.configs_need_uploading){
             task_manager.start_configs_update(this.profile_id)
         }
     }

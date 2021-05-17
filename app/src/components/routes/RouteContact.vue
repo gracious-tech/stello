@@ -199,7 +199,7 @@ export default class extends Vue {
         ]).then(async ([contact, groups]) => {
             sort(groups, 'name')
             this.possible_groups = groups
-            if (contact.service_account){
+            if (contact?.service_account){
                 this.oauth = await self._db.oauths.get_by_issuer_id(
                     ...partition(contact.service_account, ':'))
             } else {

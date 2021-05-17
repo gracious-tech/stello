@@ -4,7 +4,6 @@
 div
     v-toolbar(v-if='!draft')
         app-btn(to='../' icon='arrow_back')
-        v-toolbar-title [draft does not exist]
     v-toolbar(v-else)
 
         app-btn(to='../' icon='arrow_back')
@@ -44,6 +43,9 @@ div
     div.stello-displayer(v-if='draft' :class='{dark: dark_message}')
         shared-dark-toggle(v-model='dark_message')
         draft-content(ref='content' :draft='draft' :profile='profile' :sections='sections')
+
+    app-content(v-if='!draft' class='text-center pt-10')
+        h1(class='text--secondary text-h6') Draft does not exist
 
 </template>
 

@@ -4,9 +4,12 @@
 div
     v-toolbar
         app-btn(to='../' icon='arrow_back')
-        v-toolbar-title {{ message ? message.draft.title : "Message" }}
+        v-toolbar-title {{ message && message.draft.title }}
 
-    app-content(v-if='message' class='pa-5 pt-8')
+    app-content(v-if='!message' class='text-center pt-10')
+        h1(class='text--secondary text-h6') Message does not exist
+
+    app-content(v-else class='pa-5 pt-8')
 
         p #[strong Sent:] {{ published }}
         p #[strong Expires:] {{ expires }}
@@ -121,6 +124,8 @@ export default class extends Vue {
     async load(){
         // Load the message and copies data
         this.message = await self._db.messages.get(this.msg_id)
+        if (!this.message)
+            return
         const copies = await self._db.copies.list_for_msg(this.msg_id)
         sort(copies, 'display')
         this.copies = copies
