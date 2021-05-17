@@ -3,10 +3,22 @@
 
 div
     app-content(class='pa-3')
+
         img.decor(src='_assets/decor_root.svg')
-        div.support
-            div.support-inner
-                h3(class='text-h6') Still to come
+
+        div(class='notes')
+            div(class='notes-inner app-bg-accent-relative')
+                h1(class='text-h6 mb-0') What's new
+                h1(class='text-subtitle-2 opacity-secondary mt-0') {{ version }}
+                ul
+                    li Animated reactions
+                    li Easier viewing of responses
+                    li Reply to responses
+                p(class='text-body-2') ... plus many little improvements
+
+        div(class='notes')
+            div(class='notes-inner')
+                h1(class='text-h6') Still to come
                 ul
                     li Unsubscribing
                     li Message themes (background &amp; colors)
@@ -21,9 +33,15 @@ div
 
 import {Component, Vue} from 'vue-property-decorator'
 
+import app_config from '@/app_config.json'
+
 
 @Component({})
 export default class extends Vue {
+
+    get version(){
+        return app_config.version
+    }
 
 }
 
@@ -39,11 +57,12 @@ export default class extends Vue {
     margin: 48px auto
 
 
-.support
+.notes
     display: flex
     justify-content: center
+    margin: 48px 0
 
-    .support-inner
+    .notes-inner
         display: inline-flex
         flex-direction: column
         border-radius: 12px
