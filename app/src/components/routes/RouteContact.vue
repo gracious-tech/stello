@@ -9,7 +9,7 @@ div
         app-btn(v-if='contact' @click='remove' icon='delete' color='error')
 
     app-content(v-if='!contact' class='text-center pt-10')
-        p Contact no longer exists
+        h1(class='text--secondary text-h6') Contact does not exist
 
     app-content(v-else class='pa-10')
 
