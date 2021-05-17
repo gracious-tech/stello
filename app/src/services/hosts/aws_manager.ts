@@ -184,7 +184,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
 
     get up_to_date():boolean{
         // Whether storage's services are up to date
-        return this.version === HostStorageVersion
+        return this.version >= HostStorageVersion
     }
 
     async setup_services(task:Task):Promise<void>{

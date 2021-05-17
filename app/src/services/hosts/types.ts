@@ -2,7 +2,7 @@
 import {Task} from '@/services/tasks/tasks'
 
 
-export const HostStorageVersion = 2  // Bump whenever an update to storage services needed
+export const HostStorageVersion = 3  // Bump whenever an update to storage services needed
 
 
 // SIMPLE TYPES
