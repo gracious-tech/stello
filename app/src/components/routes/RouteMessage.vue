@@ -15,6 +15,9 @@ div
         p #[strong Expires:] {{ expires }}
         p #[strong Read by:] {{ num_copies_read }} of {{ copies.length }} recipients
 
+        v-alert(v-if='num_failures' color='primary')
+            p Your message may not have been sent to everyone if your email service limits how often you can send emails. You can try to click "FINISH SENDING" and with each attempt see if more messages have been sent. In some cases you may need to wait 24 hours before your email service allows more messages to be sent. Stello will not send duplicate emails to those who have already received them, so there is no harm in repeated attempts.
+
         p(v-if='num_failures' class='error--text')
             | {{ num_failures }} messages were not sent
             app-btn(@click='send_all' small) Finish sending
