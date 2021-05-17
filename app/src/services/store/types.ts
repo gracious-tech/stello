@@ -31,6 +31,10 @@ export interface AppStoreState {
         snackbar:{msg:string, btn_label?:string, btn_color?:string, btn_handler?:()=>void},
         dialog:StateTmpDialog,
         prev_location:Location,
+
+        // Response counts
+        unread_replies:number,
+        unread_reactions:number,
     }
 }
 

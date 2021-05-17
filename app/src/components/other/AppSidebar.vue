@@ -44,15 +44,20 @@ import {Task} from '@/services/tasks/tasks'
 })
 export default class extends Vue {
 
-    unread_replies = 0
-    unread_reactions = 0
-
     async created(){
         this.load_unread()
     }
 
     get default_template(){
         return this.$store.state.default_template
+    }
+
+    get unread_replies(){
+        return this.$store.state.tmp.unread_replies
+    }
+
+    get unread_reactions(){
+        return this.$store.state.tmp.unread_reactions
     }
 
     get unread():boolean{
@@ -93,8 +98,10 @@ export default class extends Vue {
     async load_unread():Promise<void>{
         // Update unread counts of responses
         // TODO Indexing `read` and using `count` much quicker, but booleans not indexable
-        this.unread_replies = (await self._db.replies.list()).filter(i => !i.read).length
-        this.unread_reactions = (await self._db.reactions.list()).filter(i => !i.read).length
+        const num_replies = (await self._db.replies.list()).filter(i => !i.read).length
+        const num_reactions = (await self._db.reactions.list()).filter(i => !i.read).length
+        this.$store.commit('tmp_set', ['unread_replies', num_replies])
+        this.$store.commit('tmp_set', ['unread_reactions', num_reactions])
     }
 
 }
