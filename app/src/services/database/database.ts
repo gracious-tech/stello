@@ -21,6 +21,7 @@ import {generate_key_sym} from '../utils/crypt'
 import {buffer_to_url64} from '../utils/coding'
 import {cycle, percent, range} from '../utils/iteration'
 import {remove_item} from '../utils/arrays'
+import {escape_for_html} from '../utils/strings'
 import {migrate, DATABASE_VERSION} from './migrations'
 
 
@@ -128,8 +129,7 @@ export class Database {
             }
             // If the first section, auto-add title as a heading if it exists
             if (!draft.sections.length && draft.title.trim()){
-                const encoded_title = new Option(draft.title).innerHTML  // Hack to encode text
-                content.html = `<h1>${encoded_title}</h1>`
+                content.html = `<h1>${escape_for_html(draft.title)}</h1>`
             }
         } else if (type === 'images'){
             content = {
