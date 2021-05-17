@@ -120,7 +120,7 @@ export default class extends Vue {
             this.replactions_matched.length / this.subsections.length || 1
 
         // Calculate desired number of items, and then subsections, to display
-        const num_items = 100 * this.pages
+        const num_items = 50 * this.pages
         const num_subsections = Math.round(num_items / avg_items_per_subsection)
 
         return this.subsections.slice(0, num_subsections)
