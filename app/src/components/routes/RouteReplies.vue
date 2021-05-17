@@ -115,7 +115,9 @@ export default class extends Vue {
         // The subsections present in the DOM, optionally limited to reduce lag
 
         // Detect the average number of replactions per subsection (so can measure based on them)
-        const avg_items_per_subsection = this.replactions_matched.length / this.subsections.length
+        // NOTE Prevent NaN when no subsections loaded yet
+        const avg_items_per_subsection =
+            this.replactions_matched.length / this.subsections.length || 1
 
         // Calculate desired number of items, and then subsections, to display
         const num_items = 100 * this.pages
