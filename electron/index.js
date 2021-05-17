@@ -251,7 +251,8 @@ function smtp_transport(settings){
         socketTimeout: 5 * 1000,  // ms
         // Reuse same connection for multiple messages
         pool: true,
-        maxConnections: 10,
+        maxMessages: Infinity,  // No reason to start new connection after x messages
+        maxConnections: 10,  // Choose largest servers will allow (but if only ~100 msgs, 5-10 fine)
     }
 
     // Send to localhost during development
@@ -348,14 +349,12 @@ ipcMain.handle('test_email_settings', async (event, settings, auth=true) => {
 
 ipcMain.handle('send_emails', async (event, settings, emails, from, reply_to) => {
     // Send emails and return null for success, else error
-    // NOTE Also emits email_submitted event for each individual email
+    // NOTE Also emits `email_submitted` event for each individual emails that don't hard fail
 
-    // Setup pooled transport
-    const transport = smtp_transport(settings)
+    // Helper for sending an email and reporting success
+    const send_email = async (transport, email) => {
 
-    // Request all be sent (without waiting) and let transport handle the queuing of requests
-    // NOTE Using `Promise.all()` so can interrupt sending if any one hard fails
-    return Promise.all(emails.map(async email => {
+        // Try to send the email (will throw if a hard fail)
         const result = await transport.sendMail({
             from: from,
             to: email.to,
@@ -363,18 +362,62 @@ ipcMain.handle('send_emails', async (event, settings, emails, from, reply_to) =>
             html: email.html,
             replyTo: reply_to,
         })
-        // Was submitted successfully, so immediately let renderer know
+
+        // Was submitted, so immediately let renderer know
         // NOTE Also includes whether recipient address was accepted or not (a soft fail)
         event.sender.send('email_submitted', email.id, result.rejected.length === 0)
-    })).then(() => {
-        // Resolve with null for success (not array)
+    }
+
+    // Initial parallel sending attempt
+    // NOTE Rate limiting very common (especially for gmail), but no way to know unless first try
+    // NOTE This instantly submits all emails to nodemailer which handles the parallel queuing
+    let transport = smtp_transport(settings)
+    const unsent = await Promise.all(emails.map(async email => {
+        try {
+            await send_email(transport, email)
+        } catch {
+            // Close transport to interrupt remaining sends so can switch to synchronous sending
+            transport.close()
+            // Return email if failed to send
+            return email
+        }
+        return null  // Null return means email was submitted successfully
+    }))
+    unsent = unsent.filter(email => email)  // Filter out nulls (successes)
+
+    // If nothing in unsent array, then all done
+    if (!unsent.length){
         return null
-    }).catch(error => {
-        // Resolve promise with normalized error
-        return normalize_nodemailer_error(error)
-    }).finally(() => {
-        // Ensure transport always closed when done
-        // NOTE If error was thrown then this will interrupt any still pending emails
-        transport.close()
-    })
+    }
+
+    // Retry sending of failed emails, this time sequentially, with a delay between each if needed
+    transport = smtp_transport(settings)  // Old transport already closed
+    for (const email of unsent){
+        try {
+            await send_email(transport, email)
+        } catch {
+            // If didn't work, try waiting a bit before next attempt
+            await sleep(5)
+            try {
+                await send_email(transport, email)
+            } catch (error){
+                // If didn't work after waiting, problem not resolvable...
+                transport.close()
+                return normalize_nodemailer_error(error)
+            }
+        }
+    }
+
+    // All submitted successfully
+    transport.close()
+    return null
 })
+
+
+// Utils
+
+
+function sleep(ms){
+    // Await this function to delay execution for given ms
+    return new Promise(resolve => setTimeout(resolve, ms))
+}
