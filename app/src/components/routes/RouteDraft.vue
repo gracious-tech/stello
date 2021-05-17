@@ -1,8 +1,11 @@
 
 <template lang='pug'>
 
-div(v-if='draft')
-    v-toolbar
+div
+    v-toolbar(v-if='!draft')
+        app-btn(to='../' icon='arrow_back')
+        v-toolbar-title [draft does not exist]
+    v-toolbar(v-else)
 
         app-btn(to='../' icon='arrow_back')
 
@@ -34,11 +37,11 @@ div(v-if='draft')
         template(#extension)
             div.status(class='app-fg-accent-relative') {{ status }}
 
-    div.msg-title(class='app-bg-primary-relative')
+    div.msg-title(v-if='draft' class='app-bg-primary-relative')
         //- NOTE Using "Subject" since users already familiar with email subjects not being in body
         input(v-model.trim='title' placeholder="Subject...")
 
-    div.stello-displayer(:class='{dark: dark_message}')
+    div.stello-displayer(v-if='draft' :class='{dark: dark_message}')
         shared-dark-toggle(v-model='dark_message')
         draft-content(ref='content' :draft='draft' :profile='profile' :sections='sections')
 
@@ -65,7 +68,8 @@ import {Section} from '@/services/database/sections'
 })
 export default class extends Vue {
 
-    @Prop() draft_id
+    @Prop({type: String, required: true}) draft_id:string
+
     draft:Draft = null
     sections:{[id:string]: Section} = {}  // Content of sections loaded separately from the draft
     sections_inited = false
@@ -80,10 +84,12 @@ export default class extends Vue {
 
         // Load the draft and the contents of the draft's sections
         const draft = await self._db.drafts.get(this.draft_id)
-        for (const section of await self._db.sections.get_multiple(draft.sections.flat())){
-            Vue.set(this.sections, section.id, section)
+        if (draft){
+            for (const section of await self._db.sections.get_multiple(draft.sections.flat())){
+                Vue.set(this.sections, section.id, section)
+            }
+            this.draft = draft
         }
-        this.draft = draft
     }
 
     @Watch('draft.profile') async watch_profile(){
