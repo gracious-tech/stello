@@ -451,7 +451,7 @@ export class Database {
             'Goods', 'Harvard']
         const contacts = await Promise.all([...range(100 * multiplier)].map(
             i => this.contacts.create(
-                `${sample(first_names)} ${sample(last_names)}`, `user+${i}@localhost`)))
+                `${sample(first_names)} ${sample(last_names)}`, `test+stello${i}@gracious.tech`)))
 
         // Create a text section
         const section_text = await this.sections.create({
