@@ -453,44 +453,95 @@ export class Database {
             i => this.contacts.create(
                 `${sample(first_names)} ${sample(last_names)}`, `user+${i}@localhost`)))
 
-        // Create a section
-        const section = await this.sections.create({
+        // Create a text section
+        const section_text = await this.sections.create({
             type: 'text',
-            html: '<p>Text for section</p>',
+            html: '<p>' + "A super interesting sentence. ".repeat(30) + '</p>',
             standout: null,
+        })
+
+        // Create a image section
+        const image_blob = await (await fetch('_assets/branding/icon.png')).blob()
+        const section_image = await this.sections.create({
+            type: 'images',
+            images: [{id: generate_token(), data: image_blob, caption: "An example image"}],
+            crop: true,
+        }) as Section<ContentImages>
+
+        // Create a youtube section
+        const section_youtube = await this.sections.create({
+            type: 'video',
+            format: 'iframe_youtube',
+            id: '_fMSjImgJcI',
+            start: null,
+            end: null,
+        })
+
+        // Create a vimeo section
+        const section_vimeo = await this.sections.create({
+            type: 'video',
+            format: 'iframe_vimeo',
+            id: '168213438',
+            start: null,
+            end: null,
         })
 
         // Create base draft
         const draft = await this.drafts.create_object()
         draft.title = "A dummy newsletter"
         draft.profile = profile.id
-        draft.sections = [[section.id]]
+        draft.sections = [
+            [section_text.id, section_image.id],
+            [section_youtube.id, section_vimeo.id],
+        ]
         draft.recipients.include_contacts = contacts.slice(0, 10 * multiplier).map(c => c.id)
         await this.drafts.set(draft)
 
         // Create sent messages
+        const titles = cycle([
+            "How to write a newsletter",
+            "November News",
+            "Stello is cool!",
+            "I can't think of an interesting title",
+        ])
         const messages = await Promise.all([...range(10 * multiplier)].map(async i => {
             const draft_copy = await this.draft_copy(
-                new Draft({...draft, title: `A dummy newsletter ${i}`}))
+                new Draft({...draft, title: titles.next().value}))
             const msg = await this.draft_to_message(draft_copy.id)
             return msg
         }))
 
-        // Create responses
+        // Date creation helper
+        const random_date = () => {
+            const date = new Date()
+            date.setDate(date.getDate() - Math.random() * 365)  // In last year
+            return date
+        }
+
+        // Response contents generation
         const reactions = cycle(['like', 'love', 'laugh', 'wow', 'yay', 'pray', 'sad'])
+        const reply_text = "Cool, great to hear about https://stello.news. "
+        const random_reply = () => {
+            return reply_text.repeat(Math.random() * 10)
+        }
+
+        // Create responses
         for (const msg of percent(messages)){
+            const msg_section_ids = cycle(msg.draft.sections.flat())
+            const msg_subsection_ids = cycle([null, section_image.content.images[0].id, null, null])
             for (const msg_copy of percent(await this.copies.list_for_msg(msg.id))){
                 if (Math.random() > 0.5){
-                    const date = new Date()
-                    date.setDate(date.getDate() - Math.random() * 365)
-                    await this.reaction_create(reactions.next().value, date,
-                        msg_copy.resp_token, msg.draft.sections[0][0], null, '', '')
+                    await this.reply_create(random_reply(), random_date(), msg_copy.resp_token,
+                        null, null, '', '')
                 }
                 if (Math.random() > 0.5){
-                    const date = new Date()
-                    date.setDate(date.getDate() - Math.random() * 365)
-                    await this.reply_create('A message', date, msg_copy.resp_token,
-                        msg.draft.sections[0][0], null, '', '')
+                    await this.reply_create(random_reply(), random_date(), msg_copy.resp_token,
+                        msg_section_ids.next().value, msg_subsection_ids.next().value, '', '')
+                }
+                if (Math.random() > 0.5){
+                    await this.reaction_create(reactions.next().value, random_date(),
+                        msg_copy.resp_token, msg_section_ids.next().value,
+                        msg_subsection_ids.next().value, '', '')
                 }
             }
         }
