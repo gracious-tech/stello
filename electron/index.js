@@ -372,7 +372,7 @@ ipcMain.handle('send_emails', async (event, settings, emails, from, reply_to) =>
     // NOTE Rate limiting very common (especially for gmail), but no way to know unless first try
     // NOTE This instantly submits all emails to nodemailer which handles the parallel queuing
     let transport = smtp_transport(settings)
-    const unsent = await Promise.all(emails.map(async email => {
+    let unsent = await Promise.all(emails.map(async email => {
         try {
             await send_email(transport, email)
         } catch {
