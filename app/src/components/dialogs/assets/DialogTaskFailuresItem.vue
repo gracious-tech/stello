@@ -18,7 +18,8 @@ v-card.card
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
 import {Task, TaskStartArgs, TaskErrorType} from '@/services/tasks/tasks'
-import {oauth_pretask_reauth, ScopeSet, scope_set_for_task} from '@/services/tasks/oauth'
+import {OauthUseless, oauth_pretask_reauth, ScopeSet, scope_set_for_task,
+    } from '@/services/tasks/oauth'
 import {OAuth} from '@/services/database/oauths'
 
 
@@ -41,8 +42,8 @@ export default class extends Vue {
         return scope_set_for_task(this.task.name)
     }
 
-    get error_type():TaskErrorType{
-        // Detect the type of failure based on the error
+    get error_type():TaskErrorType|'oauth_access'|'oauth_scopes'|'oauth_useless'{
+        // Expand on task error types with more specific oauth ones
         const type = this.task.error_type
         if (type === 'auth' && this.task.fix_oauth){
             // Since have access to oauth object, can be more specific
@@ -50,6 +51,9 @@ export default class extends Vue {
                 return 'oauth_access'
             }
             return 'oauth_scopes'
+        }
+        if (this.task.error instanceof OauthUseless){
+            return 'oauth_useless'
         }
         return type
     }
@@ -61,6 +65,7 @@ export default class extends Vue {
             auth: "Wrong password",
             oauth_access: "Not signed in",
             oauth_scopes: "Do not have permission",
+            oauth_useless: "Account not valid",
             settings: "Incorrect settings",
             unknown: "Unexpected error",
         }[this.error_type]
@@ -68,6 +73,13 @@ export default class extends Vue {
 
     get explanation():string{
         // Get an explanation suitable for the fail type
+
+        // User-friendly description of scopes
+        const scopes_ui = {
+            contacts: "Read contacts and save changes to them",
+            email_send: "Send emails",
+        }
+
         if (this.error_type === 'network'){
             return "There seems to be a problem with your Internet connection."
         } else if (this.error_type === 'auth'){
@@ -75,10 +87,11 @@ export default class extends Vue {
         } else if (this.error_type === 'oauth_access'){
             return "Stello is not signed in to your account (session may have expired)."
         } else if (this.error_type === 'oauth_scopes'){
-            return "Permission required: " + {
-                contacts: "Read contacts and save changes to them",
-                email_send: "Send emails",
-            }[this.required_scope_set]
+            return `Permission required: ${scopes_ui[this.required_scope_set]}`
+        } else if (this.error_type === 'oauth_useless'){
+            return `The chosen account is not able to "${scopes_ui[this.required_scope_set]}"
+                and is likely just for signing in. You'll need to select a different account or
+                change your settings.`
         } else if (this.error_type === 'settings'){
             return "The settings currently in use don't seem to be working."
         }
@@ -92,6 +105,8 @@ export default class extends Vue {
             return "Sign in"
         } else if (this.error_type === 'oauth_scopes'){
             return "Give permission"
+        } else if (this.error_type === 'oauth_useless'){
+            return "Change account"
         } else if (this.error_type === 'auth' && this.task.fix_auth){
             return "Change password"
         } else if (this.error_type === 'settings' && this.task.fix_settings){
@@ -112,7 +127,9 @@ export default class extends Vue {
     fix():void{
         // Attempt to fix the problem
         const task_args:TaskStartArgs = [this.task.name, this.task.params, this.task.options]
-        if (this.error_type.startsWith('oauth_')){
+        if (this.error_type === 'oauth_useless' && this.task.fix_settings){
+            this.task.fix_settings()
+        } else if (this.error_type.startsWith('oauth_')){
             // Need new credentials for same scopes as before
             oauth_pretask_reauth(task_args, this.oauth)
         } else if (this.error_type === 'auth' && this.task.fix_auth){

@@ -17,7 +17,7 @@ import {retract_message} from './management'
 export type TaskStartArgs = [string, any[]?, any[]?]
 // Task functions return a promise which may resolve to single/array of other subtask promises
 export type TaskReturn = Promise<Promise<any>|Promise<any>[]|void>
-export type TaskErrorType = 'network'|'auth'|'oauth_access'|'oauth_scopes'|'settings'|'unknown'
+export type TaskErrorType = 'network'|'auth'|'settings'|'unknown'
 export type TaskFunction = (task:Task)=>TaskReturn
 
 

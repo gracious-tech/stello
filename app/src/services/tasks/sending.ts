@@ -84,18 +84,16 @@ export class Sender {
         // Setup task
         // TODO Add tracking of subtasks
         task.label = `Sending message "${this.msg.display}"`
-        if (this.profile.smtp_settings.oauth){
-            task.fix_oauth = this.profile.smtp_settings.oauth
-        } else {
-            // Fix by opening email settings dialog
-            task.fix_settings = async () => {
-                const fresh_profile = await self._db.profiles.get(this.profile.id)
-                self._store.dispatch('show_dialog', {
-                    component: DialogEmailSettings, props: {profile: fresh_profile},
-                })
-            }
-            task.fix_auth = task.fix_settings
+
+        // Provide fix options (will detect appropriate one to use in failure dialog)
+        task.fix_oauth = this.profile.smtp_settings.oauth  // May be null which is fine
+        task.fix_settings = async () => {
+            const fresh_profile = await self._db.profiles.get(this.profile.id)
+            self._store.dispatch('show_dialog', {
+                component: DialogEmailSettings, props: {profile: fresh_profile},
+            })
         }
+        task.fix_auth = task.fix_settings
 
         // Init storage client for the message
         this.host = this.profile.new_host_user()

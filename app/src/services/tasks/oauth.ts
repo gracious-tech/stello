@@ -523,7 +523,7 @@ export async function oauth_request(oauth:OAuth, url:string, params?:Record<stri
     }
 
     // Handle errors
-    if ([401, 403].includes(resp.status)){  // Google returns 403 for scope issues
+    if (resp.status === 401){
         throw new MustReauthenticate()
     } else if (resp.status === 410){  // Gone
         throw new MustRecover()  // e.g. Google sync token expired
@@ -540,6 +540,20 @@ export async function oauth_request(oauth:OAuth, url:string, params?:Record<stri
         error_data.body = await resp.text()
         error_data.body = JSON.parse(error_data.body)
     } catch {}
+
+    // Google uses 403 for missing-scopes errors
+    // But 403 also for rate limits, so must be specific in identifying it
+    if (oauth.issuer === 'google' && resp.status === 403 &&
+            error_data.body.error?.errors?.[0]?.reason === 'insufficientPermissions'){
+        throw new MustReauthenticate()
+    }
+
+    // Account for specific, but important, cases where oauth allowed but not able to do something
+    if (oauth.issuer === 'google' && resp.status === 400
+            && error_data.body.error?.status === 'FAILED_PRECONDITION'){
+        throw new OauthUseless()
+    }
+
     throw new MustInterpret(error_data)
 }
 
@@ -555,4 +569,10 @@ export function scope_set_for_task(task_name:string):ScopeSet{
         return 'email_send'
     }
     return null
+}
+
+
+export class OauthUseless extends Error {
+    // Use for when oauth has correct scopes but can't actually use them
+    // For example, the account is ALLOWED but not ABLE to send email
 }
