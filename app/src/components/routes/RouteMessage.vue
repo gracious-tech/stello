@@ -33,14 +33,15 @@ div
             template(v-slot:item.actions='{item}')
                 app-menu-more
                     app-list-item(@click='item.copy_invite') Copy notification
-                    app-list-item(@click='item.retract' :disabled='item.expired' color='error') Retract
+                    app-list-item(@click='item.retract' :disabled='item.expired' color='error')
+                        | Retract
 
 </template>
 
 
 <script lang='ts'>
 
-import {Component, Vue, Prop} from 'vue-property-decorator'
+import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import {sort} from '@/services/utils/arrays'
 import {Message} from '@/services/database/messages'
@@ -48,6 +49,8 @@ import {MessageCopy} from '@/services/database/copies'
 import {get_text_invite_for_copy} from '@/services/misc/invites'
 import {Read} from '@/services/database/reads'
 import {Profile} from '@/services/database/profiles'
+import {Task} from '@/services/tasks/tasks'
+import {on_email_submitted} from '@/services/native/native'
 
 
 @Component({})
@@ -67,9 +70,29 @@ export default class extends Vue {
         {value: 'actions', text: ""},
     ]
 
-    created(){
+    async created(){
         // Get message and copies from db
-        this.load()
+        this.message = await self._db.messages.get(this.msg_id)
+        const copies = await self._db.copies.list_for_msg(this.msg_id)
+        sort(copies, 'display')
+        this.copies = copies
+
+        // Access to profile is required to retract messages
+        this.profile = this.message && await self._db.profiles.get(this.message.draft.profile)
+
+        // Do initial load of reads
+        this.load_reads()
+
+        // Listen for email sends and update copies that match
+        on_email_submitted((email_id, accepted) => {
+            if (accepted){
+                const copy = this.copies.find(copy => copy.id === email_id)
+                if (copy){
+                    // NOTE Listener in App.vue does the saving to db
+                    copy.invited = true
+                }
+            }
+        })
     }
 
     get published(){
@@ -98,7 +121,13 @@ export default class extends Vue {
                 },
                 expired: copy.expired,
                 retract: async () => {
+                    if (!this.profile){
+                        this.$store.dispatch('show_snackbar',
+                            "Cannot retract message as no longer have access to the sending account")
+                        return
+                    }
                     await this.profile.new_host_user().delete_file(`copies/${copy.id}`)
+                    // TODO Get fresh copy of object from db as may have changed due to async task
                     copy.expired = true
                     self._db.copies.set(copy)
                 },
@@ -124,21 +153,21 @@ export default class extends Vue {
         return this.copies.filter(copy => copy.sent === false).length
     }
 
-    async load(){
-        // Load the message and copies data
-        this.message = await self._db.messages.get(this.msg_id)
-        if (!this.message)
-            return
-        const copies = await self._db.copies.list_for_msg(this.msg_id)
-        sort(copies, 'display')
-        this.copies = copies
-        this.profile = await self._db.profiles.get(this.message.draft.profile)
+    async load_reads(){
+        // Load reads data
         this.reads = await self._db.reads.list_for_msg(this.msg_id)
     }
 
     async send_all(){
         // Ensure all copies have been uploaded, and all emails sent
         this.$tm.start_send_message(this.msg_id)
+    }
+
+    @Watch('$tm.data.finished') watch_tm_finished(task:Task){
+        // Listen to task completions and adjust state as needed
+        if (task.name === 'responses_receive'){
+            this.load_reads()
+        }
     }
 }
 
