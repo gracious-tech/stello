@@ -113,17 +113,16 @@ export default class extends Vue {
 
     get subsections_visible(){
         // The subsections present in the DOM, optionally limited to reduce lag
-
-        // Detect the average number of replactions per subsection (so can measure based on them)
-        // NOTE Prevent NaN when no subsections loaded yet
-        const avg_items_per_subsection =
-            this.replactions_matched.length / this.subsections.length || 1
-
-        // Calculate desired number of items, and then subsections, to display
-        const num_items = 50 * this.pages
-        const num_subsections = Math.round(num_items / avg_items_per_subsection)
-
-        return this.subsections.slice(0, num_subsections)
+        const replactions_allowance = 50 * this.pages
+        let replactions_count = 0
+        const visible = []
+        for (const replactions of this.subsections){
+            visible.push(replactions)
+            replactions_count += replactions.length
+            if (replactions_count >= replactions_allowance)
+                break
+        }
+        return visible
     }
 
     get contacts_ui(){
