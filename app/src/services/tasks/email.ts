@@ -54,9 +54,10 @@ export async function send_emails_oauth(oauth_id:string, emails:Email[], from:Em
 async function send_emails_oauth_google(oauth:OAuth, emails:Email[], from:EmailIdentity,
         reply_to?:EmailIdentity):Promise<void>{
     // Send emails via oauth http requests to Google's API
-    // TODO Use batch requests (https://developers.google.com/gmail/api/guides/batch)
+    // NOTE Google allows 2.5 sends/second (average over time), and each request takes ~1.5 seconds
+    //      But to be safe, let's assume requests take 1 second, then two channels are suitable
+    const concurrency_limit = 2
     const url = 'https://gmail.googleapis.com/upload/gmail/v1/users/me/messages/send'
-    const limit = 2  // Google allows 2.5 sends per second
     await concurrent(emails.map(email => {
         return async () => {
             // Google's API expects a raw email
@@ -68,7 +69,7 @@ async function send_emails_oauth_google(oauth:OAuth, emails:Email[], from:EmailI
             } catch (error){
                 if (error instanceof MustInterpret){
                     if (error.data?.body?.error?.message?.toLowerCase() === 'invalid to header'){
-                        // Contact's address is probably invalid
+                        // Contact's address is probably invalid so don't hard fail
                         handle_email_submitted(email.id, false)
                         return
                     }
@@ -77,7 +78,7 @@ async function send_emails_oauth_google(oauth:OAuth, emails:Email[], from:EmailI
             }
             handle_email_submitted(email.id, true)
         }
-    }), limit)
+    }), concurrency_limit)
 }
 
 
