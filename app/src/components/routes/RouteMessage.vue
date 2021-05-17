@@ -50,7 +50,6 @@ import {get_text_invite_for_copy} from '@/services/misc/invites'
 import {Read} from '@/services/database/reads'
 import {Profile} from '@/services/database/profiles'
 import {Task} from '@/services/tasks/tasks'
-import {on_email_submitted} from '@/services/native/native'
 
 
 @Component({})
@@ -82,17 +81,6 @@ export default class extends Vue {
 
         // Do initial load of reads
         this.load_reads()
-
-        // Listen for email sends and update copies that match
-        on_email_submitted((email_id, accepted) => {
-            if (accepted){
-                const copy = this.copies.find(copy => copy.id === email_id)
-                if (copy){
-                    // NOTE Listener in App.vue does the saving to db
-                    copy.invited = true
-                }
-            }
-        })
     }
 
     get published(){
@@ -167,6 +155,14 @@ export default class extends Vue {
         // Listen to task completions and adjust state as needed
         if (task.name === 'responses_receive'){
             this.load_reads()
+        }
+    }
+
+    @Watch('$store.state.tmp.invited') watch_invited(updated_copy:MessageCopy){
+        // Watch invited and update own state if relevant
+        const match = this.copies.find(copy => copy.id === updated_copy.id)
+        if (match){
+            match.invited = updated_copy.invited
         }
     }
 }

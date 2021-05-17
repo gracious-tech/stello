@@ -1,6 +1,8 @@
 
 import {Location} from 'vue-router'
 
+import {MessageCopy} from '../database/copies'
+
 
 export interface AppStoreState {
 
@@ -36,6 +38,9 @@ export interface AppStoreState {
         // NOTE Using objects with `true` constant for performance and reactivity
         unread_replies:Record<string, true>,
         unread_reactions:Record<string, true>,
+
+        // Latest message copy that had invited property updated (for watching)
+        invited:MessageCopy|null,
     }
 }
 
