@@ -39,6 +39,16 @@ export default {
         }
     },
 
+    methods: {
+        destroy_lottie(){
+            // Destory lottie instance (if any)
+            // WARN Otherwise don't get garbage collected (exponential memory usage)
+            if (this.lottie_instance){
+                this.lottie_instance.destroy()
+            }
+        },
+    },
+
     watch: {
 
         url: {
@@ -55,6 +65,7 @@ export default {
                 const lottie = await lottie_promise
 
                 // Load the animation
+                this.destroy_lottie()
                 this.lottie_instance = lottie.default.loadAnimation({
                     container: this.$refs.container as HTMLDivElement,
                     renderer: 'svg',
@@ -73,6 +84,14 @@ export default {
                 }
             },
         },
+    },
+
+    beforeDestroy(){  // Vue 2
+        this.destroy_lottie()
+    },
+
+    beforeUnmount(){  // Vue 3
+        this.destroy_lottie()
     },
 }
 
