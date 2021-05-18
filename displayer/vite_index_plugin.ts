@@ -1,5 +1,6 @@
 // A vite plugin that supports writing index in Pug and embedding Typescript and Sass
 
+import path from 'path'
 import {promises as fs} from 'fs'
 
 import pug from 'pug'
@@ -57,14 +58,24 @@ export default function(template_path='index.pug'):Plugin{
                         ts: (text:string, options:PugFilterOptions) => {
                             // Render typescript blocks
                             delete options.filename  // Don't include pug-specific config
-                            return esbuild.transformSync(text, {
+                            return esbuild.buildSync({
+                                stdin: {
+                                    contents: text,
+                                    loader: 'ts',
+                                    resolveDir: path.join(__dirname, 'src'),
+                                },
+                                write: false,
+                                bundle: true,
                                 minify: PROD,
-                                loader: 'ts',
+                                // WARN Defined values are inserted as code, not strings
+                                define: {
+                                    'process.env.NODE_ENV': "'" + process.env.NODE_ENV + "'",
+                                },
                                 sourcemap: PROD ? false : 'inline',
                                 // NOTE Currently supporting es2015+ browsers
                                 target: PROD ? 'es2015' : 'esnext',
                                 ...options,
-                            }).code
+                            }).outputFiles[0].text
                         }
                     },
                 })()
