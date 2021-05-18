@@ -45,7 +45,11 @@ self._app.config.warnHandler = (msg, vm, trace) => {
     const details = `${msg}\n(Vue warning)\n\n${trace}`
 
     // Ignore if a Vue 2 compatibility thing
-    if (details.includes('<Shared') && details.includes('Property "$listeners" was accessed')){
+    const compat_related = [
+        '`beforeDestroy` has been renamed to `beforeUnmount`',
+        'Property "$listeners" was accessed',
+    ]
+    if (details.includes('<Shared') && compat_related.some(s => details.includes(s))){
         return
     }
 
