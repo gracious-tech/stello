@@ -37,6 +37,7 @@ import {Component, Vue, Watch} from 'vue-property-decorator'
 import AppLogo from '@/branding/AppLogo.vue'
 import {Draft} from '@/services/database/drafts'
 import {Task} from '@/services/tasks/tasks'
+import {sleep} from '@/services/utils/async'
 
 
 @Component({
@@ -68,7 +69,9 @@ export default class extends Vue {
     @Watch('$tm.data.finished') watch_finished(task:Task){
         // Respond to finished tasks
         if (task.name === 'responses_receive'){
-            this.load_unread()
+            // Wait a moment before loading as if current route is replies, it will set reads in db
+            // If don't wait then this load may have old data and stuck suggesting have new replies
+            sleep(1000).then(() => this.load_unread())
         }
     }
 
