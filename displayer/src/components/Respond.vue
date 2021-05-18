@@ -61,7 +61,6 @@ export default {
         },
         subsection: {
             type: String as PropType<string|null>,
-            required: true,
         },
     },
 
