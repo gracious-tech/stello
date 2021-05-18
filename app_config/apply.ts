@@ -35,7 +35,13 @@ writeFileSync(resolve(__dirname, '../app/src/app_config.json'), JSON.stringify(c
 
 
 // Displayer has only necessary properties, in case sensitive in some way
-const displayer = {domain: config.domain, name: config.name}
+const displayer = {
+    codename: config.codename,
+    version: config.version,
+    name: config.name,
+    domain: config.domain,
+    author: config.author,
+}
 writeFileSync(resolve(__dirname, '../displayer/src/app_config.json'), JSON.stringify(displayer))
 
 
