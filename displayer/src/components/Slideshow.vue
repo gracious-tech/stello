@@ -31,6 +31,10 @@ export default {
         },
     },
 
+    emits: {
+        displayed: (value:string):boolean => typeof value === 'string',
+    },
+
     setup(props, {emit}){
 
         // Injections
