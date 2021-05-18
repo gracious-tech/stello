@@ -18,7 +18,7 @@ export async function get_clipboard_blobs(preferred=[]):Promise<Blob[]>{
     // NOTE Each item may be in multiple formats (e.g. Chrome copy image = [text/html, image/png])
     // TODO Current browser limitations: prompts for permission, only supports text and pngs?
     const items = await self.navigator.clipboard.read()
-    return Promise.all(items.map(item => {
+    const blobs = await Promise.all(items.map(item => {
         // Each clipboard item can have multiple types, so just return the preferred format
         for (const type_prefix of preferred){
             for (const type of item.types){
@@ -30,6 +30,10 @@ export async function get_clipboard_blobs(preferred=[]):Promise<Blob[]>{
         // No preferences matched so just return the first
         return item.getType(item.types[0])
     }))
+
+    // `getType()` of some items may return null so filter them out
+    // e.g. When clipboard empty, a text/plain item may exist but its contents is null
+    return blobs.filter(blob => blob)
 }
 
 
