@@ -72,7 +72,9 @@ export default class extends Vue {
 
     close_request(value:any){
         // The mounted dialog has requested to be closed and resolved with the given value
-        this.$store.state.tmp.dialog.resolve(value)
+        if (this.$store.state.tmp.dialog){
+            this.$store.state.tmp.dialog.resolve(value)
+        }
     }
 
 }
