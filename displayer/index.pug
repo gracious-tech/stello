@@ -117,29 +117,33 @@ html
 
         script
             :ts
-                // ERRORS
-                self._fail = msg => {
-                    // Handle app failure
 
-                    // Do nothing if not supported, as don't want to fill error logs, and splash shown by index.pug
-                    if (!self._browser_supported){
-                        return
+                import * as app_config from './app_config.json'
+                import {error_to_string, drop} from './services/utils/exceptions'
+
+
+                // ERROR HELPERS
+
+
+                self._fail_report = (msg:string):void => {
+                    // Report bugs by posting to stello's contact API
+                    // NOTE Don't report if browser not supported, as not actionable
+                    if (process.env.NODE_ENV === 'production' && self._browser_supported){
+                        drop(fetch(app_config.author.post, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                app: app_config.codename,
+                                type: 'displayer-error',
+                                version: app_config.version,  // So can silence old version errors
+                                message: msg,
+                            }),
+                        }))
                     }
-
-                    // Show alert
-                    self.__fail_alert("Something went wrong", msg)
                 }
 
 
-                self._fail_network = () => {
-                    // Handle connection issues
-                    self.__fail_alert("Could not connect", "Please check your internet connection and try again")
-                }
-
-
-                self.__fail_alert = (heading, msg) => {
-                    // Show alert with recovery buttons
-                    // TODO Button to reset app or contact developers
+                self._fail_splash = (heading:string, msg:string):void => {
+                    // Show alert with recovery button
 
                     // Don't show if a fail splash already exists
                     if (self.document.querySelector('.fail-splash') !== null){
@@ -150,7 +154,9 @@ html
                     self.document.body.innerHTML += `
                         <div class="fail-splash error">
                             <h1>${heading}</h1>
-                            <p class='btn-wrap'><button onclick="location.reload(true)">RETRY</button></p>
+                            <p class='btn-wrap'>
+                                <button onclick="location.reload(true)">RETRY</button>
+                            </p>
                             <pre></pre>
                         </div>
                     `
@@ -158,38 +164,38 @@ html
                 }
 
 
-                self._error_to_msg = error => {
-                    // Convert an error object into a string (standard toString doesn't include stack)
-                    // NOTE Chrome (and probably others too) ONLY has properties name, message, and stack
-                    // NOTE While Chrome includes name/message in the stack, Firefox and Safari do not
-                    return error ? `${error.name}: ${error.message}\n\n${error.stack}` : "unknown"
+                self._fail_splash_network = ():void => {
+                    // Handle connection issues
+                    self._fail_splash("Could not connect",
+                        "Please check your internet connection and try again")
                 }
 
 
-                self.addEventListener('error', event => {
+                // ERROR HANDLING
+
+
+                self.addEventListener('error', (event:ErrorEvent):void => {
                     // Handle uncaught errors
-                    // NOTE error property should always exist, but fallback on message (also if a custom throw?)
-                    console.error(event)  // tslint:disable-line:no-console
-                    const msg = event.error ? self._error_to_msg(event.error) : event.message
-                    self._fail(msg)
+                    const error = event.error ?? event.message ?? 'unknown'
+                    console.error(error)
+                    const msg = error_to_string(error)
+                    self._fail_report(msg)
+                    self._fail_splash("Something went wrong", msg)
                 })
 
 
                 self.addEventListener('unhandledrejection', event => {
-                    // Handle uncaught errors in promises
-                    console.error(event)  // tslint:disable-line:no-console
-                    let msg = event.reason
-                    if (msg instanceof Error){
-                        msg = self._error_to_msg(msg)
-                    }
-                    self._fail('[rejection] ' + msg)
+                    // Report uncaught errors in promises, but don't fail as rarely affects UI
+                    self._fail_report(error_to_string(event.reason))
                 })
 
 
                 // INIT
+
+
                 // Immediately remove hash and store internally for security
                 self._hash = self.location.hash
                 self.location.hash = ''
 
 
-        script(src='/src/main.ts' type='module' onerror='_fail("Download interrupted")')
+        script(src='/src/main.ts' type='module' onerror='_fail_splash_network()')
