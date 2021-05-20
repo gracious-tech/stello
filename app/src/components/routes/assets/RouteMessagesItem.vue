@@ -5,8 +5,8 @@ v-list-item(:to='to')
     v-list-item-content
         v-list-item-title {{ msg.display }}
         v-list-item-subtitle {{ recipients }}
-    div.right
-        div(:title='published_exact' class='text--secondary text-right')
+    div.right(class='text-right')
+        div(:title='published_exact' class='text--secondary')
             | {{ published_relative }}
         div.expires(v-if='expires' class='mt-1') {{ expires }}
     v-list-item-action
@@ -137,6 +137,7 @@ export default class extends Vue {
         font-size: 12px
 
         .expires
+            display: inline-block
             background-color: rgba(#888888, 0.5)
             border-radius: 12px
             padding: 4px 8px
