@@ -67,6 +67,11 @@ export class Task {
         })
     }
 
+    get id():string{
+        // Return id for using as key in v-for (if used any other way, re-evaluate design)
+        return `${this.name} ${this.params.join(' ')}`
+    }
+
     get display():string{
         // Display the task in a way that is always helpful for UI
         return this.label || this.name

@@ -6,7 +6,7 @@ v-card
 
     v-card-text
         v-list
-            app-list-item(v-for='group of groups' @click='$emit("close", group)')
+            app-list-item(v-for='group of groups' :key='group.id' @click='$emit("close", group)')
                 | {{group.display}}
 
     v-card-actions

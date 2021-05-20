@@ -7,7 +7,7 @@ v-card
 
     v-card-text
         v-list
-            app-list-item(v-for='oauth of oauths' @click='$emit("close", oauth)')
+            app-list-item(v-for='oauth of oauths' :key='oauth.id' @click='$emit("close", oauth)')
                 app-svg(:name='`icon_${issuer}`')
                 | {{oauth.display}}
             app-list-item(@click='$emit("close", null)') Other
