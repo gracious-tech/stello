@@ -9,7 +9,7 @@ v-card
 
     v-card-actions
         app-btn(@click='$emit("close")') {{ cancel }}
-        app-btn(@click='$emit("close", true)' :color='confirm_color') {{ confirm }}
+        app-btn(v-if='confirm' @click='$emit("close", true)' :color='confirm_color') {{ confirm }}
 
 </template>
 
@@ -24,8 +24,8 @@ export default class extends Vue {
 
     @Prop({required: true}) title:string
     @Prop({default: null}) text:string
-    @Prop({default: "Confirm"}) confirm:string
     @Prop({default: "Cancel"}) cancel:string
+    @Prop({default: "Confirm"}) confirm:string
     @Prop({default: false}) confirm_danger:boolean
 
     get confirm_color():string{
