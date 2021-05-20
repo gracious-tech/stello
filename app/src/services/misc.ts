@@ -4,6 +4,7 @@ import MediumEditor from 'medium-editor'
 import {debounce} from 'lodash'
 import {VSelect} from 'vuetify/lib/components/VSelect'
 import {VAutocomplete} from 'vuetify/lib/components/VAutocomplete'
+import {formatDistanceToNow} from 'date-fns'
 
 import svgs from '@/assets/svgs'
 
@@ -97,4 +98,16 @@ export function activate_editor(elements){
 
     // Return deactivator
     return () => {self._editor.removeElements(elements)}
+}
+
+
+export function format_date_relative(date:Date):string{
+    // Format a date relative to now
+    return formatDistanceToNow(date, {addSuffix: true})
+}
+
+
+export function format_date_exact(date:Date):string{
+    // Format a date with all elements included
+    return date.toLocaleString()
 }
