@@ -254,8 +254,8 @@ export default class extends Vue {
         // Start sending task
         this.$tm.start_send_message(msg.id)
 
-        // Navigate to root
-        this.$router.push('/')
+        // Navigate to sent message route
+        this.$router.push({name: 'message', params: {msg_id: msg.id}})
     }
 
     async copy_to_draft(){
