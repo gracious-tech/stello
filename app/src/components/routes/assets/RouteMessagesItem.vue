@@ -26,7 +26,7 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 import DialogGenericConfirm from '@/components/dialogs/generic/DialogGenericConfirm.vue'
 import {Draft} from '@/services/database/drafts'
 import {Message} from '@/services/database/messages'
-import {format_date_exact, format_date_relative} from '@/services/misc'
+import {time_between} from '@/services/misc'
 
 
 @Component({})
@@ -41,12 +41,12 @@ export default class extends Vue {
 
     get published_relative(){
         // Get human fiendly published date string relative to now
-        return format_date_relative(this.msg.published)
+        return time_between(this.msg.published)
     }
 
     get published_exact(){
         // Get human fiendly exact published date string
-        return format_date_exact(this.msg.published)
+        return this.msg.published.toLocaleString()
     }
 
     get retract_label():string{

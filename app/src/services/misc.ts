@@ -4,7 +4,7 @@ import MediumEditor from 'medium-editor'
 import {debounce} from 'lodash'
 import {VSelect} from 'vuetify/lib/components/VSelect'
 import {VAutocomplete} from 'vuetify/lib/components/VAutocomplete'
-import {formatDistanceToNow} from 'date-fns'
+import {formatDistanceStrict} from 'date-fns'
 
 import svgs from '@/assets/svgs'
 
@@ -101,13 +101,10 @@ export function activate_editor(elements){
 }
 
 
-export function format_date_relative(date:Date):string{
-    // Format a date relative to now
-    return formatDistanceToNow(date, {addSuffix: true})
-}
-
-
-export function format_date_exact(date:Date):string{
-    // Format a date with all elements included
-    return date.toLocaleString()
+export function time_between(date:Date, comparator:Date=new Date()):string{
+    // Format a date relative to comparator (which defaults to now)
+    // NOTE "strict" version isn't really strict, and is better described as "vague"
+    //      as it doesn't specify if "around" an amount or exactly the amount
+    // NOTE addSuffix adds "ago" suffix if in past, and "in" prefix if in future
+    return formatDistanceStrict(date, comparator, {addSuffix: true})
 }

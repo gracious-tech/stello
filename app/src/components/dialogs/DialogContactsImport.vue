@@ -325,7 +325,7 @@ export default class extends Vue {
 
         // Create a new group for all the contacts
         const date = new Date()
-        const group_name = `Imported ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`
+        const group_name = `Imported ${date.toLocaleString()}`
         const group = await self._db.groups.create(group_name, contacts.map(c => c.id))
 
         // Let caller know the id of the new group
