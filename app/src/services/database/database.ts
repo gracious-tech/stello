@@ -452,7 +452,7 @@ export class Database {
         const contacts = await Promise.all([...range(100 * multiplier)].map(i => {
             return this.contacts.create(
                 `${sample(first_names)} ${sample(last_names)}`,
-                `blackhole+stello${i}@gracious.tech`,
+                Math.random() > 0.8 ? '' : `blackhole+stello${i}@gracious.tech`,
             )
         }))
 
