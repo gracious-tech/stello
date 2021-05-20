@@ -176,6 +176,9 @@ export class Sender {
         copy.uploaded = true
         copy.uploaded_latest = true
         self._db.copies.set(copy)
+
+        // Update store property so components can watch it for updates
+        self._store.state.tmp.uploaded = copy
     }
 
     async _send_emails(copies:MessageCopy[]):Promise<void>{

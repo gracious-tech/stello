@@ -39,7 +39,8 @@ export interface AppStoreState {
         unread_replies:Record<string, true>,
         unread_reactions:Record<string, true>,
 
-        // Latest message copy that had invited property updated (for watching)
+        // Copy property changes (for watching)
+        uploaded:MessageCopy|null,
         invited:MessageCopy|null,
     }
 }

@@ -46,7 +46,8 @@ export async function get_initial_state(db:Database):Promise<AppStoreState>{
             unread_replies: {},
             unread_reactions: {},
 
-            // Latest message copy that had invited property updated (for watching)
+            // Copy property changes (for watching)
+            uploaded: null,
             invited: null,
         },
     }
