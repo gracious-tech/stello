@@ -23,15 +23,20 @@ export class MessageCopy implements RecordMessageCopy {
 
     get display():string{
         // Return string for displaying copy (that will never be blank)
-        return this.contact_name.trim() || "[Nameless]"
+        return this.contact_name.trim() || this.contact_address.trim() || "[Nameless]"
     }
 
-    get sent():boolean{
-        // Whether the copy can be considered "sent" to the contact or not
-        // If have an email address, it's true/false depending on whether invite sent
-        // If no email address, it's null/false depending on whether uploaded yet
-        // TODO Account for uploaded_latest value
-        return this.contact_address ? this.invited : (this.uploaded ? null : false)
+    get status():'pending'|'manual'|'error'|'success'|'expired'{
+        // Return a status code for the sending of the copy
+        if (this.expired)
+            return 'expired'
+        if (this.invited === false)
+            return 'error'
+        if (this.invited === true)
+            return 'success'
+        if (this.uploaded && !this.contact_address)
+            return 'manual'
+        return 'pending'
     }
 }
 
