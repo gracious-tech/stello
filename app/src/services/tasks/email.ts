@@ -23,14 +23,10 @@ interface MicrosoftBatchResponse {
 export async function handle_email_submitted(email_id:string, accepted:boolean):Promise<void>{
     // Handle email submitted events by setting `invited` property on copy
     const copy = await self._db.copies.get(email_id)
-    if (accepted){
-        copy.invited = true
-        // NOTE A little hacky, but currently emitting email sent events via watching a store prop
-        self._store.state.tmp.invited = copy
-        self._db.copies.set(copy)
-    } else {
-        // TODO Add record property and UI for tracking rejected addresses
-    }
+    copy.invited = accepted
+    self._db.copies.set(copy)
+    // NOTE A little hacky, but currently emitting email sent events via watching a store prop
+    self._store.state.tmp.invited = copy
 }
 
 

@@ -212,7 +212,7 @@ export class Database {
                 resp_token: resp_token,
                 uploaded: false,
                 uploaded_latest: false,
-                invited: false,
+                invited: null,  // false only if error sending invite
                 expired: false,
                 contact_id: contact.id,
                 contact_name: contact.name,

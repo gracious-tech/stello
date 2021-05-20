@@ -216,7 +216,7 @@ export interface RecordMessageCopy {
     resp_token:string  // A secret passed back in responses to confirm authenticity
     uploaded:boolean
     uploaded_latest:boolean
-    invited:boolean
+    invited:boolean|null  // Null if haven't attempted yet, false if error sending
     expired:boolean  // True if server copy definitely gone, false if unknown
     contact_id:string
     // Preserve contact details in case contact object later deleted
