@@ -38,6 +38,7 @@ export default {
     icon_groups:            require('@/assets/icon_groups.svg').default,
     icon_section_merge:     require('@/assets/icon_section_merge.svg').default,
     icon_section_separate:  require('@/assets/icon_section_separate.svg').default,
+    icon_mark_chat_read:    require('@/assets/icon_mark_chat_read.svg').default,
 
     // Material icons
     icon_reply:             require('md-icon-svgs/reply.svg').default,
