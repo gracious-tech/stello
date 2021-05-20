@@ -151,6 +151,11 @@ export class Sender {
     async _publish_copy(copy:MessageCopy, pub_copy_base:PublishedCopyBase):Promise<void>{
         // Encrypt and upload the copy
 
+        // Do not publish if already retracted
+        if (copy.expired){
+            return
+        }
+
         // Check if latest already uploaded
         if (copy.uploaded_latest){
             return
