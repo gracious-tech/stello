@@ -6,7 +6,8 @@ Which makes them ideal for handling via tasks only
 
 */
 
-import * as appauth from '@openid/appauth'
+// NOTE Using appauth src as custom fork changes TS files but not the built js
+import * as appauth from '@openid/appauth/src'
 import {AuthorizationServiceConfiguration} from '@openid/appauth'
 
 import DialogOAuthExisting from '@/components/dialogs/specific/DialogOAuthExisting.vue'

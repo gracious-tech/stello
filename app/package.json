@@ -10,7 +10,7 @@
         "test:unit": "vue-cli-service test:unit"
     },
     "dependencies": {
-        "@openid/appauth": "^1.3.0",
+        "@openid/appauth": "git+https://github.com/shadow-light/AppAuth-JS.git#custom",
         "@zip.js/zip.js": "^2.2.23",
         "aws-sdk": "^2.830.0",
         "date-fns": "^2.19.0",
