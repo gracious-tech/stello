@@ -27,7 +27,6 @@ div.root
 
 <script lang='ts'>
 
-import {formatDistanceToNow} from 'date-fns'
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
 import SharedSvgAnimated from '@/shared/SharedSvgAnimated.vue'
@@ -35,6 +34,7 @@ import {Reply} from '@/services/database/replies'
 import {Reaction} from '@/services/database/reactions'
 import {mailto} from '@/services/utils/misc'
 import {escape_for_html} from '@/services/utils/strings'
+import {format_date_exact, format_date_relative} from '@/services/misc'
 
 
 @Component({
@@ -78,12 +78,12 @@ export default class extends Vue {
 
     get sent_informal(){
         // A string representing the sent date, worded as "... ago"
-        return formatDistanceToNow(this.replaction.sent, {addSuffix: true})
+        return format_date_relative(this.replaction.sent)
     }
 
     get sent_formal(){
         // A string representing the sent date, worded as the exact date/time
-        return this.replaction.sent.toLocaleString()
+        return format_date_exact(this.replaction.sent)
     }
 
     to_contact(){

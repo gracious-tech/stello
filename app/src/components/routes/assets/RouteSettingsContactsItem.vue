@@ -20,6 +20,7 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 import DialogGenericConfirm from '@/components/dialogs/generic/DialogGenericConfirm.vue'
 import {OAuth} from '@/services/database/oauths'
 import {oauth_revoke_if_obsolete} from '@/services/tasks/oauth'
+import {format_date_relative} from '@/services/misc'
 
 
 @Component({})
@@ -28,7 +29,11 @@ export default class extends Vue {
     @Prop() oauth:OAuth
 
     get last_synced():string{
-        return this.oauth.contacts_sync_last?.toLocaleString() || "None yet"
+        // Return string specifying when last sync happened
+        if (this.oauth.contacts_sync_last){
+            return format_date_relative(this.oauth.contacts_sync_last)
+        }
+        return "None yet"
     }
 
     async remove(){

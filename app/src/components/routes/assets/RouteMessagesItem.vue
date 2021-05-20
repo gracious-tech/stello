@@ -5,10 +5,10 @@ v-list-item(:to='to')
     v-list-item-content
         v-list-item-title {{ msg.display }}
         v-list-item-subtitle {{ recipients }}
-    v-list-item-content
-        v-list-item-subtitle(class='text-right') {{ msg.published.toLocaleString() }}
-        div(v-if='expires' class='text-right')
-            v-chip(small) {{ expires }}
+    div.right
+        div(:title='published_exact' class='text--secondary text-right')
+            | {{ published_relative }}
+        div.expires(v-if='expires' class='mt-1') {{ expires }}
     v-list-item-action
         app-menu-more
             app-list-item(@click='copy') Copy to new draft
@@ -26,6 +26,7 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 import DialogGenericConfirm from '@/components/dialogs/generic/DialogGenericConfirm.vue'
 import {Draft} from '@/services/database/drafts'
 import {Message} from '@/services/database/messages'
+import {format_date_exact, format_date_relative} from '@/services/misc'
 
 
 @Component({})
@@ -36,6 +37,16 @@ export default class extends Vue {
 
     get to(){
         return {name: 'message', params: {msg_id: this.msg.id}}
+    }
+
+    get published_relative(){
+        // Get human fiendly published date string relative to now
+        return format_date_relative(this.msg.published)
+    }
+
+    get published_exact(){
+        // Get human fiendly exact published date string
+        return format_date_exact(this.msg.published)
     }
 
     get retract_label():string{
@@ -121,6 +132,14 @@ export default class extends Vue {
 
     &:hover ::v-deep .menu-more-btn
         visibility: visible
+
+    .right
+        font-size: 12px
+
+        .expires
+            background-color: rgba(#888888, 0.5)
+            border-radius: 12px
+            padding: 4px 8px
 
 
 </style>
