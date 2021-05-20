@@ -9,32 +9,36 @@ div
     app-content(v-if='!message' class='text-center pt-10')
         h1(class='text--secondary text-h6') Message does not exist
 
-    app-content(v-else class='pa-5 pt-8')
+    template(v-else)
 
-        p #[strong Sent:] {{ published }}
-        p #[strong Expires:] {{ expires }}
-        p #[strong Read by:] {{ num_copies_read }} of {{ copies.length }} recipients
+        div.meta(class='app-bg-primary-relative')
+            div.inner(class='pa-3')
 
-        v-alert(v-if='num_failures' color='primary')
-            p Your message may not have been sent to everyone if your email service limits how often you can send emails. You can try to click "FINISH SENDING" and with each attempt see if more messages have been sent. In some cases you may need to wait 24 hours before your email service allows more messages to be sent. Stello will not send duplicate emails to those who have already received them, so there is no harm in repeated attempts.
+                div(class='d-flex justify-space-around mb-3')
+                    div(:title='published_exact') #[strong Sent:] {{ published_relative }}
+                    div(:title='expires_exact') #[strong Expires:] {{ expires_relative }}
 
-        p(v-if='num_failures' class='error--text')
-            | {{ num_failures }} messages were not sent
-            app-btn(@click='send_all' small) Finish sending
+                div(class='text-center')
+                    strong {{ num_copies_read }} of {{ copies.length }} opened
 
-        v-data-table(:items='copies_ui' :headers='copies_ui_headers')
+                div(v-if='send_in_progress' class='text-center accent--text mt-3')
+                    | Sending
+                    v-progress-circular(indeterminate color='accent' class='ml-3')
 
-            template(v-slot:item.contact_link='{item}')
-                router-link(:to='item.to') {{ item.display }}
+                div(v-else-if='!automated_sending_done' class='text-center mt-3')
+                    span(class='error--text') Some messages could not be sent
+                    app-btn(@click='show_help_dialog' small) Why?
+                    | |
+                    app-btn(@click='send_all' small) Finish sending
 
-            template(v-slot:item.sent='{item}')
-                app-svg(:name='`icon_${item.sent_icon}`' :class='item.sent_class')
+                div(v-else-if='!manual_sending_done' class='text-center mt-3 error--text')
+                    | Some contacts have no address and must be sent to manually
 
-            template(v-slot:item.actions='{item}')
-                app-menu-more
-                    app-list-item(@click='item.copy_invite') Copy notification
-                    app-list-item(@click='item.retract' :disabled='item.expired' color='error')
-                        | Retract
+        app-content-list(:items='copies_sorted' height='56')
+            template(#default='{item, height_styles}')
+                RouteMessageCopy(:key='item.id' :copy='item' :reads='reads_by_copy[item.id]'
+                    :profile='profile' :style='height_styles')
+
 
 </template>
 
@@ -43,103 +47,115 @@ div
 
 import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
+import RouteMessageCopy from './assets/RouteMessageCopy.vue'
+import DialogGenericConfirm from '../dialogs/generic/DialogGenericConfirm.vue'
 import {sort} from '@/services/utils/arrays'
 import {Message} from '@/services/database/messages'
 import {MessageCopy} from '@/services/database/copies'
-import {get_text_invite_for_copy} from '@/services/misc/invites'
 import {Read} from '@/services/database/reads'
 import {Profile} from '@/services/database/profiles'
 import {Task} from '@/services/tasks/tasks'
+import {time_between} from '@/services/misc'
 
 
-@Component({})
+@Component({
+    components: {RouteMessageCopy},
+})
 export default class extends Vue {
 
-    @Prop() msg_id:string
+    @Prop({type: String, required: true}) msg_id:string
 
     message:Message = null
     copies:MessageCopy[] = []
     reads:Read[] = []
     profile:Profile = null
 
-    copies_ui_headers = [
-        {value: 'contact_link', text: "Recipient"},
-        {value: 'sent', text: "Sent"},
-        {value: 'reads', text: "Reads"},
-        {value: 'actions', text: ""},
-    ]
-
     async created(){
         // Get message and copies from db
         this.message = await self._db.messages.get(this.msg_id)
+        if (!this.message){
+            return
+        }
         const copies = await self._db.copies.list_for_msg(this.msg_id)
         sort(copies, 'display')
         this.copies = copies
 
         // Access to profile is required to retract messages
-        this.profile = this.message && await self._db.profiles.get(this.message.draft.profile)
+        this.profile = await self._db.profiles.get(this.message.draft.profile)
 
         // Do initial load of reads
         this.load_reads()
     }
 
-    get published(){
-        // Get human fiendly published date string
+    // COMPUTED
+
+    get published_relative(){
+        // Get human fiendly published date string relative to now
+        return time_between(this.message.published)
+    }
+
+    get published_exact(){
+        // Get human fiendly exact published date string
         return this.message.published.toLocaleString()
     }
 
-    get expires():string{
-        // Human friendly string for indicating expiry
+    get expires_relative():string{
+        // The time until message expires
         if (this.message.probably_expired){
             return "already expired"
         }
-        return this.message.expires ? this.message.expires.toLocaleDateString() : "never"
+        return this.message.expires ? time_between(this.message.expires) : "never"
     }
 
-    get copies_ui(){
-        // Get UI view of copies for use in table
-        return this.copies.map(copy => {
-            return {
-                display: copy.display,
-                to: {name: 'contact', params: {contact_id: copy.contact_id}},
-                copy_invite: async () => {
-                    const text = await get_text_invite_for_copy(copy)
-                    self.navigator.clipboard.writeText(text)
-                    this.$store.dispatch('show_snackbar', "Invite copied")
-                },
-                expired: copy.expired,
-                retract: async () => {
-                    if (!this.profile){
-                        this.$store.dispatch('show_snackbar',
-                            "Cannot retract message as no longer have access to the sending account")
-                        return
-                    }
-                    await this.profile.new_host_user().delete_file(`copies/${copy.id}`)
-                    // TODO Get fresh copy of object from db as may have changed due to async task
-                    copy.expired = true
-                    self._db.copies.set(copy)
-                },
-                sent_icon: copy.sent === null ? 'help' : (copy.sent ? 'check_circle' : 'cancel'),
-                sent_class: copy.sent === null ? '' : (copy.sent ? 'accent--text' : 'error--text'),
-                reads: this.reads.filter(r => r.copy_id === copy.id).length,
-            }
-        })
+    get expires_exact():string{
+        // The exact date of expiry
+        // NOTE Not specifying the time since expiration isn't exact
+        return this.message.expires && this.message.expires.toLocaleDateString()
     }
 
-    get all_sent(){
-        // Whether all copies have been sent (to the extent that can be automated)
-        return this.copies.every(copy => copy.sent !== false)
+    get reads_by_copy():Record<string, Read[]>{
+        // Reads mapped to copy ids
+        const map = {}
+        for (const copy of this.copies){
+            Vue.set(map, copy.id, [])
+        }
+        for (const read of this.reads){
+            map[read.copy_id].push(read)
+        }
+        return map
     }
 
     get num_copies_read(){
         // Return how many copies have at least one read recorded
-        return new Set(this.reads.map(read => read.copy_id)).size
+        return Object.values(this.reads_by_copy).filter(reads => reads.length).length
     }
 
-    get num_failures(){
-        // Return how many copies failed to be uploaded and/or emailed
-        return this.copies.filter(copy => copy.sent === false).length
+    get automated_sending_done(){
+        // Whether only manual sending remains (if any)
+        return !this.copies.some(c => c.status === 'pending' || c.status === 'error')
     }
+
+    get manual_sending_done(){
+        // True if there are no messages left that require manual sending
+        return !this.copies.some(c => c.status === 'manual')
+    }
+
+    get send_in_progress():boolean{
+        // Whether message is currently being sent
+        return !!this.$tm.data.tasks.find(
+            t => t.name === 'send_message' && t.params[0] === this.msg_id)
+    }
+
+    get copies_sorted(){
+        // A sorted view of the copies that reacts to status changes
+        // NOTE Still keeps original sorting by name as secondary sort
+        const status_order = ['error', 'manual', 'pending', 'success', 'expired']
+        const sorted = [...this.copies]
+        sorted.sort((a, b) => status_order.indexOf(a.status) - status_order.indexOf(b.status))
+        return sorted
+    }
+
+    // METHODS
 
     async load_reads(){
         // Load reads data
@@ -151,10 +167,40 @@ export default class extends Vue {
         this.$tm.start_send_message(this.msg_id)
     }
 
+    show_help_dialog():void{
+        // Show dialog with troubleshooting info on sending failures
+        this.$store.dispatch('show_dialog', {
+            component: DialogGenericConfirm,
+            props: {
+                title: "Why some messages don't send",
+                text: `
+                    If some of your messages have sent but others haven't,
+                    this is usually due to the limits of your email account.
+                    Free accounts (such as Gmail and Outlook) are especially limited to only a few
+                    hundred emails per day, and aren't allowed to send messages rapidly.
+                    You may find waiting and trying again after an hour (or worst case a day)
+                    resolves the issue. If not, let us know.
+                `,
+                cancel: "Close",
+                confirm: null,
+            },
+        })
+    }
+
+    // WATCHES
+
     @Watch('$tm.data.finished') watch_tm_finished(task:Task){
         // Listen to task completions and adjust state as needed
         if (task.name === 'responses_receive'){
             this.load_reads()
+        }
+    }
+
+    @Watch('$store.state.tmp.uploaded') watch_uploaded(updated_copy:MessageCopy){
+        // Watch uploaded and update own state if relevant
+        const match = this.copies.find(copy => copy.id === updated_copy.id)
+        if (match){
+            match.uploaded = updated_copy.uploaded
         }
     }
 
@@ -172,19 +218,10 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
-
-::v-deep .v-data-table
-    margin: 48px 0
-
-    td:last-child
-        text-align: right !important
-
-        .v-btn
-            visibility: hidden
-
-    td:last-child:hover
-        .v-btn
-            visibility: visible
-
+.meta
+    .inner
+        max-width: $header-width
+        margin-left: auto
+        margin-right: auto
 
 </style>
