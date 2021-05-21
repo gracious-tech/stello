@@ -246,13 +246,17 @@ function smtp_transport(settings){
         secure: !settings.starttls,
         requireTLS: true,  // Must use either TLS or STARTTLS (cannot be insecure)
         // Don't wait too long as may be testing invalid settings (defaults are in minutes!)
-        connectionTimeout: 5 * 1000,  // ms
-        greetingTimeout: 5 * 1000,  // ms
-        socketTimeout: 5 * 1000,  // ms
+        connectionTimeout: 5 * 1000,  // If can't connect in 5 secs then must be wrong name/port
+        greetingTimeout: 5 * 1000,  // Greeting should come quickly so allow 5 secs
+        // Some servers are slow to reply to auth for security (like smtp.bigpond.com's 10 secs)
+        socketTimeout: 30 * 1000,  // Allow 30 secs for responses
         // Reuse same connection for multiple messages
         pool: true,
         maxMessages: Infinity,  // No reason to start new connection after x messages
         maxConnections: 10,  // Choose largest servers will allow (but if only ~100 msgs, 5-10 fine)
+        // Log during dev
+        logger: !app.isPackaged,
+        debug: !app.isPackaged,
     }
 
     // Send to localhost during development
@@ -336,6 +340,7 @@ ipcMain.handle('test_email_settings', async (event, settings, auth=true) => {
     try {
         await transport.verify()
     } catch (error){
+        console.error(error)
         result = normalize_nodemailer_error(error)
         // If not testing auth, don't consider auth errors as failure
         if (!auth && result.code === 'auth'){
