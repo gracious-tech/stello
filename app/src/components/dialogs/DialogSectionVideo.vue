@@ -6,17 +6,19 @@ v-card
     v-card-title Video Settings
 
     v-card-text
-        p(class='mt-4')
-            app-text(@input='process_url' :rules='[validate_url]'
+        div(class='mt-4')
+            app-text(@input='process_url' :rules='[validate_url]' label="Video URL"
                 placeholder="Youtube/Vimeo URL...")
 
         shared-video(:format='content.format' :id='content.id'
             :start='content.start' :end='content.end')
 
-        p.range(class='mt-4')
+        app-textarea(v-model='caption' label="Caption" :rows='1' dense class='mt-8')
+
+        div.range
             app-text(:value='static_start' @input='start_changed' :rules='[validate_time]'
                 :disabled='!content.format' label="Start" placeholder="hh:mm:ss")
-            app-text(:value='static_end' @input='end_changed' :rules='[validate_time]'
+            app-text(:value='can_end_early ? static_end : ""' @input='end_changed' :rules='[validate_time]'
                 :disabled='!content.format || !can_end_early' label="End" placeholder="hh:mm:ss")
 
     v-card-actions
@@ -32,7 +34,7 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 import {Section} from '@/services/database/sections'
 import {ContentVideo} from '@/services/database/types'
 import SharedVideo from '@/shared/SharedVideo.vue'
-import {debounce_method} from '@/services/misc'
+import {debounce_method, debounce_set} from '@/services/misc'
 
 
 function secs_to_hms(secs:number):string{
@@ -104,6 +106,16 @@ export default class extends Vue {
     get can_end_early(){
         // Whether player can be configured to end the video earlier than its full duration
         return this.content.format === 'iframe_youtube'
+    }
+
+    get caption(){
+        // Return caption for this video
+        return this.content.caption
+    }
+    @debounce_set() set caption(value){
+        // Change the caption of this video
+        this.content.caption = value
+        self._db.sections.set(this.section)
     }
 
     parse_url(input:string):{format:'iframe_youtube'|'iframe_vimeo', id:string}{

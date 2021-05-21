@@ -142,6 +142,7 @@ export class Database {
                 type,
                 format: null,
                 id: null,
+                caption: '',
                 start: null,
                 end: null,
             }
@@ -476,6 +477,7 @@ export class Database {
             type: 'video',
             format: 'iframe_youtube',
             id: '_fMSjImgJcI',
+            caption: "This is a caption for the video",
             start: null,
             end: null,
         })
@@ -485,6 +487,7 @@ export class Database {
             type: 'video',
             format: 'iframe_vimeo',
             id: '168213438',
+            caption: '',
             start: null,
             end: null,
         })

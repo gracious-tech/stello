@@ -1,13 +1,16 @@
 
 <template lang='pug'>
 
-div.aspect
-    //- NOTE allow-forms required for entering a Vimeo password
-    iframe(v-if='format' :src='src' allowfullscreen
-        sandbox='allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms'
-        allow='fullscreen; encrypted-media; gyroscope; accelerometer; clipboard-write; picture-in-picture')
-    svg(v-else @click='$emit("modify")' width='32' height='18' viewBox='0 0 32 18')
-        path(d='M 22,4.5 H 10 c -1.1,0 -2,0.9 -2,2 v 5 c 0,1.1 0.9,2 2,2 h 12 c 1.1,0 2,-0.9 2,-2 v -5 c 0,-1.1 -0.9,-2 -2,-2 z m -7.5,7 v -5 l 4,2.5 z')
+div
+    div.aspect
+        //- NOTE allow-forms required for entering a Vimeo password
+        iframe(v-if='format' :src='src' allowfullscreen
+            sandbox='allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms'
+            allow='fullscreen; encrypted-media; gyroscope; accelerometer; clipboard-write; picture-in-picture')
+        svg(v-else @click='$emit("modify")' width='32' height='18' viewBox='0 0 32 18')
+            path(d='M 22,4.5 H 10 c -1.1,0 -2,0.9 -2,2 v 5 c 0,1.1 0.9,2 2,2 h 12 c 1.1,0 2,-0.9 2,-2 v -5 c 0,-1.1 -0.9,-2 -2,-2 z m -7.5,7 v -5 l 4,2.5 z')
+
+    div.cap(v-if='caption') {{ caption }}
 
 </template>
 
@@ -21,6 +24,9 @@ export default {
             type: String,
         },
         id: {
+            type: String,
+        },
+        caption: {
             type: String,
         },
         start: {
@@ -100,6 +106,13 @@ svg
 
     path
         fill: #55555533
+
+.cap  // Avoid Vuetify's caption class
+    text-align: center
+    opacity: 0.6
+    font-size: 0.75em
+    line-height: 1.2  // Minimize distance from wrapped text
+    padding-top: 10px
 
 
 </style>

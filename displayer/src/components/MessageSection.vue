@@ -6,7 +6,7 @@ section(:class='classes')
         div(v-if='content.type === "text"' v-html='content.html')
         Slideshow(v-if='content.type === "images"' :content='content' @displayed='on_displayed_change')
         SharedVideo(v-if='content.type === "video"' :format='content.format' :id='content.id'
-            :start='content.start' :end='content.end')
+            :caption='content.caption' :start='content.start' :end='content.end')
     Respond(:section='section' :subsection='subsection')
 
 </template>

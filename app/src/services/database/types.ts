@@ -179,6 +179,7 @@ export interface ContentVideo {
     type:'video'
     format:'iframe_youtube'|'iframe_vimeo'
     id:string
+    caption:string
     start:number
     end:number
 }

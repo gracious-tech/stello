@@ -11,7 +11,7 @@ type VersionChangeTransaction = IDBPTransaction<
 >
 
 
-export const DATABASE_VERSION = 6
+export const DATABASE_VERSION = 7
 
 
 export function migrate(transaction:VersionChangeTransaction, old_version:number){
@@ -32,6 +32,8 @@ export function migrate(transaction:VersionChangeTransaction, old_version:number
             to5(transaction)
         case 5:
             to6(transaction)
+        case 6:
+            to7(transaction)
     }
 }
 
@@ -203,5 +205,17 @@ async function to6(transaction:VersionChangeTransaction):Promise<void>{
         cursor.value.options.reaction_options =
             ['like', 'love', 'yay', 'pray', 'laugh', 'wow', 'sad'],
         cursor.update(cursor.value)
+    }
+}
+
+
+async function to7(transaction:VersionChangeTransaction):Promise<void>{
+
+    // New caption property for videos
+    for await (const cursor of transaction.objectStore('sections')){
+        if (cursor.value.content.type === 'video'){
+            cursor.value.content.caption = ''
+            cursor.update(cursor.value)
+        }
     }
 }

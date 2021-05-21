@@ -17,7 +17,7 @@ section(@click.self='focus_editor' :class='classes')
             :crop='content.crop' editing @img_click='modify')
 
         shared-video(v-if='type === "video"' @modify='modify' :format='content.format'
-            :id='content.id' :start='content.start' :end='content.end')
+            :id='content.id' :caption='content.caption' :start='content.start' :end='content.end')
 
     draft-section-respond(:profile='profile' :section='section')
 
