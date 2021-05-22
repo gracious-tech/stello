@@ -13,6 +13,14 @@ v-card
         shared-video(:format='content.format' :id='content.id'
             :start='content.start' :end='content.end')
 
+        div(class='text-center mt-1')
+            p(v-if='show_help')
+                | If you have the correct URL but the video will not play,
+                | the video may be banned from playing outside of the video service's website
+                | because (1) the author forbids it, or (2)
+                | a song or segment of the video is copyrighted (even if you own the video).
+            app-btn(v-else @click='show_help = true' small) Not playing?
+
         app-textarea(v-model='caption' label="Caption" :rows='1' dense class='mt-8')
 
         div.range
@@ -31,9 +39,9 @@ v-card
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
+import SharedVideo from '@/shared/SharedVideo.vue'
 import {Section} from '@/services/database/sections'
 import {ContentVideo} from '@/services/database/types'
-import SharedVideo from '@/shared/SharedVideo.vue'
 import {debounce_method, debounce_set} from '@/services/misc'
 
 
@@ -89,6 +97,7 @@ export default class extends Vue {
 
     @Prop() section:Section<ContentVideo>
 
+    show_help = false
     static_start:string = null
     static_end:string = null
 
