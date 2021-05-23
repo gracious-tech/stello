@@ -4,6 +4,7 @@
 SharedSvgAnimated(
     :url='`displayer/reactions/${reaction}.${reaction === "pray" ? "svg" : "json"}`'
     :class='{chosen}'
+    :playing='playing'
 )
 
 </template>
@@ -26,6 +27,10 @@ export default {
         chosen: {
             type: Boolean,
             default: false,
+        },
+        playing: {
+            type: Boolean,
+            default: true,
         },
     },
 }

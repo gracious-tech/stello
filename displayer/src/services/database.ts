@@ -1,5 +1,6 @@
 
 import {openDB, IDBPDatabase, DBSchema} from 'idb'
+import {generate_token} from './utils/crypt'
 
 
 interface DisplayerDatabaseSchema extends DBSchema {
@@ -29,6 +30,19 @@ interface DisplayerDatabaseSchema extends DBSchema {
         },
     },
 
+    replies:{
+        key:string,
+        value:{
+            id:string,  // Unique per reply
+            message:string,
+            section:string,
+            subsection:string,  // Must use '' for null as need to index
+            sent:Date,
+        },
+        indexes: {
+            by_subsect:[string, string],
+        },
+    },
 }
 
 
@@ -60,6 +74,8 @@ class DisplayerDatabase {
                         db.createObjectStore('messages', {keyPath: 'id'})
                     case 1:
                         db.createObjectStore('reactions', {keyPath: 'id'})
+                        const replies = db.createObjectStore('replies', {keyPath: 'id'})
+                        replies.createIndex('by_subsect', ['section', 'subsection'])
                 }
             },
         }).catch(error => {
@@ -121,6 +137,26 @@ class DisplayerDatabase {
     async reaction_remove(subsect:string):Promise<void>{
         // Remove a reaction
         await this._conn.delete('reactions', subsect)
+    }
+
+    async reply_list(section:string, subsection:string|null):Promise<Date[]>{
+        // Get dates of replies for subsect
+        const result = await this._conn.getAllFromIndex('replies', 'by_subsect',
+            [section, subsection ?? ''])
+        const dates = result.map(item => item.sent)
+        dates.sort((a, b) => a.getTime() - b.getTime())
+        return dates
+    }
+
+    async reply_add(message:string, section:string, subsection:string|null):Promise<void>{
+        // Add a record of a reply
+        await this._conn.put('replies', {
+            id: generate_token(),
+            message,
+            section,
+            subsection: subsection ?? '',  // Must not store null as need to index
+            sent: new Date(),
+        })
     }
 }
 

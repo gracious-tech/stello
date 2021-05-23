@@ -11,6 +11,12 @@ div.root(v-html='html' :class='{playing}')
 const cache:Record<string, string> = {}
 
 
+export function generate_unique_id():string{
+    // Generates 3 bytes worth of random integers and concats them to form a random id
+    return crypto.getRandomValues(new Uint8Array(3)).join('')
+}
+
+
 export default {
 
     props: {
@@ -39,7 +45,12 @@ export default {
                     // Cache the contents so don't make same request multiple times
                     cache[url] = await (await fetch(url)).text()
                 }
-                this.html = cache[url]
+
+                // Replace ids with a random prefix for every use to avoid `id` clashes in DOM
+                // WARN id clashes have actual affect on display of SVGs, especially gradients
+                // NOTE SVG sources are expected to prefix all ids with generic `IDPREFIX` code
+                // WARN ids must begin with a letter or are invalid
+                this.html = cache[url].replaceAll('IDPREFIX', 'ID' + generate_unique_id())
             },
         },
     },
