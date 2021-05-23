@@ -82,7 +82,7 @@ export function respond_reply(resp_token:string, text:string, section_id:string|
 }
 
 
-export function respond_reaction(resp_token:string, reaction:string, section_id:string,
+export function respond_reaction(resp_token:string, reaction:string|null, section_id:string,
         subsection_id:string|null):Promise<boolean>{
     // Send reaction response
     const data:any = {

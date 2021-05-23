@@ -98,36 +98,47 @@
     .respondbar
         display: flex
         justify-content: space-around
-        opacity: 0.5
         margin: 12px 0
 
         &:hover
-            opacity: 1
+            button
+                opacity: 0.5
 
         button
             display: inline-flex
             align-items: center
             background-color: transparent
             border-style: none
-            padding: 6px 12px
+            padding: 0 12px
             border-radius: 6px
-            opacity: 0.5
             font-family: Roboto, Arial, sans-serif
             font-size: 14px
             font-weight: bold
+            opacity: 0.25
+
+            &.responded
+                opacity: 1 !important
 
             &:hover:not([disabled])
+                opacity: 0.75
                 cursor: pointer
-                opacity: 0.8
                 @include stello_themed_contained(background-color, #0002, #fff2)
 
             svg
-                width: 24px
-                height: 24px
+                min-width: 36px
+                min-width: 36px
+                max-width: 36px
+                max-width: 36px
                 margin-right: 12px
 
-                path
+                &.borderless
                     fill: currentColor
+                    min-width: 24px
+                    min-height: 24px
+                    max-width: 24px
+                    max-height: 24px
+                    padding: 6px 0
+
 
     // Standout
 

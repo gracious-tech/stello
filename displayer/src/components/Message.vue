@@ -48,6 +48,7 @@ setup(props, context){
     const resp_token = ref<string>()
 
     // Provides
+    provide('msg_id', props.msg_access.id)
     provide('resp_token', resp_token)
     provide('get_asset', get_asset)
 

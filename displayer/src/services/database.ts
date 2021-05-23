@@ -17,6 +17,18 @@ interface DisplayerDatabaseSchema extends DBSchema {
         value:MessageRecord,
     },
 
+    reactions:{
+        key:string,
+        value:{
+            id:string,  // Either subsection, or section if no subsection
+            message:string,
+            section:string,
+            subsection:string|null,
+            content:string,
+            sent:Date,
+        },
+    },
+
 }
 
 
@@ -28,6 +40,9 @@ export interface MessageRecord {
 }
 
 
+const DATABASE_VERSION = 2
+
+
 class DisplayerDatabase {
 
     _conn!: IDBPDatabase<DisplayerDatabaseSchema>
@@ -35,11 +50,17 @@ class DisplayerDatabase {
     async connect():Promise<void>{
         // Init connection to the database
         const db_name = 'stello'  // Change to start fresh after significant refactor
-        this._conn = await openDB<DisplayerDatabaseSchema>(db_name, 1, {
+        this._conn = await openDB<DisplayerDatabaseSchema>(db_name, DATABASE_VERSION, {
             upgrade(db, old_version, new_version, transaction){
-                // NOTE If no keyPath is given then must provide a key for every transaction
-                db.createObjectStore('dict', {keyPath: 'key'})
-                db.createObjectStore('messages', {keyPath: 'id'})
+                switch (old_version){
+                    default:
+                        throw new Error("Database version unknown (should never happen)")
+                    case 0:  // Version number when db doesn't exist
+                        db.createObjectStore('dict', {keyPath: 'key'})
+                        db.createObjectStore('messages', {keyPath: 'id'})
+                    case 1:
+                        db.createObjectStore('reactions', {keyPath: 'id'})
+                }
             },
         }).catch(error => {
             // Firefox doesn't support indexeddb in some cases, so return dummy connection instead
@@ -76,6 +97,30 @@ class DisplayerDatabase {
     async message_set(message:MessageRecord):Promise<void>{
         // Save a message
         await this._conn.put('messages', message)
+    }
+
+    async reaction_get(subsect:string):Promise<string|null>{
+        // Get reaction by its section/subsection id (uuid so no need to specify which message)
+        const result = await this._conn.get('reactions', subsect)
+        return result ? result.content : null
+    }
+
+    async reaction_set(message:string, section:string, subsection:string|null, content:string,
+            ):Promise<void>{
+        // Save a reaction
+        await this._conn.put('reactions', {
+            id: subsection ?? section,
+            message,
+            section,
+            subsection,
+            content,
+            sent: new Date(),
+        })
+    }
+
+    async reaction_remove(subsect:string):Promise<void>{
+        // Remove a reaction
+        await this._conn.delete('reactions', subsect)
     }
 }
 

@@ -3,7 +3,8 @@
 
 div.respondbar
     SharedRespondReply(v-if='allow_replies' @click='init_comment')
-    SharedRespondReact(v-if='allow_reactions' @click='init_react')
+    SharedRespondReact(v-if='allow_reactions' @click='init_react' :class='{responded: chosen_reaction}')
+        ReactionSvg(v-if='chosen_reaction' :reaction='chosen_reaction')
 
 teleport(v-if='responding' to='.content')
     div.overlay(@click.self='close')
@@ -22,7 +23,7 @@ teleport(v-if='responding' to='.content')
             template(v-if='responding === "reacting"')
                 div.reactions
                     button(v-for='reaction of reaction_options' @click='react_with(reaction)')
-                        SharedSvgAnimated(:url='`displayer/reactions/${reaction}.${reaction === "pray" ? "svg" : "json"}`')
+                        ReactionSvg(:reaction='reaction' :chosen='reaction === chosen_reaction')
 
             //- Using form important for enabling submit button in virtual keyboards
             form(v-else @submit.prevent='send_comment')
@@ -42,17 +43,19 @@ teleport(v-if='responding' to='.content')
 import {ref, watch, computed, nextTick, inject, PropType, Ref} from 'vue'
 
 import Progress from './Progress.vue'
+import ReactionSvg from './ReactionSvg.vue'
 import SharedSvgAnimated from '../shared/SharedSvgAnimated.vue'
 import SharedRespondReact from '../shared/SharedRespondReact.vue'
 import SharedRespondReply from '../shared/SharedRespondReply.vue'
 import {displayer_config} from '../services/displayer_config'
 import {respond_reply, respond_reaction} from '../services/responses'
 import {PublishedSection} from '../shared/shared_types'
+import {database} from '../services/database'
 
 
 export default {
 
-    components: {Progress, SharedRespondReact, SharedRespondReply, SharedSvgAnimated},
+    components: {Progress, SharedRespondReact, SharedRespondReply, SharedSvgAnimated, ReactionSvg},
 
     props: {
         section: {
@@ -61,6 +64,7 @@ export default {
         },
         subsection: {
             type: String as PropType<string|null>,
+            default: null,  // So that typing knows it is never undefined
         },
     },
 
@@ -72,8 +76,10 @@ export default {
         const textarea = ref() as Ref<HTMLTextAreaElement>
         const waiting = ref(false)
         const success = ref<boolean|null>(null)
+        const chosen_reaction = ref<string|null>(null)
 
         // Injected
+        const msg_id:string = inject('msg_id') as string
         const resp_token:any = inject('resp_token')
 
         // Computed
@@ -83,6 +89,7 @@ export default {
         const allow_reactions = computed(
             () => props.section.respondable !== false && displayer_config.allow_reactions)
         const reaction_options = computed(() => displayer_config.reaction_options)
+        const subsect_id = computed(() => props.subsection ?? props.section.id)
 
         // Watch
         watch(text, () => {
@@ -114,12 +121,42 @@ export default {
         const init_react = () => {
             responding.value = 'reacting'
         }
-        const react_with = async (type:string) => {
+        const react_with = async (type:string|null) => {
             // Try send reaction
+
+            // Reset success/waiting state
             success.value = null
             waiting.value = true
+
+            // If setting to same value as have already, then is disabling rather than setting
+            if (type === chosen_reaction.value){
+                type = null
+            }
+
+            // Preserve old value so can return state to it if request fails
+            const old_value = chosen_reaction.value
+
+            // Update state now as user shouldn't need to bother themselves with request progress
+            chosen_reaction.value = type
+
+            // Submit request
             success.value = await respond_reaction(resp_token.value, type, props.section.id,
                 props.subsection)
+
+            // Deal with result
+            if (success.value){
+                // Request successful so can update db
+                if (type === null){
+                    database.reaction_remove(subsect_id.value)
+                } else {
+                    database.reaction_set(msg_id, props.section.id, props.subsection, type)
+                }
+            } else {
+                // Request failed so revert state to old value
+                chosen_reaction.value = old_value
+            }
+
+            // Clear waiting
             waiting.value = false
         }
         const send_comment = async () => {
@@ -142,9 +179,17 @@ export default {
             }
         }
 
+        // Keep state up-to-date with db
+        watch(subsect_id, async value => {
+            chosen_reaction.value = await database.reaction_get(value)
+        }, {immediate: true})
+
         // Expose
-        return {responding, init_comment, init_react, close, react_with, textarea, text,
-            send_comment, waiting, success, allow_replies, allow_reactions, reaction_options}
+        return {
+            responding, init_comment, init_react, close, react_with, textarea, text,
+            send_comment, waiting, success, allow_replies, allow_reactions, reaction_options,
+            chosen_reaction,
+        }
     }
 }
 
