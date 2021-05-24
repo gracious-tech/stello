@@ -151,7 +151,7 @@ form
             @include stello_themed(background-color, #0002, #fff2)
 
             &.error
-                background-color: rgba(#f00, 0.3)
+                background-color: rgba(#f00, 0.3) !important
 
     .result
         display: inline-block
