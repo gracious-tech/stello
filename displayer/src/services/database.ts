@@ -35,12 +35,12 @@ interface DisplayerDatabaseSchema extends DBSchema {
         value:{
             id:string,  // Unique per reply
             message:string,
-            section:string,
+            section:string,  // Must use '' for null as need to index
             subsection:string,  // Must use '' for null as need to index
             sent:Date,
         },
         indexes: {
-            by_subsect:[string, string],
+            by_subsect:[string, string, string],
         },
     },
 }
@@ -75,7 +75,7 @@ class DisplayerDatabase {
                     case 1:
                         db.createObjectStore('reactions', {keyPath: 'id'})
                         const replies = db.createObjectStore('replies', {keyPath: 'id'})
-                        replies.createIndex('by_subsect', ['section', 'subsection'])
+                        replies.createIndex('by_subsect', ['message', 'section', 'subsection'])
                 }
             },
         }).catch(error => {
@@ -139,21 +139,21 @@ class DisplayerDatabase {
         await this._conn.delete('reactions', subsect)
     }
 
-    async reply_list(section:string, subsection:string|null):Promise<Date[]>{
+    async reply_list(message:string, section:string|null, subsection:string|null):Promise<Date[]>{
         // Get dates of replies for subsect
         const result = await this._conn.getAllFromIndex('replies', 'by_subsect',
-            [section, subsection ?? ''])
+            [message, section ?? '', subsection ?? ''])
         const dates = result.map(item => item.sent)
         dates.sort((a, b) => a.getTime() - b.getTime())
         return dates
     }
 
-    async reply_add(message:string, section:string, subsection:string|null):Promise<void>{
+    async reply_add(message:string, section:string|null, subsection:string|null):Promise<void>{
         // Add a record of a reply
         await this._conn.put('replies', {
             id: generate_token(),
             message,
-            section,
+            section: section ?? '',  // Must not store null as need to index
             subsection: subsection ?? '',  // Must not store null as need to index
             sent: new Date(),
         })

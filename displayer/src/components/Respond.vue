@@ -137,7 +137,7 @@ export default {
 
         watch(props, async () => {
             // Get reply dates from db
-            replies.value = await database.reply_list(props.section.id, props.subsection)
+            replies.value = await database.reply_list(msg_id, props.section.id, props.subsection)
         }, {immediate: true})
 
 
