@@ -1,0 +1,12 @@
+#!/bin/bash
+
+cd `dirname "$0"`
+cd ../displayer
+
+echo
+cat public/dev/url.txt
+echo "(change to public 8080 port)"
+echo
+
+build_displayer
+./node_modules/.bin/light-server --serve dist --port 8080 --no-reload

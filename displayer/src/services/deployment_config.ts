@@ -21,8 +21,7 @@ function _decode_config():RawDeploymentConfig{
     // Decode and return embedded config data (value to be replaced during deployment)
     // NOTE Random suffix is in case 'DEPLOYMENT_CONFIG_DATA' mentioned in comments (like now!)
     let b64_json_config = 'DEPLOYMENT_CONFIG_DATA_UfWFTF5axRWX'
-    // @ts-ignore special env var
-    if (import.meta.env.MODE === 'development'){
+    if (b64_json_config.startsWith('DEPLOYMENT_CONFIG_DATA')){  // No prefix so not replaced
         b64_json_config = btoa(JSON.stringify({
             url_msgs: '/dev/',  // Will point at public dev assets that are never deployed
             url_msgs_append_subdomain: false,
