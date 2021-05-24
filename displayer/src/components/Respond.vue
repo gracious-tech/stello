@@ -19,7 +19,9 @@ div.respondbar
                 div.note Encrypted &amp; only author can see
 
     div.react_container(v-if='allow_reactions' ref='react_container')
-        SharedRespondReact(:class='{responded: chosen_reaction}')
+        //- WARN Safari doesn't give focus to buttons automatically so must do manually
+        SharedRespondReact(@click='$event => $event.target.focus()'
+                :class='{responded: chosen_reaction}')
             ReactionSvg(v-if='chosen_reaction' :reaction='chosen_reaction')
         div.position
             div.popup
@@ -84,6 +86,8 @@ export default {
             () => props.section.respondable !== false && displayer_config.allow_replies)
 
         const focus_textarea = () => {
+            // Focus textarea for quicker writing
+            // NOTE iOS won't focus until textarea displayed, so requires two clicks
             reply_textarea.value.focus()
         }
 
@@ -237,6 +241,10 @@ export default {
 
     // Always want to show when focused, whether cursor or touch
     // NOTE Hover on touch also important for keeping open when clicking bg of popup
+    // WARN iOS behaviour is painful and seemingly unsolveable
+    //      One element can be "hovered" while a different one is "focused"
+    //      Clicking reply after react requires two clicks
+    //      But don't want to remove hover as finishing writing in textarea triggers blur and hide
     &:focus, &:focus-within, &:hover
         .position
             display: flex
