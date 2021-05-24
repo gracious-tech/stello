@@ -1,7 +1,9 @@
 
 <template lang='pug'>
 
-div.srow(v-for='row of floatified_rows' :class='row.display')
+//- NOTE Gives each srow a higher z-index than the next, so respond popups can overlap below
+//- TODO If wrapping text shorter than wrapped section, popups will appear underneath
+div.srow(v-for='(row, i) of floatified_rows' :class='row.display' :style='{"z-index": 99 - i}')
     div.sections
         MessageSection(v-for='section of row.sections' :key='section.id' :section='section')
 

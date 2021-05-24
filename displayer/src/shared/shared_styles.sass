@@ -28,6 +28,7 @@
     .srow
         display: flex
         align-items: center
+        position: relative  // So can create new stacking contexts and apply z-index
 
         // Restore correct order of sections for .wrap-right when wrapping isn't active
         @media (max-width: $stello_full_plus_sidebar - 1)
