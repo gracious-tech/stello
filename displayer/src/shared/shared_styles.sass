@@ -101,6 +101,9 @@
         justify-content: space-around
         margin: 12px 0
 
+        @media print
+            display: none
+
         &:hover
             button.respond
                 opacity: 0.5
@@ -153,12 +156,13 @@
     .standout-important .inner
         @include standout-important
 
-    &.dark
-        .standout-notice .inner
-            @include standout-notice-dark
+    @media screen
+        &.dark
+            .standout-notice .inner
+                @include standout-notice-dark
 
-        .standout-important .inner
-            @include standout-important-dark
+            .standout-important .inner
+                @include standout-important-dark
 
 
     // Regular elements
@@ -205,8 +209,9 @@
         text-decoration: none
         &:hover
             text-decoration: underline
-    &.dark a
-        color: #0088ff  // Hue adjusted for better contrast ratio
+    @media screen
+        &.dark a
+            color: #0088ff  // Hue adjusted for better contrast ratio
 
     iframe, img
         // Prevent these elements from having implicit bottom padding due to being 'inline'
