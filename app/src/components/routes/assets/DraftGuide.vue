@@ -19,6 +19,9 @@ div.root(:class='{showing: show_guide}')
 
         p Add sections with the #[app-svg(name='icon_add')] menu and customise them with #[app-svg(name='icon_settings')].
 
+        h2(class='text-h6') Responses
+        p Readers can comment or react (with emoji) to each section of your message unless you disable it. You can disable all responses in settings, or individually for each section. All responses are private, so only you can see them.
+
         h2(class='text-h6') Layout
         p Sections are normally displayed one after the other. You can display two sections side-by-side with the #[app-svg(name='icon_section_merge')] button and separate them again with #[app-svg(name='icon_section_separate')], or swap them with #[app-svg(name='icon_swap_horiz')]. Normal text will wrap around whatever content it is placed next to.
         p This only happens on large screens (like computers) where as on small screens (like phones) Stello will automatically revert to a single column format.
