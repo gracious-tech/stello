@@ -81,7 +81,7 @@ export default {
         const replies = ref<Date[]>([])
         const last_sent_cache = reactive<Record<string, string>>({})
 
-        const last_sent_contents = computed(() => last_sent_cache[subsect_id.value])
+        const last_sent_contents = computed(() => last_sent_cache[props.subsection ?? 'null'])
 
         // NOTE `respondable` didn't exist v0.3.6 and below, so may be undefined in old messages
         const allow_replies = computed(
@@ -96,27 +96,31 @@ export default {
         const send_comment = async () => {
             reply_success.value = null
 
+            // Cache current values so that can't change while waiting for request
+            const section = props.section.id
+            const subsection = props.subsection
+            const text = reply_text.value.trim()
+
             // Don't send empty value
-            if (!reply_text.value.trim()){
+            if (!text){
                 return
             }
 
             // Try send comment
             reply_waiting.value = true
-            reply_success.value = await respond_reply(resp_token.value, reply_text.value,
-                props.section.id, props.subsection)
+            reply_success.value = await respond_reply(resp_token.value, text, section, subsection)
             reply_waiting.value = false
 
             // Handle success
             if (reply_success.value){
 
                 // Preserve last sent contents only in tmp state
-                last_sent_cache[subsect_id.value] = reply_text.value
+                last_sent_cache[subsection ?? 'null'] = text
                 reply_text.value = ''
 
                 // Record in db
                 replies.value.push(new Date())
-                database.reply_add(msg_id, props.section.id, props.subsection)
+                database.reply_add(msg_id, section, subsection)
 
                 // Blur focus so popup disappears (if not hovered)
                 // @ts-ignore blur is a valid method
