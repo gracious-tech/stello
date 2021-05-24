@@ -37,7 +37,7 @@ div.respondbar
 
 <script lang='ts'>
 
-import {ref, watch, computed, inject, PropType, Ref, onMounted} from 'vue'
+import {ref, watch, computed, inject, PropType, Ref, onMounted, reactive} from 'vue'
 
 import Progress from './Progress.vue'
 import ReactionSvg from './ReactionSvg.vue'
@@ -79,7 +79,9 @@ export default {
         const reply_waiting = ref(false)
         const reply_success = ref<boolean|null>(null)
         const replies = ref<Date[]>([])
-        const last_sent_contents = ref<string|null>(null)
+        const last_sent_cache = reactive<Record<string, string>>({})
+
+        const last_sent_contents = computed(() => last_sent_cache[subsect_id.value])
 
         // NOTE `respondable` didn't exist v0.3.6 and below, so may be undefined in old messages
         const allow_replies = computed(
@@ -109,7 +111,7 @@ export default {
             if (reply_success.value){
 
                 // Preserve last sent contents only in tmp state
-                last_sent_contents.value = reply_text.value
+                last_sent_cache[subsect_id.value] = reply_text.value
                 reply_text.value = ''
 
                 // Record in db
