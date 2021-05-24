@@ -15,7 +15,8 @@ div.respondbar
                         | {{ i === 0 ? '' : ', ' }}
                         span(:title='reply.toLocaleTimeString()') {{ reply.toLocaleDateString() }}
                 div.last {{ last_sent_contents }}
-                textarea(v-model='reply_text' ref='reply_textarea' placeholder="Write your comment...")
+                textarea(v-model='reply_text' ref='reply_textarea' :disabled='reply_waiting'
+                    placeholder="Write your comment...")
                 button.send(type='submit' class='btn-icon' :class='{error: reply_success === false}')
                     Progress(v-if='reply_waiting')
                     svg(v-else viewBox='0 0 24 24')
