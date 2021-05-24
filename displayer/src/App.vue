@@ -1,7 +1,9 @@
 
 <template lang='pug'>
 
-div(class='stello-displayer' :class='{dark}')
+//- NOTE tabindex makes app container focusable (-1 so only for JS use)
+//-      VERY important for iOS, otherwise clicking outside of response popup does not defocus popup
+div(class='stello-displayer' :class='{dark}' tabindex='-1')
 
     SharedDarkToggle(:value='dark' @input='toggle_dark')
 
