@@ -26,7 +26,8 @@ div.respondbar
         div.position
             div.popup
                 div.reactions
-                    button(v-for='reaction of reaction_options' @click='react_with(reaction)')
+                    //- WARN iOS blurs before click event which prevents it (mousedown before blur)
+                    button(v-for='reaction of reaction_options' @mousedown='react_with(reaction)')
                         ReactionSvg.reaction(:reaction='reaction'
                             :chosen='reaction === chosen_reaction' :playing='react_popup_visible')
                 p.note Only author can see
