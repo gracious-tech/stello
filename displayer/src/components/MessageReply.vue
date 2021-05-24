@@ -4,16 +4,20 @@
 //- Using form important for enabling submit button in virtual keyboards
 form(v-if='allow_replies' @submit.prevent='send_reply')
 
+    div.prev
+        strong Replied:&nbsp;
+        template(v-for='(reply, i) of replies')
+            | {{ i === 0 ? '' : ', ' }}
+            span(:title='reply.toLocaleTimeString()') {{ reply.toLocaleDateString() }}
+    div.last {{ last_sent_contents }}
+
     textarea(v-model='text' ref='textarea' :disabled='waiting' placeholder="Secure reply...")
 
     div.send
-        button(type='submit' class='btn-icon' :class='{success, error: success === false}')
+        button(type='submit' class='btn-icon' :class='{error: success === false}')
             Progress(v-if='waiting')
             svg(v-else viewBox='0 0 24 24')
                 path(d='M2.01 21L23 12 2.01 3 2 10l15 2-15 2z')
-
-    div.result(v-if='success !== null' :class='{success}')
-        | {{ success ? "Reply has been sent" : "Could not send reply" }}
 
 </template>
 
@@ -25,6 +29,7 @@ import {ref, watch, computed, inject, Ref} from 'vue'
 import Progress from './Progress.vue'
 import {displayer_config} from '../services/displayer_config'
 import {respond_reply} from '../services/responses'
+import {database} from '../services/database'
 
 
 export default {
@@ -38,9 +43,12 @@ export default {
         const textarea = ref() as Ref<HTMLTextAreaElement>
         const waiting = ref(false)
         const success = ref<boolean|null>(null)
+        const replies = ref<Date[]>([])
+        const last_sent_contents = ref<string|null>(null)
 
         // Injected
-        const resp_token:any = inject('resp_token')
+        const msg_id = inject('msg_id') as string
+        const resp_token = inject('resp_token') as Ref<string>
 
         // Computed
         const allow_replies = computed(() => displayer_config.allow_replies)
@@ -59,8 +67,11 @@ export default {
         const send_reply = async () => {
             // Send reply
 
+            // Cache text so can't change while waiting for request
+            const cached_text = text.value.trim()
+
             // Ignore if already waiting on a send, or nothing to send
-            if (waiting.value || !text.value.trim()){
+            if (waiting.value || !cached_text){
                 return
             }
 
@@ -69,17 +80,26 @@ export default {
 
             // Try send
             waiting.value = true
-            success.value = await respond_reply(resp_token.value, text.value, null, null)
+            success.value = await respond_reply(resp_token.value, cached_text, null, null)
             waiting.value = false
 
-            // Clear text if success
+            // Handle success
             if (success.value){
+                last_sent_contents.value = cached_text
                 text.value = ''
+                database.reply_add(msg_id, null, null)
+                replies.value.push(new Date())
             }
         }
 
+        // Fetch previous replies
+        database.reply_list(msg_id, null, null).then(dates => {
+            replies.value = dates
+        })
+
         // Expose
-        return {textarea, text, send_reply, waiting, success, allow_replies}
+        return {textarea, text, send_reply, waiting, success, allow_replies, replies,
+            last_sent_contents}
     }
 }
 
@@ -95,6 +115,18 @@ form
     display: flex
     flex-direction: column
     margin-top: 36px
+    font-family: Roboto, sans-serif
+
+    @media print
+        display: none
+
+    .prev, .last
+        font-size: 14px
+        margin-bottom: 6px
+        padding: 0 12px
+
+    .last
+        white-space: pre-wrap
 
     textarea
         @include stello_themed(background-color, #0002, #fff2)
@@ -118,13 +150,15 @@ form
         button
             @include stello_themed(background-color, #0002, #fff2)
 
+            &.error
+                background-color: rgba(#f00, 0.3)
+
     .result
         display: inline-block
         align-self: center
         padding: 4px 18px
         border-radius: 10px
         background-color: rgba(red, 0.3)
-        font-family: Roboto, Arial, sans-serif
         font-weight: bold
         font-size: 14px
 
