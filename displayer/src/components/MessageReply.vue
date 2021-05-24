@@ -4,7 +4,7 @@
 //- Using form important for enabling submit button in virtual keyboards
 form(v-if='allow_replies' @submit.prevent='send_reply')
 
-    div.prev
+    div.prev(v-if='replies.length')
         strong Replied:&nbsp;
         template(v-for='(reply, i) of replies')
             | {{ i === 0 ? '' : ', ' }}

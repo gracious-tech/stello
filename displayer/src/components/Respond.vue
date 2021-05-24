@@ -9,7 +9,7 @@ div.respondbar
         div.position
             //- Using form important for enabling submit button in virtual keyboards
             form.popup(@submit.prevent='send_comment')
-                div.prev
+                div.prev(v-if='replies.length')
                     strong Commented:&nbsp;
                     template(v-for='(reply, i) of replies')
                         | {{ i === 0 ? '' : ', ' }}
