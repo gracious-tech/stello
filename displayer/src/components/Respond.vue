@@ -99,19 +99,19 @@ export default {
         }
 
         const send_comment = async () => {
-            reply_success.value = null
 
             // Cache current values so that can't change while waiting for request
             const section = props.section.id
             const subsection = props.subsection
             const text = reply_text.value.trim()
 
-            // Don't send empty value
-            if (!text){
+            // Don't send empty value and don't continue if already waiting on request
+            if (!text || reply_waiting.value){
                 return
             }
 
             // Try send comment
+            reply_success.value = null
             reply_waiting.value = true
             reply_success.value = await respond_reply(resp_token.value, text, section, subsection)
             reply_waiting.value = false
