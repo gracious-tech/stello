@@ -41,6 +41,8 @@ export default {
     icon_mark_chat_read:    require('@/assets/icon_mark_chat_read.svg').default,
 
     // Material icons
+    icon_chat_bubble_outline: require('md-icon-svgs/chat_bubble_outline.svg').default,
+    icon_thumb_up:          require('md-icon-svgs/thumb_up.svg').default,
     icon_reply:             require('md-icon-svgs/reply.svg').default,
     icon_clear:             require('md-icon-svgs/clear.svg').default,
     icon_unfold_more:       require('md-icon-svgs/unfold_more.svg').default,
