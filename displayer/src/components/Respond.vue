@@ -9,7 +9,11 @@ div.respondbar
         div.position
             //- Using form important for enabling submit button in virtual keyboards
             form.popup(@submit.prevent='send_comment')
-                div.prev(v-for='reply of replies') {{ reply.toLocaleString() }}
+                div.prev
+                    strong Commented:&nbsp;
+                    template(v-for='(reply, i) of replies')
+                        | {{ i === 0 ? '' : ', ' }}
+                        span(:title='reply.toLocaleTimeString()') {{ reply.toLocaleDateString() }}
                 div.last {{ last_sent_contents }}
                 textarea(v-model='reply_text' ref='reply_textarea' placeholder="Write your comment...")
                 button.send(type='submit' class='btn-icon' :class='{error: reply_success === false}')
@@ -225,6 +229,7 @@ export default {
 
 
 .reply_container, .react_container
+    font-family: Roboto, sans-serif
 
     .position
         display: none
@@ -240,7 +245,6 @@ export default {
         user-select: none
         text-align: center
         font-size: 12px
-        font-family: Roboto, sans-serif
         opacity: 0.6
 
 
@@ -273,9 +277,12 @@ export default {
         max-height: 80%
 
         .prev, .last
-            font-size: 12px
+            font-size: 13px
             max-width: 100%  // Prevent long words breaking layout
-            font-family: Roboto, sans-serif
+            padding: 0 12px
+
+        .last
+            white-space: pre-wrap
 
         textarea
             @include stello_themed(background-color, #0001, #0006)
