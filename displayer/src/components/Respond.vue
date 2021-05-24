@@ -323,8 +323,9 @@ export default {
                 display: flex
                 justify-content: center
                 align-items: center
-                width: 64px
-                height: 64px
+                // Make reaction div slighter larger than reaction to pad and make room for growing
+                width: 52px
+                height: 52px
 
                 :deep(svg)
                     display: flex
@@ -332,9 +333,13 @@ export default {
                     height: 48px !important
                     transition: all 0.1s
 
-                    &:hover
+                // On devices with cursors make buttons larger and grow to fill when hovered
+                @media (hover: hover)
+                    width: 64px
+                    height: 64px
+
+                    :deep(svg:hover)
                         width: 64px !important
                         height: 64px !important
-
 
 </style>
