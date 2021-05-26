@@ -55,7 +55,7 @@ export default class extends Vue {
                 const video_id = this.section.content.id
                 const url = `https://vimeo.com/api/oembed.json?url=https://vimeo.com/${video_id}`
                 try {
-                    const oembed_resp = await (await fetch(url)).json()
+                    const oembed_resp = JSON.parse(await (await fetch(url)).text())
                     this.section_image_vimeo = oembed_resp.thumbnail_url
                 } catch {
                     self._fail_report(new Error(`Failed to get vimeo thumbnail: ${url}`))

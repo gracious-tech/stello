@@ -520,7 +520,7 @@ export async function oauth_request(oauth:OAuth, url:string, params?:Record<stri
 
     // Return just the data
     if (resp.ok){
-        return resp.json()
+        return JSON.parse(await resp.text())
     }
 
     // Handle errors

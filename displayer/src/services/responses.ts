@@ -41,7 +41,7 @@ async function respond(data:any):Promise<boolean>{
             */
             mode: import.meta.env.MODE === 'development' ? 'no-cors' : 'cors',
         })
-        return (await resp.json()).success
+        return JSON.parse(await resp.text()).success
     } catch (error){
         console.log(error)
         return false

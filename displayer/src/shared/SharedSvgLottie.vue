@@ -66,7 +66,7 @@ export default {
                     if (!resp?.ok){
                         throw new Error(`${resp?.status} ${resp?.statusText}`)
                     }
-                    lottie_cache[url] = await resp.json()
+                    lottie_cache[url] = JSON.parse(await resp.text())
                 }
 
                 // Wait for lottie module if it hasn't loaded yet

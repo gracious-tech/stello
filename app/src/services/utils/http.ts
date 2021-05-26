@@ -18,7 +18,10 @@ export async function request(input:string|Request, init?:RequestInit, forbidden
 export function request_json(input:string|Request, init?:RequestInit, forbidden404:boolean=false)
         :Promise<any>{
     // Same as `request` but auto-parse json response
-    return request(input, init, forbidden404).then(resp => resp && resp.json())
+    // NOTE Don't use `.json()` as Chrome doesn't include stack trace when it fails (hard to debug)
+    return request(input, init, forbidden404).then(async resp => {
+        return resp && JSON.parse(await resp.text())
+    })
 }
 
 
