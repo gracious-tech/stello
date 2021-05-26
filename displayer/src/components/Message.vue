@@ -7,7 +7,7 @@ div.no_msg(v-else)
     div(v-if='error')
         p {{ error }}
         button(@click='get_message') Retry
-    div(v-else) Loading...
+    Progress(v-else)
 
 </template>
 
@@ -16,6 +16,7 @@ div.no_msg(v-else)
 
 import {ref, provide, PropType} from 'vue'
 
+import Progress from './Progress.vue'
 import MessageContents from './MessageContents.vue'
 import {decrypt_sym, export_key, generate_hash} from '../services/utils/crypt'
 import {request_buffer} from '../services/utils/http'
@@ -30,7 +31,7 @@ import {respond_read} from '../services/responses'
 export default {
 
 
-components: {MessageContents},
+components: {MessageContents, Progress},
 
 props: {
     msg_access: {
