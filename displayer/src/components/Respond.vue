@@ -196,13 +196,16 @@ export default {
 
         onMounted(() => {
             // Stop animations when popup hidden to reduce CPU usage
-            // Safer than using JS to show popup as popup reliable and worst case animations paused
-            react_container.value.addEventListener('mouseenter', () => {
-                react_popup_visible.value = true
-            })
-            react_container.value.addEventListener('mouseleave', () => {
-                react_popup_visible.value = false
-            })
+            // Safer than using JS to show popup as CSS reliable and worst case animations paused
+            // NOTE If reactions disabled for a section then `react_container` won't exist
+            if (react_container.value){
+                react_container.value.addEventListener('mouseenter', () => {
+                    react_popup_visible.value = true
+                })
+                react_container.value.addEventListener('mouseleave', () => {
+                    react_popup_visible.value = false
+                })
+            }
         })
 
         watch(subsect_id, async value => {
