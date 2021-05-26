@@ -1,12 +1,12 @@
 
 <template lang='pug'>
 
-div.respondbar
+div.respondbar(@mouseenter='have_hovered = true')
 
     div.reply_container(v-if='allow_replies')
         SharedRespondReply(@click='focus_textarea' :replied='!!replies.length'
             :class='{responded: !!replies.length}')
-        div.position
+        div.position(v-if='have_hovered')
             //- Using form important for enabling submit button in virtual keyboards
             form.popup(@submit.prevent='send_comment')
                 div.prev(v-if='replies.length')
@@ -28,7 +28,7 @@ div.respondbar
         SharedRespondReact(@click='$event => $event.target.focus()'
                 :class='{responded: chosen_reaction}')
             ReactionSvg(v-if='chosen_reaction' :reaction='chosen_reaction')
-        div.position
+        div.position(v-if='have_hovered')
             div.popup
                 div.reactions
                     //- WARN iOS blurs before click event which prevents it (mousedown before blur)
@@ -75,6 +75,7 @@ export default {
         // Generic
         const msg_id:string = inject('msg_id') as string
         const resp_token:any = inject('resp_token')
+        const have_hovered = ref(false)  // Don't create popup DOM until needed
         const subsect_id = computed(() => props.subsection ?? props.section.id)
 
 
@@ -216,7 +217,7 @@ export default {
 
         // Expose
         return {
-            allow_replies, allow_reactions,
+            allow_replies, allow_reactions, have_hovered,
             focus_textarea, reply_textarea, reply_text, reply_waiting, reply_success, send_comment,
             react_with, reaction_options, chosen_reaction, react_container, react_popup_visible,
             last_sent_contents, replies,
