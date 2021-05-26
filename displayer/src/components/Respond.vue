@@ -14,14 +14,14 @@ div.respondbar(@mouseenter='have_hovered = true')
                     template(v-for='(reply, i) of replies')
                         | {{ i === 0 ? '' : ', ' }}
                         span(:title='reply.toLocaleTimeString()') {{ reply.toLocaleDateString() }}
-                div.last {{ last_sent_contents }}
-                textarea(v-model='reply_text' ref='reply_textarea' :disabled='reply_waiting'
-                    placeholder="Write your comment...")
-                button.send(type='submit' class='btn-icon' :class='{error: reply_success === false}')
-                    Progress(v-if='reply_waiting')
-                    svg(v-else viewBox='0 0 24 24')
-                        path(d='M2.01 21L23 12 2.01 3 2 10l15 2-15 2z')
-                div.note Encrypted &amp; only author can see
+                div.last(v-if='last_sent_contents') {{ last_sent_contents }}
+                div.fields
+                    textarea(v-model='reply_text' ref='reply_textarea' :disabled='reply_waiting'
+                        @keyup.ctrl.enter='send_comment' placeholder="Private & secure")
+                    button(type='submit' class='btn-icon' :class='{error: reply_success === false}')
+                        Progress(v-if='reply_waiting')
+                        svg(v-else viewBox='0 0 24 24')
+                            path(d='M2.01 21L23 12 2.01 3 2 10l15 2-15 2z')
 
     div.react_container(v-if='allow_reactions' ref='react_container')
         //- WARN Safari doesn't give focus to buttons automatically so must do manually
@@ -35,7 +35,7 @@ div.respondbar(@mouseenter='have_hovered = true')
                     button(v-for='reaction of reaction_options' @mousedown='react_with(reaction)')
                         ReactionSvg.reaction(:reaction='reaction'
                             :chosen='reaction === chosen_reaction' :playing='react_popup_visible')
-                p.note Only author can see
+                p.note Private &amp; secure
 
 
 </template>
@@ -285,9 +285,15 @@ export default {
             font-size: 13px
             max-width: 100%  // Prevent long words breaking layout
             padding: 0 12px
+            margin-bottom: 6px
 
         .last
             white-space: pre-wrap
+
+        .fields
+            width: 100%
+            display: flex
+            align-items: flex-end
 
         textarea
             @include stello_themed(background-color, #0001, #0006)
@@ -300,13 +306,12 @@ export default {
             border-radius: 12px
             min-height: 100px
             max-height: 400px
-            margin-top: 6px
+            margin-right: 6px
 
             &:focus
                 outline-style: none
 
-        .send
-            &.error
+        button.error
                 background-color: rgba(#f00, 0.3)
 
 

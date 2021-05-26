@@ -109,24 +109,16 @@
                 opacity: 0.5
 
         button.respond  // So don't apply to other buttons such as reactions
-            display: inline-flex
-            align-items: center
-            background-color: transparent
-            border-style: none
             padding: 0 12px
-            border-radius: 6px
-            font-family: Roboto, Arial, sans-serif
-            font-size: 14px
-            font-weight: bold
+            background-color: transparent
             opacity: 0.25
-            user-select: none
+            text-transform: none
 
             &.responded
                 opacity: 1 !important
 
             &:hover:not([disabled])
                 opacity: 0.75
-                cursor: pointer
                 @include stello_themed_contained(background-color, #0002, #fff2)
 
             svg
@@ -194,10 +186,28 @@
                 list-style-type: lower-roman
 
     button
+        display: inline-flex
+        align-items: center
+        padding: 8px 16px
+        border-style: none
+        border-radius: 6px
+        font-family: Roboto, sans-serif
+        font-size: 14px
+        text-transform: uppercase
+        font-weight: 500
+        user-select: none
         color: inherit  // Chrome doesn't inherit by default
+        background-color: rgba(#888, 0.2)
 
         &:focus
             outline-style: none
+
+        &:not([disabled])
+            &:hover
+                cursor: pointer
+                background-color: rgba(#888, 0.4)
+            &:active
+                background-color: rgba(#888, 0.6)
 
     blockquote
         margin-left: 12px

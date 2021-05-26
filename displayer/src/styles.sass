@@ -5,21 +5,16 @@
 @import './shared/shared_styles'
 
 
-.btn-icon
-    padding: 12px
-    @include stello_themed(background-color, #0001, #0006)
-    border-radius: 50%
-    border-style: none
-    margin: 6px
-    cursor: pointer
+.stello-displayer  // To match specificity of shared styles
+    .btn-icon
+        padding: 12px
+        background-color: transparent
+        border-radius: 50%
 
-    &:hover
-        @include stello_themed(background-color, #0003, #000)
+        img, svg
+            display: block
+            width: 24px
+            height: 24px
 
-    img, svg
-        display: block
-        width: 24px
-        height: 24px
-
-        path
-            fill: currentColor
+            path
+                fill: currentColor

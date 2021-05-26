@@ -11,9 +11,9 @@ form(v-if='allow_replies' @submit.prevent='send_reply')
             span(:title='reply.toLocaleTimeString()') {{ reply.toLocaleDateString() }}
     div.last {{ last_sent_contents }}
 
-    textarea(v-model='text' ref='textarea' :disabled='waiting' placeholder="Secure reply...")
-
-    div.send
+    div.fields
+        textarea(v-model='text' ref='textarea' @keyup.ctrl.enter='send_reply' :disabled='waiting'
+            placeholder="Secure reply...")
         button(type='submit' class='btn-icon' :class='{error: success === false}')
             Progress(v-if='waiting')
             svg(v-else viewBox='0 0 24 24')
@@ -143,26 +143,12 @@ form
         &:focus
             outline-style: none
 
-    .send
-        text-align: center
+    .fields
+        display: flex
+        align-items: flex-end
         margin: 12px 0
 
-        button
-            @include stello_themed(background-color, #0002, #fff2)
-
-            &.error
-                background-color: rgba(#f00, 0.3) !important
-
-    .result
-        display: inline-block
-        align-self: center
-        padding: 4px 18px
-        border-radius: 10px
-        background-color: rgba(red, 0.3)
-        font-weight: bold
-        font-size: 14px
-
-        &.success
-            background-color: rgba(green, 0.3)
+        button.error
+            background-color: rgba(#f00, 0.3) !important
 
 </style>
