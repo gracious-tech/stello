@@ -17,7 +17,7 @@ const lottie_promise = import('lottie-web/build/player/lottie_light')
 
 
 // Keep a cache of responses so don't make same requests multiple times
-const lottie_cache:Record<string, object> = {}
+const lottie_cache:Record<string, string> = {}
 
 
 export default {
@@ -66,7 +66,7 @@ export default {
                     if (!resp?.ok){
                         throw new Error(`${resp?.status} ${resp?.statusText}`)
                     }
-                    lottie_cache[url] = JSON.parse(await resp.text())
+                    lottie_cache[url] = await resp.text()
                 }
 
                 // Wait for lottie module if it hasn't loaded yet
@@ -78,7 +78,8 @@ export default {
                     renderer: 'svg',
                     loop: true,
                     autoplay: this.playing,
-                    animationData: lottie_cache[url],
+                    // WARN Must parse per use as lottie manipulates the data & reuse -> memory leak
+                    animationData: JSON.parse(lottie_cache[url]),
                 })
             },
         },
