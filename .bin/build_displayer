@@ -8,9 +8,8 @@ cd ../displayer
 # Run type checks (vite doesn't)
 ./node_modules/.bin/tsc --noEmit
 
-# NOTE Ensures all synchronous assets inlined so ready when app loads
 # WARN Passing an empty string '' as an arg converts to 0 for some reason
-./node_modules/.bin/vite build --assetsInlineLimit 99999 --assetsDir 'displayer' --base './'
+./node_modules/.bin/vite build --assetsDir 'displayer' --base './'
 
 # Tar index and assets and place in app
 # WARN Be sure to avoid including a dev dir in the tar

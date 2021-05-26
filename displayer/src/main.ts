@@ -15,12 +15,6 @@ import App from './App.vue'
 import './styles.sass'
 
 
-// Dynamically add icon so that it's packaged in JS and don't have to upload as separate file
-// @ts-ignore special image import
-import icon_url from './assets/icon.png'
-self.document.querySelector<HTMLLinkElement>('link[rel="icon"]')!.href = icon_url
-
-
 // Init Vue app so can configure before mounting
 self._app = createApp(App)
 
