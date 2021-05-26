@@ -2,13 +2,17 @@
 import {url64_to_buffer} from './utils/coding'
 import {import_key_asym} from './utils/crypt'
 import {request_json} from './utils/http'
+import {error_to_string} from './utils/exceptions'
 import {deployment_config} from './deployment_config'
 
 
 async function download_displayer_config(name:string):Promise<any>{
     // Download and parse displayer config
     const url = `${deployment_config.url_msgs}disp_config_${name}`
-    const config = await request_json(url, undefined, true)
+    const config = await request_json(url, undefined, true).catch(error => {
+        self._fail_report(error_to_string(error))
+        return null  // Don't cause UI to fail
+    })
 
     // Convert base64 public key into a CryptoKey
     if (config?.resp_key_public){
