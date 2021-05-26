@@ -2,7 +2,7 @@
 <template lang='pug'>
 
 p.credit
-    | Encrypted with
+    | Created with
     |
     a(href='https://stello.news/' target='_blank') {{ app_name }}
 
