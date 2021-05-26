@@ -17,7 +17,7 @@ const lottie_promise = import('lottie-web/build/player/lottie_light')
 
 
 // Keep a cache of responses so don't make same requests multiple times
-const lottie_cache:Record<string, string> = {}
+const lottie_cache:Record<string, object> = {}
 
 
 export default {
@@ -55,23 +55,30 @@ export default {
             immediate: true,
             async handler(url){
                 // Recreate lottie instance whenever url changes
+                // NOTE Errors not caught as Vue will catch and report them without UI failure
+
+                // Remove the previous instance if any (must happen even if below fails)
+                this.destroy_lottie()
 
                 // Store response in cache
                 if (! (url in lottie_cache)){
-                    lottie_cache[url] = await (await fetch(url)).text()
+                    const resp = await fetch(url).catch(() => null)
+                    if (!resp?.ok){
+                        throw new Error(`${resp?.status} ${resp?.statusText}`)
+                    }
+                    lottie_cache[url] = await resp.json()
                 }
 
                 // Wait for lottie module if it hasn't loaded yet
                 const lottie = await lottie_promise
 
                 // Load the animation
-                this.destroy_lottie()
                 this.lottie_instance = lottie.default.loadAnimation({
                     container: this.$refs.container as HTMLDivElement,
                     renderer: 'svg',
                     loop: true,
                     autoplay: this.playing,
-                    animationData: JSON.parse(lottie_cache[url]),
+                    animationData: lottie_cache[url],
                 })
             },
         },

@@ -41,9 +41,18 @@ export default {
             immediate: true,
             async handler(url){
                 // Re-request contents when url changes
+                // NOTE Errors not caught as Vue will catch and report them without UI failure
+
+                // Remove previous value if any (must happen even if below fails)
+                this.html = ''
+
                 if (! (url in cache)){
                     // Cache the contents so don't make same request multiple times
-                    cache[url] = await (await fetch(url)).text()
+                    const resp = await fetch(url).catch(() => null)
+                    if (!resp?.ok){
+                        throw new Error(`${resp?.status} ${resp?.statusText}`)
+                    }
+                    cache[url] = await resp.text()
                 }
 
                 // Replace ids with a random prefix for every use to avoid `id` clashes in DOM
