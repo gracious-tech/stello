@@ -23,7 +23,8 @@ div.respondbar(@mouseenter='have_hovered = true')
                         svg(v-else viewBox='0 0 24 24')
                             path(d='M2.01 21L23 12 2.01 3 2 10l15 2-15 2z')
 
-    div.react_container(v-if='allow_reactions' ref='react_container')
+    div.react_container(v-if='allow_reactions' @mouseenter='react_popup_visible = true'
+            @mouseleave='react_popup_visible = false')
         //- WARN Safari doesn't give focus to buttons automatically so must do manually
         SharedRespondReact(@click='$event => $event.target.focus()'
                 :class='{responded: chosen_reaction}')
@@ -33,6 +34,7 @@ div.respondbar(@mouseenter='have_hovered = true')
                 div.reactions
                     //- WARN iOS blurs before click event which prevents it (mousedown before blur)
                     button(v-for='reaction of reaction_options' @mousedown='react_with(reaction)')
+                        //- Stop animations when popup hidden to reduce CPU usage
                         ReactionSvg.reaction(:reaction='reaction'
                             :chosen='reaction === chosen_reaction' :playing='react_popup_visible')
                 p.note Private &amp; secure
@@ -151,7 +153,6 @@ export default {
         // REACTIONS
 
         const chosen_reaction = ref<string|null>(null)
-        const react_container = ref() as Ref<HTMLDivElement>
         const react_popup_visible = ref(false)
 
         const allow_reactions = computed(
@@ -195,20 +196,6 @@ export default {
 
         }
 
-        onMounted(() => {
-            // Stop animations when popup hidden to reduce CPU usage
-            // Safer than using JS to show popup as CSS reliable and worst case animations paused
-            // NOTE If reactions disabled for a section then `react_container` won't exist
-            if (react_container.value){
-                react_container.value.addEventListener('mouseenter', () => {
-                    react_popup_visible.value = true
-                })
-                react_container.value.addEventListener('mouseleave', () => {
-                    react_popup_visible.value = false
-                })
-            }
-        })
-
         watch(subsect_id, async value => {
             // Get last reaction from db
             chosen_reaction.value = await database.reaction_get(value)
@@ -219,7 +206,7 @@ export default {
         return {
             allow_replies, allow_reactions, have_hovered,
             focus_textarea, reply_textarea, reply_text, reply_waiting, reply_success, send_comment,
-            react_with, reaction_options, chosen_reaction, react_container, react_popup_visible,
+            react_with, reaction_options, chosen_reaction, react_popup_visible,
             last_sent_contents, replies,
         }
     }
