@@ -13,8 +13,8 @@ import {string_to_utf8} from '../utils/coding'
 import {SECTION_IMAGE_WIDTH} from '../misc'
 import {HostUser} from '../hosts/types'
 import {send_emails} from '../native/native'
-import type {PublishedCopyBase, PublishedAsset, PublishedCopy, PublishedSection,
-    PublishedContentImages} from '@/shared/shared_types'
+import type {PublishedCopyBase, PublishedAsset, PublishedCopy, PublishedSection, PublishedImage,
+    } from '@/shared/shared_types'
 import {render_invite_html} from '../misc/invites'
 import {MustReauthenticate, MustReconfigure, MustReconnect} from '../utils/exceptions'
 import {Email} from '../native/types'
@@ -260,9 +260,7 @@ async function process_sections(sections:Section[][])
     for (const row of sections){
         const pub_row = []
         for (const section of row){
-            const [pub_section, pub_section_assets] = await process_section(section)
-            pub_row.push(pub_section)
-            pub_assets.push(...pub_section_assets)
+            pub_row.push(await process_section(section, pub_assets))
         }
         pub_sections.push(pub_row)
     }
@@ -270,14 +268,13 @@ async function process_sections(sections:Section[][])
 }
 
 
-async function process_section(section:Section):Promise<[PublishedSection, PublishedAsset[]]>{
+async function process_section(section:Section, pub_assets:PublishedAsset[],
+        ):Promise<PublishedSection>{
     // Take section and produce publishable form and any assets required
-    let pub_section:PublishedSection
-    const pub_section_assets:PublishedAsset[] = []
 
     // Handle text
     if (section.content.type === 'text'){
-        pub_section = {
+        return {
             id: section.id,
             respondable: section.respondable_final,
             content: {
@@ -289,7 +286,7 @@ async function process_section(section:Section):Promise<[PublishedSection, Publi
 
     // Handle video
     } else if (section.content.type === 'video'){
-        pub_section = {
+        return {
             id: section.id,
             respondable: section.respondable_final,
             content: {...section.content},  // All props same and are primitives
@@ -305,19 +302,8 @@ async function process_section(section:Section):Promise<[PublishedSection, Publi
         const base_ratio = base_size.width / base_size.height
         const max_height = max_width / base_ratio
 
-        // Define and add section first, then add to its images array
-        pub_section = {
-            id: section.id,
-            respondable: section.respondable_final,
-            content: {
-                type: 'images',
-                images: [],
-                ratio_width: base_size.width,  // May be smaller if resized (just for ratio)
-                ratio_height: base_size.height,  // May be smaller if resized (just for ratio)
-            },
-        }
-
-        // Create assets for each image and add references to published section data
+        // Create assets for each image and collect other metadata into an images array
+        const images:PublishedImage[] = []
         for (const image of section.content.images){
 
             // Resize the image
@@ -326,7 +312,7 @@ async function process_section(section:Section):Promise<[PublishedSection, Publi
             const bitmap_canvas = bitmap_to_canvas(bitmap)
 
             // Add assets
-            pub_section_assets.push({
+            pub_assets.push({
                 id: image.id,
                 data: await (await canvas_to_blob(bitmap_canvas)).arrayBuffer(),
             })
@@ -334,17 +320,29 @@ async function process_section(section:Section):Promise<[PublishedSection, Publi
                 noting the patterns for webp/jpeg ids. But if you have admin access, there are
                 far worse threats to make it negligable anyway.
             */
-            pub_section_assets.push({
+            pub_assets.push({
                 id: `${image.id}j`,  // Image id with 'j' appended
                 data: await (await canvas_to_blob(bitmap_canvas, 'jpeg')).arrayBuffer(),
             })
 
-            // Add image to published section data
-            ;(pub_section.content as PublishedContentImages).images.push({
+            // Add image metadata
+            images.push({
                 id: image.id,
                 caption: image.caption,
             })
         }
+
+        return {
+            id: section.id,
+            respondable: section.respondable_final,
+            content: {
+                type: 'images',
+                images: images,
+                ratio_width: base_size.width,  // May be smaller if resized (just for ratio)
+                ratio_height: base_size.height,  // May be smaller if resized (just for ratio)
+            },
+        }
     }
-    return [pub_section, pub_section_assets]
+
+    throw new Error("Impossible")
 }
