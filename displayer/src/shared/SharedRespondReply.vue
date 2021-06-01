@@ -1,7 +1,7 @@
 
 <template lang='pug'>
 
-button.respond(v-bind='$attrs' v-on='$listeners || {}')
+button.respond(v-bind='$attrs' v-on='$listeners || {}' class='btn-text')
     svg(viewBox='0 0 24 24' class='borderless')
         path(:d='icon')
     | Comment

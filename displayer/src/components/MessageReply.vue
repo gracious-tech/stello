@@ -139,6 +139,7 @@ form
         border-radius: 12px
         min-height: 100px
         max-height: 400px
+        margin-right: 4px
 
         &:focus
             outline-style: none

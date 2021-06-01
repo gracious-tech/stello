@@ -185,19 +185,10 @@
             ol
                 list-style-type: lower-roman
 
-    button
-        display: inline-flex
-        align-items: center
-        padding: 8px 16px
+    .btn-text, .btn-icon
         border-style: none
-        border-radius: 6px
-        font-family: Roboto, sans-serif
-        font-size: 14px
-        text-transform: uppercase
-        font-weight: 500
         user-select: none
         color: inherit  // Chrome doesn't inherit by default
-        background-color: rgba(#888, 0.2)
 
         &:focus
             outline-style: none
@@ -208,6 +199,30 @@
                 background-color: rgba(#888, 0.4)
             &:active
                 background-color: rgba(#888, 0.6)
+
+    .btn-text  // Avoid `button` so don't mess up editor Vuetify ones etc
+        display: inline-flex
+        align-items: center
+        padding: 8px 16px
+        border-radius: 6px
+        font-family: Roboto, sans-serif
+        font-size: 14px
+        text-transform: uppercase
+        font-weight: 500
+        background-color: rgba(#888, 0.2)
+
+    .btn-icon  // Avoid `button` so don't mess up editor Vuetify ones etc
+        padding: 12px
+        background-color: transparent
+        border-radius: 50%
+
+        img, svg
+            display: block
+            width: 24px
+            height: 24px
+
+            path
+                fill: currentColor
 
     blockquote
         margin-left: 12px

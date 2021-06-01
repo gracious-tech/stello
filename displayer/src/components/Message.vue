@@ -6,7 +6,7 @@ MessageContents(v-if='msg' :msg='msg')
 div.no_msg(v-else)
     div(v-if='error')
         p {{ error }}
-        button(@click='get_message') Retry
+        button(@click='get_message' class='btn-text') Retry
     Progress(v-else)
 
 </template>
