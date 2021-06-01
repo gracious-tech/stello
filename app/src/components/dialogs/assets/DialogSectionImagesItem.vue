@@ -1,15 +1,16 @@
 
 <template lang='pug'>
 
-div.component
-    div.row(class='mb-3')
-        div.displayer(:style='displayer_styles')
-            img.sizer(:src='sizer_src')
-        div.toolbar
+div(class='my-5')
+    div(class='d-flex align-center mb-3')
+        div(class='flex text-center')
+            div.displayer(:style='displayer_styles')
+                img.sizer(:src='sizer_src')
+        div(class='d-flex flex-column')
             app-btn(@click='move_up' :disabled='is_first' icon='arrow_upward')
             app-btn(@click='move_down' :disabled='is_last' icon='arrow_downward')
             app-btn(@click='remove' color='error' icon='delete')
-    p
+    div
         app-textarea(v-model='caption' placeholder="Caption" :rows='1' regular dense)
 
 </template>
@@ -96,17 +97,6 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
-
-.component
-    margin: 20px 0
-
-.row
-    display: flex
-    justify-content: center
-
-.toolbar
-    display: flex
-    flex-direction: column
 
 .displayer
     display: inline-block
