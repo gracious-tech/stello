@@ -66,21 +66,26 @@ export default class extends Vue {
             console.warn(`Not an image: ${blob.type}`)
             return false
         }
-
-        // Resize the image, just to save space, as will resize again when publish message
+        let bitmap:ImageBitmap
         try {
-            // Double the possible output size in case crop later
-            let bitmap = await createImageBitmap(blob)
-            // TODO Reconsider what to do about height (not currently considered important)
-            bitmap = await resize_bitmap(bitmap, SECTION_IMAGE_WIDTH * 2, SECTION_IMAGE_WIDTH * 2)
-            blob = await canvas_to_blob(bitmap_to_canvas(bitmap))
+            bitmap = await createImageBitmap(blob)
         } catch (error){
             console.warn(error)
             return false
         }
 
+        // Resize the image, just to save space, as will resize again when publish message
+        // Double the possible output size in case crop later
+        // TODO Reconsider what to do about height (not currently considered important)
+        bitmap = await resize_bitmap(bitmap, SECTION_IMAGE_WIDTH * 2, SECTION_IMAGE_WIDTH * 2)
+        blob = await canvas_to_blob(bitmap_to_canvas(bitmap))
+
         // Add to images set
-        this.images.push({id: generate_token(), data: blob, caption: ''})
+        this.images.push({
+            id: generate_token(),
+            data: blob,
+            caption: '',
+        })
         self._db.sections.set(this.section)
 
         return true
