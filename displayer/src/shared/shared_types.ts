@@ -14,10 +14,10 @@ export interface PublishedCopy extends PublishedCopyBase {
     // TODO Anything unique to the contact...
 }
 
-export interface PublishedSection {
+export interface PublishedSection<TContent extends PublishedSectionContent=PublishedSectionContent>{
     id:string  // Required to match reactions with appropriate sections (in case order edited later)
     respondable:boolean  // Unlike in db, this cannot be null
-    content:PublishedSectionContent
+    content:TContent
 }
 
 export type PublishedSectionContent =
