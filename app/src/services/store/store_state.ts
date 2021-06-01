@@ -14,7 +14,8 @@ export async function get_initial_state(db:Database):Promise<AppStoreState>{
     const state = {
 
         // Configurable
-        dark: true,
+        // NOTE dark defaults to true since `matches` will be false both if dark & if not supported
+        dark: matchMedia('(prefers-color-scheme: light)').matches === false,
         dark_message: false,
         default_profile: null,
         default_template: null,
