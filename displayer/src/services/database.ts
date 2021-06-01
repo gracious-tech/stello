@@ -81,7 +81,7 @@ class DisplayerDatabase {
         }).catch(error => {
             // Firefox doesn't support indexeddb in some cases, so return dummy connection instead
             console.error(error)
-            console.log("Database unavailable")
+            console.error("Database unavailable")
             return {
                 get: async () => undefined,
                 getAll: async () => [],

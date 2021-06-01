@@ -43,7 +43,7 @@ async function respond(data:any):Promise<boolean>{
         })
         return JSON.parse(await resp.text()).success
     } catch (error){
-        console.log(error)
+        console.error(error)
         return false
     }
 }
