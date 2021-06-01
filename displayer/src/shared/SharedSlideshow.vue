@@ -1,26 +1,19 @@
 
-<!-- TODO
-    1. Switch to display via horizontal snap scrolling div (so touch users can smoothly swipe)
-    2. Replace prev/next buttons with hover over left/right of image
-        Show shadow/light at edge of image on hover (so doesn't block viewing of image edge)
--->
-
 <template lang='pug'>
 
-div
+div.root
 
-    div.displayer(:class='{editing}' :style='current_style' @click.stop='handle_img_click')
-        img.sizer(:src='first_src')
+    div.slideshow(:class='{editing}')
+        svg.aspect(:viewBox='aspect_svg_viewbox')
+        div.scroller(ref='scroller' @scroll='on_scroll')
+            div.item(v-for='styles of images_ui' :style='styles')
+                div.buttons(@click.self='$emit("img_click")')
+                    div.prev(v-if='multiple' @click='prev')
+                    div.next(v-if='multiple' @click='next')
 
-    div.buttons(v-if='images.length > 1')
-        button(@click.stop='prev' class='step')
-            svg(width='24' height='24')
-                path(d='M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z')
+    div.thumbs(v-if='multiple')
         button(v-for='(button, i) of buttons' :key='button.id' @click.stop='button.activate'
-            :style='button.style' class='thumb' :class='{active: current === i}')
-        button(@click.stop='next' class='step')
-            svg(width='24' height='24')
-                path(d='M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z')
+            :style='button.style' :class='{active: current === i}')
 
     div.cap(v-if='caption') {{ caption }}
 
@@ -28,6 +21,8 @@ div
 
 
 <script lang='ts'>
+
+import {debounce} from 'lodash'
 
 import type {PropType} from 'vue'  // Importing just as type should still keep compatible with Vue 2
 
@@ -66,6 +61,9 @@ export default {
             type: Array as PropType<SlideshowImage[]>,
             required: true,
         },
+        aspect: {
+            type: Array as unknown as PropType<[number, number]>|null,
+        },
         crop: {
             type: Boolean,
             default: false,  // Not needed in displayer (crop already applied)
@@ -76,37 +74,52 @@ export default {
         },
     },
 
+    inject: {
+        fullscreen: {default: null},  // Not used in editor
+    },
+
     data(){
         return {
             current: 0,
-            placeholder: null as null|string,
+            object_urls: {} as Record<string, string>,  // Caches object urls to avoid recreating
         }
     },
 
     computed: {
 
-        object_urls():string[]{
-            return this.images.map(image =>
-                image.data ? URL.createObjectURL(image.data) : PLACEHOLDER)
+        aspect_svg_viewbox():string{
+            // The viewbox for the svg that will maintain the correct aspect ratio
+            // NOTE grid used to place images on top of the invisible svg
+            if (this.aspect)
+                return `0 0 ${this.aspect[0]} ${this.aspect[1]}`
+            return '0 0 48 24'  // Placeholder's size
+        },
+
+        images_ui():Record<string, string>[]{
+            // Get UI view of images that returns styles for their display
+            if (this.empty){
+                return [{
+                    'background-image': `url(${PLACEHOLDER})`,
+                    'background-size': 'cover',
+                }]
+            }
+            return this.images.map(image => {
+                const url = this.object_urls[image.id]
+                return {
+                    'background-image': `url(${url})`,
+                    'background-size': this.crop || url === PLACEHOLDER ? 'cover' : 'contain',
+                }
+            })
         },
 
         empty():boolean{
+            // Whether no images exist for the slideshow
             return this.images.length === 0
         },
 
-        first_src():string{
-            return this.empty ? PLACEHOLDER : this.object_urls[0]
-        },
-
-        current_url():string{
-            return this.empty ? PLACEHOLDER : this.object_urls[this.current]
-        },
-
-        current_style():Record<string, string>{
-            return {
-                'background-image': `url(${this.current_url})`,
-                'background-size': this.crop ? 'cover' : 'contain',
-            }
+        multiple():boolean{
+            // Whether there is more than one image
+            return this.images.length > 1
         },
 
         caption():string|null{
@@ -129,11 +142,12 @@ export default {
         },
 
         buttons():{id:string, style:Record<string, string>, activate:()=>void}[]{
+            // UI data for buttons for navigating to specific images
             return this.images.map((image, i) => {
                 return {
                     id: image.id,
-                    style: {'background-image': `url(${this.object_urls[i]})`},
-                    activate: () => {this.current = i},
+                    style: {'background-image': `url(${this.object_urls[image.id]})`},
+                    activate: () => {this.change_current(i)},
                 }
             })
         },
@@ -148,6 +162,7 @@ export default {
     },
 
     watch: {
+
         current: {
             immediate: true,
             handler(value:number){
@@ -155,22 +170,74 @@ export default {
                 this.$emit('displayed', value)
             },
         },
+
+        images: {
+            immediate: true,
+            deep: true,
+            handler(images:SlideshowImage[]){
+                // Create object URLs for images whenever their data becomes available
+                // WARN Assumes image data doesn't change (aside from a null -> blob)
+                const new_object_urls:Record<string, string> = {}
+                for (const image of images){
+                    if (image.id in this.object_urls && this.object_urls[image.id] !== PLACEHOLDER){
+                        // URL already created for this image, so reuse to reduce memory usage
+                        new_object_urls[image.id] = this.object_urls[image.id]
+                    } else if (image.data){
+                        // Data only now available, so create URL
+                        new_object_urls[image.id] = URL.createObjectURL(image.data)
+                    } else {
+                        // Still waiting on data, so display placeholder
+                        new_object_urls[image.id] = PLACEHOLDER
+                    }
+                }
+                this.object_urls = new_object_urls
+            },
+        },
+
+        'fullscreen.value': {  // NOTE Not used in editor (a Vue 3 ref)
+            handler(){
+                // When go fullscreen, teleport causes scroll to lose position, so reposition it
+                this.$nextTick(() => {
+                    const div = this.$refs.scroller as HTMLDivElement
+                    div.scrollTo({
+                        left: (div.scrollWidth / this.images.length) * this.current,
+                    })
+                })
+            },
+        },
     },
 
     methods: {
 
+        change_current(i:number):void{
+            // Change current image by scrolling to the desired one
+            if (this.$refs.scroller){  // Ensure mounted
+                const div = this.$refs.scroller as HTMLDivElement
+                div.scrollTo({
+                    left: (div.scrollWidth / this.images.length) * i,
+                    behavior: 'smooth',
+                })
+            }
+        },
+
         prev(){
-            this.current = this.is_first ? this.images.length - 1 : this.current - 1
+            // Change to prev image (loops)
+            this.change_current(this.is_first ? this.images.length - 1 : this.current - 1)
         },
 
         next(){
-            this.current = this.is_last ? 0 : this.current + 1
+            // Change to next image (loops)
+            this.change_current(this.is_last ? 0 : this.current + 1)
         },
 
-        handle_img_click(){
-            // Pass event to parent for custom behaviour
-            this.$emit('img_click', this.current_url)
-        },
+        // NOTE `this` arg isn't a real arg and just lets TS know about `this` (`any` since complex)
+        on_scroll: debounce(function(this:any, event:Event):void{
+            // Determine which image is currently being shown whenever scroll changes
+            // NOTE Scroll events are emitted very rapidly so debounced for performance
+            const target = event.target as HTMLDivElement
+            const item_width = target.scrollWidth / this.images.length
+            this.current = Math.round(target.scrollLeft / item_width)
+        }, 30),
     },
 
 }
@@ -181,23 +248,76 @@ export default {
 <style lang='sass' scoped>
 
 
-.sizer
-    width: 100%
+.root
+    // Display flex so can make slideshow div smaller when not enough height and not lose buttons
+    display: flex
+    flex-direction: column
+
+
+.slideshow
+
+    // Hack that uses an svg and overlapping grid columns to force an aspect ratio
+    // See https://stackoverflow.com/a/53245657/10262211
+    display: grid
     position: relative
-    left: -99999px
+    overflow-y: hidden
+    .aspect, .scroller
+        grid-area: 1/1
+        width: 100%
 
-
-.displayer
-    cursor: zoom-in
-    background-position: center
-    background-repeat: no-repeat
+    // Curve corners of slideshow and provide black bg when images not cropped
     border-radius: 12px
+    background-color: black
 
+    // Image click in displayer is zoom, but edit in editor
+    cursor: zoom-in
     &.editing
         cursor: pointer
 
+    .scroller
+        // A container for images that scrolls horizontally, wide enough only for one at a time
+        position: absolute  // Part of aspect ratio hack and shrinking height when fullscreen
+        display: flex
+        height: 100%  // WARN Do not set height on .aspect (no idea why)
+        overflow-y: hidden
+        overflow-x: scroll
+        scroll-snap-type: x mandatory
+
+        .item
+            scroll-snap-align: start
+            display: inline-block
+            min-width: 100%
+            background-position: center
+            background-repeat: no-repeat
+
+        // Hide scrollbar as rely on buttons/swipe instead
+        scrollbar-width: none
+        &::-webkit-scrollbar
+            display: none
+
 
 .buttons
+    // The visible prev/next clickable areas that sit over images
+    position: absolute
+    display: flex
+    justify-content: space-between
+    height: 100%
+    width: 100%
+
+    .prev, .next
+        height: 100%
+        width: 30%
+        cursor: pointer
+
+    .prev:hover
+        border-left: 2px solid #0088ff
+
+    .next:hover
+        border-right: 2px solid #0088ff
+
+
+.thumbs
+    // Image preview circles that go to specific images
     display: flex
     justify-content: center
     padding-top: 10px
@@ -206,9 +326,9 @@ export default {
         display: flex
         justify-content: center
         align-items: center
-        width: 30px
-        height: 30px
-        border-radius: 15px
+        min-width: 30px
+        min-height: 30px
+        border-radius: 50%
         border-style: none
         margin: 0 6px
         background-color: transparent
@@ -219,18 +339,11 @@ export default {
         &:focus
             outline-style: none
 
-        &.step
-            fill: currentColor
-            &:disabled
-                opacity: 0.25 !important
-            &:not(:hover)
-                opacity: 0.5
+        &:not(.active)
+            opacity: 0.5
 
-        &.thumb
-            &:not(.active)
-                opacity: 0.5
-            &:hover
-                background-color: rgba(50%, 50%, 50%)
+        &:hover
+            background-color: rgba(50%, 50%, 50%)
 
 
 .cap  // Avoid Vuetify's caption class

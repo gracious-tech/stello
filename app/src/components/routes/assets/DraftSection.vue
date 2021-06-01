@@ -13,7 +13,7 @@ section(@click.self='focus_editor' :class='classes')
         div(v-if='type === "text"' ref='editable' v-html='content.html' v-once
             @input='html_changed')
 
-        shared-slideshow(v-if='type === "images"' :images='content.images'
+        shared-slideshow(v-if='type === "images"' :images='content.images' :aspect='images_aspect'
             :crop='content.crop' editing @img_click='modify')
 
         shared-video(v-if='type === "video"' @modify='modify' :format='content.format'
@@ -26,7 +26,7 @@ section(@click.self='focus_editor' :class='classes')
 
 <script lang='ts'>
 
-import {Component, Vue, Prop} from 'vue-property-decorator'
+import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import DraftAddSection from './DraftAddSection.vue'
 import DraftSectionRespond from './DraftSectionRespond.vue'
@@ -38,6 +38,7 @@ import {Draft} from '@/services/database/drafts'
 import {ContentText} from '@/services/database/types'
 import {section_classes} from '@/shared/shared_functions'
 import {Profile} from '@/services/database/profiles'
+import {blob_image_size} from '@/services/utils/image'
 
 
 @Component({
@@ -49,6 +50,7 @@ export default class extends Vue {
     @Prop() profile:Profile
     @Prop() section:Section
 
+    images_aspect:[number, number]|null = null
     deactivate_editor
 
     mounted(){
@@ -104,6 +106,15 @@ export default class extends Vue {
         }
     }
 
+    @Watch('content.images', {immediate: true}) async watch_images(){
+        // Recalculate the aspect ratio for images section based on the first image
+        if (this.content.type === 'images' && this.content.images.length){
+            const size = await blob_image_size(this.content.images[0].data)
+            this.images_aspect = [size.width, size.height]
+        } else {
+            this.images_aspect = null  // Reset if had one before
+        }
+    }
 }
 
 </script>

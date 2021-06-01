@@ -1,17 +1,15 @@
 
 <template lang='pug'>
 
-SharedSlideshow(:images='images' @img_click='fullscreen_enable' @displayed='on_displayed_change')
-
-teleport(v-if='fullscreen_img_style' to='.content')
-    div.fullscreen(@click='fullscreen_disable' :style='fullscreen_img_style')
+SharedSlideshow(:images='images' :aspect='ratio' @img_click='$emit("fullscreen")'
+    @displayed='on_displayed_change')
 
 </template>
 
 
 <script lang='ts'>
 
-import {ref, reactive, computed, watch, onUnmounted, inject, PropType, Ref} from 'vue'
+import {ref, reactive, inject, PropType, Ref} from 'vue'
 
 import SharedSlideshow, {SlideshowImage} from '../shared/SharedSlideshow.vue'
 import {store} from '../services/store'
@@ -32,7 +30,8 @@ export default {
     },
 
     emits: {
-        displayed: (value:string):boolean => typeof value === 'string',
+        displayed: (value:string) => typeof value === 'string',
+        fullscreen: () => true,
     },
 
     setup(props, {emit}){
@@ -70,33 +69,8 @@ export default {
             }).catch(() => {})  // Will show placeholder if getting asset fails
         }
 
-
-        // Fullscreen mode
-        const fullscreen_img = ref<string|null>(null)
-        const fullscreen_img_style = computed(() => {
-            return fullscreen_img.value && {'background-image': `url(${fullscreen_img.value})`}
-        })
-        const fullscreen_enable = (url:string) => {
-            fullscreen_img.value = url
-        }
-        const fullscreen_disable = () => {
-            fullscreen_img.value = null
-        }
-
-
-        // Disabling of page scroll
-        const set_page_scroll = (value:boolean) => {
-            // Set whether whole page can scroll or not (so can disable when image fullscreen)
-            self.document.body.style.overflowY = value ? 'auto' : 'hidden'
-        }
-        watch(fullscreen_img, value => {
-            set_page_scroll(!value)
-        })
-        onUnmounted(() => {
-            // Ensure page can still scroll after component unmounted (in case done while fullscreen)
-            set_page_scroll(true)
-        })
-
+        // Get aspect ratio from content metadata
+        const ratio:[number, number] = [props.content.ratio_width, props.content.ratio_height]
 
         // Reporting of currently displayed image's id
         const on_displayed_change = (index:number) => {
@@ -105,8 +79,7 @@ export default {
 
 
         // Expose template's requirements
-        return {images, fullscreen_img_style, fullscreen_enable, fullscreen_disable,
-            on_displayed_change}
+        return {images, on_displayed_change, ratio}
     },
 }
 
@@ -114,18 +87,5 @@ export default {
 
 
 <style lang='sass' scoped>
-
-.fullscreen
-    position: fixed
-    z-index: 100
-    top: 0
-    bottom: 0
-    left: 0
-    right: 0
-    background-color: black
-    background-size: contain
-    background-position: center
-    background-repeat: no-repeat
-    cursor: zoom-out
 
 </style>

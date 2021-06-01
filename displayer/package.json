@@ -5,6 +5,7 @@
         "build": "vite build"
     },
     "devDependencies": {
+        "@types/lodash": "^4.14.170",
         "@types/pug": "^2.0.4",
         "@types/sass": "^1.16.0",
         "@vitejs/plugin-vue": "^1.2.1",
@@ -19,6 +20,7 @@
         "aws4fetch": "^1.0.13",
         "core-js": "^3.10.2",
         "idb": "^6.0.0",
+        "lodash": "^4.17.21",
         "lottie-web": "^5.7.8",
         "vue": "^3.0.11"
     }

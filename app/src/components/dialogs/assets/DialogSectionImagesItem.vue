@@ -101,6 +101,7 @@ export default class extends Vue {
 .displayer
     display: inline-block
     background-position: center
+    background-color: black
 
 .sizer
     width: 100%
