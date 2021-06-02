@@ -1,14 +1,14 @@
 
 <template lang='pug'>
 
-app-content.page(class='pa-3 text-center')
+app-content(class='pa-3 text-center app-bg-primary')
 
     app-logo.logo
 
     h2(class='text-h4') A new way to send newsletters
     h3(class='text-h6') Specially designed for Christian ministry
 
-    v-list(class='text-left')
+    v-list(class='text-left' dark)
         v-list-item
             v-list-item-icon
                 app-svg(name='icon_next_plan')
@@ -52,10 +52,6 @@ export default class extends Vue {
 
 
 <style lang='sass' scoped>
-
-.page
-    background-color: $primary
-    color: $on_primary
 
 .logo
     margin-top: 40px
