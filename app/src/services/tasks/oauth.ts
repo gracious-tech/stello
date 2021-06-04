@@ -506,7 +506,7 @@ export async function oauth_request(oauth:OAuth, url:string, params?:Record<stri
         resp = await fetch(url, {
             method,
             headers: {
-                'Authorization': `Bearer ${oauth.token_access}`,
+                Authorization: `Bearer ${oauth.token_access}`,
                 'Content-Type': (body as Blob)?.type,
             },
             body: body as Blob,

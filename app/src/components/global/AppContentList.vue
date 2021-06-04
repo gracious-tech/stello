@@ -20,7 +20,7 @@ export default class extends Vue {
     get height_styles():Record<string, string>{
         // Get styles that ensure items are of a specific height (important for virtual scroll)
         return {
-            'height': `${this.height}px`,
+            height: `${this.height}px`,
             'min-height': `${this.height}px`,
             'max-height': `${this.height}px`,
         }
