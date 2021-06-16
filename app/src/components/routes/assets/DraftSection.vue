@@ -9,9 +9,7 @@ section(@click.self='focus_editor' :class='classes')
 
     div.inner(@click.self='focus_editor')
 
-        //- NOTE Using v-once so that selection not lost whenever html is saved/updated
-        div(v-if='type === "text"' ref='editable' v-html='content.html' v-once
-            @input='html_changed')
+        app-html(v-if='type === "text"' ref='app_html' v-model='text_html' :variables='text_variables')
 
         shared-slideshow(v-if='type === "images"' :images='content.images' :aspect='images_aspect'
             :crop='content.crop' editing @img_click='modify')
@@ -19,7 +17,7 @@ section(@click.self='focus_editor' :class='classes')
         shared-video(v-if='type === "video"' @modify='modify' :format='content.format'
             :id='content.id' :caption='content.caption' :start='content.start' :end='content.end')
 
-    draft-section-respond(:profile='profile' :section='section')
+    draft-section-respond(:profile='profile' :section='section' @click.native.self='focus_editor')
 
 </template>
 
@@ -32,7 +30,8 @@ import DraftAddSection from './DraftAddSection.vue'
 import DraftSectionRespond from './DraftSectionRespond.vue'
 import SharedVideo from '@/shared/SharedVideo.vue'
 import SharedSlideshow from '@/shared/SharedSlideshow.vue'
-import {activate_editor, debounce_method} from '@/services/misc'
+import {debounce_set} from '@/services/misc'
+import {gen_variable_items} from '@/services/misc/templates'
 import {Section} from '@/services/database/sections'
 import {Draft} from '@/services/database/drafts'
 import {ContentText} from '@/services/database/types'
@@ -51,21 +50,6 @@ export default class extends Vue {
     @Prop() section:Section
 
     images_aspect:[number, number]|null = null
-    deactivate_editor
-
-    mounted(){
-        // Activate contenteditable editor if a text section
-        if (this.type === 'text'){
-            this.deactivate_editor = activate_editor(this.$refs.editable)
-        }
-    }
-
-    destroyed(){
-        // Deactivate editor if present, otherwise will keep a node reference forever
-        if (this.deactivate_editor){
-            this.deactivate_editor()
-        }
-    }
 
     get content(){
         return this.section.content
@@ -80,9 +64,23 @@ export default class extends Vue {
         return section_classes(this.section)
     }
 
-    @debounce_method() html_changed(event){
-        // Save html whenever it changes for text types
-        ;(this.content as ContentText).html = event.target.innerHTML
+    get text_variables(){
+        // Get variables for dynamic content as best can with data available
+        const sender_name = this.draft.options_identity.sender_name
+            ?? this.profile?.msg_options_identity.sender_name ?? null
+        const lifespan = this.draft.options_security.lifespan
+            ?? this.profile?.msg_options_security.lifespan ?? Infinity
+        const max_reads = this.draft.options_security.max_reads
+            ?? this.profile?.msg_options_security.max_reads ?? Infinity
+        return gen_variable_items(null, null, sender_name, this.draft.title, new Date(), max_reads,
+            lifespan)
+    }
+
+    get text_html(){
+        return (this.content as ContentText).html
+    }
+    @debounce_set() set text_html(html){
+        ;(this.content as ContentText).html = html
         self._db.sections.set(this.section)
     }
 
@@ -100,9 +98,7 @@ export default class extends Vue {
         // If text section is clicked, focus the text area for editing
         // NOTE Normally section's padding would prevent focusing the text area
         if (this.type === 'text'){
-            (this.$refs.editable as HTMLElement).focus()
-            // Move cursor to end of editable region (default is to position before first char)
-            self.document.getSelection().modify('move', 'forward', 'documentboundary')
+            ;(this.$refs.app_html as any).focus()  // Accesses private method of AppHtml
         }
     }
 
@@ -130,10 +126,6 @@ section
 
     &:focus-within, &:hover
         border-color: rgba($primary, 0.4)
-
-        .medium-editor-element
-            // Don't show default white outline as will show outline around whole section instead
-            outline-style: none
 
     &:focus-within
         border-color: rgba($accent, 0.4)

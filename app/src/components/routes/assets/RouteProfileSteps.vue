@@ -8,8 +8,8 @@ v-stepper(:value='profile.setup_step' @change='change_step')
         v-stepper-step(:step='2' :complete='profile.setup_step > 2' :editable='profile.setup_step > 2'
             edit-icon='$complete' color='accent') Storage
         v-stepper-step(:step='3' :complete='profile.setup_step > 3' :editable='profile.setup_step > 3'
-            edit-icon='$complete' color='accent') Identity
-        v-stepper-step(:step='4' color='accent') Security
+            edit-icon='$complete' color='accent') Security
+        v-stepper-step(:step='4' color='accent') Identity
 
     v-stepper-items
 
@@ -46,16 +46,6 @@ v-stepper(:value='profile.setup_step' @change='change_step')
                 app-btn(@click='next_step' :disabled='!profile.host.cloud') Next
 
         v-stepper-content(:step='3')
-            img.decor(src='_assets/decor/setup_id.png')
-            h2(class='text-h6 my-6') How would you like to identify yourself?
-            p(class='text--secondary body-2') When inviting contacts to read your messages
-            app-security-alert(class='my-12') Personalize enough for recipients to trust it's you, but don't include anything sensitive as this info won't expire with messages
-            route-profile-identity(:profile='profile' :clipboard='false')
-            div.nav
-                app-btn(@click='prev_step') Prev
-                app-btn(@click='next_step' :disabled='!profile.msg_options_identity.sender_name') Next
-
-        v-stepper-content(:step='4')
             img.decor(src='_assets/decor/setup_security.png')
             h2(class='text-h6 my-6') How important is security to you?
             p(class='text--secondary body-2 mb-8') These can be customised in more detail later on.
@@ -71,11 +61,22 @@ v-stepper(:value='profile.setup_step' @change='change_step')
                             v-list-item-subtitle {{ option.subtitle2 }}
             div.nav
                 app-btn(@click='prev_step') Prev
+                app-btn(@click='next_step' :disabled='security_choice === null') Next
+
+        v-stepper-content(:step='4')
+            img.decor(src='_assets/decor/setup_id.png')
+            h2(class='text-h6 my-6') How would you like to identify yourself?
+            p(class='text--secondary body-2') When inviting contacts to read your messages
+            app-security-alert(class='my-12') Personalize enough for recipients to trust it's you, but don't include anything sensitive as this info won't expire with messages
+            route-profile-identity(:profile='profile' :clipboard='false')
+            div.nav
+                app-btn(@click='prev_step') Prev
                 div.done
-                    app-btn(@click='done_return' :disabled='security_choice === null') Done
+                    app-btn(@click='done_return'
+                        :disabled='!profile.msg_options_identity.sender_name') Done
                     br
-                    app-btn(@click='done' :disabled='security_choice === null' color='')
-                        | Customise further
+                    app-btn(@click='done' :disabled='!profile.msg_options_identity.sender_name'
+                        color='') Customise further
 
 </template>
 
@@ -120,7 +121,7 @@ export default class extends Vue {
             code: 'high',
             title: "High security",
             subtitle1: "Sacrifice some convenience for security",
-            subtitle2: "Messages expire after a few weeks",
+            subtitle2: "Messages expire after a month",
             settings: {
                 options: {
                     notify_include_contents: false,
@@ -129,7 +130,7 @@ export default class extends Vue {
                     social_referral_ban: true,
                 },
                 msg_options_security: {
-                    lifespan: 7 * 3,
+                    lifespan: 31,
                     max_reads: 10,
                 },
             },
@@ -138,7 +139,7 @@ export default class extends Vue {
             code: 'very_high',
             title: "Very high security",
             subtitle1: "Force my recipients to read quickly and reply securely",
-            subtitle2: "Messages expire after a few days",
+            subtitle2: "Messages expire after a week",
             settings: {
                 // Ideally keep these in sync with defaults in database/profiles.ts
                 options: {
@@ -148,8 +149,8 @@ export default class extends Vue {
                     social_referral_ban: true,
                 },
                 msg_options_security: {
-                    lifespan: 3,
-                    max_reads: 1,
+                    lifespan: 7,
+                    max_reads: 3,
                 },
             },
         },
@@ -163,6 +164,12 @@ export default class extends Vue {
         }
         for (const [prop, value] of Object.entries(settings.msg_options_security)){
             this.profile.msg_options_security[prop] = value
+        }
+        // Add an extra line to invite tmpl if message will expire
+        if (this.profile.msg_options_security.lifespan !== Infinity
+                && !this.profile.msg_options_identity.invite_tmpl_email.includes('msg_lifespan')){
+            this.profile.msg_options_identity.invite_tmpl_email +=
+                `<p>(message will expire in <span data-mention data-id='msg_lifespan'></span>)</p>`
         }
         self._db.profiles.set(this.profile)
     }

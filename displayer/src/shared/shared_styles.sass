@@ -244,3 +244,13 @@
 
     iframe
         border-style: none
+
+    mark
+        color: inherit
+        background-color: rgba(100%, 100%, 0%, 75%)
+        outline: 3px solid rgba(100%, 100%, 0%, 75%)  // Extend bg without affecting spacing
+    @media screen
+        &.dark mark
+            // NOTE Still brightish for dark mode as highlight known for being bright yellow
+            background-color: rgba(100%, 100%, 0%, 30%)
+            outline: 3px solid rgba(100%, 100%, 0%, 30%)

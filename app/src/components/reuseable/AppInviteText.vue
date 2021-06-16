@@ -2,7 +2,7 @@
 <template lang='pug'>
 
 div.root
-    app-textarea(:value='value' @input='input' label="Notification template for copy/pasting"
+    app-textarea(:value='value' @input='input' label="Text invitation (for copy/pasting)"
         :hint='suggestions')
     div.preview-label Preview
     //- Clicking disabled so can't click link in preview

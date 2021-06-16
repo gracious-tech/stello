@@ -99,7 +99,7 @@ export default class extends Vue {
         try {
             await user_storage.upload_file('credentials', encrypted, this.sharing_lifespan)
         } catch (error) {
-            (this as any).$network_error(error)
+            this.$network_error(error)
             this.waiting = false
             return
         }

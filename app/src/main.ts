@@ -23,6 +23,7 @@ import AppBtn from '@/components/global/AppBtn.vue'
 import AppBtnCheckbox from '@/components/global/AppBtnCheckbox.vue'
 import AppSVG from '@/components/global/AppSVG.vue'
 import AppText from '@/components/global/AppText.vue'
+import AppHtml from '@/components/global/AppHtml.vue'
 import AppTextarea from '@/components/global/AppTextarea.vue'
 import AppFile from '@/components/global/AppFile.vue'
 import AppSwitch from '@/components/global/AppSwitch.vue'
@@ -37,15 +38,19 @@ import AppSecurityIcon from '@/components/global/AppSecurityIcon.vue'
 import AppSecurityAlert from '@/components/global/AppSecurityAlert.vue'
 
 
-// Include third-party CSS
-import 'medium-editor/dist/css/medium-editor.css'
-import 'medium-editor/dist/css/themes/flat.css'
-
-
 // Trigger addition of generic styles (webpack config will still put in separate css file)
 import '@/styles/generic.sass'
 import '@/shared/shared_styles.sass'
 import '@/styles/fonts.css'
+
+
+// Declare custom props on Vue instances
+declare module "vue/types/vue" {
+    interface Vue {
+        $network_error:(error:any)=>void
+        $tm:TaskManager
+    }
+}
 
 
 // Vue config
@@ -79,7 +84,7 @@ Vue.config.warnHandler = (msg, vm, trace) => {
 
 
 // Add global method for handling network errors
-Vue.prototype.$network_error = function(error:any){
+Vue.prototype.$network_error = function(error:any):void{
     // Handle network error at a UI level
     // TODO Also handle Google network errors etc
     if (error instanceof Error && (error as AWSError).code === 'NetworkingError'){
@@ -108,6 +113,7 @@ Vue.component('app-btn', AppBtn)
 Vue.component('app-btn-checkbox', AppBtnCheckbox)
 Vue.component('app-svg', AppSVG)
 Vue.component('app-text', AppText)
+Vue.component('app-html', AppHtml)
 Vue.component('app-textarea', AppTextarea)
 Vue.component('app-file', AppFile)
 Vue.component('app-switch', AppSwitch)
@@ -180,11 +186,6 @@ const vuetify = new Vuetify({
 
 
 // Expose task manager in components
-declare module "vue/types/vue" {
-    interface Vue {
-        $tm:TaskManager
-    }
-}
 Vue.prototype.$tm = task_manager
 
 

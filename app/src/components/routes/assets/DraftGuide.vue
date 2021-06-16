@@ -26,9 +26,16 @@ div.root(:class='{showing: show_guide}')
         p Sections are normally displayed one after the other. You can display two sections side-by-side with the #[app-svg(name='icon_section_merge')] button and separate them again with #[app-svg(name='icon_section_separate')], or swap them with #[app-svg(name='icon_swap_horiz')]. Normal text will wrap around whatever content it is placed next to.
         p This only happens on large screens (like computers) where as on small screens (like phones) Stello will automatically revert to a single column format.
 
-        h2(class='text-h6') Styling
-        p Customise the style of text by selecting the words you wish to change and then styling options will appear. You can also make whole text sections standout more (or less) via the #[app-svg(name='icon_settings')] settings.
+        h2(class='text-h6') Formatting &amp; Style
+        p There are three main ways to change the style and formatting of text:
+        ol
+            li Every new line you can either type normal text or create a heading #[app-svg(name='icon_heading')], list #[app-svg(name='icon_list_numbered')], etc
+            li Select text to make it bold #[app-svg(name='icon_format_bold')], italic #[app-svg(name='icon_format_italic')], etc
+            li Change the text section's settings #[app-svg(name='icon_settings')] to make the whole section standout more or less
         p(class='note') Stello has intentionally limited styling options. This is because the default style and layout is already designed to be as easy to read as possible. While you may wish to change the font, color, size, alignment etc, these can end up making your message harder to read. Stello automatically changes font size, color, and layout depending on the size of screen (such as phone or desktop) and the preference of the reader. Instead, simply focus on your content and Stello will take care of the rest.
+
+        h2(class='text-h6') Dynamic content
+        p Click or type #[app-svg(name='icon_tag')] to add dynamic content (also known as merge fields). A placeholder will be added that will be replaced with the real value when the message is sent. For example, it could be the date of sending, or the contact's name.
 
         h2(class='text-h6') Dark mode
         p Your message will appear light or dark depending on the preference of each recipient (defaulting to light). This is important, as reading light messages at night can be blinding, and dark ones during the day can be hard to read.
@@ -110,7 +117,7 @@ export default class extends Vue {
             margin-top: 36px
             margin-bottom: 12px
 
-        p
+        p, li
             svg
                 margin: 0 4px
                 vertical-align: text-bottom

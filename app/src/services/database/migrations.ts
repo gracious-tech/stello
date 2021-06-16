@@ -11,7 +11,7 @@ type VersionChangeTransaction = IDBPTransaction<
 >
 
 
-export const DATABASE_VERSION = 7
+export const DATABASE_VERSION = 8
 
 
 export function migrate(transaction:VersionChangeTransaction, old_version:number){
@@ -34,6 +34,8 @@ export function migrate(transaction:VersionChangeTransaction, old_version:number
             to6(transaction)
         case 6:
             to7(transaction)
+        case 7:
+            to8(transaction)
     }
 }
 
@@ -217,5 +219,24 @@ async function to7(transaction:VersionChangeTransaction):Promise<void>{
             cursor.value.content.caption = ''
             cursor.update(cursor.value)
         }
+    }
+}
+
+
+async function to8(transaction:VersionChangeTransaction):Promise<void>{
+
+    for await (const cursor of transaction.objectStore('profiles')){
+        // Order of profile setup steps changed
+        if (cursor.value.setup_step === 4){
+            cursor.value.setup_step = 3
+        }
+        // Template variables changed
+        cursor.value.msg_options_identity.invite_tmpl_email =
+            cursor.value.msg_options_identity.invite_tmpl_email
+            .replaceAll('CONTACT', '<span data-mention data-id="contact_hello"></span>')
+            .replaceAll('SENDER', '<span data-mention data-id="sender_name"></span>')
+            .replaceAll('SUBJECT', '<span data-mention data-id="msg_title"></span>')
+            .replaceAll('LINK', '')  // Already resolved to blank post v0.1.1
+        cursor.update(cursor.value)
     }
 }

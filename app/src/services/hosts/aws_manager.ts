@@ -152,8 +152,6 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
 
     cloud:HostCloud = 'aws'
     credentials:HostCredentials
-    bucket:string
-    region:string
     version:number
 
     iam:AWS.IAM

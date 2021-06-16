@@ -14,6 +14,7 @@
 // Own variables
 $header-width: 800px
 $content-width: 600px
+$tooltip_height: 26px
 $stello_sidebar_width: 250px
 $stello_scrollbar_width: 12px
 $stello_layout_width: $stello_sidebar_width + $stello_scrollbar_width
@@ -48,3 +49,28 @@ $stello_layout_width: $stello_sidebar_width + $stello_scrollbar_width
     @media screen  // Theme always light for printing
         #app.dark &
             opacity: map-get($material-dark, map-get($types, $type))
+
+
+@mixin tooltip
+    // The styles needed for a ::before or ::after pseudo-element (see generic.sass for use)
+    display: flex
+    align-items: center
+    z-index: 30
+    position: absolute
+    @include themed(background-color, black, white)
+    @include themed(color, rgba(white, 0.8), rgba(black, 0.8))
+    border-radius: 10px
+    height: $tooltip_height
+    font-size: 14px
+    text-transform: none
+    padding: 0 8px
+    box-shadow: 0 1px 4px 0 rgba(black, 10%)
+    pointer-events: none  // Don't keep open when hovering over tooltip (rather than target)
+    font-family: Roboto, sans-serif
+    font-weight: normal
+    letter-spacing: normal
+    white-space: nowrap
+    transition: all 100ms ease-out
+    // Properties that should change when visible
+    opacity: 0
+    top: -10px

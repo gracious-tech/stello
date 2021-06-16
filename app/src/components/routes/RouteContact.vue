@@ -22,7 +22,7 @@ div
 
         div.names
             app-text(v-model='name' :readonly='synced' label="Full name" @click='synced_change_name')
-            app-text(v-model='name_hello' :placeholder='contact.name_hello_result' label="Address as"
+            app-text(v-model='name_hello' :placeholder='contact.name_hello_result' label="Greet as"
                 hint="Defaults to first name")
 
         app-text(v-model.trim='address' :readonly='synced' @click='synced_change_email'

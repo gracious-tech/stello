@@ -35,14 +35,11 @@ en:
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
-import AppInviteHtml from '@/components/reuseable/AppInviteHtml.vue'
 import {Draft} from '@/services/database/drafts'
 import {Profile} from '@/services/database/profiles'
 
 
-@Component({
-    components: {AppInviteHtml},
-})
+@Component({})
 export default class extends Vue {
 
     @Prop() draft:Draft

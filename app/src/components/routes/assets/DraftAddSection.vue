@@ -5,9 +5,9 @@ div.addbar(:class='{visible}')
     span.prompt(v-if='visible' class='noselect') Add a section
     app-btn.plus(icon='add')
     div.buttons
-        app-btn(@click='add_text' icon='subject')
-        app-btn(@click='add_images' icon='image')
-        app-btn(@click='add_video' icon='video')
+        app-btn(@click='add_text' icon='subject' data-tip="Add text")
+        app-btn(@click='add_images' icon='image' data-tip="Add images")
+        app-btn(@click='add_video' icon='video' data-tip="Add a video")
         //- app-btn(icon='pie_chart')
         //- app-btn(icon='attach_file')
         //- app-btn(icon='library_books')

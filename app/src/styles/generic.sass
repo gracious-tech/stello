@@ -24,6 +24,10 @@ video:focus
     outline-style: none
 
 
+*[contenteditable]:focus
+    outline-style: none
+
+
 input, textarea
     color: inherit
 
@@ -46,6 +50,12 @@ hr
 ::-moz-focus-inner
     // Remove dotted outline around focused buttons etc (Firefox only)
     border-style: none
+
+
+::selection
+    // Make text selections match color scheme of app
+    // WARN May be hard to read if selecting already accented text
+    background-color: rgba($accent, 0.5)
 
 
 body
@@ -210,55 +220,6 @@ html
         background-color: white
 
 
-// Other overrides of third-party code
-
-
-.medium-editor-toolbar
-    border-radius: 4px
-    background-color: $accent
-
-    li button
-        min-width: 45px
-        height: 45px
-        padding: 0
-        color: $on_accent
-        border-right-color: rgba($on_accent, 0.25)
-
-        &:hover
-            background-color: $accent_lighter
-            color: $on_accent_lighter
-
-        &.medium-editor-button-active
-            background-color: $accent_darker
-            color: $on_accent_darker
-
-    &:after  // Arrow underneath toolbar
-        top: 45px
-        border-top-color: $accent
-
-    .medium-editor-toolbar-form  // URL editor
-
-        .medium-editor-toolbar-input
-            background-color: $accent
-            color: $on_accent
-            height: 45px
-
-            &::placeholder
-                color: rgba($on_accent, 0.5)
-
-        a
-            color: $on_accent
-
-
-.medium-editor-placeholder:after  // Placeholder text over editable element when empty
-    @include themed(color, rgba(#000, 0.25), rgba(#fff, 0.25))
-    cursor: text  // Stop placeholder from changing text cursor to normal arrow on hover
-
-.stello-displayer:not(.dark) .medium-editor-placeholder:after
-    // Fix dark-on-light when within stello-displayer which has own dark setting
-    color: rgba(#000, 0.25)
-
-
 // Custom
 
 
@@ -344,3 +305,15 @@ html
         opacity: map-get($material-light, 'secondary-text-percent')
     .opacity-disabled
         opacity: map-get($material-light, 'disabledORhints-text-percent')
+
+
+// Tooltip
+// NOTE ::after used since Vuetify buttons make use of ::before
+[data-tip]::after
+    @include tooltip
+    content: attr(data-tip)
+[data-tip]:hover::after
+    top: -$tooltip_height - 6
+    opacity: 1 !important
+[data-tip]:not([data-tip-instant]):hover::after
+    transition-delay: 500ms

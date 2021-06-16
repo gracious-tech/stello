@@ -293,19 +293,18 @@ export class DatabaseProfiles {
             },
             msg_options_identity: {
                 sender_name: '',
-                // WARN Keep templates the same as user will expect them to be (may not change them)
                 invite_tmpl_email: `
-                    <p>Dear CONTACT,</p>
+                    <p>Hi <span data-mention data-id='contact_hello'></span>,</p>
                     <p>Please see below for latest news.</p>
-                    <p>Regards,<br>SENDER</p>
+                    <p>Regards,<br><span data-mention data-id='sender_name'></span></p>
                 `,
                 invite_tmpl_clipboard: ""
-                    + "Dear CONTACT, please see below for latest news. Regards, SENDER"
+                    + "Hi CONTACT, please see below for latest news. Regards, SENDER"
                     + "\n\nSUBJECT\nLINK",
             },
             msg_options_security: {
-                lifespan: 3,
-                max_reads: 1,
+                lifespan: 7,
+                max_reads: 3,
             },
         })
         await this._conn.add('profiles', profile)

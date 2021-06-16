@@ -42,7 +42,7 @@ const routes:RouteConfig[] = [
 // Make all routes strict (don't remove trailing slashes) and case-sensitive
 // TODO Refactor after implemented https://github.com/vuejs/vue-router/issues/2404
 for (const route of routes){
-    (route as any).pathToRegexpOptions = {strict: true, sensitive: true}
+    route.pathToRegexpOptions = {strict: true, sensitive: true}
 }
 
 

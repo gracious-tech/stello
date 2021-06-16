@@ -109,10 +109,6 @@ export default class extends Vue {
                 border-bottom-color: #0000
                 border-left-color: #0000
 
-                ::v-deep .medium-editor-placeholder::after
-                    // Stop no-text placeholder overlapping left floats
-                    left: $stello_float_width + $stello_gutter
-
             &.wrap-right section:nth-child(2)
                 border-top-color: #0000
                 border-bottom-color: #0000

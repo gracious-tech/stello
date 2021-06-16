@@ -1,4 +1,6 @@
 
+import {cloneDeep} from 'lodash'
+
 import DialogEmailSettings from '@/components/dialogs/reuseable/DialogEmailSettings.vue'
 import {Task} from './tasks'
 import {Message} from '../database/messages'
@@ -14,8 +16,9 @@ import {SECTION_IMAGE_WIDTH} from '../misc'
 import {HostUser} from '../hosts/types'
 import {send_emails} from '../native/native'
 import type {PublishedCopyBase, PublishedAsset, PublishedCopy, PublishedSection, PublishedImage,
-    } from '@/shared/shared_types'
+    PublishedContentText} from '@/shared/shared_types'
 import {render_invite_html} from '../misc/invites'
+import {gen_variable_items, update_template_values, TemplateVariables} from '../misc/templates'
 import {MustReauthenticate, MustReconfigure, MustReconnect} from '../utils/exceptions'
 import {Email} from '../native/types'
 import {send_emails_oauth} from './email'
@@ -72,6 +75,13 @@ export class Sender {
     task:Task
     profile:Profile
     host:HostUser
+    tmpl_variables:TemplateVariables
+
+    get sender_name():string{
+        // Get sender name, accounting for inheritance from profile
+        return this.msg.draft.options_identity.sender_name
+            || this.profile.msg_options_identity.sender_name
+    }
 
     async send(task:Task):Promise<void>{
         // Encrypt and upload assets and copies, and send email invites
@@ -98,10 +108,15 @@ export class Sender {
         // Init storage client for the message
         this.host = this.profile.new_host_user()
 
+        // Generate values for dynamic content
+        // NOTE Contact values set to null as will update per copy
+        this.tmpl_variables = gen_variable_items(null, null, this.sender_name,
+            this.msg.draft.title, this.msg.published, this.msg.max_reads, this.msg.lifespan)
+
         // Process sections and produce assets
         const sections_data = await Promise.all(this.msg.draft.sections.map(
             async row => await Promise.all(row.map(sid => self._db.sections.get(sid)))))
-        const [pub_sections, assets] = await process_sections(sections_data)
+        const [pub_sections, assets] = await process_sections(sections_data, this.tmpl_variables)
 
         // Encrypt and upload assets
         await concurrent(assets.map(asset => {
@@ -164,6 +179,19 @@ export class Sender {
         // Package copy's data
         const pub_copy:PublishedCopy = {
             ...pub_copy_base,
+            // Clone sections so can replace contact variables without affecting `pub_copy_base`
+            sections: pub_copy_base.sections.map(srow => srow.map(section => {
+                if (section.content.type !== 'text'){
+                    return section  // No need to clone non-text sections, just pass original
+                }
+                const cloned = cloneDeep(section) as PublishedSection<PublishedContentText>
+                // NOTE Not passing `empty` arg so that other variables are not touched
+                cloned.content.html = update_template_values(cloned.content.html, {
+                    contact_hello: {value: copy.contact_hello, label: ''},
+                    contact_name: {value: copy.contact_name, label: ''},
+                })
+                return cloned
+            })),
         }
 
         // Encrypt and upload
@@ -206,25 +234,27 @@ export class Sender {
 
         // Construct properties common to all emails
         const from = {
-            name: this.msg.draft.options_identity.sender_name
-                || this.profile.msg_options_identity.sender_name,
+            name: this.sender_name,
             address: this.profile.email,
         }
         const title = this.msg.draft.title
-        const template = this.profile.msg_options_identity.invite_tmpl_email
+        let template = this.profile.msg_options_identity.invite_tmpl_email  // TODO inherit
+
+        // Do initial contact-ambigious replacement of template variables
+        template = update_template_values(template, this.tmpl_variables, '-')
 
         // Generate email objects from copies
         const emails:Email[] = await Promise.all(copies.map(async copy => {
+            const contents = update_template_values(template, {
+                contact_hello: {value: copy.contact_hello, label: ''},
+                contact_name: {value: copy.contact_name, label: ''},
+            })
+            const url = this.profile.view_url(copy.id, await export_key(copy.secret))
             return {
                 id: copy.id,  // Use copy's id for email id for matching later
                 to: {name: copy.contact_name, address: copy.contact_address},
                 subject: title,
-                html: render_invite_html(template, {
-                    contact: copy.contact_hello,
-                    sender: from.name,
-                    title: title,
-                    url: this.profile.view_url(copy.id, await export_key(copy.secret)),
-                }),
+                html: render_invite_html(contents, title, url),
             }
         }))
 
@@ -250,7 +280,7 @@ export class Sender {
 }
 
 
-async function process_sections(sections:Section[][])
+async function process_sections(sections:Section[][], tmpl_variables:TemplateVariables)
         :Promise<[PublishedSection[][], PublishedAsset[]]>{
     // Process sections and produce assets
     // WARN Avoid deep copying sections in case includes sensitive data (e.g. added in future)
@@ -260,7 +290,7 @@ async function process_sections(sections:Section[][])
     for (const row of sections){
         const pub_row = []
         for (const section of row){
-            pub_row.push(await process_section(section, pub_assets))
+            pub_row.push(await process_section(section, pub_assets, tmpl_variables))
         }
         pub_sections.push(pub_row)
     }
@@ -269,7 +299,7 @@ async function process_sections(sections:Section[][])
 
 
 async function process_section(section:Section, pub_assets:PublishedAsset[],
-        ):Promise<PublishedSection>{
+        tmpl_variables:TemplateVariables):Promise<PublishedSection>{
     // Take section and produce publishable form and any assets required
 
     // Handle text
@@ -279,7 +309,7 @@ async function process_section(section:Section, pub_assets:PublishedAsset[],
             respondable: section.respondable_final,
             content: {
                 type: 'text',
-                html: section.content.html,
+                html: update_template_values(section.content.html, tmpl_variables, '-'),
                 standout: section.content.standout,
             },
         }

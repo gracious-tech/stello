@@ -11,8 +11,6 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
 
     cloud:HostCloud = 'aws'
     credentials:HostCredentials
-    bucket:string
-    region:string
     user:string
 
     _prefix:string

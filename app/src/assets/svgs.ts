@@ -39,6 +39,10 @@ export default {
     icon_section_merge:     require('@/assets/icon_section_merge.svg').default,
     icon_section_separate:  require('@/assets/icon_section_separate.svg').default,
     icon_mark_chat_read:    require('@/assets/icon_mark_chat_read.svg').default,
+    icon_tag:               require('@/assets/icon_tag.svg').default,
+    icon_highlight:         require('@/assets/icon_highlight.svg').default,
+    icon_heading:           require('@/assets/icon_heading.svg').default,
+    icon_subheading:        require('@/assets/icon_subheading.svg').default,
 
     // Material icons
     icon_chat_bubble_outline: require('md-icon-svgs/chat_bubble_outline.svg').default,

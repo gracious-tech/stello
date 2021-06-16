@@ -1,12 +1,9 @@
 // Utils that have dependencies or are app-specific
 
-import MediumEditor from 'medium-editor'
 import {debounce} from 'lodash'
 import {VSelect} from 'vuetify/lib/components/VSelect'
 import {VAutocomplete} from 'vuetify/lib/components/VAutocomplete'
 import {formatDistanceStrict} from 'date-fns'
-
-import svgs from '@/assets/svgs'
 
 
 // SECTION SIZES
@@ -60,51 +57,10 @@ export function debug(arg:any){
 }
 
 
-export function activate_editor(elements){
-    // Activate elements as editable and enable visual editor toolbar (returns deactivator)
-    // WARN Ensure returned deactivator is called as MediumEditor won't cleanup automatically
-    // NOTE elements arg takes same options as MediumEditor (single/multiple, string/elements)
-    // NOTE Editor cannot be init'd without any elements, so must init upon first use instead
-    //      https://github.com/yabwe/medium-editor/issues/1260
-
-    // If editor already exists, simply add given elements to it
-    if (self._editor){
-        self._editor.addElements(elements)
-    } else {
-        // Editor doesn't exist yet, so init with given elements
-        self._editor = new MediumEditor(elements, {
-            autoLink: true,
-            targetBlank: true,
-            imageDragging: false,
-            toolbar: {
-                buttons: [
-                    {name: 'bold', contentDefault: svgs.icon_format_bold},
-                    {name: 'italic', contentDefault: svgs.icon_format_italic},
-                    {name: 'anchor', contentDefault: svgs.icon_link},
-                    {name: 'h1', contentDefault: svgs.icon_title},
-                    {name: 'h2', contentDefault: svgs.icon_text_fields},
-                    {name: 'orderedlist', contentDefault: svgs.icon_list_numbered},
-                    {name: 'unorderedlist', contentDefault: svgs.icon_list_bulleted},
-                    {name: 'quote', contentDefault: svgs.icon_format_quote},
-                ],
-            },
-            placeholder: {
-                // WARN Hiding on click can result in buggy focus issue
-                // See https://github.com/yabwe/medium-editor/issues/1560
-                hideOnClick: false,
-            },
-        })
-    }
-
-    // Return deactivator
-    return () => {self._editor.removeElements(elements)}
-}
-
-
-export function time_between(date:Date, comparator:Date=new Date()):string{
+export function time_between(date:Date, comparator:Date=new Date(), tense=true):string{
     // Format a date relative to comparator (which defaults to now)
     // NOTE "strict" version isn't really strict, and is better described as "vague"
     //      as it doesn't specify if "around" an amount or exactly the amount
     // NOTE addSuffix adds "ago" suffix if in past, and "in" prefix if in future
-    return formatDistanceStrict(date, comparator, {addSuffix: true})
+    return formatDistanceStrict(date, comparator, {addSuffix: tense})
 }
