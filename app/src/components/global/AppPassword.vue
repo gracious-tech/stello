@@ -7,7 +7,8 @@ app-text(
     v-bind='$attrs'
 )
     template(#append)
-        app-btn(@click='visible = !visible' :icon='visible ? "visibility" : "visibility_off"')
+        app-btn(@click='visible = !visible' :icon='visible ? "visibility" : "visibility_off"'
+            data-tip="Reveal/hide")
 
 </template>
 

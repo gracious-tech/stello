@@ -7,11 +7,8 @@ v-list-item(:to='to')
             | {{ draft.display }}
     v-list-item-action(class='flex-row align-center')
         v-chip(v-if='is_default' small class='mr-3') default
-        v-tooltip(v-if='draft.template' top)
-            | Use for new draft
-            template(#activator='tooltip')
-                app-btn(v-bind='tooltip.attrs' v-on='tooltip.on' @click.prevent='copy_to_draft'
-                    icon='post_add')
+        app-btn(v-if='draft.template' @click.prevent='copy_to_draft' icon='post_add'
+            data-tip="Use for new draft")
         app-menu-more
             app-list-item(@click='duplicate') Duplicate
             app-list-item(v-if='!draft.template' @click='make_template') Turn into template

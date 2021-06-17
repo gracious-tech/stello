@@ -6,7 +6,8 @@ v-card(class='my-8')
     div.header(class='d-flex align-center justify-space-between'
             :class='{"app-bg-primary-relative": sectionless}')
         span(@click='go_to_msg' class='text-subtitle-2 ml-4') {{ msg_title }}
-        app-btn(v-if='!all_archived' @click='archive_all' icon='archive' class='mr-2')
+        app-btn(v-if='!all_archived' @click='archive_all' icon='archive' class='mr-2'
+            data-tip="Archive all")
 
     div.section_content(v-if='!sectionless' :class='{img: section_image, expanded: section_expanded}')
         img(v-if='section_image' :src='section_image')

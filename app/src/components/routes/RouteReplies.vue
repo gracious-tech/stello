@@ -5,7 +5,7 @@ div
     v-toolbar
         v-toolbar-title Responses
         v-spacer
-        app-btn(@click='download' icon='cloud_download')
+        app-btn.download(@click='download' icon='cloud_download' data-tip="Check for new responses")
 
     div.filters(class='app-bg-primary-relative')
         div.inner(class='d-flex justify-space-around align-center pa-3')
@@ -179,6 +179,11 @@ export default class extends Vue {
 
 
 <style lang='sass' scoped>
+
+.download::after
+    // Position tooltip to left so doesn't go off page
+    top: auto !important
+    right: 60px
 
 .filters
 

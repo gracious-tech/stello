@@ -1,12 +1,7 @@
 
 <template lang='pug'>
 
-v-tooltip(top open-on-click)
-
-    template(#activator='tooltip')
-        app-btn(v-bind='tooltip.attrs' v-on='tooltip.on' icon='privacy_tip' color='#ffc400')
-
-    span {{ msg }}
+app-btn(icon='privacy_tip' color='#ffc400' :data-tip='msg')
 
 </template>
 

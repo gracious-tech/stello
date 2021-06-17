@@ -85,10 +85,11 @@ export default class extends Vue {
         .movebar
             position: absolute
             margin-left: -$stello_gutter
+            z-index: 10  // Raise above section content so can show tooltips over them
 
             &:hover
                 opacity: 1 !important
-                z-index: 1  // Raise over other movebars when using (needed when they overlap)
+                z-index: 10 + 1  // Raise over other movebars when using (needed when they overlap)
 
             // Hide bar contents rather than bar itself so can still trigger hover
             ::v-deep > *

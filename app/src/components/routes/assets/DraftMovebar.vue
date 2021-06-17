@@ -5,14 +5,12 @@ div.movebar
 
     app-btn(icon='arrow_upward' @click='move_up' :disabled='is_first')
 
-    //- NOTE internal-activator prevents tooltip getting stuck after button toggled
-    v-tooltip(internal-activator right)
-        template(#activator='tooltip')
-            app-btn(@click='toggle_merge' :icon='toggle_merge_icon'
-                :disabled='!is_merged && !mergable' v-bind='tooltip.attrs' v-on='tooltip.on')
-        span {{ toggle_merge_tooltip }}
+    app-btn(@click='toggle_merge' :icon='toggle_merge_icon' :disabled='!is_merged && !mergable'
+        :data-tip='toggle_merge_tooltip' data-tip-instant)
 
-    app-btn(v-if='is_merged' icon='swap_horiz' @click='swap')
+    app-btn(v-if='is_merged' icon='swap_horiz' @click='swap' data-tip="Swap positions"
+        data-tip-instant)
+
     app-btn(icon='arrow_downward' @click='move_down' :disabled='is_last')
 
 </template>
@@ -106,5 +104,10 @@ export default class extends Vue {
 .movebar
     display: flex
     flex-direction: column
+
+[data-tip]::after
+    // Position tooltip on right of button as can't show above left sidebar
+    top: auto !important
+    left: 60px
 
 </style>

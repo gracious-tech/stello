@@ -21,16 +21,10 @@ div
 
         v-spacer
 
-        v-tooltip(v-if='draft.template' left)
-            | Use for new draft
-            template(#activator='tooltip')
-                app-btn(v-bind='tooltip.attrs' v-on='tooltip.on' @click='copy_to_draft' fab
-                    icon='post_add')
-        v-tooltip(v-else :disabled='!sending_barrier' left)
-            | {{ sending_barrier }}
-            template(#activator='tooltip')
-                app-btn(@click='send' :class='{barrier: sending_barrier}' icon='send' fab
-                    v-bind='tooltip.attrs' v-on='tooltip.on')
+        app-btn(v-if='draft.template' @click='copy_to_draft' fab icon='post_add'
+            data-tip="Use for new draft" data-tip-instant)
+        app-btn(v-else @click='send' :class='{barrier: sending_barrier}' icon='send' fab
+            :data-tip='sending_barrier' data-tip-instant)
 
         //- Second row of toolbar
         template(#extension)
@@ -294,6 +288,11 @@ export default class extends Vue {
 
         &.barrier
             filter: saturate(25%)
+
+        &::after
+            // Position tooltip to left of button so doesn't go off page
+            top: auto
+            right: 70px
 
     .v-toolbar__extension
         height: auto !important

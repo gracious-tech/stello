@@ -4,11 +4,8 @@
 v-list-item
 
     v-list-item-action
-        v-tooltip(v-if='copy.status === "manual"' right)
-            | Copy invite and mark as sent
-            template(#activator='tooltip')
-                app-btn(@click='copy_invite_and_mark' v-bind='tooltip.attrs' v-on='tooltip.on'
-                    :icon='status_icon')
+        app-btn(v-if='copy.status === "manual"' @click='copy_invite_and_mark' :icon='status_icon'
+            data-tip="Copy invite and mark as sent")
         app-svg(v-else :name='`icon_${status_icon}`' :class='status_class' class='mx-3')
 
     v-list-item-content
@@ -118,6 +115,11 @@ export default class extends Vue {
 
 
 .v-list-item
+
+    [data-tip]::after
+        // Place tooltip bottom right so not hidden by surroundings and doesn't cover contact name
+        top: 50px
+        left: 50px
 
     ::v-deep .menu-more-btn
         visibility: hidden
