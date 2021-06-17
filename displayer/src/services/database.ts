@@ -63,8 +63,8 @@ class DisplayerDatabase {
 
     async connect():Promise<void>{
         // Init connection to the database
-        const db_name = 'stello'  // Change to start fresh after significant refactor
-        this._conn = await openDB<DisplayerDatabaseSchema>(db_name, DATABASE_VERSION, {
+        // WARN May be called again if connection terminated
+        this._conn = await openDB<DisplayerDatabaseSchema>('stello', DATABASE_VERSION, {
             upgrade(db, old_version, new_version, transaction){
                 switch (old_version){
                     default:
@@ -77,6 +77,18 @@ class DisplayerDatabase {
                         const replies = db.createObjectStore('replies', {keyPath: 'id'})
                         replies.createIndex('by_subsect', ['message', 'section', 'subsection'])
                 }
+            },
+            blocked(){
+                // Will soon unblock after other pages refresh...
+                console.info("Database upgrade blocked (probably already resolved)")
+            },
+            blocking(){
+                // If blocking an upgrade, reload to unblock
+                self.location.reload()
+            },
+            terminated: () => {
+                // Some browsers (especially Safari) close connection after a time
+                this.connect()
             },
         }).catch(error => {
             // Firefox doesn't support indexeddb in some cases, so return dummy connection instead
