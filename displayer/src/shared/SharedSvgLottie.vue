@@ -15,6 +15,18 @@ import type {AnimationItem} from 'lottie-web'
 // Dynamically load lottie module so it is not included in the main app bundle
 const lottie_promise = import('lottie-web/build/player/lottie_light')
 
+// Provide extra detail to import failure reports so can debug persisting issue
+// TODO Remove when issue has been resolved
+lottie_promise.catch(error => {
+    self._fail_report(`Couldn't load lottie
+
+        location.pathname: ${location.pathname}
+        import.meta.url: ${import.meta.url}
+        import.meta.env.BASE_URL: ${import.meta.env.BASE_URL}
+
+        ${error}
+    `)
+})
 
 // Keep a cache of responses so don't make same requests multiple times
 const lottie_cache:Record<string, string> = {}
