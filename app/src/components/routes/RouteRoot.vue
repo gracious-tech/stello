@@ -11,19 +11,23 @@ div
                 h1(class='text-h6 mb-0') What's new
                 h1(class='text-subtitle-2 opacity-secondary mt-0') {{ version }}
                 ul
-                    li Animated reactions
-                    li Easier viewing of responses
-                    li Reply to responses
-                p(class='text-body-2') ... plus many little improvements
+                    li Better slideshows
+                    li Highlight text
+                    li Dynamic content (merge fields)
+                        ul
+                            li Address contacts by name within messages
+                            li Include the date a message will expire in emails
+                            li etc
+                p(class='text-body-2') plus many little improvements
 
         div(class='notes')
             div(class='notes-inner')
                 h1(class='text-h6') Still to come
                 ul
                     li Unsubscribing
-                    li Message themes (background &amp; colors)
+                    li Header image for emails
                     li An actually helpful dashboard
-                p + many many more...
+                p plus many many more...
                 app-btn(href='https://give.gracious.tech' color='#fa5788' raised small) Help us
 
 </template>
