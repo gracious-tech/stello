@@ -10,6 +10,13 @@
         "test:unit": "vue-cli-service test:unit"
     },
     "dependencies": {
+        "@aws-sdk/client-ec2": "^3.18.0",
+        "@aws-sdk/client-iam": "^3.18.0",
+        "@aws-sdk/client-lambda": "^3.18.0",
+        "@aws-sdk/client-s3": "^3.18.0",
+        "@aws-sdk/client-sns": "^3.18.0",
+        "@aws-sdk/client-ssm": "^3.18.0",
+        "@aws-sdk/client-sts": "^3.18.0",
         "@openid/appauth": "git+https://github.com/shadow-light/AppAuth-JS.git#custom",
         "@tiptap/extension-highlight": "^2.0.0-beta.14",
         "@tiptap/extension-link": "^2.0.0-beta.18",
@@ -19,7 +26,6 @@
         "@tiptap/starter-kit": "^2.0.0-beta.78",
         "@tiptap/vue-2": "^2.0.0-beta.36",
         "@zip.js/zip.js": "^2.2.23",
-        "aws-sdk": "^2.830.0",
         "date-fns": "^2.19.0",
         "electron": "^11.2.0",
         "idb": "^6.1.2",

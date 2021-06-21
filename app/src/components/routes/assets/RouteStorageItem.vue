@@ -85,8 +85,13 @@ export default class extends Vue {
     async scan(){
         // Scan for Stello storages in the current account
         this.scanning = true
-        this.storages = await this.manager.list_storages()
-        this.scanning = false
+        try {
+            this.storages = await this.manager.list_storages()
+        } catch (error){
+            this.$network_error(error)
+        } finally {
+            this.scanning = false
+        }
     }
 
     async new_storage(){

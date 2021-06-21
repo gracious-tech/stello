@@ -6,7 +6,6 @@ import VueRouter from 'vue-router'
 import VueI18n from 'vue-i18n'
 import Vuetify from 'vuetify/lib'  // WARN Must import from /lib for tree shaking
 import VuetifyRoutable from 'vuetify/lib/mixins/routable'
-import {AWSError} from 'aws-sdk'
 
 // Own modules
 import '@/services/register_hooks'  // WARN Must come before any components imported
@@ -87,7 +86,7 @@ Vue.config.warnHandler = (msg, vm, trace) => {
 Vue.prototype.$network_error = function(error:any):void{
     // Handle network error at a UI level
     // TODO Also handle Google network errors etc
-    if (error instanceof Error && (error as AWSError).code === 'NetworkingError'){
+    if (error instanceof TypeError){
         this.$store.dispatch('show_snackbar',
             "Network error (please check your Internet connection)")
     } else {

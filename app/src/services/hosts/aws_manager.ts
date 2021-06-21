@@ -1,14 +1,21 @@
 // Management of sets of storage services
 // NOTE Must be reuseable outside of Stello app as well (e.g. automation of new users)
 
-import AWS from 'aws-sdk'
 import pako from 'pako'
 import untar from 'js-untar'
+import {SSM} from '@aws-sdk/client-ssm'
+import {IAM} from '@aws-sdk/client-iam'
+import {EC2} from '@aws-sdk/client-ec2'
+import {SNS} from '@aws-sdk/client-sns'
+import {STS} from '@aws-sdk/client-sts'
+import {S3, waitUntilBucketExists} from '@aws-sdk/client-s3'
+import {GetFunctionCommandOutput, Lambda, UpdateFunctionConfigurationCommandInput,
+    waitUntilFunctionExists} from '@aws-sdk/client-lambda'
 
 import {buffer_to_hex} from '@/services/utils/coding'
 import {sleep} from '@/services/utils/async'
 import {Task} from '@/services/tasks/tasks'
-import {StorageBaseAws} from './aws_common'
+import {StorageBaseAws, waitUntilUserExists, waitUntilRoleExists} from './aws_common'
 import {HostCloud, HostCredentials, HostManager, HostManagerStorage, HostPermissionError,
     HostStorageCredentials, HostStorageVersion} from './types'
 import {displayer_asset_type} from './common'
@@ -20,10 +27,10 @@ export class HostManagerAws implements HostManager {
     cloud:HostCloud = 'aws'
     credentials:HostCredentials
 
-    ssm:AWS.SSM
-    s3:AWS.S3
-    iam:AWS.IAM
-    ec2:AWS.EC2  // Used only to get available regions
+    ssm:SSM
+    s3:S3
+    iam:IAM
+    ec2:EC2  // Used only to get available regions
     s3_accessible = true
 
     constructor(credentials:HostCredentials){
@@ -35,18 +42,19 @@ export class HostManagerAws implements HostManager {
 
         // Init services
         const aws_creds = {accessKeyId: credentials.key_id, secretAccessKey: credentials.key_secret}
-        this.ssm = new AWS.SSM({apiVersion: '2014-11-06', credentials: aws_creds, region})
-        this.s3 = new AWS.S3({apiVersion: '2006-03-01', credentials: aws_creds, region})
-        this.iam = new AWS.IAM({apiVersion: '2010-05-08', credentials: aws_creds, region})
-        this.ec2 = new AWS.EC2({apiVersion: '2016-11-15', credentials: aws_creds, region})
+        this.ssm = new SSM({apiVersion: '2014-11-06', credentials: aws_creds, region})
+        this.s3 = new S3({apiVersion: '2006-03-01', credentials: aws_creds, region})
+        this.iam = new IAM({apiVersion: '2010-05-08', credentials: aws_creds, region})
+        this.ec2 = new EC2({apiVersion: '2016-11-15', credentials: aws_creds, region})
 
         // Give best guess as to whether have permission to head/create buckets or not
         // Used to determine if forbidden errors due to someone else owning bucket or not
         // NOTE Done early on to speed up `bucket_available` results
-        this.s3.listBuckets().promise().catch(error => {
+        this.s3.listBuckets({}).catch(error => {
             // If forbidden then don't have s3:ListAllMyBuckets permission
             // Then assume also don't have permission to headBucket, so can't know if exists or not
-            this.s3_accessible = error.code !== 'Forbidden'
+            // TODO `error.name` is buggy https://github.com/aws/aws-sdk-js-v3/issues/1596
+            this.s3_accessible = error.$metadata.httpStatusCode !== 403
         })
     }
 
@@ -62,7 +70,7 @@ export class HostManagerAws implements HostManager {
 
             // Get only users under the /stello/ path
             const params = {PathPrefix: '/stello/', Marker: marker}
-            const resp = await this.iam.listUsers(params).promise()
+            const resp = await this.iam.listUsers(params)
 
             // Extract bucket/region from user's name/path and use to init HostManagerStorageAws
             storages.push(...resp.Users.map(async user => {
@@ -70,7 +78,7 @@ export class HostManagerAws implements HostManager {
                 const region = user.Path.split('/')[2]  // '/stello/{region}/'
                 // Fetch completed setup version (else undefined)
                 // NOTE Despite mentioning it, listUsers does NOT include tags in results itself
-                const tags = await this.iam.listUserTags({UserName: user.UserName}).promise()
+                const tags = await this.iam.listUserTags({UserName: user.UserName})
                 let v = parseInt(tags.Tags.find(t => t.Key === 'stello-version')?.Value, 10)
                 v = Number.isNaN(v) ? undefined : v
                 return new HostManagerStorageAws(this.credentials, bucket, region, v)
@@ -105,40 +113,39 @@ export class HostManagerAws implements HostManager {
         */
         const regions_resp = await this.ec2.describeRegions({
             Filters: [{Name: 'opt-in-status', Values: ['opt-in-not-required', 'opted-in']}],
-        }).promise()
+        })
         return regions_resp.Regions.map(region => region.RegionName)
     }
 
     async get_region_name(region:string):Promise<string>{
         // Return human name for given region
         const path = `/aws/service/global-infrastructure/regions/${region}/longName`
-        const resp = await this.ssm.getParameter({Name: path}).promise()
+        const resp = await this.ssm.getParameter({Name: path})
         return resp.Parameter.Value
     }
 
     async bucket_available(bucket:string):Promise<boolean>{
         // See if a storage id is available
         // NOTE Returns false if taken (whether by own account or third party)
+        // TODO `error.name` is buggy https://github.com/aws/aws-sdk-js-v3/issues/1596
         try {
-            await this.s3.headBucket({Bucket: bucket}).promise()
+            await this.s3.headBucket({Bucket: bucket})
+            return false  // Bucket exists and we own it, so not available
         } catch (error){
-            if (error.code === 'NotFound'){
-                // Bucket doesn't exist, so is available
-                return true
-            }
-            if (error.code === 'Forbidden'){
-                // Confirm if this is a permission issue or if someone else owns the bucket
+            if (error.name === 'NotFound'){
+                return true  // Bucket doesn't exist, so is available
+            } else if (error.$metadata.httpStatusCode === 301){
+                return false  // Bucket exists in a different region to the request
+            } else if (error.$metadata.httpStatusCode === 403){
+                // Was not allowed to access the bucket
                 if (this.s3_accessible){
-                    // Have s3 permissions, and not allowed to access bucket, so someone else owns
-                    return false
+                    return false  // Can access S3 so bucket must be owned by someone else
                 }
-                throw new HostPermissionError(error)
+                throw new HostPermissionError(error)  // Should have been allowed but wasn't
             }
             // Error not a permissions issue, so reraise
             throw error
         }
-        // headBucket succeeded, so bucket exists and we own it, so not available
-        return false
     }
 
     new_storage(bucket:string, region:string):HostManagerStorageAws{
@@ -154,11 +161,11 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
     credentials:HostCredentials
     version:number
 
-    iam:AWS.IAM
-    s3:AWS.S3
-    lambda:AWS.Lambda
-    sns:AWS.SNS
-    sts:AWS.STS
+    iam:IAM
+    s3:S3
+    lambda:Lambda
+    sns:SNS
+    sts:STS
 
     _account_id_cache:string
 
@@ -173,11 +180,11 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
 
         // Init services
         const aws_creds = {accessKeyId: credentials.key_id, secretAccessKey: credentials.key_secret}
-        this.iam = new AWS.IAM({apiVersion: '2010-05-08', credentials: aws_creds, region})
-        this.s3 = new AWS.S3({apiVersion: '2006-03-01', credentials: aws_creds, region})
-        this.lambda = new AWS.Lambda({apiVersion: '2015-03-31', credentials: aws_creds, region})
-        this.sns = new AWS.SNS({apiVersion: '2010-03-31', credentials: aws_creds, region})
-        this.sts = new AWS.STS({apiVersion: '2011-06-15', credentials: aws_creds, region})
+        this.iam = new IAM({apiVersion: '2010-05-08', credentials: aws_creds, region})
+        this.s3 = new S3({apiVersion: '2006-03-01', credentials: aws_creds, region})
+        this.lambda = new Lambda({apiVersion: '2015-03-31', credentials: aws_creds, region})
+        this.sns = new SNS({apiVersion: '2010-03-31', credentials: aws_creds, region})
+        this.sts = new STS({apiVersion: '2011-06-15', credentials: aws_creds, region})
     }
 
     get up_to_date():boolean{
@@ -212,11 +219,11 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
             await task.expected(this.iam.tagUser({
                 UserName: this._user_id,
                 Tags: [{Key: 'stello-version', Value: `${HostStorageVersion}`}],
-            }).promise())
+            }))
 
         } catch (error){
             // Convert permission errors into a generic form so app can handle differently
-            throw error?.code === 'Forbidden' ? new HostPermissionError(error) : error
+            throw error?.name === 'Forbidden' ? new HostPermissionError(error) : error
         }
     }
 
@@ -227,7 +234,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         // Helper to create keys in parallel
         const new_key = async (user_id:string) => {
             await this._delete_user_keys(user_id)
-            return this.iam.createAccessKey({UserName: user_id}).promise()
+            return this.iam.createAccessKey({UserName: user_id})
         }
 
         // Generate new key for both user and responder function
@@ -275,7 +282,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
     async _get_account_id():Promise<string>{
         // Some requests strictly require the account id to be specified
         if (!this._account_id_cache){
-            this._account_id_cache = (await this.sts.getCallerIdentity().promise()).Account
+            this._account_id_cache = (await this.sts.getCallerIdentity({})).Account
         }
         return this._account_id_cache
     }
@@ -301,12 +308,12 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
     async _setup_bucket_create():Promise<void>{
         // Ensure bucket has been created
         try {
-            await this.s3.headBucket({Bucket: this.bucket}).promise()
+            await this.s3.headBucket({Bucket: this.bucket})
         } catch (error){
-            if (error.code !== 'NotFound'){
+            if (error.name !== 'NotFound'){
                 throw error
             }
-            await this.s3.createBucket({Bucket: this.bucket}).promise()
+            await this.s3.createBucket({Bucket: this.bucket})
         }
     }
 
@@ -314,7 +321,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         // Ensure bucket is correctly configured
 
         // Ensure creation has finished, as these tasks rely on it (not just securing id)
-        await this.s3.waitFor('bucketExists', {Bucket: this.bucket}).promise()
+        await waitUntilBucketExists({client: this.s3, maxWaitTime: 30}, {Bucket: this.bucket})
 
         // Define displayer's deployment config for later embedding in displayer code
         const deployment_config = btoa(JSON.stringify({
@@ -360,7 +367,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
                 ContentType: type,
                 ContentEncoding: 'gzip',
                 Body: pako.gzip(contents),
-            }).promise().then(() => file.name))
+            }).then(() => file.name))
         }
 
         // Once other files have been uploaded, can upload index and remove old assets
@@ -374,16 +381,16 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
                 ContentType: 'text/html',
                 ContentEncoding: 'gzip',
                 Body: pako.gzip(index_contents),
-            }).promise()
+            })
 
             // List all old assets
             // NOTE Pagination not used since limit is 1000
             const list_resp = await this.s3.listObjectsV2({
                 Bucket: this.bucket,
                 Prefix: 'displayer/',
-            }).promise()
-            const old_assets = list_resp.Contents.filter(asset => !upload_paths.includes(asset.Key))
-            if (!old_assets.length){
+            })
+            const old_assets = list_resp.Contents?.filter(item => !upload_paths.includes(item.Key))
+            if (!old_assets?.length){
                 return
             }
 
@@ -394,10 +401,10 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
                     Objects: old_assets.map(asset => ({Key: asset.Key})),
                     Quiet: true,  // Don't bother returning success data
                 },
-            }).promise()
+            })
 
             // Delete request may still have errors, even if doesn't throw itself
-            if (delete_resp.Errors.length){
+            if (delete_resp.Errors?.length){
                 throw new Error("Could not delete all objects")
             }
         })
@@ -409,7 +416,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         await this.s3.putBucketTagging({
             Bucket: this.bucket,
             Tagging: {TagSet: [{Key: 'stello', Value: this.bucket}]},
-        }).promise()
+        })
 
         // Set encryption config
         // SECURITY Sensitive data already encrypted, but this may still help some assets
@@ -418,7 +425,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
             ServerSideEncryptionConfiguration: {
                 Rules: [{ApplyServerSideEncryptionByDefault: {SSEAlgorithm: 'AES256'}}],
             },
-        }).promise()
+        })
 
         // Generate list of expiry rules for possible lifespan values (1-365)
         // NOTE Limit is 1,000 rules
@@ -434,7 +441,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         await this.s3.putBucketLifecycleConfiguration({
             Bucket: this.bucket,
             LifecycleConfiguration: {Rules: rules},
-        }).promise()
+        })
 
         // Set access policy
         await this.s3.putBucketPolicy({
@@ -444,7 +451,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
                 Statement: {Effect: 'Allow', Principal: '*', Action: 's3:GetObject',
                     Resource: `${this._bucket_arn}/*`},
             }),
-        }).promise()
+        })
 
         // Resolve when assets promise also completes
         await assets_promise
@@ -456,20 +463,21 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
 
         // Ensure bucket has been created
         try {
-            await this.s3.headBucket({Bucket: this._bucket_resp_id}).promise()
+            await this.s3.headBucket({Bucket: this._bucket_resp_id})
         } catch (error){
-            if (error.code !== 'NotFound'){
+            if (error.name !== 'NotFound'){
                 throw error
             }
-            await this.s3.createBucket({Bucket: this._bucket_resp_id}).promise()
+            await this.s3.createBucket({Bucket: this._bucket_resp_id})
         }
-        await this.s3.waitFor('bucketExists', {Bucket: this._bucket_resp_id}).promise()
+        await waitUntilBucketExists({client: this.s3, maxWaitTime: 30},
+            {Bucket: this._bucket_resp_id})
 
         // Set tag
         await this.s3.putBucketTagging({
             Bucket: this._bucket_resp_id,
             Tagging: {TagSet: [{Key: 'stello', Value: this.bucket}]},
-        }).promise()
+        })
 
         // Set encryption config
         // SECURITY Responses already encrypted, but can't do any harm!
@@ -478,7 +486,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
             ServerSideEncryptionConfiguration: {
                 Rules: [{ApplyServerSideEncryptionByDefault: {SSEAlgorithm: 'AES256'}}],
             },
-        }).promise()
+        })
     }
 
     async _setup_user_create():Promise<void>{
@@ -488,9 +496,9 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
                 UserName: this._user_id,
                 Path: `/stello/${this.region}/`,
                 Tags: [{Key: 'stello', Value: this.bucket}],
-            }).promise()
+            })
         } catch (error){
-            if (error.code !== 'EntityAlreadyExists'){
+            if (error.name !== 'EntityAlreadyExists'){
                 throw error
             }
         }
@@ -500,7 +508,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         // Ensure iam user has correct permissions
 
         // May need to wait if still creating user
-        await this.iam.waitFor('userExists', {UserName: this._user_id}).promise()
+        await waitUntilUserExists({client: this.iam, maxWaitTime: 30}, {UserName: this._user_id})
 
         // Define permissions
         const statements = [
@@ -541,7 +549,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
             UserName: this._user_id,
             PolicyName: 'stello',
             PolicyDocument: JSON.stringify({Version: '2012-10-17', Statement: statements}),
-        }).promise()
+        })
     }
 
     async _setup_lambda_role():Promise<void>{
@@ -562,15 +570,16 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
                             Action: 'sts:AssumeRole'},
                     ],
                 }),
-            }).promise()
+            })
         } catch (error){
-            if (error.code !== 'EntityAlreadyExists'){
+            if (error.name !== 'EntityAlreadyExists'){
                 throw error
             }
         }
 
         // May need to wait if still creating role
-        await this.iam.waitFor('roleExists', {RoleName: this._lambda_role_id}).promise()
+        await waitUntilRoleExists({client: this.iam, maxWaitTime: 30},
+            {RoleName: this._lambda_role_id})
 
         // What the function will be allowed to do
         const statements = [
@@ -593,7 +602,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
             RoleName: this._lambda_role_id,
             PolicyName: 'stello',
             PolicyDocument: JSON.stringify({Version: '2012-10-17', Statement: statements}),
-        }).promise()
+        })
 
         // Lambda requires a significant amount of time before it can discover this role
         await sleep(12000)
@@ -606,15 +615,16 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
                 // NOTE Do NOT add Path param since will confuse storages listing and not needed
                 UserName: this._lambda_invoke_user_id,
                 Tags: [{Key: 'stello', Value: this.bucket}],
-            }).promise()
+            })
         } catch (error){
-            if (error.code !== 'EntityAlreadyExists'){
+            if (error.name !== 'EntityAlreadyExists'){
                 throw error
             }
         }
 
         // May need to wait if still creating user
-        await this.iam.waitFor('userExists', {UserName: this._lambda_invoke_user_id}).promise()
+        await waitUntilUserExists({client: this.iam, maxWaitTime: 30},
+            {UserName: this._lambda_invoke_user_id})
 
         // Put the permissions policy
         await this.iam.putUserPolicy({
@@ -628,12 +638,12 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
                     Action: 'lambda:InvokeFunction',
                 },
             }),
-        }).promise()
+        })
     }
 
     async _setup_lambda_config_has_changed(fn_config:Record<string, any>,
-            fn_config_env:AWS.Lambda.Environment,
-            resp:AWS.Lambda.GetFunctionResponse):Promise<boolean>{
+            fn_config_env:UpdateFunctionConfigurationCommandInput['Environment'],
+            resp:GetFunctionCommandOutput):Promise<boolean>{
         // Return boolean for whether function config has changed since last updated
 
         // Compare simple config values
@@ -658,7 +668,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         // SECURITY Lambda code managed by admin rather than user to prevent malicious code uploads
 
         // Load code so can deploy or compare
-        const fn_code = await (await fetch('responder_aws.zip')).arrayBuffer()
+        const fn_code = new Uint8Array(await (await fetch('responder_aws.zip')).arrayBuffer())
 
         // Function config that can be used in a create or update request
         const fn_config = {
@@ -680,20 +690,22 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         }
 
         // Try get current function's config, else create function
-        let resp:AWS.Lambda.GetFunctionResponse
+        let resp:GetFunctionCommandOutput
         try {
-            resp = await this.lambda.getFunction({FunctionName: this._lambda_id}).promise()
+            resp = await this.lambda.getFunction({FunctionName: this._lambda_id})
         } catch (error){
-            if (error.code === 'ResourceNotFoundException'){
+            if (error.name === 'ResourceNotFoundException'){
                 // Function doesn't exist, so create and return when done
                 await this.lambda.createFunction({
                     ...fn_config,
                     Environment: {...fn_config_env},
                     Code: {ZipFile: fn_code},
                     Tags: {stello: this.bucket},
-                }).promise()
-                return this.lambda.waitFor('functionExists',
-                    {FunctionName: this._lambda_id}).promise()
+                })
+                return waitUntilFunctionExists(
+                    {client: this.lambda, maxWaitTime: 30},
+                    {FunctionName: this._lambda_id},
+                )
             }
             // An error actually occured
             throw error
@@ -701,7 +713,10 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
 
         // May need to wait for function still if recently created
         if (resp.Configuration.StateReasonCode === 'Creating'){
-            await this.lambda.waitFor('functionExists', {FunctionName: this._lambda_id}).promise()
+            await waitUntilFunctionExists(
+                {client: this.lambda, maxWaitTime: 30},
+                {FunctionName: this._lambda_id},
+            )
         }
 
         // See if need to update the function's config
@@ -709,7 +724,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
             await this.lambda.updateFunctionConfiguration({
                 ...fn_config,
                 Environment: {...fn_config_env},
-            }).promise()
+            })
         }
 
         // See if need to update the function's code
@@ -718,7 +733,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
             await this.lambda.updateFunctionCode({
                 FunctionName: this._lambda_id,
                 ZipFile: fn_code,
-            }).promise()
+            })
         }
     }
 
@@ -728,9 +743,9 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
             await this.sns.createTopic({
                 Name: this._topic_id,
                 Tags: [{Key: 'stello', Value: this.bucket}],
-            }).promise()
+            })
         } catch (error){
-            if (error.code !== 'EntityAlreadyExists'){
+            if (error.name !== 'EntityAlreadyExists'){
                 throw error
             }
         }
@@ -750,7 +765,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
 
             // List any/all objects
             const list_resp = await no404(this.s3.listObjectsV2({Bucket: bucket}))
-            if (!list_resp || !list_resp.Contents.length){
+            if (!list_resp?.Contents?.length){
                 return
             }
 
@@ -763,10 +778,10 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
                     }),
                     Quiet: true,  // Don't bother returning success data
                 },
-            }).promise()
+            })
 
             // Delete request may still have errors, even if doesn't throw itself
-            if (delete_resp.Errors.length){
+            if (delete_resp.Errors?.length){
                 throw new Error("Could not delete all objects")
             }
         }
@@ -795,17 +810,16 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
             return this.iam.deleteAccessKey({
                 UserName: user_id,
                 AccessKeyId: key.AccessKeyId,
-            }).promise()
+            })
         }))
     }
 }
 
 
-async function no404(request:AWS.Request<any, any>):Promise<any>{
+async function no404(request:Promise<any>):Promise<any>{
     // Helper for ignoring 404 errors (which usually signify already deleted)
-    // NOTE Pass raw request and this will call `promise()` on it
-    return request.promise().catch(error => {
-        if (error.statusCode !== 404){
+    return request.catch(error => {
+        if (error.$metadata.httpStatusCode !== 404){
             throw error
         }
     })

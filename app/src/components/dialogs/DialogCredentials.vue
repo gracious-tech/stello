@@ -80,7 +80,6 @@ export default class extends Vue {
 
     async upload(){
         // Encrypt and upload credentials for downloading by Stello running on another user's device
-        this.waiting = true
 
         // Encrypt the credentials package
         const data = string_to_utf8(JSON.stringify(this.credentials_package))
@@ -96,20 +95,20 @@ export default class extends Vue {
             this.credentials_package.region,
             this.credentials_package.user,
         )
+        this.waiting = true
         try {
             await user_storage.upload_file('credentials', encrypted, this.sharing_lifespan)
         } catch (error) {
             this.$network_error(error)
-            this.waiting = false
             return
+        } finally {
+            this.waiting = false
         }
 
         // Display sharing key and copy to clipboard
         const url64_key = buffer_to_url64(await crypto.subtle.exportKey('raw', key))
         this.sharing_key = `stello:${this.storage.cloud}:${this.storage.bucket}:${url64_key}`
         self.navigator.clipboard.writeText(this.sharing_key)
-
-        this.waiting = false
     }
 
     dismiss(){

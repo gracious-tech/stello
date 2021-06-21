@@ -69,6 +69,13 @@ export function object_to_blob(object:object):Blob{
 }
 
 
+export async function stream_to_buffer(stream:ReadableStream):Promise<ArrayBuffer>{
+    // Read a stream into memory and return ArrayBuffer
+    // NOTE Creating a fake Response as it has convenient methods for reading streams
+    return new Response(stream).arrayBuffer()
+}
+
+
 // IMAGES
 
 

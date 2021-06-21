@@ -1,9 +1,13 @@
 
-import AWS from 'aws-sdk'
+import {S3, paginateListObjectsV2} from '@aws-sdk/client-s3'
+import {SNS} from '@aws-sdk/client-sns'
+import {IAM} from '@aws-sdk/client-iam'
+import {STS} from '@aws-sdk/client-sts'
 
 import {HostCloud, HostCredentials, HostUser} from './types'
 import {StorageBaseAws} from './aws_common'
-import { enforce_range } from '../utils/numbers'
+import {enforce_range} from '../utils/numbers'
+import {stream_to_buffer} from '../utils/coding'
 
 
 export class HostUserAws extends StorageBaseAws implements HostUser {
@@ -15,10 +19,10 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
 
     _prefix:string
 
-    s3:AWS.S3
-    sns:AWS.SNS
-    iam:AWS.IAM
-    sts:AWS.STS
+    s3:S3
+    sns:SNS
+    iam:IAM
+    sts:STS
 
     constructor(credentials:HostCredentials, bucket:string, region:string, user:string){
         super()
@@ -34,10 +38,10 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
 
         // Init AWS clients
         const aws_creds = {accessKeyId: credentials.key_id, secretAccessKey: credentials.key_secret}
-        this.s3 = new AWS.S3({apiVersion: '2006-03-01', credentials: aws_creds, region})
-        this.sns = new AWS.SNS({apiVersion: '2010-03-31', credentials: aws_creds, region})
-        this.iam = new AWS.IAM({apiVersion: '2010-05-08', credentials: aws_creds, region})
-        this.sts = new AWS.STS({apiVersion: '2011-06-15', credentials: aws_creds, region})
+        this.s3 = new S3({apiVersion: '2006-03-01', credentials: aws_creds, region})
+        this.sns = new SNS({apiVersion: '2010-03-31', credentials: aws_creds, region})
+        this.iam = new IAM({apiVersion: '2010-05-08', credentials: aws_creds, region})
+        this.sts = new STS({apiVersion: '2011-06-15', credentials: aws_creds, region})
     }
 
     async upload_file(path:string, data:Blob|ArrayBuffer, lifespan:number=Infinity,
@@ -58,16 +62,16 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         await this.s3.putObject({
             Bucket: this.bucket,
             Key: this._prefix + path,
-            Body: data,
-            ContentType: (data as Blob).type || 'application/octet-stream',
+            Body: data instanceof Blob ? data : new Uint8Array(data),
+            ContentType: (data instanceof Blob ? data.type : null) || 'application/octet-stream',
             CacheControl: 'no-store',
             Tagging: tagging,
-        }).promise()
+        })
     }
 
     async delete_file(path:string):Promise<void>{
         // Delete a file that was uploaded into storage
-        await this.s3.deleteObject({Bucket: this.bucket, Key: this._prefix + path}).promise()
+        await this.s3.deleteObject({Bucket: this.bucket, Key: this._prefix + path})
     }
 
     async list_files(prefix:string=''):Promise<string[]>{
@@ -81,8 +85,8 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         const resp = await this.s3.getObject({
             Bucket: this._bucket_resp_id,
             Key: this._prefix + path,
-        }).promise()
-        return (resp.Body as Uint8Array).buffer  // AWS SDK returns Uint8Array when in browser
+        })
+        return stream_to_buffer(resp.Body as ReadableStream)  // ReadableStream when in browser
     }
 
     async delete_response(path:string):Promise<void>{
@@ -90,7 +94,7 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         await this.s3.deleteObject({
             Bucket: this._bucket_resp_id,
             Key: this._prefix + path,
-        }).promise()
+        })
     }
 
     async list_responses(type:string=''):Promise<string[]>{
@@ -106,7 +110,7 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
             Key: `${this._prefix}config`,
             ContentType: 'application/json',
             Body: JSON.stringify(config),
-        }).promise()
+        })
 
         // If no user then relying on SNS for notifications and need to ensure subscribed to it
         // NOTE Skip subscribing if not production as would send real emails to do so
@@ -119,7 +123,7 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         const topic_arn = `arn:aws:sns:${this.region}:${account_id}:${this._topic_id}`
         const list_resp = await this.sns.listSubscriptionsByTopic({
             TopicArn: topic_arn,
-        }).promise()
+        })
         for (const sub of list_resp.Subscriptions){
             // NOTE Expecting only one subscription in this loop at most
             if (sub.Endpoint === config.email){
@@ -130,7 +134,7 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
                 // ARN value is "PendingConfirmation" when haven't confirmed yet
                 continue  // Can't unsubscribe if haven't confirmed it yet
             }
-            await this.sns.unsubscribe({SubscriptionArn: sub.SubscriptionArn}).promise()
+            await this.sns.unsubscribe({SubscriptionArn: sub.SubscriptionArn})
         }
 
         // Create subscription
@@ -139,7 +143,7 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
             TopicArn: topic_arn,
             Protocol: 'email',
             Endpoint: config.email,
-        }).promise()
+        })
     }
 
 
@@ -147,25 +151,19 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
 
     async _get_account_id():Promise<string>{
         // Some requests strictly require the account id to be specified
-        return (await this.sts.getCallerIdentity().promise()).Account
+        return (await this.sts.getCallerIdentity({})).Account
     }
 
     async _list_objects(bucket:string, prefix:string=''):Promise<string[]>{
         // List objects in a bucket
         const objects:string[] = []
-        let continuation_token:string
-        while (true){
-            const resp = await this.s3.listObjectsV2({
-                Bucket: bucket,
-                Prefix: this._prefix + prefix,
-                ContinuationToken: continuation_token,
-            }).promise()
+        const paginator = paginateListObjectsV2({client: this.s3}, {
+            Bucket: bucket,
+            Prefix: this._prefix + prefix,
+        })
+        for await (const resp of paginator){
             // NOTE Keys returned have any user-prefix already removed (but not prefix arg)
-            objects.push(...resp.Contents.map(object => object.Key.slice(this._prefix.length)))
-            continuation_token = resp.NextContinuationToken
-            if (!continuation_token){
-                break
-            }
+            objects.push(...(resp.Contents ?? []).map(obj => obj.Key.slice(this._prefix.length)))
         }
         return objects
     }
