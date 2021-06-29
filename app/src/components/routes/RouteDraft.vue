@@ -237,6 +237,9 @@ export default class extends Vue {
         // Convert to message
         const msg = await self._db.draft_to_message(this.draft_id)
 
+        // Increase send counter
+        this.$store.commit('dict_set', ['usage_sends', this.$store.state.usage_sends + 1])
+
         // Upload configs first if needed
         if (this.profile.configs_need_uploading){
             const error = await (await this.$tm.start_configs_update(this.profile.id)).done
