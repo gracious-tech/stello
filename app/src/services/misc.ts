@@ -1,8 +1,6 @@
 // Utils that have dependencies or are app-specific
 
 import {debounce} from 'lodash'
-import {VSelect} from 'vuetify/lib/components/VSelect'
-import {VAutocomplete} from 'vuetify/lib/components/VAutocomplete'
 import {formatDistanceStrict} from 'date-fns'
 
 
@@ -16,16 +14,6 @@ export const SECTION_IMAGE_WIDTH = Math.max(PIXELS_WIDTH_HANDHELD, SECTION_WIDTH
 
 
 // OTHER
-
-export const VAutoOrSelect = (() => {
-    // Return either an autocomplete or a select component depending on viewport height
-    // Autocomplete useful to filter long lists, but opens a keyboard on mobiles resulting in bad UX
-    const keyboard_height = 260
-    const autocomplete_desired_height = 550
-    const required_height = keyboard_height + autocomplete_desired_height
-    return self.innerHeight > required_height ? VAutocomplete : VSelect
-})()
-
 
 export const debounce_default_ms = 500
 

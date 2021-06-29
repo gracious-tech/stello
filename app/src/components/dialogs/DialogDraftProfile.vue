@@ -8,7 +8,7 @@ v-card
 
         app-security-alert Notifications are not encrypted, do not expire, and will likely remain in your recipient's mailboxes forever. So keep any sensitive content within the actual message.
 
-        app-select(v-model='profile' :items='profiles_ui' v-bind='$t("profile")')
+        app-select(v-model='profile' :items='profiles_ui' select v-bind='$t("profile")')
         app-text(v-model='sender_name' v-bind='$t("sender_name")' :placeholder='sender_name_inherit')
 
     v-card-text(v-else)
