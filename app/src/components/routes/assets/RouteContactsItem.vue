@@ -6,7 +6,9 @@ v-list-item(:to='to')
         app-btn-checkbox(@click.prevent='toggle_selected' :value='item.selected')
     v-list-item-content
         v-list-item-title {{ item.contact.display }}
-    v-list-item-action.address(class='ellipsis')
+    v-list-item-action.hello(class='ellipsis ml-4')
+        v-list-item-subtitle {{ item.contact.name_hello_result }}
+    v-list-item-action.address(class='ellipsis ml-4')
         v-list-item-subtitle {{ item.contact.address }}
     v-list-item-action(v-if='issuer')
         app-svg(:name='`icon_${issuer}`')
@@ -61,8 +63,15 @@ export default class extends Vue {
         .v-btn
             visibility: visible
 
-    .address
-        // Address will cut name off when long, so restrict its width
-        max-width: 200px
+
+    > *
+        flex-basis: 0  // So grow evenly
+
+    .v-list-item__content, .address
+        flex-grow: 4
+
+    .hello
+        flex-grow: 2
+
 
 </style>

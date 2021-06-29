@@ -55,15 +55,16 @@ div
                     div(class='text-center')
                         app-btn(@click='show_import_dialog' small) Import contacts
 
-        app-content(class='pa-5' ref='scrollable')
-            div.empty(v-if='!contacts.length')
-                p(class='text-h5 text--secondary noselect') No contacts added yet
-                app-btn(@click='show_import_dialog') Import contacts
-            v-list.contacts(:class='{selections: some_selected}')
-                route-contacts-item(v-for='item of contacts_visible' :key='item.contact.id'
-                    :item='item')
-            p(v-if='contacts.length > contacts_visible.length' class='text-center')
-                app-btn(@click='reveal_more' small) {{ reveal_more_label }}
+        div.contacts(:class='{selections: some_selected}')
+
+            div(v-if='!contacts_matched.length' class='text-center pt-16 mt-16')
+                p(class='text-h5 text--secondary noselect') {{ empty_list_explanation }}
+                app-btn(@click='empty_list_action') {{ empty_list_action_label }}
+
+            app-content-list(v-else :items='contacts_matched' ref='scrollable' height='48'
+                    class='pt-6')
+                template(#default='{item, height_styles}')
+                    route-contacts-item(:item='item' :key='item.contact.id' :style='height_styles')
 
 </template>
 
@@ -103,7 +104,6 @@ export default class extends Vue {
 
     filter_group_id:string = '-'  // Special value for null as empty values don't get highlighted
     search:string = ''
-    pages_visible:number = 1  // So don't make UI laggy if user won't check them all anyway
 
     created():void{
         // Default to filtering by the group specified in route query if any
@@ -127,11 +127,6 @@ export default class extends Vue {
                 item => this.filter_group.contacts.includes(item.contact.id))
         }
         return this.contacts
-    }
-
-    get contacts_visible():ContactItem[]{
-        // The contacts present in the DOM
-        return this.contacts_matched.slice(0, 100 * this.pages_visible)
     }
 
     get contacts_selected():ContactItem[]{
@@ -179,12 +174,24 @@ export default class extends Vue {
         return this.all_matched_selected ? true : (this.some_selected ? null : false)
     }
 
-    get reveal_more_label():string{
-        // The text for the reveal more button
-        if (this.contacts_matched > this.contacts_visible){
-            return "Show more"
+    get empty_list_explanation():string{
+        // Text that explains why list is empty
+        if (!this.contacts.length){
+            return "No contacts added yet"
+        } else if (this.search.length){
+            return "No matches"
         }
-        return this.search ? "Clear search" : "Deselect group"
+        return "Group empty"
+    }
+
+    get empty_list_action_label():string{
+        // Text for button when list is empty
+        if (!this.contacts.length){
+            return "Import contacts"
+        } else if (this.search.length){
+            return "Clear search"
+        }
+        return "New contact"
     }
 
     // Watch
@@ -208,9 +215,8 @@ export default class extends Vue {
     }
 
     @Watch('contacts_matched') watch_contacts_matched():void{
-        // Whenever matched contacts changes, scroll back to top and show only one page of contacts
-        ;(this.$refs.scrollable as Vue).$el.scroll(0, 0)
-        this.pages_visible = 1
+        // Whenever matched contacts changes, scroll back to top
+        ;(this.$refs.scrollable as Vue)?.$el.scroll(0, 0)
     }
 
     @Watch('$tm.data.finished') watch_tm_finished(task:Task){
@@ -292,14 +298,14 @@ export default class extends Vue {
         this.clear_selected()
     }
 
-    reveal_more():void{
-        // Make more contacts visible, either by clearing limit or clearing a filter
-        if (this.contacts_matched > this.contacts_visible){
-            this.pages_visible *= 2  // Increase exponentially so quicker for those who want all
-        } else if (this.search){
+    empty_list_action():void{
+        // Action for button displayed when list is empty
+        if (!this.contacts.length){
+            this.show_import_dialog()
+        } else if (this.search.length){
             this.search = ''
         } else {
-            this.filter_group_id = '-'
+            this.new_contact()
         }
     }
 
@@ -447,8 +453,13 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+
+$groups_sidebar_width: 250px
+
+
 .navbar
     z-index: 1  // Prevent list items overlapping fav icon
+    padding-left: $groups_sidebar_width
     .fab
         margin-top: 64px
 
@@ -460,8 +471,8 @@ export default class extends Vue {
     .groups
         display: flex
         flex-direction: column
-        min-width: 250px
-        max-width: 250px
+        min-width: $groups_sidebar_width
+        max-width: $groups_sidebar_width
         @include themed(background-color, $primary_lighter, $primary_darker)
         @include themed(color,  $on_primary_lighter, $on_primary_darker)
 
@@ -484,9 +495,14 @@ export default class extends Vue {
             .account_name
                 width: 100%
 
-.empty
-    text-align: center
-    padding-top: 50px
+    .contacts
+        display: flex
+        flex-direction: column
+        width: 100%
+
+        ::v-deep .v-virtual-scroll__container
+            max-width: 800px  // Make wider
+
 
 // Show selection checkbox for all contacts whenever any are selected
 ::v-deep .contacts.selections .v-btn
