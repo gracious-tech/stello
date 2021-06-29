@@ -9,7 +9,7 @@ div
         app-btn(v-if='contact' @click='remove' icon='delete' color='error')
 
     app-content(v-if='!contact' class='text-center pt-10')
-        h1(class='text--secondary text-h6') Contact does not exist
+        h1(class='text--secondary text-h6') Contact no longer exists
 
     app-content(v-else class='pa-10')
 
@@ -219,15 +219,16 @@ export default class extends Vue {
     }
 
     async back():Promise<void>{
-        // Go back to contacts list
+        // Go back to previous route
+        // NOTE Not necessarily contacts list, as could go back to responses etc
         await this.consider_auto_delete()
-        this.$router.push('../')
+        this.$router.back()
     }
 
     async consider_auto_delete():Promise<void>{
         // If contact has no basic info, auto delete it (mainly for leaving a newly created contact)
         // TODO May need to consider other factors
-        if (!this.synced && !this.contact.name && !this.contact.address){
+        if (this.contact && !this.synced && !this.contact.name && !this.contact.address){
             await self._db.contacts.remove(this.contact_id)
         }
     }
