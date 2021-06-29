@@ -10,8 +10,8 @@ v-list-item(:to='to')
         v-list-item-subtitle {{ item.contact.name_hello_result }}
     v-list-item-action.address(class='ellipsis ml-4')
         v-list-item-subtitle {{ item.contact.address }}
-    v-list-item-action(v-if='issuer')
-        app-svg(:name='`icon_${issuer}`')
+    v-list-item-action
+        app-svg(v-if='issuer' :name='`icon_${issuer}`')
 
 </template>
 
