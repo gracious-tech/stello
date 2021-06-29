@@ -29,8 +29,11 @@ export class Contact implements RecordContact {
     }
 
     get name_hello_result():string{
-        // Return name_hello result which uses value if given or otherwise defaults to first word
-        return this.name_hello.trim() || this.name.trim().split(' ')[0]
+        // Returns value if given or otherwise defaults to all parts of name except the last
+        // e.g. "Sarah & Simon Smith" -> "Sarah & Simon"
+        return this.name_hello.trim()
+            || this.name.trim().split(' ').slice(0, -1).join(' ')
+            || this.name
     }
 }
 
