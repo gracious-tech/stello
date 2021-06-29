@@ -6,11 +6,11 @@ v-card
 
     v-card-text(class='mt-4')
         app-textarea(v-if='textarea' v-model='value' :label='label')
-        app-text(v-else v-model='value' :label='label')
+        app-text(v-else v-model='value' :label='label' @keyup.enter='done')
 
     v-card-actions
         app-btn(@click='$emit("close")') Cancel
-        app-btn(@click='$emit("close", value)') Done
+        app-btn(@click='done') Done
 
 </template>
 
@@ -32,6 +32,10 @@ export default class extends Vue {
 
     created(){
         this.value = this.initial
+    }
+
+    done(){
+        this.$emit('close', this.value)
     }
 }
 
