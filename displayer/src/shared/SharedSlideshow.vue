@@ -1,7 +1,7 @@
 
 <template lang='pug'>
 
-div.root
+div.root(:class='{multiple}')
 
     div.slideshow(:class='{editing}')
         svg.aspect(:viewBox='aspect_svg_viewbox')
@@ -253,6 +253,12 @@ export default {
     display: flex
     flex-direction: column
 
+    &.multiple
+        .slideshow
+            // Make bg black when multiple, otherwise edge hover looks weird
+            // NOTE Don't apply when single image so can use transparency for single images
+            background-color: black
+
 
 .slideshow
 
@@ -265,9 +271,8 @@ export default {
         grid-area: 1/1
         width: 100%
 
-    // Curve corners of slideshow and provide black bg when images not cropped
+    // Curve corners of slideshow
     border-radius: 12px
-    background-color: black
 
     // Image click in displayer is zoom, but edit in editor
     cursor: zoom-in
