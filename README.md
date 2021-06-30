@@ -51,8 +51,8 @@ Notes:
 
 ## Credits
 
-Reaction emoji: https://www.google.com/get/noto/help/emoji/
+Reactions: [JoyPixels](https://www.joypixels.com/emoji/animated) (proprietary license)
 
-Illustrations: https://blush.design/
+Illustrations: [Blush](https://blush.design/) (proprietary license)
 
 Third-party code: See dependency files
