@@ -22,8 +22,6 @@ div.root(:class='{multiple}')
 
 <script lang='ts'>
 
-import {debounce} from 'lodash'
-
 import type {PropType} from 'vue'  // Importing just as type should still keep compatible with Vue 2
 
 
@@ -230,14 +228,14 @@ export default {
             this.change_current(this.is_last ? 0 : this.current + 1)
         },
 
-        // NOTE `this` arg isn't a real arg and just lets TS know about `this` (`any` since complex)
-        on_scroll: debounce(function(this:any, event:Event):void{
+        on_scroll(event:Event):void{
             // Determine which image is currently being shown whenever scroll changes
-            // NOTE Scroll events are emitted very rapidly so debounced for performance
+            // WARN Scroll events emitted very rapidly, so keep lightweight
+            // NOTE Not debouncing since performance ok, and much smoother when no debounce
             const target = event.target as HTMLDivElement
             const item_width = target.scrollWidth / this.images.length
             this.current = Math.round(target.scrollLeft / item_width)
-        }, 30),
+        },
     },
 
 }
