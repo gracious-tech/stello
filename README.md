@@ -2,8 +2,6 @@
 
 This is the source code for [Stello](https://stello.news).
 
-**While the source code is publicly viewable, it is not yet licensed and cannot be copied or distributed (it will likely be in the near future though).**
-
 
 ## How messages are sent
 
