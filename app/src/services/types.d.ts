@@ -34,6 +34,7 @@ declare module 'Custom' {
             _error_to_debug(error:any):string
             _debug_to_mailto(debug:string):string
             _fail_splash(debug:string):void
+            _fail_report_last:number
             _fail_report_preprepared(debug:string):void
             _fail_report(error:any):string
             _toggle_dark():void

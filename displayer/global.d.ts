@@ -21,6 +21,7 @@ declare global {
     interface Window {
         _browser_supported:boolean
         _fail_report(msg:string):void
+        _fail_report_last:number
         _fail_splash(heading:string, msg:string):void
         _fail_splash_network():void
         _hash:string
