@@ -9,6 +9,7 @@ form(v-if='allow_replies' @submit.prevent='send_reply')
         template(v-for='(reply, i) of replies')
             | {{ i === 0 ? '' : ', ' }}
             span(:title='reply.toLocaleTimeString()') {{ reply.toLocaleDateString() }}
+        | &nbsp;(only author can see)
     div.last {{ last_sent_contents }}
 
     div.fields
@@ -128,6 +129,7 @@ form
 
     .last
         white-space: pre-wrap
+        opacity: 0.8
 
     textarea
         @include stello_themed(background-color, #0002, #fff2)

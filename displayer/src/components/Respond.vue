@@ -276,6 +276,7 @@ export default {
 
         .last
             white-space: pre-wrap
+            opacity: 0.8
 
         .fields
             width: 100%
