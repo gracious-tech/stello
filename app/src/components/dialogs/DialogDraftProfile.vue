@@ -109,13 +109,6 @@ export default class extends Vue {
 
     async create_profile(){
         // Create a new profile and go to it (or continue one in progress)
-
-        // First record location that will return to after profile setup
-        this.$store.commit('tmp_set', ['prev_location', {
-            name: 'draft',
-            params: {draft_id: this.draft.id},
-        }])
-
         const profile = this.profile_in_progress ?? await self._db.profiles.create()
         this.$router.push({
             name: 'profile',

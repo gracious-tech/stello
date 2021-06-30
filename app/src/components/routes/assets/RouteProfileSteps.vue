@@ -83,6 +83,7 @@ v-stepper(:value='profile.setup_step' @change='change_step')
 
 <script lang='ts'>
 
+import {Route} from 'vue-router'
 import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import RouteProfileHost from '@/components/routes/assets/RouteProfileHost.vue'
@@ -207,9 +208,6 @@ export default class extends Vue {
         this.profile.setup_step = null
         self._db.profiles.set(this.profile)
 
-        // Clear prev_location in case was set before creating profile
-        this.$store.commit('tmp_set', ['prev_location', null])
-
         // Make this the default profile if none yet
         if (!this.$store.state.default_profile){
             this.$store.commit('dict_set', ['default_profile', this.profile.id])
@@ -225,10 +223,14 @@ export default class extends Vue {
     }
 
     async done_return(){
-        // Complete steps and return to previous location
-        const location = this.$store.state.tmp.prev_location ?? '/'
+        // Complete steps and return to draft (if came from there) or otherwise root
         await this.done()  // Need to wait for draft to be assigned this profile before nav
-        this.$router.push(location)
+        const prev_route = this.$store.state.tmp.prev_route as Route
+        if (prev_route.name === 'draft'){
+            this.$router.push({name: 'draft', params: prev_route.params})
+        } else {
+            this.$router.push('/')
+        }
         this.$store.dispatch('show_snackbar', "Account created")
     }
 }

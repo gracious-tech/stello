@@ -41,7 +41,7 @@ export async function get_initial_state(db:Database):Promise<AppStoreState>{
             // User UI
             snackbar: null,
             dialog: null,
-            prev_location: null,
+            prev_route: null,
 
             // Unread responses
             unread_replies: {},
