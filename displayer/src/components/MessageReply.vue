@@ -18,6 +18,7 @@ form(v-if='allow_replies' @submit.prevent='send_reply')
             Progress(v-if='waiting')
             svg(v-else viewBox='0 0 24 24')
                 path(d='M2.01 21L23 12 2.01 3 2 10l15 2-15 2z')
+    p.note All comments/reactions/replies securely encrypted &amp; only visible to author
 
 </template>
 
@@ -151,5 +152,11 @@ form
 
         button.error
             background-color: rgba(#f00, 0.3) !important
+
+    .note
+        font-size: 12px
+        opacity: 0.6
+        text-align: center
+        user-select: none
 
 </style>

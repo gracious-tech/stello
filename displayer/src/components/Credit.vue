@@ -32,6 +32,7 @@ export default {
     font-size: 13px
     margin: 100px 0
     font-family: Roboto, sans-serif
+    user-select: none
 
     a
         color: inherit !important  // Don't stand out
