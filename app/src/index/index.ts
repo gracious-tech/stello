@@ -78,7 +78,7 @@ self._fail_splash = (debug:string):void => {
 
 
 self._fail_report_last = 0  // i.e. 1970
-self._fail_report_preprepared = (debug:string):void => {
+self._fail_report_preprepared = (debug:string, crash=false):void => {
     // Report bugs by posting to author's contact API (takes a preprepared debug string)
     const five_secs_ago = new Date().getTime() - 5 * 1000
     if (process.env.NODE_ENV === 'production' && self._fail_report_last < five_secs_ago){
@@ -87,7 +87,7 @@ self._fail_report_preprepared = (debug:string):void => {
             method: 'POST',
             body: JSON.stringify({
                 app: app_config.codename,
-                type: 'error',
+                type: crash ? 'app-crash' : 'app-error',
                 version: app_config.version,  // Important for silencing reports from old versions
                 message: debug,
             }),
@@ -119,7 +119,7 @@ self.addEventListener('error', (event:ErrorEvent):void => {
     const error = event.error ?? event.message ?? 'unknown'
     console.error(error)  // tslint:disable-line:no-console
     const debug = self._error_to_debug(error)
-    self._fail_report_preprepared(debug)
+    self._fail_report_preprepared(debug, true)
     self._fail_splash(debug)
 })
 
