@@ -12,8 +12,8 @@ div.root(:class='{multiple}')
                     div.next(v-if='multiple' @click='next')
 
     div.thumbs(v-if='multiple')
-        button(v-for='(button, i) of buttons' :key='button.id' @click.stop='button.activate'
-            :style='button.style' :class='{active: current === i}')
+        div.thumb(v-for='(button, i) of buttons' :key='button.id' :class='{active: current === i}')
+            button(@click.stop='button.activate' :style='button.style')
 
     div.cap(v-if='caption') {{ caption }}
 
@@ -325,28 +325,29 @@ export default {
     justify-content: center
     padding-top: 10px
 
-    button
+    .thumb
         display: flex
-        justify-content: center
-        align-items: center
-        min-width: 30px
-        min-height: 30px
-        border-radius: 50%
-        border-style: none
+        width: 100%
+        max-width: 30px
+        max-height: 30px
         margin: 0 6px
-        background-color: transparent
-        background-size: cover
-        background-position: center
-        cursor: pointer
 
-        &:focus
-            outline-style: none
+        &.active
+            button
+                filter: brightness(50%)
+                cursor: default
 
-        &:not(.active)
-            opacity: 0.5
+        button
+            width: 100%
+            height: 0
+            padding-bottom: 100%
+            border-radius: 50%
+            border-style: none
+            background-size: cover
+            background-position: center
 
-        &:hover
-            background-color: rgba(50%, 50%, 50%)
+            &:focus
+                outline-style: none
 
 
 .cap  // Avoid Vuetify's caption class
