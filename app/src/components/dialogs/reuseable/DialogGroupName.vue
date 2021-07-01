@@ -18,7 +18,6 @@ v-card
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
 import {Group} from '@/services/database/groups'
-import {debounce_set} from '@/services/misc'
 
 
 @Component({})
@@ -29,7 +28,7 @@ export default class extends Vue {
     get name():string{
         return this.group.name
     }
-    @debounce_set() set name(value:string){
+    set name(value:string){
         this.group.name = value
         self._db.groups.set(this.group)
     }

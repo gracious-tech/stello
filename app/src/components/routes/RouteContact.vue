@@ -48,7 +48,6 @@ import DialogGroupName from '../dialogs/reuseable/DialogGroupName.vue'
 import DialogGenericText from '../dialogs/generic/DialogGenericText.vue'
 import DialogGenericConfirm from '../dialogs/generic/DialogGenericConfirm.vue'
 import DialogContactEmail from '../dialogs/specific/DialogContactEmail.vue'
-import {debounce_set} from '@/services/misc'
 import {partition} from '@/services/utils/strings'
 import {Contact} from '@/services/database/contacts'
 import {Group} from '@/services/database/groups'
@@ -125,7 +124,7 @@ export default class extends Vue {
     get name(){
         return this.contact.name
     }
-    @debounce_set() set name(value){
+    set name(value){
         this.contact.name = value
         this.save()
     }
@@ -133,7 +132,7 @@ export default class extends Vue {
     get name_hello(){
         return this.contact.name_hello
     }
-    @debounce_set() set name_hello(value){
+    set name_hello(value){
         this.contact.name_hello = value
         this.save()
     }
@@ -141,7 +140,7 @@ export default class extends Vue {
     get address(){
         return this.contact.address
     }
-    @debounce_set() set address(value){
+    set address(value){
         this.contact.address = value
         this.save()
     }
@@ -149,7 +148,7 @@ export default class extends Vue {
     get notes(){
         return this.contact.notes
     }
-    @debounce_set() set notes(value){
+    set notes(value){
         this.contact.notes = value
         this.save()
     }

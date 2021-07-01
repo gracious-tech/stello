@@ -53,7 +53,6 @@ import DialogDraftProfile from '@/components/dialogs/DialogDraftProfile.vue'
 import DialogDraftRecipients from '@/components/dialogs/DialogDraftRecipients.vue'
 import DialogDraftSecurity from '@/components/dialogs/DialogDraftSecurity.vue'
 import SharedDarkToggle from '@/shared/SharedDarkToggle.vue'
-import {debounce_set} from '@/services/misc'
 import {Draft} from '@/services/database/drafts'
 import {Profile} from '@/services/database/profiles'
 import {Section} from '@/services/database/sections'
@@ -187,7 +186,7 @@ export default class extends Vue {
         // Get draft's title
         return this.draft.title
     }
-    @debounce_set() set title(value){
+    set title(value){
         // Set draft's title
         this.draft.title = value
         self._db.drafts.set(this.draft)

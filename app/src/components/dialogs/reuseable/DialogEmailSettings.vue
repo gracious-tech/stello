@@ -112,7 +112,6 @@ en:
 
 import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
-import {debounce_set} from '@/services/misc'
 import {EmailError} from '@/services/native/types'
 import {email_address_like} from '@/services/utils/misc'
 import {Profile, SMTP_PROVIDERS} from '@/services/database/profiles'
@@ -218,7 +217,7 @@ export default class extends Vue {
     get smtp_user(){
         return this.profile.smtp.user
     }
-    @debounce_set() set smtp_user(value){
+    set smtp_user(value){
         this.profile.smtp.user = value
         this.save()
     }
@@ -226,7 +225,7 @@ export default class extends Vue {
     get smtp_pass(){
         return this.profile.smtp.pass
     }
-    @debounce_set() set smtp_pass(value){
+    set smtp_pass(value){
         this.profile.smtp.pass = value
         this.save()
     }
@@ -234,7 +233,7 @@ export default class extends Vue {
     get smtp_host(){
         return this.profile.smtp.host
     }
-    @debounce_set() set smtp_host(value){
+    set smtp_host(value){
         this.profile.smtp.host = value
         this.save()
     }
@@ -242,7 +241,7 @@ export default class extends Vue {
     get smtp_port(){
         return this.profile.smtp.port
     }
-    @debounce_set() set smtp_port(value){
+    set smtp_port(value){
         this.profile.smtp.port = value
         this.save()
     }
@@ -297,7 +296,7 @@ export default class extends Vue {
                     for (const provider of Object.values(SMTP_PROVIDERS)){
                         if ('mx_base' in provider && mx_domain.endsWith('.' + provider.mx_base)){
                             // Just set host, as profile will auto-detect rest based on that
-                            this.profile.smtp.host = provider.host  // Avoid debounce
+                            this.profile.smtp.host = provider.host
                             break
                         }
                     }

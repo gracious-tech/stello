@@ -30,7 +30,6 @@ import DraftAddSection from './DraftAddSection.vue'
 import DraftSectionRespond from './DraftSectionRespond.vue'
 import SharedVideo from '@/shared/SharedVideo.vue'
 import SharedSlideshow from '@/shared/SharedSlideshow.vue'
-import {debounce_set} from '@/services/misc'
 import {gen_variable_items} from '@/services/misc/templates'
 import {Section} from '@/services/database/sections'
 import {Draft} from '@/services/database/drafts'
@@ -79,7 +78,7 @@ export default class extends Vue {
     get text_html(){
         return (this.content as ContentText).html
     }
-    @debounce_set() set text_html(html){
+    set text_html(html){
         ;(this.content as ContentText).html = html
         self._db.sections.set(this.section)
     }

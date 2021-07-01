@@ -42,7 +42,7 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 import SharedVideo from '@/shared/SharedVideo.vue'
 import {Section} from '@/services/database/sections'
 import {ContentVideo} from '@/services/database/types'
-import {debounce_method, debounce_set} from '@/services/misc'
+import {debounce_method} from '@/services/misc'
 
 
 function secs_to_hms(secs:number):string{
@@ -121,7 +121,7 @@ export default class extends Vue {
         // Return caption for this video
         return this.content.caption
     }
-    @debounce_set() set caption(value){
+    set caption(value){
         // Change the caption of this video
         this.content.caption = value
         self._db.sections.set(this.section)
@@ -169,7 +169,7 @@ export default class extends Vue {
             this.content.id = video_props.id
             this.content.start = null
             this.content.end = null
-            self._db.sections.set(this.section)
+            this.save()
             // Must also reset the start/end fields since they don't react to programatic changes
             this.static_start = null
             this.static_end = null
@@ -181,23 +181,22 @@ export default class extends Vue {
         return hms && hms.trim() && hms_to_secs(hms) === null ? "Must be hh:mm:ss" : true
     }
 
-    @debounce_method(1000)
     start_changed(hms:string){
         // Update the start property
         this.content.start = hms_to_secs(hms)
-        this.change_range()
+        this.save()
+        this.force_iframe_reload()
     }
 
-    @debounce_method(1000)
     end_changed(hms:string){
         // Update the end property
         this.content.end = hms_to_secs(hms)
-        this.change_range()
+        this.save()
+        this.force_iframe_reload()
     }
 
-    change_range(){
-        // Save changes to a time range
-        self._db.sections.set(this.section)
+    @debounce_method(1000)
+    force_iframe_reload(){
         // If vimeo, force removal of iframe from dom to update time range since its stored in hash
         if (this.content.format === 'iframe_vimeo'){
             this.content.format = null
@@ -205,6 +204,11 @@ export default class extends Vue {
                 this.content.format = 'iframe_vimeo'
             })
         }
+    }
+
+    save(){
+        // Save changes to db
+        self._db.sections.set(this.section)
     }
 
     dismiss(){
