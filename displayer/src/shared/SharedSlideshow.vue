@@ -5,7 +5,7 @@ div.root(:class='{multiple}')
 
     div.slideshow(:class='{editing}')
         svg.aspect(:viewBox='aspect_svg_viewbox')
-        div.scroller(ref='scroller' @scroll='on_scroll')
+        div.scroller(ref='scroller' @scroll='event => recalc_current()')
             div.item(v-for='styles of images_ui' :style='styles')
                 div.buttons(@click.self='$emit("img_click")')
                     div.prev(v-if='multiple' @click='prev')
@@ -131,7 +131,7 @@ export default {
                 return null
             }
             // Return current caption, or otherwise a non-breaking space to reduce layout jumping
-            return this.images[this.current].caption.trim() || "\u00A0"
+            return this.images[this.current]?.caption.trim() || "\u00A0"
         },
 
         captions_exist():boolean{
@@ -155,7 +155,7 @@ export default {
         },
 
         is_last():boolean{
-            return this.current === this.images.length - 1
+            return this.current >= this.images.length - 1
         },
     },
 
@@ -207,6 +207,15 @@ export default {
 
     methods: {
 
+        recalc_current():void{
+            // Determine which image is currently being shown whenever scroll changes
+            // WARN Scroll events emitted very rapidly, so keep lightweight
+            // NOTE Not debouncing since performance ok, and much smoother when no debounce
+            const target = this.$refs.scroller as HTMLDivElement
+            const item_width = target.scrollWidth / this.images.length
+            this.current = Math.round(target.scrollLeft / item_width)
+        },
+
         change_current(i:number):void{
             // Change current image by scrolling to the desired one
             if (this.$refs.scroller){  // Ensure mounted
@@ -226,15 +235,6 @@ export default {
         next(){
             // Change to next image (loops)
             this.change_current(this.is_last ? 0 : this.current + 1)
-        },
-
-        on_scroll(event:Event):void{
-            // Determine which image is currently being shown whenever scroll changes
-            // WARN Scroll events emitted very rapidly, so keep lightweight
-            // NOTE Not debouncing since performance ok, and much smoother when no debounce
-            const target = event.target as HTMLDivElement
-            const item_width = target.scrollWidth / this.images.length
-            this.current = Math.round(target.scrollLeft / item_width)
         },
     },
 
