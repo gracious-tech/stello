@@ -41,7 +41,7 @@ div.root(:class='{showing: show_guide}')
         p Your message will appear light or dark depending on the preference of each recipient (defaulting to light). This is important, as reading light messages at night can be blinding, and dark ones during the day can be hard to read.
         p
             | Change the setting for yourself with the
-            app-svg(name='icon_invert_colors' class='mx-2')
+            app-svg(name='icon_brightness_4' class='mx-2')
             | button without affecting your readers.
 
     p(class='text-center mt-6')
