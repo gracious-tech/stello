@@ -120,8 +120,11 @@ export default class extends Vue {
         // TODO Search that is more flexible with accents/fuzzy etc (Intl.Collator useful?)
         if (this.search){
             const lower_search = this.search.toLowerCase()
-            return this.contacts.filter(
-                item => item.contact.display.toLowerCase().includes(lower_search))
+            return this.contacts.filter(item => {
+                return item.contact.name.toLowerCase().includes(lower_search)
+                || item.contact.name_hello.toLowerCase().includes(lower_search)
+                || item.contact.address.toLowerCase().includes(lower_search)
+            })
         } else if (this.filter_group){
             return this.contacts.filter(
                 item => this.filter_group.contacts.includes(item.contact.id))
