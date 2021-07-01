@@ -15,7 +15,9 @@ div.root(:class='{multiple}')
         div.thumb(v-for='(button, i) of buttons' :key='button.id' :class='{active: current === i}')
             button(@click.stop='button.activate' :style='button.style')
 
-    div.cap(v-if='caption') {{ caption }}
+    div.cap(v-if='caption')
+        div.contents {{ caption }}
+        div.sizer {{ longest_caption }}
 
 </template>
 
@@ -137,6 +139,18 @@ export default {
         captions_exist():boolean{
             // Whether at least one image has a caption (and should .'. make room for it)
             return this.images.some(image => image.caption.trim())
+        },
+
+        longest_caption():string{
+            // Get the longest caption of all images for use in sizing caption area
+            // NOTE True caption size also depends on letter sizes, but close enough
+            let candidate = ''
+            for (const item of this.images){
+                if (item.caption && item.caption.length > candidate.length){
+                    candidate = item.caption
+                }
+            }
+            return candidate
         },
 
         buttons():{id:string, style:Record<string, string>, activate:()=>void}[]{
@@ -356,6 +370,13 @@ export default {
     font-size: 0.75em
     line-height: 1.2  // Minimize distance from wrapped text
     padding-top: 10px
+    display: grid
+
+    .sizer, .contents
+        grid-area: 1/1  // Place on top of each other
+
+    .sizer
+        visibility: hidden
 
 
 </style>
