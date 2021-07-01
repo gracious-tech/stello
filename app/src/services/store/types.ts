@@ -33,6 +33,7 @@ export interface AppStoreState {
         snackbar:{msg:string, btn_label?:string, btn_color?:string, btn_handler?:()=>void},
         dialog:StateTmpDialog,
         prev_route:Route,
+        prev_state_contacts:{filter_group_id:string, search:string, scroll_top:number},
 
         // Unread responses
         // NOTE Using objects with `true` constant for performance and reactivity

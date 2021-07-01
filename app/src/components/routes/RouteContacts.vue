@@ -82,6 +82,7 @@ import RouteContactsItem from './assets/RouteContactsItem.vue'
 import RouteContactsGroup from './assets/RouteContactsGroup.vue'
 import {remove_item, remove_match, remove_matches, sort} from '@/services/utils/arrays'
 import {download_file} from '@/services/utils/misc'
+import {sleep} from '@/services/utils/async'
 import {Group} from '@/services/database/groups'
 import {Contact} from '@/services/database/contacts'
 import {Task} from '@/services/tasks/tasks'
@@ -105,12 +106,51 @@ export default class extends Vue {
     filter_group_id:string = '-'  // Special value for null as empty values don't get highlighted
     search:string = ''
 
-    created():void{
+    async mounted():Promise<void>{
+        // Load contacts and init filters
+        // NOTE Some logic relies on DOM, so doing in `mounted` rather than `created`
+
         // Default to filtering by the group specified in route query if any
+        // NOTE If viewed a contact and then `back()`, `prev_state_contacts` should override this
         if (this.$route.query.group){
             this.filter_group_id = this.$route.query.group as string
         }
-        this.load_contacts()
+
+        // Load contacts and other data
+        await this.load_contacts()
+
+        // If returning from viewing a contact, restore previous filtering state
+        const prev_route = this.$store.state.tmp.prev_route
+        const prev_state_contacts = this.$store.state.tmp.prev_state_contacts
+        if (prev_route.name === 'contact' && prev_state_contacts){
+
+            // Restore search and group filter state
+            this.search = prev_state_contacts.search
+            this.filter_group_id = prev_state_contacts.filter_group_id
+
+            // Wait for DOM to change after above filters applied
+            this.$nextTick(async () => {
+                const scrollable = (this.$refs.scrollable as Vue)?.$el as HTMLDivElement
+                if (scrollable){
+                    // Restore previous scroll position
+                    scrollable.scrollTop = prev_state_contacts.scroll_top
+                    // Wait for virtual scroll to render visible items ($nextTick doesn't work)
+                    await sleep(1)
+                    // Focus the contact just came from (if it still exists)
+                    scrollable.querySelector<HTMLAnchorElement>
+                        (`[href='#/contacts/${prev_route.params.contact_id}/']`)?.focus()
+                }
+            })
+        }
+    }
+
+    beforeDestroy():void{
+        // Preserve state and scroll position when leaving contacts list
+        this.$store.commit('tmp_set', ['prev_state_contacts', {
+            filter_group_id: this.filter_group_id,
+            search: this.search,
+            scroll_top: (this.$refs.scrollable as Vue)?.$el.scrollTop || 0,
+        }])
     }
 
     // Lists of contacts
