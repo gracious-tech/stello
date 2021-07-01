@@ -72,8 +72,22 @@ export default class extends Vue {
         this.$router.push({name: 'draft', params: {draft_id: copy.id}})
     }
 
+    async can_access_profile():Promise<boolean>{
+        // Return whether can access profile (and therefore retract/delete message)
+        return !! await self._db.profiles.get(this.msg.draft.profile)
+    }
+
     async retract(){
         // Remove a message from server
+
+        // Can't retract if can't access profile
+        if (! await this.can_access_profile()){
+            this.$store.dispatch('show_snackbar',
+                "Cannot retract message as no longer have access to the sending account")
+            return
+        }
+
+        // If not expired yet, confirm with user before continuing
         if (!this.msg.probably_expired){
             const confirmed = await this.$store.dispatch('show_dialog', {
                 component: DialogGenericConfirm,
@@ -98,23 +112,34 @@ export default class extends Vue {
 
     async remove(){
         // Remove a message from server and Stello
-        if (!this.msg.probably_expired){
-            const confirmed = await this.$store.dispatch('show_dialog', {
-                component: DialogGenericConfirm,
-                props: {
-                    title: "Message will be deleted for both you and your recipients",
-                    confirm: "Delete",
-                    confirm_danger: true,
-                },
-            })
-            if (!confirmed){
-                return
-            }
+
+        // If can't access profile then will just be deleting object in db
+        const can_access_profile = await this.can_access_profile()
+
+        // Confirm with user before continuing
+        const confirmed = await this.$store.dispatch('show_dialog', {
+            component: DialogGenericConfirm,
+            props: {
+                title: can_access_profile
+                    ? "Message will be deleted for both you and your recipients"
+                    : "Message will be deleted for you, but not your recipients",
+                text: can_access_profile ? "" : "You no longer have access to the account used to send the message, so it cannot be confirmed whether your recipients still have access or not.",
+                confirm: "Delete",
+                confirm_danger: true,
+            },
+        })
+        if (!confirmed){
+            return
         }
 
-        // Retract and then delete the message
-        // NOTE Parent component responsible for detecting a successful delete
-        this.$tm.start('retract_message', [this.msg.id], [true])
+        // Either retract+delete or just delete
+        if (can_access_profile){
+            // NOTE Parent component responsible for detecting task completion
+            this.$tm.start('retract_message', [this.msg.id], [true])
+        } else {
+            self._db.messages.remove(this.msg.id)
+            this.$emit('remove', this.msg.id)
+        }
     }
 
 }

@@ -8,7 +8,7 @@ div
     app-content-list(:items='messages' height='80' class='pt-6')
         template(#default='{item, height_styles}')
             route-messages-item(:msg='item' :recipients='recipients[item.id]' :key='item.id'
-                :style='height_styles')
+                :style='height_styles' @remove='remove')
 
 </template>
 
@@ -45,11 +45,16 @@ export default class extends Vue {
         this.messages = messages
     }
 
+    remove(id:string){
+        // Remove message from messages array (not from db)
+        remove_match(this.messages, msg => msg.id === id)
+    }
+
     @Watch('$tm.data.finished') watch_finished(task:Task){
         // Respond to finished tasks
         if (task.name === 'retract_message' && task.options[0]){  // remove option
             // Message has been deleted
-            remove_match(this.messages, msg => msg.id === task.params[0])
+            this.remove(task.params[0])
         }
     }
 }
