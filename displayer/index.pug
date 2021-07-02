@@ -109,9 +109,9 @@ html
             self._browser_supported = !! (crypto && crypto.subtle)
             self.addEventListener('error', function(){
                 if (!self._browser_supported){
-                    self.document.body.innerHTML += '<div class="fail-splash">'
-                        + '<h1>Sorry, your browser is too old.</h1>'
-                        + '<h2>Update it to view this message.</h2>'
+                    self.document.body.innerHTML = '<div class="fail-splash">'
+                        + '<h1>Sorry, your browser is too old</h1>'
+                        + '<h2>Update it to view this message</h2>'
                         + '</div>'
                 }
             })
