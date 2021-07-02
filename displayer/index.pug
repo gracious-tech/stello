@@ -61,37 +61,54 @@ html
                     right: 0
                     // Cover all
                     z-index: 1000
-                    // Scroll if needed (for long error messages)
+                    // Scroll if needed
                     overflow: auto
                     // Style
                     padding: 20px
-                    padding-top: 100px
+                    padding-top: 80px
                     background-color: #303030
                     color: #fff
+                    text-align: center
 
-                    h1, h2
-                        text-align: center
+                    h1
                         margin-bottom: 20px
+                        font-size: 25px
 
-                    &.error
+                    button
+                        margin-top: 40px
 
-                        pre
-                            white-space: pre-wrap
-                            margin-top: 100px  // Don't distract users from recovery button
+                .fail-bar
+                    position: sticky  // Take up space as normal but don't scroll as normal (top: 0)
+                    top: 0
+                    z-index: 999
+                    display: flex
+                    align-items: center
+                    justify-content: center
+                    padding: 12px
+                    background-color: rgba(100%, 75%, 50%)
 
-                        .btn-wrap
-                            text-align: center
-                            padding: 20px
+                    div
+                        word-break: break-word
+                        margin-right: 12px
 
-                            button
-                                background-color: #fff
-                                color: #000
-                                border-style: none
-                                border-radius: 6px
-                                padding: 10px
-                                cursor: pointer
-                                // box-shadow copied from Vuetify to make button look pressable
-                                box-shadow: 0px 2px 5px 1px rgba(0, 0, 0, 0.2)
+                        h1
+                            font-size: 14px
+                            margin-top: 0
+                            margin-bottom: 6px
+
+                        p
+                            margin: 0
+                            font-size: 12px
+
+                .fail-splash, .fail-bar
+                    button
+                        background-color: #fff
+                        color: #000
+                        border-style: none
+                        border-radius: 6px
+                        padding: 6px 8px
+                        cursor: pointer
+                        box-shadow: 0px 2px 5px 1px rgba(0, 0, 0, 0.2)
 
 
     body
@@ -101,18 +118,28 @@ html
                 //- Place in middle with radius 40 (stroke length of 250 surrounds whole circle)
                 circle(cx='50' cy='50' r='40' stroke-width='10' stroke-dasharray='190')
 
+        //- Unsupported browser handling
+        //- WARN This code is intentionally inline as must be simple and support ES4/5 etc
         //- WARN All scripts (even inline) must come last so that DOM ready for immediate errors
-        //- Display of unsupported message (if error and not supported)
-        //- This code is intentionally inline as must be simple and support ES4/5 etc
-        //- WARN Should ONLY display if an error, in case feature detection is incorrect
+        //- NOTE Only fails if error, as even if browser unsupported, some could still work in part
         script.
-            self._browser_supported = !! (crypto && crypto.subtle)
+            self._hash = self.location.hash
+            self.location.hash = ''
+            self._failed = false
+            self._browser_supported = !! (crypto && crypto.subtle && CSS && CSS.supports
+                && CSS.supports('grid-template-rows', 'none'))
+            self._fail_splash_unsupported = function(){
+                self.document.body.innerHTML = "<div class='fail-splash'>"
+                    + "<h1>Sorry, your browser is too old</h1>"
+                    + "<p>Please update your browser or use another browser to view this message.</p>"
+                    + "<p>You may need to change your device's default browser, or copy and paste the link into the address bar of a different browser.</p>"
+                    + "</div>"
+            }
             self.addEventListener('error', function(){
-                if (!self._browser_supported){
-                    self.document.body.innerHTML = '<div class="fail-splash">'
-                        + '<h1>Sorry, your browser is too old</h1>'
-                        + '<h2>Update it to view this message</h2>'
-                        + '</div>'
+                if (!self._failed && !self._browser_supported){
+                    self._failed = true
+                    self.location.hash = self._hash
+                    self._fail_splash_unsupported()
                 }
             })
 
@@ -126,11 +153,12 @@ html
 
                 // ERROR HELPERS
 
-
                 self._fail_report_last = 0  // i.e. 1970
-                self._fail_report = (msg:string, crash=false):void => {
+                self._fail_report_fatal = true  // Consider fatal up till msg contents displayed
+                self._fail_report = (msg:string):void => {
                     // Report bugs by posting to stello's contact API
                     // NOTE Don't report if browser not supported, as not actionable
+                    // NOTE Throttles reports since multiple in quick succession usually repetitive
                     const five_secs_ago = new Date().getTime() - 5 * 1000
                     if (process.env.NODE_ENV === 'production' && self._browser_supported
                             && self._fail_report_last < five_secs_ago){
@@ -139,7 +167,7 @@ html
                             method: 'POST',
                             body: JSON.stringify({
                                 app: app_config.codename,
-                                type: crash ? 'displayer-crash' : 'displayer-error',
+                                type: self._fail_report_fatal ? 'displayer-fatal' : 'displayer-error',
                                 version: app_config.version,  // So can silence old version errors
                                 message: msg,
                             }),
@@ -147,35 +175,47 @@ html
                     }
                 }
 
+                self._fail_visual = (network=false):void => {
+                    // Visually display failure, either via a splash or a top bar
 
-                self._fail_splash = (heading:string, msg:string):void => {
-                    // Show alert with recovery button
-
-                    // Don't show if a fail splash already exists
-                    if (self.document.querySelector('.fail-splash') !== null){
+                    // First error takes priority, so ignore any future failures
+                    if (self._failed){
                         return
                     }
+                    self._failed = true
 
-                    // Show the alert
-                    self.document.body.innerHTML += `
-                        <div class="fail-splash error">
-                            <h1>${heading}</h1>
-                            <p class='btn-wrap'>
+                    // Restore hash to address bar so user can copy to different browser if needed
+                    self.location.hash = self._hash
+
+                    // Add HTML for message
+                    if (network){
+                        // Critical network failure shows full page splash
+                        self.document.body.innerHTML = `
+                            <div class="fail-splash">
+                                <h1>Could not download message</h1>
+                                <p>Please check your internet connection and try again</p>
                                 <button onclick="location.reload(true)">RETRY</button>
-                            </p>
-                            <pre></pre>
-                        </div>
-                    `
-                    self.document.body.querySelector('.fail-splash.error pre')!.textContent = msg
+                            </div>
+                        `
+                    } else if (self._browser_supported){
+                        // Message quite likely already visible, so just show a top bar
+                        // NOTE Since only showing a bar, ensure loading animation no longer exists
+                        self.document.querySelector('#app > svg.loading')?.remove()
+                        self.document.body.insertAdjacentHTML('afterbegin', `
+                            <div class="fail-bar">
+                                <div>
+                                    <h1>Your browser had trouble displaying this message</h1>
+                                    <p>Changing browser may help if problems persist</p>
+                                </div>
+                                <button onclick="location.reload(true)">RELOAD</button>
+                            </div>
+                        `)
+                    } else {
+                        // Unsupported browser, so show full page splash
+                        // NOTE This is especially needed for errors Vue catches
+                        self._fail_splash_unsupported()
+                    }
                 }
-
-
-                self._fail_splash_network = ():void => {
-                    // Handle connection issues
-                    self._fail_splash("Could not connect",
-                        "Please check your internet connection and try again")
-                }
-
 
                 // ERROR HANDLING
 
@@ -185,23 +225,16 @@ html
                     const error = event.error ?? event.message ?? 'unknown'
                     console.error(error)
                     const msg = error_to_string(error)
-                    self._fail_report(msg, true)
-                    self._fail_splash("Something went wrong", msg)
+                    self._fail_report(msg)
+                    self._fail_visual()
                 })
 
 
                 self.addEventListener('unhandledrejection', event => {
-                    // Report uncaught errors in promises, but don't fail as rarely affects UI
+                    // Report uncaught errors in promises
                     self._fail_report(error_to_string(event.reason))
+                    self._fail_visual()
                 })
 
 
-                // INIT
-
-
-                // Immediately remove hash and store internally for security
-                self._hash = self.location.hash
-                self.location.hash = ''
-
-
-        script(src='/src/main.ts' type='module' onerror='_fail_splash_network()')
+        script(src='/src/main.ts' type='module' onerror='_fail_visual(true)')

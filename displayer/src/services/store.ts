@@ -63,7 +63,8 @@ export class DisplayerStore {
         await this.process_hash()
         self.addEventListener('hashchange', async event => {
             // Don't trigger when hash has been cleared by previous `process_hash` call
-            if (self.location.hash !== ''){
+            // Also don't process if just reacting to a failure restoring the hash to the url
+            if (self.location.hash !== '' && (!self._failed || self.location.hash !== self._hash)){
                 this.process_hash()
             }
         })
@@ -81,6 +82,13 @@ export class DisplayerStore {
         // Decode the hash
         const hash = await decode_hash(self.location.hash || self._hash)
 
+        // Ensure hash cleared for security
+        // NOTE Never clear if in failed state, so user can copy to different browser if needed
+        // NOTE Failed state here possible if doing initial process, and not a 'hashchange' event
+        if (self.location.hash && !self._failed){
+            self.location.hash = ''
+        }
+
         // Update displayer config (do for every hash in case changed)
         const name_that_worked = await displayer_config.load(hash?.disp_config_name,
             this._state.dict.prev_config_name)
@@ -97,9 +105,6 @@ export class DisplayerStore {
                 this._state.show_unsubscribe = true
             }
         }
-
-        // Ensure hash cleared for security
-        self.location.hash = ''
     }
 
     save_message_meta(message:MessageRecord):void{
