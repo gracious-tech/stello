@@ -123,7 +123,9 @@ export default class extends Vue {
                 title: can_access_profile
                     ? "Message will be deleted for both you and your recipients"
                     : "Message will be deleted for you, but not your recipients",
-                text: can_access_profile ? "" : "You no longer have access to the account used to send the message, so it cannot be confirmed whether your recipients still have access or not.",
+                text: can_access_profile ? "" : `
+                    You no longer have access to the account used to send the message,
+                    so it cannot be confirmed whether your recipients still have access or not.`,
                 confirm: "Delete",
                 confirm_danger: true,
             },
