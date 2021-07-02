@@ -16,7 +16,8 @@ div.root(:class='{multiple}')
             button(@click.stop='button.activate' :style='button.style')
 
     div.cap
-        div(v-for='(caption, i) of captions' v-if='caption' :class='{active: current === i}') {{ caption }}
+        div(v-for='(caption, i) of captions' v-show='caption' :class='{active: current === i}')
+            | {{ caption }}
 
 </template>
 
