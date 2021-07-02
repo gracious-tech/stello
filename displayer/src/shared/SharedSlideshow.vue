@@ -15,9 +15,8 @@ div.root(:class='{multiple}')
         div.thumb(v-for='(button, i) of buttons' :key='button.id' :class='{active: current === i}')
             button(@click.stop='button.activate' :style='button.style')
 
-    div.cap(v-if='caption')
-        div.contents {{ caption }}
-        div.sizer {{ longest_caption }}
+    div.cap
+        div(v-for='(caption, i) of captions' v-if='caption' :class='{active: current === i}') {{ caption }}
 
 </template>
 
@@ -122,35 +121,13 @@ export default {
             return this.images.length > 1
         },
 
-        caption():string|null{
-            // Get caption for current image
+        captions():string[]{
+            // All captions as a list
             if (this.empty){
                 // No images added, must be in editor, so display help text
-                return "No images added yet"
+                return ["No images added yet"]
             }
-            if (!this.captions_exist){
-                // No images have captions so don't leave space for them
-                return null
-            }
-            // Return current caption, or otherwise a non-breaking space to reduce layout jumping
-            return this.images[this.current]?.caption.trim() || "\u00A0"
-        },
-
-        captions_exist():boolean{
-            // Whether at least one image has a caption (and should .'. make room for it)
-            return this.images.some(image => image.caption.trim())
-        },
-
-        longest_caption():string{
-            // Get the longest caption of all images for use in sizing caption area
-            // NOTE True caption size also depends on letter sizes, but close enough
-            let candidate = ''
-            for (const item of this.images){
-                if (item.caption && item.caption.length > candidate.length){
-                    candidate = item.caption
-                }
-            }
-            return candidate
+            return this.images.map(item => item.caption?.trim())
         },
 
         buttons():{id:string, style:Record<string, string>, activate:()=>void}[]{
@@ -365,18 +342,19 @@ export default {
 
 
 .cap  // Avoid Vuetify's caption class
-    text-align: center
-    opacity: 0.6
-    font-size: 0.75em
-    line-height: 1.2  // Minimize distance from wrapped text
-    padding-top: 10px
     display: grid
 
-    .sizer, .contents
+    > div
         grid-area: 1/1  // Place on top of each other
+        text-align: center
+        opacity: 0.6
+        font-size: 0.75em
+        line-height: 1.2  // Minimize distance from wrapped text
+        padding-top: 10px
+        overflow: hidden  // Triggers word wrap
 
-    .sizer
-        visibility: hidden
+        &:not(.active)
+            visibility: hidden
 
 
 </style>
