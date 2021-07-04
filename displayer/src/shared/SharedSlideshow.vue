@@ -1,28 +1,28 @@
 
 <template lang='pug'>
 
-div.root
+div.root(:class='{multiple}')
 
     div.slideshow(:class='{editing}')
         svg.aspect(:viewBox='aspect_svg_viewbox')
-        div.scroller(ref='scroller' @scroll='on_scroll')
+        div.scroller(ref='scroller' @scroll='event => recalc_current()')
             div.item(v-for='styles of images_ui' :style='styles')
                 div.buttons(@click.self='$emit("img_click")')
                     div.prev(v-if='multiple' @click='prev')
                     div.next(v-if='multiple' @click='next')
 
     div.thumbs(v-if='multiple')
-        button(v-for='(button, i) of buttons' :key='button.id' @click.stop='button.activate'
-            :style='button.style' :class='{active: current === i}')
+        div.thumb(v-for='(button, i) of buttons' :key='button.id' :class='{active: current === i}')
+            button(@click.stop='button.activate' :style='button.style')
 
-    div.cap(v-if='caption') {{ caption }}
+    div.cap
+        div(v-for='(caption, i) of captions' v-show='caption' :class='{active: current === i}')
+            | {{ caption }}
 
 </template>
 
 
 <script lang='ts'>
-
-import {debounce} from 'lodash'
 
 import type {PropType} from 'vue'  // Importing just as type should still keep compatible with Vue 2
 
@@ -122,23 +122,13 @@ export default {
             return this.images.length > 1
         },
 
-        caption():string|null{
-            // Get caption for current image
+        captions():string[]{
+            // All captions as a list
             if (this.empty){
                 // No images added, must be in editor, so display help text
-                return "No images added yet"
+                return ["No images added yet"]
             }
-            if (!this.captions_exist){
-                // No images have captions so don't leave space for them
-                return null
-            }
-            // Return current caption, or otherwise a non-breaking space to reduce layout jumping
-            return this.images[this.current].caption.trim() || "\u00A0"
-        },
-
-        captions_exist():boolean{
-            // Whether at least one image has a caption (and should .'. make room for it)
-            return this.images.some(image => image.caption.trim())
+            return this.images.map(item => item.caption?.trim())
         },
 
         buttons():{id:string, style:Record<string, string>, activate:()=>void}[]{
@@ -157,7 +147,7 @@ export default {
         },
 
         is_last():boolean{
-            return this.current === this.images.length - 1
+            return this.current >= this.images.length - 1
         },
     },
 
@@ -209,6 +199,15 @@ export default {
 
     methods: {
 
+        recalc_current():void{
+            // Determine which image is currently being shown whenever scroll changes
+            // WARN Scroll events emitted very rapidly, so keep lightweight
+            // NOTE Not debouncing since performance ok, and much smoother when no debounce
+            const target = this.$refs.scroller as HTMLDivElement
+            const item_width = target.scrollWidth / this.images.length
+            this.current = Math.round(target.scrollLeft / item_width)
+        },
+
         change_current(i:number):void{
             // Change current image by scrolling to the desired one
             if (this.$refs.scroller){  // Ensure mounted
@@ -229,15 +228,6 @@ export default {
             // Change to next image (loops)
             this.change_current(this.is_last ? 0 : this.current + 1)
         },
-
-        // NOTE `this` arg isn't a real arg and just lets TS know about `this` (`any` since complex)
-        on_scroll: debounce(function(this:any, event:Event):void{
-            // Determine which image is currently being shown whenever scroll changes
-            // NOTE Scroll events are emitted very rapidly so debounced for performance
-            const target = event.target as HTMLDivElement
-            const item_width = target.scrollWidth / this.images.length
-            this.current = Math.round(target.scrollLeft / item_width)
-        }, 30),
     },
 
 }
@@ -253,6 +243,12 @@ export default {
     display: flex
     flex-direction: column
 
+    &.multiple
+        .slideshow
+            // Make bg black when multiple, otherwise edge hover looks weird
+            // NOTE Don't apply when single image so can use transparency for single images
+            background-color: black
+
 
 .slideshow
 
@@ -265,9 +261,8 @@ export default {
         grid-area: 1/1
         width: 100%
 
-    // Curve corners of slideshow and provide black bg when images not cropped
+    // Curve corners of slideshow
     border-radius: 12px
-    background-color: black
 
     // Image click in displayer is zoom, but edit in editor
     cursor: zoom-in
@@ -322,36 +317,45 @@ export default {
     justify-content: center
     padding-top: 10px
 
-    button
+    .thumb
         display: flex
-        justify-content: center
-        align-items: center
-        min-width: 30px
-        min-height: 30px
-        border-radius: 50%
-        border-style: none
+        width: 100%
+        max-width: 30px
+        max-height: 30px
         margin: 0 6px
-        background-color: transparent
-        background-size: cover
-        background-position: center
-        cursor: pointer
 
-        &:focus
-            outline-style: none
+        &.active
+            button
+                filter: brightness(50%)
+                cursor: default
 
-        &:not(.active)
-            opacity: 0.5
+        button
+            width: 100%
+            height: 0
+            padding-bottom: 100%
+            border-radius: 50%
+            border-style: none
+            background-size: cover
+            background-position: center
 
-        &:hover
-            background-color: rgba(50%, 50%, 50%)
+            &:focus
+                outline-style: none
 
 
 .cap  // Avoid Vuetify's caption class
-    text-align: center
-    opacity: 0.6
-    font-size: 0.75em
-    line-height: 1.2  // Minimize distance from wrapped text
-    padding-top: 10px
+    display: grid
+
+    > div
+        grid-area: 1/1  // Place on top of each other
+        text-align: center
+        opacity: 0.6
+        font-size: 0.75em
+        line-height: 1.2  // Minimize distance from wrapped text
+        padding-top: 10px
+        overflow: hidden  // Triggers word wrap
+
+        &:not(.active)
+            visibility: hidden
 
 
 </style>

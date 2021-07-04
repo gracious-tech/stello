@@ -20,7 +20,6 @@ div(class='my-5')
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
-import {debounce_set} from '@/services/misc'
 import {Section} from '@/services/database/sections'
 import {ContentImages} from '@/services/database/types'
 
@@ -54,7 +53,7 @@ export default class extends Vue {
         // Return caption for this image
         return this.item.caption
     }
-    @debounce_set() set caption(value){
+    set caption(value){
         // Change the caption of this image
         this.item.caption = value
         self._db.sections.set(this.section)

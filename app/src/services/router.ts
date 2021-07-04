@@ -76,6 +76,11 @@ export function get_router(store:Store<AppStoreState>){
         }
     }))
 
+    router.afterEach((to, from) => {
+        // Keep record of prev route in store
+        store.commit('tmp_set', ['prev_route', from])
+    })
+
     return router
 }
 

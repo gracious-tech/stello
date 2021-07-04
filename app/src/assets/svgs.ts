@@ -45,6 +45,7 @@ export default {
     icon_subheading:        require('@/assets/icon_subheading.svg').default,
 
     // Material icons
+    icon_brightness_4:      require('md-icon-svgs/brightness_4.svg').default,
     icon_chat_bubble_outline: require('md-icon-svgs/chat_bubble_outline.svg').default,
     icon_thumb_up:          require('md-icon-svgs/thumb_up.svg').default,
     icon_reply:             require('md-icon-svgs/reply.svg').default,
@@ -54,7 +55,6 @@ export default {
     icon_archive:           require('md-icon-svgs/archive.svg').default,
     icon_swap_horiz:        require('md-icon-svgs/swap_horiz.svg').default,
     icon_expand_more:       require('md-icon-svgs/expand_more.svg').default,
-    icon_invert_colors:     require('md-icon-svgs/invert_colors.svg').default,
     icon_compare_arrows:    require('md-icon-svgs/compare_arrows.svg').default,
     icon_cloud_download:    require('md-icon-svgs/cloud_download.svg').default,
     icon_settings:          require('md-icon-svgs/settings.svg').default,

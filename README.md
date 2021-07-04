@@ -2,8 +2,6 @@
 
 This is the source code for [Stello](https://stello.news).
 
-**While the source code is publicly viewable, it is not yet licensed and cannot be copied or distributed (it will likely be in the near future though).**
-
 
 ## How messages are sent
 
@@ -37,9 +35,9 @@ Stello is end-to-end encrypted in the sense that the platform that stores and tr
 
 ## Browser support
 
-The displayer of messages currently supports all browsers that have implemented the Subtle Crypto API, as well as all ES2015 features (since most have when crypto supported).
+The displayer of messages currently supports all browsers that have implemented the Subtle Crypto API, as well as all ES2015 features and CSS grid (since most have when crypto supported).
 
- - Chrome 51+
+ - Chrome 57+
  - Edge 79+
  - Samusung 6.2+
  - Safari 10.1+
@@ -53,8 +51,8 @@ Notes:
 
 ## Credits
 
-Reaction emoji: https://www.google.com/get/noto/help/emoji/
+Reactions: [JoyPixels](https://www.joypixels.com/emoji/animated) (proprietary license)
 
-Illustrations: https://blush.design/
+Illustrations: [Blush](https://blush.design/) (proprietary license)
 
 Third-party code: See dependency files

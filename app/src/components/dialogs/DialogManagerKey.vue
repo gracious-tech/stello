@@ -20,7 +20,6 @@ v-card
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
-import {debounce_set} from '@/services/misc'
 import {HostCloud} from '@/services/hosts/types'
 
 
@@ -41,7 +40,7 @@ export default class extends Vue {
         return this.$store.state[this.id_prop]
     }
 
-    @debounce_set() set key_id(value){
+    set key_id(value){
         this.$store.commit('dict_set', [this.id_prop, value])
     }
 
@@ -49,7 +48,7 @@ export default class extends Vue {
         return this.$store.state[this.secret_prop]
     }
 
-    @debounce_set() set key_secret(value){
+    set key_secret(value){
         this.$store.commit('dict_set', [this.secret_prop, value])
     }
 

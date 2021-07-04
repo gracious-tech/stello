@@ -73,6 +73,9 @@ export default {
             return items
         })
 
+        // Message contents will now be displayed, so any errors no longer "fatal"
+        self._fail_report_fatal = false
+
         return {
             section: props.section,
             content: computed(() => props.section.content),

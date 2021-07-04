@@ -9,7 +9,7 @@ div
         app-btn(v-if='contact' @click='remove' icon='delete' color='error')
 
     app-content(v-if='!contact' class='text-center pt-10')
-        h1(class='text--secondary text-h6') Contact does not exist
+        h1(class='text--secondary text-h6') Contact no longer exists
 
     app-content(v-else class='pa-10')
 
@@ -23,7 +23,7 @@ div
         div.names
             app-text(v-model='name' :readonly='synced' label="Full name" @click='synced_change_name')
             app-text(v-model='name_hello' :placeholder='contact.name_hello_result' label="Greet as"
-                hint="Defaults to first name")
+                hint="Defaults to excluding last name")
 
         app-text(v-model.trim='address' :readonly='synced' @click='synced_change_email'
             label="Email address")
@@ -48,7 +48,6 @@ import DialogGroupName from '../dialogs/reuseable/DialogGroupName.vue'
 import DialogGenericText from '../dialogs/generic/DialogGenericText.vue'
 import DialogGenericConfirm from '../dialogs/generic/DialogGenericConfirm.vue'
 import DialogContactEmail from '../dialogs/specific/DialogContactEmail.vue'
-import {debounce_set} from '@/services/misc'
 import {partition} from '@/services/utils/strings'
 import {Contact} from '@/services/database/contacts'
 import {Group} from '@/services/database/groups'
@@ -125,7 +124,7 @@ export default class extends Vue {
     get name(){
         return this.contact.name
     }
-    @debounce_set() set name(value){
+    set name(value){
         this.contact.name = value
         this.save()
     }
@@ -133,7 +132,7 @@ export default class extends Vue {
     get name_hello(){
         return this.contact.name_hello
     }
-    @debounce_set() set name_hello(value){
+    set name_hello(value){
         this.contact.name_hello = value
         this.save()
     }
@@ -141,7 +140,7 @@ export default class extends Vue {
     get address(){
         return this.contact.address
     }
-    @debounce_set() set address(value){
+    set address(value){
         this.contact.address = value
         this.save()
     }
@@ -149,7 +148,7 @@ export default class extends Vue {
     get notes(){
         return this.contact.notes
     }
-    @debounce_set() set notes(value){
+    set notes(value){
         this.contact.notes = value
         this.save()
     }
@@ -219,15 +218,16 @@ export default class extends Vue {
     }
 
     async back():Promise<void>{
-        // Go back to contacts list
+        // Go back to previous route
+        // NOTE Not necessarily contacts list, as could go back to responses etc
         await this.consider_auto_delete()
-        this.$router.push('../')
+        this.$router.back()
     }
 
     async consider_auto_delete():Promise<void>{
         // If contact has no basic info, auto delete it (mainly for leaving a newly created contact)
         // TODO May need to consider other factors
-        if (!this.synced && !this.contact.name && !this.contact.address){
+        if (this.contact && !this.synced && !this.contact.name && !this.contact.address){
             await self._db.contacts.remove(this.contact_id)
         }
     }

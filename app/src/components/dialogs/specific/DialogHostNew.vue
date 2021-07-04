@@ -15,7 +15,7 @@ v-card
 
         app-security-alert Your username is not encrypted, so you may wish to use a pseudonym if you require high security
 
-        app-select(v-model='use_case' :items='use_cases' label="What will you use this for?")
+        app-select(v-model='use_case' :items='use_cases' select label="What will you use this for?")
 
         v-checkbox(v-model='subscribe' color='accent'
             label="Tell me when more free apps are available (~4 emails/year)")

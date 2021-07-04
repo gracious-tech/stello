@@ -17,7 +17,7 @@ div.respondbar(@mouseenter='have_hovered = true')
                 div.last(v-if='last_sent_contents') {{ last_sent_contents }}
                 div.fields
                     textarea(v-model='reply_text' ref='reply_textarea' :disabled='reply_waiting'
-                        @keyup.ctrl.enter='send_comment' placeholder="Private & secure")
+                        @keyup.ctrl.enter='send_comment' placeholder="Only author can see...")
                     button(type='submit' class='btn-icon' :class='{error: reply_success === false}')
                         Progress(v-if='reply_waiting')
                         svg(v-else viewBox='0 0 24 24')
@@ -37,7 +37,7 @@ div.respondbar(@mouseenter='have_hovered = true')
                         //- Stop animations when popup hidden to reduce CPU usage
                         ReactionSvg.reaction(:reaction='reaction'
                             :chosen='reaction === chosen_reaction' :playing='react_popup_visible')
-                p.note Private &amp; secure
+                p.note Only author can see
 
 
 </template>
@@ -276,6 +276,7 @@ export default {
 
         .last
             white-space: pre-wrap
+            opacity: 0.8
 
         .fields
             width: 100%

@@ -97,7 +97,9 @@ class DisplayerDatabase {
             return {
                 get: async () => undefined,
                 getAll: async () => [],
+                getAllFromIndex: async () => [],
                 put: async () => undefined,
+                delete: async () => undefined,
             } as unknown as IDBPDatabase<DisplayerDatabaseSchema>
         })
     }

@@ -1,5 +1,5 @@
 
-import {Location} from 'vue-router'
+import {Route} from 'vue-router'
 
 import {MessageCopy} from '../database/copies'
 
@@ -32,7 +32,8 @@ export interface AppStoreState {
         // User UI
         snackbar:{msg:string, btn_label?:string, btn_color?:string, btn_handler?:()=>void},
         dialog:StateTmpDialog,
-        prev_location:Location,
+        prev_route:Route,
+        prev_state_contacts:{filter_group_id:string, search:string, scroll_top:number},
 
         // Unread responses
         // NOTE Using objects with `true` constant for performance and reactivity

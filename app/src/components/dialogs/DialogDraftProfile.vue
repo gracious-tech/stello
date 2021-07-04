@@ -8,7 +8,7 @@ v-card
 
         app-security-alert Notifications are not encrypted, do not expire, and will likely remain in your recipient's mailboxes forever. So keep any sensitive content within the actual message.
 
-        app-select(v-model='profile' :items='profiles_ui' v-bind='$t("profile")')
+        app-select(v-model='profile' :items='profiles_ui' select v-bind='$t("profile")')
         app-text(v-model='sender_name' v-bind='$t("sender_name")' :placeholder='sender_name_inherit')
 
     v-card-text(v-else)
@@ -109,13 +109,6 @@ export default class extends Vue {
 
     async create_profile(){
         // Create a new profile and go to it (or continue one in progress)
-
-        // First record location that will return to after profile setup
-        this.$store.commit('tmp_set', ['prev_location', {
-            name: 'draft',
-            params: {draft_id: this.draft.id},
-        }])
-
         const profile = this.profile_in_progress ?? await self._db.profiles.create()
         this.$router.push({
             name: 'profile',

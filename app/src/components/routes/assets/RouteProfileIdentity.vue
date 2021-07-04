@@ -25,7 +25,6 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 import AppInviteHtml from '@/components/reuseable/AppInviteHtml.vue'
 import AppInviteText from '@/components/reuseable/AppInviteText.vue'
 import {Profile} from '@/services/database/profiles'
-import {debounce_method} from '@/services/misc'
 
 
 @Component({
@@ -60,7 +59,7 @@ export default class extends Vue {
         this.save()
     }
 
-    @debounce_method() save(){
+    save(){
         self._db.profiles.set(this.profile)
     }
 }
