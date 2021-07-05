@@ -20,7 +20,8 @@ app-content(class='pa-6 app-bg-primary')
 
     div
         p To use Stello you must agree to the #[a(href='https://stello.news/terms/') terms of use] and #[a(href='https://stello.news/privacy/') privacy policy]
-        v-checkbox(v-model='accept' label="I agree to the terms of use and privacy policy" dark)
+        v-checkbox(v-model='accept' label="I agree to the terms of use and privacy policy" dark
+            color='accent')
 
     p(class='text-center')
         v-btn(@click='done' :disabled='!accept' light) Continue
