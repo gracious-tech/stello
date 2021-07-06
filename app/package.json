@@ -10,9 +10,11 @@
         "test:unit": "vue-cli-service test:unit"
     },
     "dependencies": {
+        "@aws-sdk/client-apigatewayv2": "^3.20.0",
         "@aws-sdk/client-ec2": "^3.18.0",
         "@aws-sdk/client-iam": "^3.18.0",
         "@aws-sdk/client-lambda": "^3.18.0",
+        "@aws-sdk/client-resource-groups-tagging-api": "^3.20.0",
         "@aws-sdk/client-s3": "^3.18.0",
         "@aws-sdk/client-sns": "^3.18.0",
         "@aws-sdk/client-ssm": "^3.18.0",
