@@ -17,10 +17,10 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 @Component({})
 export default class extends Vue {
 
-    @Prop(String) accept:string
-    @Prop(Boolean) multiple:boolean
+    @Prop({type: String}) accept:string
+    @Prop({type: Boolean, default: false}) multiple:boolean
 
-    get label_classes(){
+    get label_classes():string[]{
         // Return appropriate classes for label to make it look like a button
         const classes = [this.$vuetify.theme.dark ? 'theme--dark' : 'theme--light']
         if (this.$attrs.color){
@@ -29,12 +29,13 @@ export default class extends Vue {
         return classes
     }
 
-    changed(event){
+    changed(event:Event):void{
         // Pass on the file/files
-        if (!event.target.files[0]){
-            return  // Don't emit if no files provided (happens when cancel file dialog)
+        // NOTE Don't emit if no files provided (happens when cancel file dialog)
+        const files = (event.target as HTMLInputElement).files
+        if (files.length){
+            this.$emit('input', this.multiple ? Array.from(files) : files[0])
         }
-        this.$emit('input', this.multiple ? Array.from(event.target.files) : event.target.files[0])
     }
 }
 
