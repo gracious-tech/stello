@@ -16,8 +16,7 @@ export async function blob_image_size(blob:Blob):Promise<{width:number, height:n
 
 export async function resize_bitmap(bitmap:ImageBitmap, max_width:number, max_height:number,
         crop=false):Promise<ImageBitmap>{
-    // Resize an image given as a blob
-    // NOTE Avoid unnecessary resizing or upscaling, but do always compress to desired output format
+    // Resize/crop an image bitmap, but only if needed
 
     // Determine ratios
     const actual_ratio = bitmap.width / bitmap.height
@@ -50,15 +49,17 @@ export async function resize_bitmap(bitmap:ImageBitmap, max_width:number, max_he
         // Crop source and then scale (and work out if cropping the width or the height)
         if (actual_ratio > desired_ratio){
             // Image too wide
-            const offset = (bitmap.width - (bitmap.height * desired_ratio)) / 2
-            src_args = [offset, 0, bitmap.width - offset, bitmap.height]  // x, y, w, h
+            const pre_scale_width = bitmap.height * desired_ratio
+            const x = (bitmap.width - pre_scale_width) / 2
+            src_args = [x, 0, pre_scale_width, bitmap.height]  // x, y, w, h
             // Start with height (either original or reduced) and work out new width from there
             output_height = Math.min(max_height, bitmap.height)
             output_width = output_height * desired_ratio
         } else {
             // Image too high
-            const offset = (bitmap.height - (bitmap.width / desired_ratio)) / 2
-            src_args = [0, offset, bitmap.width, bitmap.height - offset]  // x, y, w, h
+            const pre_scale_height = bitmap.width / desired_ratio
+            const y = (bitmap.height - pre_scale_height) / 2
+            src_args = [0, y, bitmap.width, pre_scale_height]  // x, y, w, h
             // Start with width (either original or reduced) and work out new height from there
             output_width = Math.min(max_width, bitmap.width)
             output_height = output_width / desired_ratio
