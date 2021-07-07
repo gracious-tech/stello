@@ -312,6 +312,11 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+.v-btn
+    // Make all buttons match text color (as editor theme may be different to app theme)
+    color: currentColor !important
+
+
 .bubble
     border-radius: 24px
 
