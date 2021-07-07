@@ -10,10 +10,15 @@ Resources:
             # Properties needed for dev (actually set when setting up all services)
             Handler: responder.entry
             Runtime: python3.8
+            Events:
+                ApiEvent:
+                    Type: HttpApi
             Environment:
                 Variables:
                     stello_env: dev
+                    stello_version: dev
                     stello_msgs_bucket: ''
                     stello_resp_bucket: ''
                     stello_topic_arn: ''
                     stello_region: ''
+                    stello_errors_url: ''
