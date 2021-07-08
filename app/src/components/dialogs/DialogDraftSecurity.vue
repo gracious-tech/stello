@@ -2,7 +2,7 @@
 <template lang='pug'>
 
 v-card
-    v-card-title Security
+    v-card-title Expiry
 
     v-card-text
         app-integer(v-model='lifespan' v-bind='$t("lifespan")' :min='1' :max='365' infinity
@@ -23,8 +23,8 @@ en:
         hint: "The number of days until the message expires"
         suffix: "days"
     max_reads:
-        label: "Expire after opening"
-        hint: "The number of times the message can be opened by a recipient before it expires"
+        label: "Lose access after opening"
+        hint: "The number of times each recipient can open the message before they lose access"
         suffix: "times"
 </i18n>
 
@@ -77,5 +77,8 @@ export default class extends Vue {
 
 
 <style lang='sass' scoped>
+
+.v-text-field
+    margin-top: 24px
 
 </style>

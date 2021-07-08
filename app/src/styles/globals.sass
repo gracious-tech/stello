@@ -74,3 +74,11 @@ $stello_layout_width: $stello_sidebar_width + $stello_scrollbar_width
     // Properties that should change when visible
     opacity: 0
     top: -10px
+
+
+@mixin max_lines($num)
+    // Show ellipsis after max lines
+    overflow: hidden
+    display: -webkit-box
+    -webkit-box-orient: vertical
+    -webkit-line-clamp: $num

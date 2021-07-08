@@ -103,7 +103,10 @@ export default class extends Vue {
         // Create a new draft
         const draft = await self._db.drafts.create_object()
         draft.reply_to = this.replaction.id
-        draft.title = `Re: ${this.replaction.msg_title}`
+        draft.title = this.replaction.msg_title
+        if (!draft.title.startsWith('Re: ')){
+            draft.title = 'Re: ' + draft.title
+        }
         draft.recipients.include_contacts.push(this.replaction.contact_id)
 
         // Need to get the original message to know the profile used

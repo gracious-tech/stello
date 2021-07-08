@@ -104,8 +104,8 @@ en:
         hint: "The default number of days until messages expire"
         suffix: "days"
     msg_max_reads:
-        label: "Expire after opening"
-        hint: "The default number of times a message can be opened by a recipient before it expires"
+        label: "Lose access after opening"
+        hint: "The default number of times each recipient can open a message before they lose access"
         suffix: "times"
     allow_delete:
         label: "Allow deleting before expiry"
@@ -287,10 +287,10 @@ export default class extends Vue {
 <style lang='sass' scoped>
 
 h2
-    margin-top: 36px
+    margin-top: 56px
     margin-bottom: 12px
     margin-left: 12px
-    font-size: 16px
+    font-size: 24px
 
 .v-input
     margin-bottom: 18px

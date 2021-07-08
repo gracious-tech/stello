@@ -56,7 +56,7 @@ v-card
 
 import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
-import {sort, remove_item} from '@/services/utils/arrays'
+import {remove_item} from '@/services/utils/arrays'
 import {Draft} from '@/services/database/drafts'
 import {Group} from '@/services/database/groups'
 import {Contact} from '@/services/database/contacts'
@@ -65,26 +65,14 @@ import {Contact} from '@/services/database/contacts'
 @Component({})
 export default class extends Vue {
 
-    @Prop() draft:Draft
-    groups:Group[] = []
-    contacts:Contact[] = []
+    @Prop({type: Draft, required: true}) draft:Draft
+    @Prop({type: Array, required: true}) groups:Group[]
+    @Prop({type: Array, required: true}) contacts:Contact[]
+
     tab:number = 0
     contacts_filter:number = 0
     contacts_search:string = ''
     contacts_pages:number = 1
-
-    created(){
-        // Get all groups and contacts and sort them
-        Promise.all([
-            self._db.groups.list(),
-            self._db.contacts.list(),
-        ]).then(([groups, contacts]) => {
-            this.groups = groups
-            sort(this.groups, 'name')
-            this.contacts = contacts
-            sort(this.contacts, 'name')
-        })
-    }
 
     get final_recipients():string[]{
         // Get list of contact ids that will currently be included when all things accounted for

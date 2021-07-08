@@ -2,37 +2,45 @@
 <template lang='pug'>
 
 div
-    v-toolbar(v-if='!draft')
+    v-toolbar
         app-btn(to='../' icon='arrow_back')
-    v-toolbar(v-else)
+        template(v-if='draft')
+            input.msg-title(v-model.trim='title' placeholder="Subject...")
+            app-btn(v-if='draft.template' @click='copy_to_draft' fab icon='post_add'
+                data-tip="Use for new draft" data-tip-instant)
+            app-btn(v-else @click='send' :class='{barrier: sending_barrier}' icon='send' fab
+                :data-tip='sending_barrier' data-tip-instant)
 
-        app-btn(to='../' icon='arrow_back')
+    div.meta(v-if='draft' class='app-bg-primary-relative')
+        div.inner(class='d-flex align-center')
 
-        v-spacer
+            template(v-if='profile')
+                div.profile(@click='show_profile_dialog')
+                    div.label From
+                    div.value
+                        strong {{ profile.display }}
+                    div.value {{ sender_name }}
+                div.recipients(@click='show_recipients_dialog')
+                    div.label To {{ final_recipients.length ? `(${final_recipients.length})` : '' }}
+                    div.value
+                        strong {{ groups_included_desc }}
+                        template(v-if='groups_included_desc && contacts_included_desc') ,&nbsp;
+                        | {{ contacts_included_desc }}
+                    div.value(class='error--text')
+                        strong {{ groups_excluded_desc }}
+                        template(v-if='groups_excluded_desc && contacts_excluded_desc') ,&nbsp;
+                        | {{ contacts_excluded_desc }}
+                div.security(@click='show_security_dialog')
+                    div.label Expiry
+                    div.value {{ lifespan_desc }}
+                    div.value {{ max_reads_desc }}
 
-        app-btn(@click='show_profile_dialog' icon='fingerprint' color='')
-            | Sender
-        app-btn(@click='show_recipients_dialog' icon='contact_mail' color='' class='recipients')
-            | Recipients
-        app-menu-more
-            app-list-item(@click='show_security_dialog' :disabled='!profile') Security
-            app-list-item(@click='delete_draft' color='error')
-                | {{ draft.template ? "Delete template" : "Delete draft" }}
+            div(v-else class='text-center flex')
+                app-btn(@click='create_profile') Create sending account
 
-        v-spacer
-
-        app-btn(v-if='draft.template' @click='copy_to_draft' fab icon='post_add'
-            data-tip="Use for new draft" data-tip-instant)
-        app-btn(v-else @click='send' :class='{barrier: sending_barrier}' icon='send' fab
-            :data-tip='sending_barrier' data-tip-instant)
-
-        //- Second row of toolbar
-        template(#extension)
-            div.status(class='app-fg-accent-relative') {{ status }}
-
-    div.msg-title(v-if='draft' class='app-bg-primary-relative')
-        //- NOTE Using "Subject" since users already familiar with email subjects not being in body
-        input(v-model.trim='title' placeholder="Subject...")
+            app-menu-more
+                app-list-item(@click='delete_draft' color='error')
+                    | {{ draft.template ? "Delete template" : "Delete draft" }}
 
     div.stello-displayer(v-if='draft' :class='{dark: dark_message}')
         shared-dark-toggle(v-model='dark_message')
@@ -56,6 +64,9 @@ import SharedDarkToggle from '@/shared/SharedDarkToggle.vue'
 import {Draft} from '@/services/database/drafts'
 import {Profile} from '@/services/database/profiles'
 import {Section} from '@/services/database/sections'
+import {Group} from '@/services/database/groups'
+import {Contact} from '@/services/database/contacts'
+import {sort} from '@/services/utils/arrays'
 
 
 @Component({
@@ -68,15 +79,11 @@ export default class extends Vue {
     draft:Draft = null
     sections:{[id:string]: Section} = {}  // Content of sections loaded separately from the draft
     sections_inited = false
-    profile:Profile = null
-    groups = []
+    profiles:Profile[] = []
+    groups:Group[] = []
+    contacts:Contact[] = []
 
     async created(){
-        // Get groups data needed for determining recipients
-        self._db.groups.list().then(groups => {
-            this.groups = groups
-        })
-
         // Load the draft and the contents of the draft's sections
         const draft = await self._db.drafts.get(this.draft_id)
         if (draft){
@@ -85,15 +92,25 @@ export default class extends Vue {
             }
             this.draft = draft
         }
-    }
 
-    @Watch('draft.profile') async watch_profile(){
-        // Load profile when it changes
-        if (this.draft.profile){
-            this.profile = await self._db.profiles.get(this.draft.profile)
-        } else {
-            this.profile = null
-        }
+        // Load profiles (so know if need to create or select existing)
+        self._db.profiles.list().then(profiles => {
+            this.profiles = profiles
+            // Auto assign default if no account selected yet
+            if (!this.profile && this.$store.state.default_profile){
+                this.draft.profile = this.$store.state.default_profile
+            }
+        })
+
+        // Load groups and contacts
+        self._db.groups.list().then(groups => {
+            sort(groups, 'name')
+            this.groups = groups
+        })
+        self._db.contacts.list().then(contacts => {
+            sort(contacts, 'name')
+            this.contacts = contacts
+        })
     }
 
     @Watch('draft.sections') watch_sections(){
@@ -126,6 +143,11 @@ export default class extends Vue {
         })
     }
 
+    get profile():Profile{
+        // Get profile record for draft (if it exists)
+        return this.profiles.find(p => p.id === this.draft.profile)
+    }
+
     get final_recipients(){
         // Return final recipients of message
         return this.draft.get_final_recipients(this.groups)
@@ -148,38 +170,13 @@ export default class extends Vue {
                 return "Add a video to the section you created"
             }
         }
-        if (!this.final_recipients.length)
-            return "Add some recipients"
         if (!this.profile)
             return "Specify which account to send from"
         if (!this.profile.host.bucket)
             return "Selected sending account has not been setup yet"
+        if (!this.final_recipients.length)
+            return "Add some recipients"
         return null
-    }
-
-    get status(){
-        // A summary of the message's settings
-
-        // Construct base status
-        const account = this.profile ? this.profile.display : "No sending account"
-        const recipients = this.final_recipients.length
-        let status = `${account}  |  ${recipients} recipients`
-
-        // Optionally add expiry if profile chosen
-        if (this.profile){
-            const days = this.draft.options_security.lifespan
-                ?? this.profile.msg_options_security.lifespan
-            const expiry = [null, Infinity].includes(days) ? "no expiry" : `${days} days`
-            status += `  |  ${expiry}`
-            // Optionally add max_reads if defined
-            const reads = this.draft.options_security.max_reads
-                ?? this.profile.msg_options_security.max_reads
-            if (reads !== Infinity){
-                status += ` (${reads} opens)`
-            }
-        }
-
-        return status
     }
 
     get title(){
@@ -200,11 +197,73 @@ export default class extends Vue {
         this.$store.commit('dict_set', ['dark_message', value])
     }
 
+    get sender_name(){
+        // Get sender name, accounting for inheritance
+        return this.draft.options_identity.sender_name
+            || this.profile.msg_options_identity.sender_name
+    }
+
+    get contacts_included_desc(){
+        // Get list of included contacts as a string
+        return this.draft.recipients.include_contacts
+            .map(id => this.contacts.find(c => c.id === id)?.display)
+            .filter(i => i)
+            .join(', ')
+    }
+
+    get contacts_excluded_desc(){
+        // Get list of excluded contacts as a string
+        return this.draft.recipients.exclude_contacts
+            .map(id => this.contacts.find(c => c.id === id)?.display)
+            .filter(i => i)
+            .join(', ')
+    }
+
+    get groups_included_desc(){
+        // Get list of included groups as a string
+        return this.draft.recipients.include_groups
+            .map(id => this.groups.find(c => c.id === id)?.display)
+            .filter(i => i)
+            .join(', ')
+    }
+
+    get groups_excluded_desc(){
+        // Get list of excluded groups as a string
+        return this.draft.recipients.exclude_groups
+            .map(id => this.groups.find(c => c.id === id)?.display)
+            .filter(i => i)
+            .join(', ')
+    }
+
+    get lifespan_desc():string{
+        // Get desc of lifespan, accounting for inheritance
+        const lifespan = this.draft.options_security.lifespan
+            ?? this.profile.msg_options_security.lifespan
+        return lifespan === Infinity ? "No expiry" : `${lifespan} days`
+    }
+
+    get max_reads_desc():string{
+        // Get desc of max reads, accounting for inheritance
+        const max_reads = this.draft.options_security.max_reads
+            ?? this.profile.msg_options_security.max_reads
+        return max_reads === Infinity ? "" : `${max_reads} opens`
+    }
+
+    async create_profile(){
+        // Create new profile (or resume setting up an in progress one)
+        const profile_in_progress = this.profiles.find(p => !p.setup_complete)
+        const profile = profile_in_progress ?? await self._db.profiles.create()
+        this.$router.push({
+            name: 'profile',
+            params: {profile_id: profile.id},
+        })
+    }
+
     show_profile_dialog(){
         // Open dialog for modifying draft's sending profile and related settings
         this.$store.dispatch('show_dialog', {
             component: DialogDraftProfile,
-            props: {draft: this.draft},
+            props: {draft: this.draft, profiles: this.profiles},
         })
     }
 
@@ -212,7 +271,7 @@ export default class extends Vue {
         // Open dialog for modifying draft's recipients
         this.$store.dispatch('show_dialog', {
             component: DialogDraftRecipients,
-            props: {draft: this.draft},
+            props: {draft: this.draft, groups: this.groups, contacts: this.contacts},
             tall: true,
         })
     }
@@ -277,47 +336,54 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
-.recipients:not(.v-btn--icon)
-    // Separate buttons (but not if icons)
-    margin: 0 12px
-
-
-.v-toolbar ::v-deep
-    height: auto !important
-
-    .v-btn--fab
-        margin-top: 64px  // Height of toolbar
-
-        &.barrier
-            filter: saturate(25%)
-
-        &::after
-            // Position tooltip to left of button so doesn't go off page
-            top: auto
-            right: 70px
-
-    .v-toolbar__extension
-        height: auto !important
-        z-index: -1  // Don't allow status to get in way of button hover
-
-        .status
-            font-size: 12px
-            text-align: center
-            position: absolute
-            top: 0
-            margin-top: -18px
-            user-select: none
-
-
 .msg-title  // .title used by Vuetify
     padding: 6px
+    width: 100%
+    font-size: 20px
 
-    input
-        text-align: center
-        width: 100%
-        outline-style: none
-        font-size: 20px
-        margin: 6px
+
+.v-btn--fab
+    &.barrier
+        filter: saturate(25%)
+    &::after
+        // Position tooltip to left of button so doesn't go off page
+        top: auto !important
+        right: 70px
+
+
+.meta
+
+    .inner
+        max-width: $header-width
+        margin-left: auto
+        margin-right: auto
+
+    .profile, .recipients, .security
+        cursor: pointer
+        flex-grow: 1
+        padding: 4px 8px
+        align-self: stretch
+        font-size: 14px
+
+        &:hover
+            background-color: rgba(white, 0.3)
+
+        .label
+            font-size: 12px
+            opacity: 0.6
+
+    .security
+        min-width: 100px
+
+    .recipients
+        .value
+            @include max_lines(2)
+
+    .profile
+        min-width: 150px
+
+    ::v-deep .menu-more-btn
+        margin: 8px
 
 
 .stello-displayer
