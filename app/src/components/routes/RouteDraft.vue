@@ -26,7 +26,7 @@ div
                         strong {{ groups_included_desc }}
                         template(v-if='groups_included_desc && contacts_included_desc') ,&nbsp;
                         | {{ contacts_included_desc }}
-                    div.value(class='error--text')
+                    div.value(class='error--text excluded')
                         strong {{ groups_excluded_desc }}
                         template(v-if='groups_excluded_desc && contacts_excluded_desc') ,&nbsp;
                         | {{ contacts_excluded_desc }}
@@ -376,8 +376,10 @@ export default class extends Vue {
         min-width: 100px
 
     .recipients
-        .value
+        .value:not(.excluded)
             @include max_lines(2)
+        .value.excluded
+            @include max_lines(1)
 
     .profile
         min-width: 150px
