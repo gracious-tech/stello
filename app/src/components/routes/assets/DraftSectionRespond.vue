@@ -55,6 +55,9 @@ export default class extends Vue {
 <style lang='sass' scoped>
 
 .respondbar:not(.respondable)
-    opacity: 0.25 !important
+    color: #f33
+
+    button
+        opacity: 0.5 !important
 
 </style>
