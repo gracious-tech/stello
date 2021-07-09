@@ -1,5 +1,5 @@
 
-import {AppDatabaseConnection, RecordSection, RecordSectionContent, ContentText} from './types'
+import {AppDatabaseConnection, RecordSection, RecordSectionContent} from './types'
 import {generate_token} from '@/services/utils/crypt'
 
 
@@ -20,12 +20,12 @@ export class Section<TContent extends RecordSectionContent=RecordSectionContent>
             return this.respondable
         }
         if (this.content.type === 'text'){
-            const standout = (this.content as ContentText).standout
+            const standout = this.content.standout
             if (standout === 'subtle' || standout === 'important'){
                 return false  // Subtle and important unlikely to be appropriate for comments
             }
-            if (!(this.content as ContentText).html.includes('<p>')){
-                return false  // Sections without paragraphs unlikely appropriate for comments
+            if (this.content.html.length < 250){  // NOTE Includes html markup
+                return false  // Short sections unlikely appropriate for comments
             }
         }
         return true
@@ -33,7 +33,7 @@ export class Section<TContent extends RecordSectionContent=RecordSectionContent>
 
     get is_plain_text():boolean{
         // Boolean for whether section is text without any standout
-        return this.content.type === 'text' && !(this.content as ContentText).standout
+        return this.content.type === 'text' && !this.content.standout
     }
 }
 
