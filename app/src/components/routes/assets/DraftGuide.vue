@@ -1,18 +1,21 @@
 
 <template lang='pug'>
 
-div.root(:class='{showing: show_guide}')
-
-    app-svg.decor_compose(v-if='show_decor' @click='toggle_guide' name='decor_compose' responsive)
+div.root
 
     div.guide(v-if='show_guide')
 
-        h1(class='text-h4 text-center mb-5') Writing Guide
+        h1(class='text-h4 text-center mb-5') Editor Guide
+
+        div(class='text-center')
+            app-btn(@click='toggle_guide' small color='') Hide
+
+        div(class='text-center mt-6')
+            app-svg.decor_compose(name='decor_compose' responsive)
 
         h2(class='text-h6') The subject
         p Like an email, the subject for each message is not part of the message itself. Readers will see it when they are notified about your message. Don't put anything sensitive in the subject, as it will still be around after your messages expire.
 
-        app-svg.decor_compose_guide(name='decor_compose' responsive)
 
         h2(class='text-h6') Sections
         p Stello organises messages into sections, which can be text #[app-svg(name='icon_subject')], images #[app-svg(name='icon_image')], or videos #[app-svg(name='icon_video')]. This gives several advantages, such as being able to rearrange sections, allow recipients to comment on individual sections, and giving your message a more logical flow. You can still just write one long section if you prefer.
@@ -45,8 +48,9 @@ div.root(:class='{showing: show_guide}')
             | button without affecting your readers.
 
     p(class='text-center mt-6')
-        app-btn.toggle(@click='toggle_guide' color='' :small='!show_guide')
-            | {{ show_guide ? "Hide guide" : "Show guide" }}
+        app-btn(v-if='show_guide' @click='toggle_guide' color='' outlined) Hide guide
+        app-btn.reveal(v-else icon='help' @click='toggle_guide' data-tip="Editor Guide"
+            data-tip-instant)
 
 </template>
 
@@ -59,7 +63,6 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 @Component({})
 export default class extends Vue {
 
-    @Prop(Boolean) empty:boolean
     show_guide = false
 
     created(){
@@ -68,10 +71,6 @@ export default class extends Vue {
             this.show_guide = true
             this.$store.commit('dict_set', ['show_guide_default', false])
         }
-    }
-
-    get show_decor(){
-        return this.empty && !this.show_guide
     }
 
     toggle_guide(){
@@ -88,27 +87,11 @@ export default class extends Vue {
 .root
     margin-top: 100px
 
-    .decor_compose, .decor_compose_guide
-        display: block
-        width: 100%
-        height: auto
+    .decor_compose
+        max-width: 500px
 
         ::v-deep path
             fill: currentColor
-
-    .decor_compose
-        max-width: 400px
-        margin-left: auto
-        margin-right: auto
-        opacity: 0.5
-        cursor: pointer
-
-    .decor_compose_guide
-        max-width: 300px
-        margin-top: 120px
-        margin-bottom: 80px
-        margin-right: 48px
-        float: left
 
     .guide
         opacity: 0.8
@@ -127,12 +110,8 @@ export default class extends Vue {
                 margin-left: 24px
                 margin-right: 24px
 
-    .toggle
-        font-family: Roboto
-
-
-    &:not(.showing) .toggle
-        opacity: 0.15
+    .reveal
+        opacity: 0.25
 
         &:hover
             opacity: 1

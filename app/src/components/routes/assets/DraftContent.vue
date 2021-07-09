@@ -14,7 +14,7 @@ div.content
     draft-add-section.add-end(:draft='draft' :position='draft.sections.length'
         :visible='!draft.sections.length')
 
-    draft-guide(:empty='!draft.sections.length')
+    draft-guide
 
 </template>
 
