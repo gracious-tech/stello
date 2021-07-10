@@ -337,6 +337,7 @@ export default {
             border-style: none
             background-size: cover
             background-position: center
+            cursor: pointer
 
             &:focus
                 outline-style: none
