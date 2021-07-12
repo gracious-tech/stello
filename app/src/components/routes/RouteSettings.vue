@@ -8,7 +8,7 @@ div
     app-content(class='pa-6')
 
         div.note
-            div(class='text-body-2')
+            div(class='text-body-2 app-bg-primary-relative')
                 app-svg(name='icon_info' class='mr-3')
                 | Most settings are in sending accounts
 
@@ -71,8 +71,6 @@ export default class extends Vue {
         border-radius: 24px
         display: inline-flex
         align-items: center
-        background-color: $primary
-        color: $on_primary
 
 
 </style>

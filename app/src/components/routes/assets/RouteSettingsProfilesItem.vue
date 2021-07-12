@@ -5,8 +5,8 @@ v-list-item(:to='route')
     v-list-item-content
         v-list-item-title
             | {{ profile.display }}
-            v-chip(v-if='is_default' small class='ml-3' color='primary') default
-            v-chip(v-if='is_incomplete' small class='ml-3' color='primary') incomplete
+            v-chip(v-if='is_default' small class='ml-3 app-bg-primary-relative') default
+            v-chip(v-if='is_incomplete' small class='ml-3 app-bg-primary-relative') incomplete
     v-list-item-action
         app-menu-more
             app-list-item(@click='make_default' :disabled='is_default || is_incomplete') Make default

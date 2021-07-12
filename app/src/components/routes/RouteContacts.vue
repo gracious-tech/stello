@@ -31,7 +31,7 @@ div
 
     div.groups_contacts
 
-        div.groups(v-if='something_added')
+        div.groups(v-if='something_added' class='app-bg-primary-relative')
             app-text.search(v-model='search' placeholder="Search...")
                 template(#append)
                     app-btn(v-if='search' @click='search = ""' icon='close')
@@ -516,8 +516,6 @@ $groups_sidebar_width: 250px
         flex-direction: column
         min-width: $groups_sidebar_width
         max-width: $groups_sidebar_width
-        @include themed(background-color, $primary_lighter, $primary_darker)
-        @include themed(color,  $on_primary_lighter, $on_primary_darker)
 
         ::v-deep .search
             flex-grow: 0

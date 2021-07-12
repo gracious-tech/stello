@@ -2,7 +2,7 @@
 <template lang='pug'>
 
 v-stepper(:value='profile.setup_step' @change='change_step')
-    v-stepper-header
+    v-stepper-header(class='app-bg-primary-relative')
         v-stepper-step(:step='1' :complete='profile.setup_step > 1' :editable='profile.setup_step > 1'
             edit-icon='$complete' color='accent') Email
         v-stepper-step(:step='2' :complete='profile.setup_step > 2' :editable='profile.setup_step > 2'
@@ -251,12 +251,11 @@ export default class extends Vue {
     flex-direction: column
     width: 100%
     margin: 0 auto
-    background-color: transparent
+    @include themed(background-color, #ddd, transparent)  // Decor doesn't work if bg too light
     flex-grow: 1
 
     .v-stepper__header
         width: 100%
-        background-color: $primary_darker
         justify-content: center
         flex-wrap: nowrap
         user-select: none
@@ -317,7 +316,7 @@ export default class extends Vue {
 
 .decor
     position: absolute
-    opacity: 0.3
+    @include themed(opacity, 1, 0.3)  // Doesn't stand out as much on light bg
     margin-left: -400px
     min-width: 350px
     max-width: 350px
