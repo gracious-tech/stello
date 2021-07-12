@@ -115,16 +115,11 @@ export default class extends Vue {
                 region: ensure_string(data.region),
                 user: ensure_string(data.user, true),
                 credentials: null,
-                credentials_responder: null,
             }
             if (cloud === 'aws'){
                 host.credentials = {
                     key_id: ensure_string(data.credentials.key_id),
                     key_secret: ensure_string(data.credentials.key_secret),
-                }
-                host.credentials_responder = {
-                    key_id: ensure_string(data.credentials_responder.key_id),
-                    key_secret: ensure_string(data.credentials_responder.key_secret),
                 }
             }
         } catch {

@@ -67,8 +67,8 @@ v-stepper(:value='profile.setup_step' @change='change_step')
             img.decor(src='_assets/decor/setup_id.png')
             h2(class='text-h6 my-6') How would you like to identify yourself?
             p(class='text--secondary body-2') When inviting contacts to read your messages
-            app-security-alert(class='my-12') Personalize enough for recipients to trust it's you, but don't include anything sensitive as this info won't expire with messages
-            route-profile-identity(:profile='profile' :clipboard='false')
+            app-security-alert(class='my-12') Personalize so recipients trust it's you, but don't include anything sensitive as invitation text does not expire
+            route-profile-identity(:profile='profile' steps)
             div.nav
                 app-btn(@click='prev_step') Prev
                 div.done
@@ -166,11 +166,16 @@ export default class extends Vue {
         for (const [prop, value] of Object.entries(settings.msg_options_security)){
             this.profile.msg_options_security[prop] = value
         }
-        // Add an extra line to invite tmpl if message will expire
-        if (this.profile.msg_options_security.lifespan !== Infinity
-                && !this.profile.msg_options_identity.invite_tmpl_email.includes('msg_lifespan')){
-            this.profile.msg_options_identity.invite_tmpl_email +=
+        // Add an extra line to invite tmpls if message will expire
+        if (this.profile.msg_options_security.lifespan !== Infinity){
+            const paragraph =
                 `<p>(message will expire in <span data-mention data-id='msg_lifespan'></span>)</p>`
+            if (!this.profile.msg_options_identity.invite_tmpl_email.includes('msg_lifespan')){
+                this.profile.msg_options_identity.invite_tmpl_email += paragraph
+            }
+            if (!this.profile.options.reply_invite_tmpl_email.includes('msg_lifespan')){
+                this.profile.options.reply_invite_tmpl_email += paragraph
+            }
         }
         self._db.profiles.set(this.profile)
     }

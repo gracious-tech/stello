@@ -108,8 +108,9 @@ export class DatabaseDrafts {
             options_identity: {
                 // null to inherit from profile
                 sender_name: '',
-                invite_tmpl_email: '',
-                invite_tmpl_clipboard: '',
+                invite_image: null,
+                invite_tmpl_email: null,
+                invite_tmpl_clipboard: null,
             },
             options_security:{
                 // null to inherit from profile

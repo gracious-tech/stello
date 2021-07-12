@@ -1,6 +1,7 @@
 
 import {IDBPTransaction, StoreNames} from 'idb'
 
+// WARN Careful importing/using anything external (embed instead so that migrations stay consistent)
 import {AppDatabaseSchema, RecordProfile} from './types'
 
 
@@ -11,7 +12,7 @@ type VersionChangeTransaction = IDBPTransaction<
 >
 
 
-export const DATABASE_VERSION = 8
+export const DATABASE_VERSION = 9
 
 
 export function migrate(transaction:VersionChangeTransaction, old_version:number){
@@ -36,6 +37,8 @@ export function migrate(transaction:VersionChangeTransaction, old_version:number
             to7(transaction)
         case 7:
             to8(transaction)
+        case 8:
+            to9(transaction)
     }
 }
 
@@ -237,6 +240,41 @@ async function to8(transaction:VersionChangeTransaction):Promise<void>{
             .replaceAll('SENDER', '<span data-mention data-id="sender_name"></span>')
             .replaceAll('SUBJECT', '<span data-mention data-id="msg_title"></span>')
             .replaceAll('LINK', '')  // Already resolved to blank post v0.1.1
+        cursor.update(cursor.value)
+    }
+}
+
+
+async function to9(transaction:VersionChangeTransaction):Promise<void>{
+
+    // `invite_image` added to `msg_options_identity`
+    const default_invite_image = await (await fetch('migrations/default_invite_image.jpg')).blob()
+    for await (const cursor of transaction.objectStore('profiles')){
+        cursor.value.msg_options_identity.invite_image = default_invite_image
+        // Also added reply defaults to general options
+        cursor.value.options.reply_invite_image = default_invite_image
+        cursor.value.options.reply_invite_tmpl_email = `
+            <p>Hi <span data-mention data-id='contact_hello'></span>,</p>
+            <p><span data-mention data-id='sender_name'></span> has replied to you.</p>
+        `
+        // Removed `credentials_responder`
+        // @ts-ignore key no longer exists
+        delete cursor.value.host.credentials_responder
+        cursor.update(cursor.value)
+    }
+    for await (const cursor of transaction.objectStore('drafts')){
+        cursor.value.options_identity.invite_image = null
+        cursor.update(cursor.value)
+    }
+    for await (const cursor of transaction.objectStore('messages')){
+        cursor.value.draft.options_identity.invite_image = null
+        cursor.update(cursor.value)
+    }
+
+    // `secret_sse` added to copies
+    for await (const cursor of transaction.objectStore('copies')){
+        cursor.value.secret_sse = await crypto.subtle.generateKey(
+            {name: 'AES-GCM', length: 256}, true, ['encrypt'])
         cursor.update(cursor.value)
     }
 }

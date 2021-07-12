@@ -37,10 +37,11 @@ import AppSecurityIcon from '@/components/global/AppSecurityIcon.vue'
 import AppSecurityAlert from '@/components/global/AppSecurityAlert.vue'
 
 
-// Trigger addition of generic styles (webpack config will still put in separate css file)
+// Trigger addition of styles (webpack config will still put in separate css file)
 import '@/styles/generic.sass'
 import '@/shared/shared_styles.sass'
 import '@/styles/fonts.css'
+import 'croppr/dist/croppr.css'
 
 
 // Declare custom props on Vue instances

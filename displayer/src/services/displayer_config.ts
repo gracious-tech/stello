@@ -33,7 +33,6 @@ class DisplayerConfig {
     allow_delete:boolean = false
     allow_resend_requests:boolean = false
     social_referral_ban:boolean = true
-    credentials_responder:{key_id:string,key_secret:string}|null = null
     resp_key_public:CryptoKey|null = null
     // NOTE `reaction_options` didn't exist till after v0.4.1, so default needed for old configs
     reaction_options:string[] = ['like', 'love', 'yay', 'pray', 'laugh', 'wow', 'sad']

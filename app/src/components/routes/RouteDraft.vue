@@ -36,13 +36,14 @@ div
                     div.value {{ max_reads_desc }}
 
             div(v-else class='text-center flex')
-                app-btn(@click='create_profile') Create sending account
+                app-btn(@click='create_profile') Create account to send
 
             app-menu-more
                 app-list-item(@click='delete_draft' color='error')
                     | {{ draft.template ? "Delete template" : "Delete draft" }}
 
     div.stello-displayer(v-if='draft' :class='{dark: dark_message}')
+        draft-invite(v-if='profile' :draft='draft' :profile='profile' :sections='sections')
         shared-dark-toggle(v-model='dark_message')
         draft-content(ref='content' :draft='draft' :profile='profile' :sections='sections')
 
@@ -57,6 +58,7 @@ div
 import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import DraftContent from './assets/DraftContent.vue'
+import DraftInvite from './assets/DraftInvite.vue'
 import DialogDraftProfile from '@/components/dialogs/DialogDraftProfile.vue'
 import DialogDraftRecipients from '@/components/dialogs/DialogDraftRecipients.vue'
 import DialogDraftSecurity from '@/components/dialogs/DialogDraftSecurity.vue'
@@ -70,14 +72,14 @@ import {sort} from '@/services/utils/arrays'
 
 
 @Component({
-    components: {DraftContent, SharedDarkToggle},
+    components: {DraftContent, SharedDarkToggle, DraftInvite},
 })
 export default class extends Vue {
 
     @Prop({type: String, required: true}) draft_id:string
 
     draft:Draft = null
-    sections:{[id:string]: Section} = {}  // Content of sections loaded separately from the draft
+    sections:Record<string, Section> = {}  // Content of sections loaded separately from the draft
     sections_inited = false
     profiles:Profile[] = []
     groups:Group[] = []
@@ -361,7 +363,7 @@ export default class extends Vue {
     .profile, .recipients, .security
         cursor: pointer
         flex-grow: 1
-        padding: 4px 8px
+        padding: 12px
         align-self: stretch
         font-size: 14px
 
@@ -372,8 +374,9 @@ export default class extends Vue {
             font-size: 12px
             opacity: 0.6
 
-    .security
-        min-width: 100px
+    .profile
+        min-width: 150px
+        padding-left: 24px
 
     .recipients
         .value:not(.excluded)
@@ -381,8 +384,8 @@ export default class extends Vue {
         .value.excluded
             @include max_lines(1)
 
-    .profile
-        min-width: 150px
+    .security
+        min-width: 100px
 
     ::v-deep .menu-more-btn
         margin: 8px
@@ -399,10 +402,10 @@ export default class extends Vue {
         strong
             font-weight: revert  // 500 weight not supported by fonts used for message display
 
-    // Make any buttons inherit message theme color rather than app theme color
     ::v-deep button
+        font-family: Roboto, sans-serif
+        // Make buttons inherit message theme color rather than app theme color
         color: inherit !important
-
         &.v-btn--disabled
             color: inherit !important
             opacity: 0.3

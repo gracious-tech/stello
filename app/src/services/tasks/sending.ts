@@ -83,6 +83,22 @@ export class Sender {
             || this.profile.msg_options_identity.sender_name
     }
 
+    get invite_image():Promise<ArrayBuffer>{
+        // Get invite image, accounting for inheritance from profile
+        const default_image = this.msg.draft.reply_to
+            ? this.profile.options.reply_invite_image
+            : this.profile.msg_options_identity.invite_image
+        return (this.msg.draft.options_identity.invite_image ?? default_image).arrayBuffer()
+    }
+
+    get invite_tmpl_email():string{
+        // Get invite tmpl for email, accounting for inheritance from profile
+        const default_tmpl = this.msg.draft.reply_to
+            ? this.profile.options.reply_invite_tmpl_email
+            : this.profile.msg_options_identity.invite_tmpl_email
+        return this.msg.draft.options_identity.invite_tmpl_email || default_tmpl
+    }
+
     async send(task:Task):Promise<void>{
         // Encrypt and upload assets and copies, and send email invites
 
@@ -200,6 +216,12 @@ export class Sender {
         await this.host.upload_file(`copies/${copy.id}`, encrypted,
             this.msg.safe_lifespan_remaining, this.msg.safe_max_reads)
 
+        // Encrypt and upload invite image
+        // NOTE Uploaded even if not sending by email (re-eval if non-email invites widely used)
+        const encrypted_image = await encrypt_sym(await this.invite_image, copy.secret_sse)
+        await this.host.upload_file(`invite_images/${copy.id}`, encrypted_image,
+            this.msg.safe_lifespan_remaining)
+
         // Mark as uploaded
         copy.uploaded = true
         copy.uploaded_latest = true
@@ -238,10 +260,12 @@ export class Sender {
             address: this.profile.email,
         }
         const title = this.msg.draft.title
-        let template = this.profile.msg_options_identity.invite_tmpl_email  // TODO inherit
 
         // Do initial contact-ambigious replacement of template variables
-        template = update_template_values(template, this.tmpl_variables, '-')
+        const template = update_template_values(this.invite_tmpl_email, this.tmpl_variables, '-')
+
+        // Get responder url from deployment config
+        const responder_url = (await this.host.download_deployment_config()).url_responder
 
         // Generate email objects from copies
         const emails:Email[] = await Promise.all(copies.map(async copy => {
@@ -250,11 +274,13 @@ export class Sender {
                 contact_name: {value: copy.contact_name, label: ''},
             })
             const url = this.profile.view_url(copy.id, await export_key(copy.secret))
+            const secret_sse_url64 = buffer_to_url64(await export_key(copy.secret_sse))
+            const image = `${responder_url}?image=${copy.id}&k=${secret_sse_url64}`
             return {
                 id: copy.id,  // Use copy's id for email id for matching later
                 to: {name: copy.contact_name, address: copy.contact_address},
                 subject: title,
-                html: render_invite_html(contents, title, url),
+                html: render_invite_html(contents, title, url, image, !!this.msg.draft.reply_to),
             }
         }))
 

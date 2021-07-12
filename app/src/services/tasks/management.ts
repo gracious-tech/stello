@@ -22,6 +22,7 @@ export async function retract_message(task:Task):Promise<void>{
     await concurrent(copies.map(copy => {
         return async () => {
             await storage.delete_file(`copies/${copy.id}`)
+            await storage.delete_file(`invite_images/${copy.id}`)
             copy.expired = true
             await task.expected(self._db.copies.set(copy))
         }

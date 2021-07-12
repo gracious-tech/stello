@@ -205,11 +205,17 @@ export class Database {
             const secret = await generate_key_sym(true)
             const resp_token = buffer_to_url64(await generate_hash(await export_key(secret)))
 
+            // Generate server-side encryption secret
+            // SECURITY This secret is exposed to server, so NOT for end-to-end encryption
+            // NOTE Only use when end-to-end encryption not possible (e.g. invite images)
+            const secret_sse = await generate_key_sym(true)
+
             // Construct and return the instance for this copy
             return new MessageCopy({
                 id: generate_token(),
                 msg_id: message.id,
                 secret: secret,
+                secret_sse: secret_sse,
                 resp_token: resp_token,
                 uploaded: false,
                 uploaded_latest: false,
@@ -444,6 +450,7 @@ export class Database {
         profile.host = JSON.parse(process.env.VUE_APP_DEV_HOST_SETTINGS)
         profile.setup_step = null
         await this.profiles.set(profile)
+        await this.state.set({key: 'default_profile', value: profile.id})
 
         // Create contacts
         const first_names = ['Adam', 'Ben', 'Charlie', 'David', 'Edward', 'Fred', 'Greg',
@@ -528,7 +535,7 @@ export class Database {
         const reactions = cycle(['like', 'love', 'laugh', 'wow', 'yay', 'pray', 'sad'])
         const reply_text = "Cool, great to hear about https://stello.news. "
         const random_reply = () => {
-            return reply_text.repeat(Math.random() * 10)
+            return reply_text.repeat(Math.random() * 10 + 1)
         }
 
         // Create responses

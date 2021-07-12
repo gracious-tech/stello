@@ -18,6 +18,10 @@ export class StorageBaseAws {
         return `arn:aws:s3:::${this.bucket}`
     }
 
+    get _bucket_domain():string{
+        return `${this.bucket}.s3-${this.region}.amazonaws.com`
+    }
+
     get _bucket_resp_id():string{
         return `${this.bucket}-stello-responses`
     }
@@ -41,15 +45,6 @@ export class StorageBaseAws {
     get _lambda_role_id():string{
         return `stello-${this.bucket}-lambda`
     }
-
-    get _lambda_invoke_user_id():string{
-        return `stello-${this.bucket}-lambda-invoke`
-    }
-
-    get _lambda_invoke_user_arn():string{
-        return `arn:aws:iam:::user/stello-${this.bucket}-lambda-invoke`
-    }
-
 }
 
 

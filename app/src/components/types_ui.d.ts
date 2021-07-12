@@ -10,5 +10,4 @@ export interface HostCredentialsPackage {
     region:string
     user:string
     credentials:Credentials
-    credentials_responder:Credentials
 }

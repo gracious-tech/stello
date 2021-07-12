@@ -252,6 +252,7 @@ export class DatabaseProfiles {
     async create():Promise<Profile>{
         // Create a new profile
         // NOTE Defaults are for 'very_high' security category
+        const default_invite_image = await (await fetch('default_invite_image.jpg')).blob()
         const profile = new Profile({
             id: generate_token(),
             setup_step: 0,
@@ -261,7 +262,6 @@ export class DatabaseProfiles {
                 region: null,
                 user: null,
                 credentials: null,
-                credentials_responder: null,
             },
             host_state: {
                 disp_config_name: generate_token(),
@@ -290,9 +290,15 @@ export class DatabaseProfiles {
                 smtp_no_reply: true,
                 social_referral_ban: true,
                 reaction_options: ['like', 'love', 'yay', 'pray', 'laugh', 'wow', 'sad'],
+                reply_invite_image: default_invite_image,
+                reply_invite_tmpl_email: `
+                    <p>Hi <span data-mention data-id='contact_hello'></span>,</p>
+                    <p><span data-mention data-id='sender_name'></span> has replied to you.</p>
+                `,
             },
             msg_options_identity: {
                 sender_name: '',
+                invite_image: default_invite_image,
                 invite_tmpl_email: `
                     <p>Hi <span data-mention data-id='contact_hello'></span>,</p>
                     <p>Please see below for latest news.</p>

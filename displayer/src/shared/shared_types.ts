@@ -81,3 +81,13 @@ export interface ResponseEventReplaction {
     section_id:string|null
     subsection_id:string|null
 }
+
+
+// OTHER
+
+
+export interface DeploymentConfig {
+    url_msgs:string
+    url_msgs_append_subdomain:boolean
+    url_responder:string
+}

@@ -17,7 +17,6 @@
         "vite": "^2.2.1"
     },
     "dependencies": {
-        "aws4fetch": "^1.0.13",
         "core-js": "^3.10.2",
         "idb": "^6.1.2",
         "lodash": "^4.17.21",

@@ -15,4 +15,4 @@ sam build
 
 # Serve lambda locally
 # NOTE sudo required to run docker
-sudo --preserve-env="AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY" ../../.venv/bin/sam local start-api --env-vars .dev_env.json
+sudo --preserve-env="AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY" ../../.venv/bin/sam local start-api --port 3050 --env-vars .dev_env.json

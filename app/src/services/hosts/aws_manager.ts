@@ -8,13 +8,17 @@ import {IAM} from '@aws-sdk/client-iam'
 import {EC2} from '@aws-sdk/client-ec2'
 import {SNS} from '@aws-sdk/client-sns'
 import {STS} from '@aws-sdk/client-sts'
+import {ApiGatewayV2} from '@aws-sdk/client-apigatewayv2'
+import {ResourceGroupsTaggingAPI} from '@aws-sdk/client-resource-groups-tagging-api'
 import {S3, waitUntilBucketExists} from '@aws-sdk/client-s3'
 import {GetFunctionCommandOutput, Lambda, UpdateFunctionConfigurationCommandInput,
     waitUntilFunctionExists} from '@aws-sdk/client-lambda'
 
-import {buffer_to_hex} from '@/services/utils/coding'
+import app_config from '@/app_config.json'
+import {buffer_to_hex, string_to_utf8} from '@/services/utils/coding'
 import {sleep} from '@/services/utils/async'
 import {Task} from '@/services/tasks/tasks'
+import {DeploymentConfig} from '@/shared/shared_types'
 import {StorageBaseAws, waitUntilUserExists, waitUntilRoleExists} from './aws_common'
 import {HostCloud, HostCredentials, HostManager, HostManagerStorage, HostPermissionError,
     HostStorageCredentials, HostStorageVersion} from './types'
@@ -161,13 +165,16 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
     credentials:HostCredentials
     version:number
 
+    tagging:ResourceGroupsTaggingAPI
     iam:IAM
     s3:S3
+    gateway:ApiGatewayV2
     lambda:Lambda
     sns:SNS
     sts:STS
 
     _account_id_cache:string
+    _gateway_id_cache:string
 
     constructor(credentials:HostCredentials, bucket:string, region:string, version?:number){
         super()
@@ -180,8 +187,11 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
 
         // Init services
         const aws_creds = {accessKeyId: credentials.key_id, secretAccessKey: credentials.key_secret}
+        this.tagging = new ResourceGroupsTaggingAPI({apiVersion: '2017-01-26',
+            credentials: aws_creds, region})
         this.iam = new IAM({apiVersion: '2010-05-08', credentials: aws_creds, region})
         this.s3 = new S3({apiVersion: '2006-03-01', credentials: aws_creds, region})
+        this.gateway = new ApiGatewayV2({apiVersion: '2018-11-29', credentials: aws_creds, region})
         this.lambda = new Lambda({apiVersion: '2015-03-31', credentials: aws_creds, region})
         this.sns = new SNS({apiVersion: '2010-03-31', credentials: aws_creds, region})
         this.sts = new STS({apiVersion: '2011-06-15', credentials: aws_creds, region})
@@ -195,7 +205,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
     async setup_services(task:Task):Promise<void>{
         // Ensure host services setup properly (sets up all services, not just storage)
         // NOTE Will create if storage doesn't exist, or fail if storage id taken by third party
-        task.upcoming(9)
+        task.upcoming(11)
         try {
             // Ensure bucket created, as everything else pointless if can't create
             // NOTE Don't need to wait for ready state though, can work on other tasks without that
@@ -205,15 +215,20 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
             // NOTE May need to manually resolve if bucket created but nothing else (can't detect)
             await task.expected(this._setup_user_create())
 
-            // Resolve when all tasks done
+            // Run rest of tasks in parallel
             await task.expected(
                 this._setup_bucket_configure(),
                 this._setup_resp_bucket(),
                 this._setup_user_configure(),
-                this._setup_lambda_role().then(() => this._setup_lambda()),
-                this._setup_lambda_invoke_user(),
+                this._setup_lambda_role().then(async () => {
+                    await task.expected(this._setup_lambda())  // Relies on lambda role
+                    await task.expected(this._setup_gateway())  // Relies on lambda
+                }),
                 this._setup_sns(),
             )
+
+            // Setup displayer last since relies on bucket creation finishing and gateway existing
+            await task.expected(this._setup_displayer())
 
             // Update setup version tag on user to mark setup as completing successfully
             await task.expected(this.iam.tagUser({
@@ -231,27 +246,17 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         // Generate the credentials the user needs to have to access the storage (remove existing)
         // NOTE AWS only allows 2 keys to exist per user
 
-        // Helper to create keys in parallel
-        const new_key = async (user_id:string) => {
-            await this._delete_user_keys(user_id)
-            return this.iam.createAccessKey({UserName: user_id})
-        }
+        // First delete existing keys
+        await this._delete_user_keys(this._user_id)
 
-        // Generate new key for both user and responder function
-        const [user_key, responder_key] = await Promise.all([
-            new_key(this._user_id),
-            new_key(this._lambda_invoke_user_id),
-        ])
+        // Create new key
+        const user_key = await this.iam.createAccessKey({UserName: this._user_id})
 
         // Return credentials
         return {
             credentials: {
                 key_id: user_key.AccessKey.AccessKeyId,
                 key_secret: user_key.AccessKey.SecretAccessKey,
-            },
-            credentials_responder: {
-                key_id: responder_key.AccessKey.AccessKeyId,
-                key_secret: responder_key.AccessKey.SecretAccessKey,
             },
         }
     }
@@ -266,7 +271,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
             this._delete_bucket(this.bucket),
             this._delete_bucket(this._bucket_resp_id),
             // Other
-            this._delete_user(this._lambda_invoke_user_id),
+            this._get_api_id().then(api_id => api_id && this.gateway.deleteApi({ApiId: api_id})),
             no404(this.lambda.deleteFunction({FunctionName: this._lambda_id})),
             no404(this.sns.deleteTopic({TopicArn: await this._get_topic_arn()})),
             no404(this.iam.deleteRolePolicy({RoleName: this._lambda_role_id, PolicyName: 'stello'}))
@@ -285,6 +290,21 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
             this._account_id_cache = (await this.sts.getCallerIdentity({})).Account
         }
         return this._account_id_cache
+    }
+
+    async _get_api_id():Promise<string|undefined>{
+        // Get the id for API gateway (null if doesn't exist)
+        if (!this._gateway_id_cache){
+            // NOTE ResourceTypeFilters does not work (seems to be an AWS bug) so manually filtering
+            const resp = await this.tagging.getResources({
+                TagFilters: [{Key: 'stello', Values: [this.bucket]}]})
+            const arn = resp.ResourceTagMappingList
+                .map(i => i.ResourceARN.split(':'))  // Get ARN parts
+                .filter(i => i[2] === 'apigateway')  // Only match API gateway
+                [0]  // Should only be one if any
+            this._gateway_id_cache = arn && arn[5].split('/')[2]  // Extract gateway id part
+        }
+        return this._gateway_id_cache
     }
 
     async _get_topic_arn():Promise<string>{
@@ -317,23 +337,25 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         }
     }
 
-    async _setup_bucket_configure():Promise<void>{
-        // Ensure bucket is correctly configured
-
-        // Ensure creation has finished, as these tasks rely on it (not just securing id)
-        await waitUntilBucketExists({client: this.s3, maxWaitTime: 30}, {Bucket: this.bucket})
+    async _setup_displayer():Promise<void>{
+        // Upload displayer, configured with deployment config
 
         // Define displayer's deployment config for later embedding in displayer code
-        const deployment_config = btoa(JSON.stringify({
+        const api_id = await this._get_api_id()
+        const deployment_config = JSON.stringify({
             url_msgs: `./`,  // Same URL as displayer for self-hosted AWS
             url_msgs_append_subdomain: false,
-            url_responder: `https://lambda.${this.region}.amazonaws.com/2015-03-31/functions/${this._lambda_id}/invocations`,
-        }))
+            url_responder: `https://${api_id}.execute-api.${this.region}.amazonaws.com/`,
+        } as DeploymentConfig)
 
         // Get list of files in displayer tar
         // WARN js-untar is unmaintained and readAsString() is buggy so not using
         interface TarFile {name:string, type:string, buffer:ArrayBuffer}
         const files:TarFile[] = await untar(await (await fetch('displayer.tar')).arrayBuffer())
+
+        // Add deployment config to files to be uploaded so user can access it
+        // NOTE `type` is for TarFile and means "regular file"
+        files.push({name: 'deployment.json', type: '', buffer: string_to_utf8(deployment_config)})
 
         // Start uploading displayer assets and collect promises that resolve with their path
         const uploads:Promise<string>[] = []
@@ -351,7 +373,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
             const type = displayer_asset_type(file.name)
             if (type === 'text/javascript'){
                 contents = contents.replace('DEPLOYMENT_CONFIG_DATA_UfWFTF5axRWX',
-                    deployment_config)
+                    btoa(deployment_config))
             }
 
             // Index should be uploaded last so that assets are ready (important for updates)
@@ -371,7 +393,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         }
 
         // Once other files have been uploaded, can upload index and remove old assets
-        const assets_promise = Promise.all(uploads).then(async upload_paths => {
+        await Promise.all(uploads).then(async upload_paths => {
 
             // Upload the index
             // TODO For org hosting, probably leave as index.html to serve from '/'
@@ -408,9 +430,14 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
                 throw new Error("Could not delete all objects")
             }
         })
+    }
 
-        // While uploading, also configure bucket
+    async _setup_bucket_configure():Promise<void>{
+        // Ensure bucket is correctly configured
         // NOTE The following tasks conflict (409 errors) and cannot be run in parallel
+
+        // Ensure bucket creation has finished, as these tasks rely on it (not just securing id)
+        await waitUntilBucketExists({client: this.s3, maxWaitTime: 30}, {Bucket: this.bucket})
 
         // Set tag
         await this.s3.putBucketTagging({
@@ -452,9 +479,6 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
                     Resource: `${this._bucket_arn}/*`},
             }),
         })
-
-        // Resolve when assets promise also completes
-        await assets_promise
     }
 
     async _setup_resp_bucket():Promise<void>{
@@ -552,6 +576,38 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         })
     }
 
+    async _setup_gateway():Promise<void>{
+        // Create API Gateway and connect it to lambda
+        if (! await this._get_api_id()){
+            // Gateway doesn't exist yet, so create
+            const resp = await this.gateway.createApi({
+                Tags: {stello: this.bucket},
+                Name: `stello ${this.bucket}`,  // Not used programatically, just for UI
+                ProtocolType: 'HTTP',
+                Target: await this._get_lambda_arn(),
+            })
+            this._gateway_id_cache = resp.ApiId
+        }
+
+        // Tell lambda that gateway has permission to invoke it
+        const account_id = await this._get_account_id()
+        const api_id = await this._get_api_id()
+        try {
+            await this.lambda.addPermission({
+                FunctionName: this._lambda_id,
+                StatementId: 'gateway',
+                Action: 'lambda:InvokeFunction',
+                Principal: 'apigateway.amazonaws.com',
+                // NOTE Special ARN for executing gateway (has separate arn for regular config)
+                SourceArn: `arn:aws:execute-api:${this.region}:${account_id}:${api_id}/*`,
+            })
+        } catch (error){
+            if (error.name !== 'ResourceConflictException'){  // Already exists
+                throw error
+            }
+        }
+    }
+
     async _setup_lambda_role():Promise<void>{
         // Create IAM role for the lambda function to assume
 
@@ -608,39 +664,6 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         await sleep(12000)
     }
 
-    async _setup_lambda_invoke_user():Promise<void>{
-        // Create a user (to be assumed by all recipients) that is allowed to invoke the lambda
-        try {
-            await this.iam.createUser({
-                // NOTE Do NOT add Path param since will confuse storages listing and not needed
-                UserName: this._lambda_invoke_user_id,
-                Tags: [{Key: 'stello', Value: this.bucket}],
-            })
-        } catch (error){
-            if (error.name !== 'EntityAlreadyExists'){
-                throw error
-            }
-        }
-
-        // May need to wait if still creating user
-        await waitUntilUserExists({client: this.iam, maxWaitTime: 30},
-            {UserName: this._lambda_invoke_user_id})
-
-        // Put the permissions policy
-        await this.iam.putUserPolicy({
-            UserName: this._lambda_invoke_user_id,
-            PolicyName: 'stello',
-            PolicyDocument: JSON.stringify({
-                Version: '2012-10-17',
-                Statement: {
-                    Effect: 'Allow',
-                    Resource: await this._get_lambda_arn(),
-                    Action: 'lambda:InvokeFunction',
-                },
-            }),
-        })
-    }
-
     async _setup_lambda_config_has_changed(fn_config:Record<string, any>,
             fn_config_env:UpdateFunctionConfigurationCommandInput['Environment'],
             resp:GetFunctionCommandOutput):Promise<boolean>{
@@ -682,10 +705,12 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         const fn_config_env = {
             Variables: {
                 stello_env: 'isolated',
+                stello_version: app_config.version,
                 stello_msgs_bucket: this.bucket,
                 stello_resp_bucket: this._bucket_resp_id,
                 stello_topic_arn: await this._get_topic_arn(),
                 stello_region: this.region,
+                stello_errors_url: app_config.author.post,
             },
         }
 

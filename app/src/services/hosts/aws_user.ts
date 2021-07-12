@@ -4,6 +4,7 @@ import {SNS} from '@aws-sdk/client-sns'
 import {IAM} from '@aws-sdk/client-iam'
 import {STS} from '@aws-sdk/client-sts'
 
+import {DeploymentConfig} from '@/shared/shared_types'
 import {HostCloud, HostCredentials, HostUser} from './types'
 import {StorageBaseAws} from './aws_common'
 import {enforce_range} from '../utils/numbers'
@@ -146,6 +147,14 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         })
     }
 
+    async download_deployment_config():Promise<DeploymentConfig>{
+        // Download deployment config from msgs bucket
+        const resp = await this.s3.getObject({
+            Bucket: this.bucket,
+            Key: 'deployment.json',
+        })
+        return new Response(resp.Body as ReadableStream).json()
+    }
 
     // PRIVATE
 

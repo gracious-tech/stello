@@ -76,7 +76,6 @@ export interface RecordProfileHost {
     region:string
     user:string  // Absence of user indicates self-hosted (one user per bucket)
     credentials:HostCredentials  // May be a JSON string for Google Cloud
-    credentials_responder:HostCredentials  // May not be needed for Google Cloud
 }
 
 export interface RecordProfileHostState {
@@ -112,6 +111,8 @@ export interface RecordProfileOptions {
     smtp_no_reply:boolean
     social_referral_ban:boolean
     reaction_options:('like'|'love'|'yay'|'pray'|'laugh'|'wow'|'sad')[]
+    reply_invite_image:Blob  // Used for inheritance for replies instead of invite_image
+    reply_invite_tmpl_email:string  // Used for inheritance for replies instead of invite_tmpl_email
 }
 
 
@@ -214,6 +215,7 @@ export interface RecordMessageCopy {
     id:string
     msg_id:string
     secret:CryptoKey
+    secret_sse:CryptoKey  // Separate secret for any server-side encryption (i.e. exposed to server)
     resp_token:string  // A secret passed back in responses to confirm authenticity
     uploaded:boolean
     uploaded_latest:boolean
@@ -266,8 +268,9 @@ export interface RecordReply extends RecordReplaction {
 
 export interface MessageOptionsIdentity {
     sender_name:string
+    invite_image:Blob
     invite_tmpl_email:string
-    invite_tmpl_clipboard:string
+    invite_tmpl_clipboard:string  // Not currently used in drafts (always uses profile's value)
 }
 
 export interface MessageOptionsSecurity {

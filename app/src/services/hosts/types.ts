@@ -1,5 +1,6 @@
 
 import {Task} from '@/services/tasks/tasks'
+import {DeploymentConfig} from '@/shared/shared_types'
 
 
 export const HostStorageVersion = 7  // Bump whenever an update to storage services needed
@@ -19,7 +20,6 @@ export interface HostCredentials {
 
 export interface HostStorageCredentials {
     credentials:HostCredentials
-    credentials_responder:HostCredentials
 }
 
 
@@ -113,6 +113,9 @@ export declare class HostUser {
 
     // Upload config for responder function
     upload_responder_config(config:Record<string, any>):Promise<void>
+
+    // Download deployment config
+    download_deployment_config():Promise<DeploymentConfig>
 }
 
 

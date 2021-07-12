@@ -27,7 +27,6 @@ export async function configs_update(task:Task){
         allow_delete: profile.options.allow_delete,
         allow_resend_requests: profile.options.allow_resend_requests,
         social_referral_ban: profile.options.social_referral_ban,
-        credentials_responder: profile.host.credentials_responder,
         resp_key_public,
         reaction_options: profile.options.reaction_options,
     }))

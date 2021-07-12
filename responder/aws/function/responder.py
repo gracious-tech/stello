@@ -5,6 +5,7 @@ import base64
 import string
 from time import time
 from uuid import uuid4
+from urllib import request
 from traceback import format_exc
 from contextlib import suppress
 
@@ -21,12 +22,25 @@ from cryptography.hazmat.primitives.asymmetric.padding import OAEP, MGF1
 VALID_TYPES = ('error', 'read', 'reply', 'reaction')
 
 
+# A base64-encoded 3w1h solid #ddeeff jpeg
+EXPIRED_IMAGE = '/9j/4AAQSkZJRgABAQEBLAEsAAD/2wBDAAoHBwgHBgoICAgLCgoLDhgQDg0NDh0VFhEYIx8lJCIfIiEmKzcvJik0KSEiMEExNDk7Pj4+JS5ESUM8SDc9Pjv/2wBDAQoLCw4NDhwQEBw7KCIoOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozv/wAARCAABAAMDAREAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAAB//EABQQAQAAAAAAAAAAAAAAAAAAAAD/xAAUAQEAAAAAAAAAAAAAAAAAAAAE/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8AViR3/9k='
+
+
+# Sym encryption settings (same as js version)
+SYM_IV_BYTES = 12
+SYM_TAG_BITS = 128  # Tag is 128 bits by default in AESGCM and not configurable
+SYM_KEY_BITS = 256
+
+
 # Config from env
 DEV = os.environ['stello_env'] == 'dev'
+VERSION = os.environ['stello_version']
 MSGS_BUCKET = os.environ['stello_msgs_bucket']
 RESP_BUCKET = os.environ['stello_resp_bucket']
 TOPIC_ARN = os.environ['stello_topic_arn']
 REGION = os.environ['stello_region']
+ERRORS_URL = os.environ['stello_errors_url']
+MSGS_BUCKET_ORIGIN = f'https://{MSGS_BUCKET}.s3-{REGION}.amazonaws.com'
 
 
 # Access to AWS services
@@ -36,27 +50,59 @@ S3 = boto3.client('s3', config=AWS_CONFIG)
 SNS = boto3.client('sns', config=AWS_CONFIG)
 
 
-def entry(event, context):
+def entry(api_event, context):
+    """Entrypoint that handles CORS headers and otherwise passes off to `_entry` """
+    response = _entry(api_event, context)
+    response.setdefault('headers', {})
+    response['headers']['Access-Control-Allow-Origin'] = '*' if DEV else MSGS_BUCKET_ORIGIN
+    # These two are required for pre-flight OPTIONS, but possibly not for actual requests
+    response['headers']['Access-Control-Allow-Methods'] = 'GET,POST'
+    response['headers']['Access-Control-Allow-Headers'] = '*'
+    return response
+
+
+def _entry(api_event, context):
     """Entrypoint for lambda execution
+    NOTE api_event format and response expected below
+    https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-develop-integrations-lambda.html
 
     SECURITY Assume input may be malicious
-    SECURITY Never return anything back to recipient other than success boolean
+    SECURITY Never return anything back to recipient other than success status
 
     Event data is expected to be: {
-        'type': ...,
+        'type': string,
         'encrypted': string,
         ...
     }
 
     Data saved to response bucket is: encrypted JSON {
         'event': ...,
-        'ip': ...,
+        'ip': string,
         'error': string|null,
     }
 
     """
+
+    # Handle CORS OPTIONS requests
+    if api_event['requestContext']['http']['method'] == 'OPTIONS':
+        return {'statusCode': 200}
+
+    # Handle GET requests
+    if api_event['requestContext']['http']['method'] == 'GET':
+        params = api_event['queryStringParameters']
+        try:
+            return get_invite_image(params)
+        except:
+            _report_error()
+            return {'statusCode': 400}
+
+
     success = True
     try:
+        # Parse body
+        ip = api_event['requestContext']['http']['sourceIp']
+        event = json.loads(api_event['body'])  # TODO Don't overwrite existing var
+
         # Load config (required to encrypt stored data, so can't do anything without)
         config = _get_config()
 
@@ -67,23 +113,54 @@ def entry(event, context):
             handler(config, event)
         except:
             # Have access to `put_resp` so use to report the error to Stello user
-            error = format_exc()
-            print(error)
-            _put_resp(config, event, error)
+            _report_error()
+            _put_resp(config, event, ip, format_exc())
             success = False
         else:
-            _put_resp(config, event)
+            _put_resp(config, event, ip)
     except:
         # No matter what happens, ensure recipient knows result and don't 500
-        print(format_exc())
+        _report_error()
         success = False
 
     # SECURITY Recipient doesn't need to know anything other than success boolean
     print(success)
-    return {'success': success}
+    return {'statusCode': 200 if success else 400}
 
 
-# HANDLERS
+# GET HANDLERS
+
+
+def get_invite_image(params):
+    """Decrypt and return invite image
+
+    WARN Do not prefix with `handle_` as then a user could trigger it with that event['type']
+
+    """
+    copy_id = params['image']
+    secret = params['k']
+    bucket_key = f'invite_images/{copy_id}'
+    try:
+        obj = S3.get_object(Bucket=MSGS_BUCKET, Key=bucket_key)
+    except:
+        body = EXPIRED_IMAGE
+    else:
+        encrypted = obj['Body'].read()
+        decryptor = AESGCM(_url64_to_bytes(secret))
+        decrypted = decryptor.decrypt(encrypted[:SYM_IV_BYTES], encrypted[SYM_IV_BYTES:], None)
+        body = base64.b64encode(decrypted).decode()
+    return {
+        'statusCode': 200,
+        'headers': {
+            'Content-Type': 'image/jpeg',
+            'Cache-Control': 'no-store',
+        },
+        'isBase64Encoded': True,
+        'body': body,
+    }
+
+
+# POST HANDLERS
 
 
 def handle_error(config, event):
@@ -132,6 +209,8 @@ def handle_read(config, event):
     object_key = f"copies/{event['copy_id']}"
     if reads >= max_reads:
         S3.delete_object(Bucket=MSGS_BUCKET, Key=object_key)
+        # Also delete invite image
+        S3.delete_object(Bucket=MSGS_BUCKET, Key=f"invite_images/{event['copy_id']}")
     else:
         S3.put_object_tagging(
             Bucket=MSGS_BUCKET,
@@ -244,7 +323,22 @@ def _general_validation(event):
     _ensure_type(event, 'encrypted', str)
 
 
-def _put_resp(config, event, error=None):
+def _report_error():
+    """Send error data to errors URL (unless dev)"""
+    if DEV:
+        print(format_exc())
+        return
+    data = {
+        'app': 'stello',
+        'type': 'responder-fatal',
+        'version': VERSION,
+        'message': format_exc(),
+    }
+    headers = {'Content-type': 'application/json'}
+    request.urlopen(request.Request(ERRORS_URL, json.dumps(data).encode(), headers))
+
+
+def _put_resp(config, event, ip, error=None):
     """Save response object with encrypted data and optionally error if any
 
     SECURITY Ensure objects can't be placed in other dirs which app would never download
@@ -260,18 +354,13 @@ def _put_resp(config, event, error=None):
     # Encode data
     data = json.dumps({
         'event': event,
-        'ip': None,  # TODO Can't get this without using API Gateway
+        'ip': ip,
         'error': error,
     }).encode()
 
     # Decode asym public key and setup asym encrypter
     asym_key = _url64_to_bytes(config['resp_key_public'])
     asym_encryter = load_der_public_key(asym_key)
-
-    # Sym encryption settings (same as js version)
-    SYM_IV_BYTES = 12
-    SYM_TAG_BITS = 128  # Tag is 128 bits by default in AESGCM and not configurable
-    SYM_KEY_BITS = 256
 
     # Generate sym key and encrypted form of it
     sym_key = AESGCM.generate_key(SYM_KEY_BITS)

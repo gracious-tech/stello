@@ -28,6 +28,7 @@
         "@tiptap/starter-kit": "^2.0.0-beta.78",
         "@tiptap/vue-2": "^2.0.0-beta.36",
         "@zip.js/zip.js": "^2.2.23",
+        "croppr": "^2.3.1",
         "date-fns": "^2.19.0",
         "electron": "^11.2.0",
         "idb": "^6.1.2",

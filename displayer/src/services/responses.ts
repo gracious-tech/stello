@@ -1,6 +1,4 @@
 
-import {AwsClient} from 'aws4fetch'
-
 import {deployment_config} from './deployment_config'
 import {displayer_config} from './displayer_config'
 import {string_to_utf8} from './utils/coding'
@@ -11,11 +9,6 @@ async function respond(data:any):Promise<boolean>{
     // Send a response and return success boolean
     // SECURITY Only success boolean is returned, for error info rely on lambda's own reporting
 
-    // Can't respond without credentials (may be missing if issue with displayer config)
-    if (!displayer_config.credentials_responder){
-        return false
-    }
-
     // Add user agent to encrypted object
     // SECURITY This can always be spoofed so no advantage to doing serverside over clientside
     data.encrypted.user_agent = self.navigator.userAgent
@@ -24,24 +17,15 @@ async function respond(data:any):Promise<boolean>{
     const binary_data = string_to_utf8(JSON.stringify(data.encrypted))
     data.encrypted = await encrypt_asym(binary_data, displayer_config.resp_key_public!)
 
-    // Init AWS client
-    const aws = new AwsClient({
-        accessKeyId: displayer_config.credentials_responder.key_id,
-        secretAccessKey: displayer_config.credentials_responder.key_secret,
-        retries: 3,  // default is 10
-    })
-
     // Submit data
     try {
-        const resp = await aws.fetch(deployment_config.url_responder, {
+        const resp = await fetch(deployment_config.url_responder, {
+            mode: 'cors',
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(data),
-            /* TODO Can't test properly yet since sam local server doesn't support CORS yet
-                    HOWEVER, real lambda does, so affects dev only, not production
-                    See https://github.com/aws/aws-sam-cli/issues/2851
-            */
-            mode: import.meta.env.MODE === 'development' ? 'no-cors' : 'cors',
         })
-        return JSON.parse(await resp.text()).success
+        return resp.status === 200
     } catch (error){
         console.error(error)
         return false

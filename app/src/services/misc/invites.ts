@@ -6,36 +6,42 @@ import {export_key} from '@/services/utils/crypt'
 import {replace_without_overlap} from '@/services/utils/strings'
 
 
+export const INVITE_HTML_MAX_WIDTH = 600
 export const INVITE_HTML_CONTAINER_STYLES =
-    'border-radius: 12px; max-width: 600px; margin: 0 auto; border: 1px solid #cccccc;'
+    `border-radius: 12px; max-width: ${INVITE_HTML_MAX_WIDTH}px; margin: 0 auto;`
+    + 'background-color: #eeeeee; color: #000000;'
+// NOTE Some clients (e.g. Thunderbird) don't respect img aspect ratio, so max-height helps control
+export const INVITE_HTML_IMAGE_STYLES =
+    `border-radius: 12px 12px 0 0; width: 100%; height: auto; border-bottom: 1px solid #cccccc;`
+    + `max-height: ${INVITE_HTML_MAX_WIDTH / 3}px; background-color: #ddeeff`
 
 
-export function render_invite_html(contents:string, title:string, url:string):string{
+export function render_invite_html(contents:string, title:string, url:string, image:string,
+        reply:boolean):string{
     // Render a HTML invite template with the provided contents
     return `
         <!DOCTYPE html>
         <html>
-            <head>
-            </head>
-            <body style='margin: 24px;'>
-                <div style='${INVITE_HTML_CONTAINER_STYLES}'>
-                    <div style='padding: 24px;'>
-                        ${contents}
-                    </div>
-                    ${render_invite_html_action(title, url)}
+        <head></head>
+        <body style='margin: 0; padding: 24px; padding-bottom: 150px; background-color: #222222;'>
+            <div style='${INVITE_HTML_CONTAINER_STYLES}'>
+                <img src='${image}' height='1' width='3' style='${INVITE_HTML_IMAGE_STYLES}'>
+                <div style='padding: 24px;'>
+                    ${contents}
                 </div>
-            </body>
+                ${render_invite_html_action(title, url, reply)}
+            </div>
+        </body>
         </html>
     `
 }
 
 
-export function render_invite_html_action(title:string, url:string):string{
+export function render_invite_html_action(title:string, url:string, reply:boolean):string{
     // Return html for the action footer of a html invite
     // NOTE <hr> used for some separation if css disabled
     return `
-        <hr style='margin-bottom: 0; border-style: solid; border-color: #cccccc;
-            border-width: 1px 0 0 0;'>
+        <hr style='margin: 0; border-style: solid; border-color: #cccccc; border-width: 1px 0 0 0;'>
 
         <div style='padding: 12px; border-radius: 0 0 12px 12px; text-align: center;
                 background-color: #ddeeff; color: #000000; font-family: Roboto, sans-serif;'>
@@ -45,7 +51,7 @@ export function render_invite_html_action(title:string, url:string):string{
             <p style='margin: 36px 0;'>
                 <a href='${html_escape(url)}' style='background-color: #224477; color: #ffffff;
                         padding: 12px 18px; border-radius: 12px; text-decoration: none;'>
-                    <strong>Open Message</strong>
+                    <strong>Open ${reply ? "Reply" : "Message"}</strong>
                 </a>
             </p>
 
@@ -92,7 +98,7 @@ export async function get_text_invite_for_copy(copy:MessageCopy):Promise<string>
     const profile = await self._db.profiles.get(msg.draft.profile)
 
     // Account for inheritance
-    const template = profile.msg_options_identity.invite_tmpl_clipboard  // TODO
+    const template = profile.msg_options_identity.invite_tmpl_clipboard
     const sender = msg.draft.options_identity.sender_name
         || profile.msg_options_identity.sender_name
 

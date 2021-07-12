@@ -98,6 +98,7 @@ export default class extends Vue {
             return
         }
         await this.profile.new_host_user().delete_file(`copies/${this.copy.id}`)
+        await this.profile.new_host_user().delete_file(`invite_images/${this.copy.id}`)
 
         // Update current instance of copy before save (in case changes)
         Object.assign(this.copy, await self._db.copies.get(this.copy.id))

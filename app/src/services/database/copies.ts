@@ -7,6 +7,7 @@ export class MessageCopy implements RecordMessageCopy {
     id:string
     msg_id:string
     secret:CryptoKey
+    secret_sse:CryptoKey
     resp_token:string
     uploaded:boolean
     uploaded_latest:boolean
