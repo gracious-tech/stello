@@ -1,7 +1,7 @@
 
 <template lang='pug'>
 
-div.sidebar
+div.sidebar(class='app-bg-primary')
 
     div(class='release-banner') BETA
 
@@ -123,8 +123,6 @@ export default class extends Vue {
 .sidebar
     display: flex
     flex-direction: column
-    background-color: $primary
-    color: $on_primary
     padding: 24px 12px
     z-index: 10
     overflow-y: auto

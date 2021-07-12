@@ -315,6 +315,15 @@ html
         opacity: map-get($material-light, 'disabledORhints-text-percent')
 
 
+// Light accent always looks better on any shade of primary
+.v-application.theme--light
+    .app-bg-primary, .app-bg-primary-relative
+        a:not(.v-btn)
+            color: $accent_lighter
+        .accent--text:not([aria-disabled])
+            color: $accent_lighter !important
+
+
 // Tooltip
 // NOTE ::after used since Vuetify buttons make use of ::before
 [data-tip]::after
