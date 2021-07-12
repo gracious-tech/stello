@@ -5,8 +5,8 @@ v-list-item(:to='route')
     v-list-item-content
         v-list-item-title
             | {{ profile.display }}
-            v-chip(v-if='is_default' small class='ml-3') default
-            v-chip(v-if='is_incomplete' small class='ml-3') incomplete
+            v-chip(v-if='is_default' small class='ml-3' color='primary') default
+            v-chip(v-if='is_incomplete' small class='ml-3' color='primary') incomplete
     v-list-item-action
         app-menu-more
             app-list-item(@click='make_default' :disabled='is_default || is_incomplete') Make default
@@ -60,6 +60,10 @@ export default class extends Vue {
 
 
 <style lang='sass' scoped>
+
+
+.v-chip
+    pointer-events: none
 
 
 </style>
