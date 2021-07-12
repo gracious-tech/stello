@@ -305,6 +305,17 @@ export default class extends Vue {
             this.editor.commands.setContent(this.value, false)  // Doesn't emit change
         }
     }
+
+    @Watch('variables') watch_variables(){
+        // When variables change, update the text content of mention nodes
+        // NOTE Prosemirror/Tiptap APIs didn't seem to have an easy way to do this
+        // NOTE Changes don't need saving as the content of mention nodes is always dynamic
+        for (const node of this.$el.querySelectorAll('[data-mention]')){
+            const data_id = node.attributes.getNamedItem('data-id').value
+            node.textContent = this.variables[data_id].value
+                || this.variables[data_id].label.toLocaleUpperCase()
+        }
+    }
 }
 
 </script>
