@@ -17,14 +17,16 @@ const ASYM_PUBLIC_EXPONENT = new Uint8Array([0x01, 0x00, 0x01])  // 65537 (commo
 // KEYS
 
 
-export function generate_key_sym(extractable=false):Promise<CryptoKey>{
+export function generate_key_sym(extractable=false, modes:KeyUsage[]=['encrypt'])
+        :Promise<CryptoKey>{
     // Return a new key for encrypting data (optionally extractable)
     const algorithm:AesKeyGenParams = {name: 'AES-GCM', length: SYM_KEY_BITS}
-    return crypto.subtle.generateKey(algorithm, extractable, ['encrypt']) as Promise<CryptoKey>
+    return crypto.subtle.generateKey(algorithm, extractable, modes) as Promise<CryptoKey>
 }
 
 
-export function generate_key_asym(extractable=false):Promise<CryptoKeyPair>{
+export function generate_key_asym(extractable=false, modes:KeyUsage[]=['decrypt'])
+        :Promise<CryptoKeyPair>{
     // Return a new key pair for public-key encryption (optionally extractable)
     const algorithm:RsaHashedKeyGenParams = {
         name: 'RSA-OAEP',
@@ -32,20 +34,22 @@ export function generate_key_asym(extractable=false):Promise<CryptoKeyPair>{
         publicExponent: ASYM_PUBLIC_EXPONENT,
         hash: 'SHA-256',  // 512 can in some cases actually be more vulnerable
     }
-    return crypto.subtle.generateKey(algorithm, extractable, ['decrypt']) as Promise<CryptoKeyPair>
+    return crypto.subtle.generateKey(algorithm, extractable, modes) as Promise<CryptoKeyPair>
 }
 
 
-export function import_key_sym(secret:ArrayBuffer, extractable=false):Promise<CryptoKey>{
+export function import_key_sym(secret:ArrayBuffer, extractable=false, modes:KeyUsage[]=['decrypt'])
+        :Promise<CryptoKey>{
     // Return a new sym key object from given binary data
-    return crypto.subtle.importKey('raw', secret, 'AES-GCM', extractable, ['decrypt'])
+    return crypto.subtle.importKey('raw', secret, 'AES-GCM', extractable, modes)
 }
 
 
-export function import_key_asym(secret:ArrayBuffer, extractable=false):Promise<CryptoKey>{
+export function import_key_asym(secret:ArrayBuffer, extractable=false, modes:KeyUsage[]=['encrypt'])
+        :Promise<CryptoKey>{
     // Return a new asym key object from given binary data
     const algorithm:RsaHashedImportParams = {name: 'RSA-OAEP', hash: 'SHA-256'}
-    return crypto.subtle.importKey('spki', secret, algorithm, extractable, ['encrypt'])
+    return crypto.subtle.importKey('spki', secret, algorithm, extractable, modes)
 }
 
 
