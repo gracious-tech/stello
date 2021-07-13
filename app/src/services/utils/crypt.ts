@@ -28,6 +28,7 @@ export function generate_key_sym(extractable=false, modes:KeyUsage[]=['encrypt']
 export function generate_key_asym(extractable=false, modes:KeyUsage[]=['decrypt'])
         :Promise<CryptoKeyPair>{
     // Return a new key pair for public-key encryption (optionally extractable)
+    // NOTE The public key part is always extractable, while secret key part is configurable
     const algorithm:RsaHashedKeyGenParams = {
         name: 'RSA-OAEP',
         modulusLength: ASYM_MODULUS_BITS,
@@ -48,6 +49,7 @@ export function import_key_sym(secret:ArrayBuffer, extractable=false, modes:KeyU
 export function import_key_asym(secret:ArrayBuffer, extractable=false, modes:KeyUsage[]=['encrypt'])
         :Promise<CryptoKey>{
     // Return a new asym key object from given binary data
+    // NOTE The public key part is always extractable, while secret key part is configurable
     const algorithm:RsaHashedImportParams = {name: 'RSA-OAEP', hash: 'SHA-256'}
     return crypto.subtle.importKey('spki', secret, algorithm, extractable, modes)
 }
