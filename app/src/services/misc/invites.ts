@@ -19,18 +19,32 @@ export const INVITE_HTML_IMAGE_STYLES =
 export function render_invite_html(contents:string, title:string, url:string, image:string,
         reply:boolean):string{
     // Render a HTML invite template with the provided contents
+    // NOTE Header image must be wrapped in <a> to prevent gmail showing download button for it
+    // NOTE Styles are inline so preserved when replying/forwarding
+    // NOTE <hr> etc used for some separation if css disabled
     return `
         <!DOCTYPE html>
         <html>
         <head></head>
         <body style='margin: 0; padding: 24px; padding-bottom: 150px; background-color: #222222;'>
             <div style='${INVITE_HTML_CONTAINER_STYLES}'>
-                <img src='${image}' height='1' width='3' style='${INVITE_HTML_IMAGE_STYLES}'>
+                <a href='${url}'>
+                    <img src='${image}' height='1' width='3' style='${INVITE_HTML_IMAGE_STYLES}'>
+                </a>
                 <div style='padding: 24px;'>
                     ${contents}
                 </div>
                 ${render_invite_html_action(title, url, reply)}
             </div>
+            <hr style='border-style: none;'>
+            <p>&nbsp;</p>
+            <p style='text-align: center;'>
+                <a href='${url},unsubscribe' style='color: #aaaaaa;'>
+                    <small style='font-size: 0.8em;'>Unsubscribe</small></a>
+                |
+                <a href='${url},address' style='color: #aaaaaa;'>
+                    <small style='font-size: 0.8em;'>Change email address</small></a>
+            </p>
         </body>
         </html>
     `
@@ -39,7 +53,6 @@ export function render_invite_html(contents:string, title:string, url:string, im
 
 export function render_invite_html_action(title:string, url:string, reply:boolean):string{
     // Return html for the action footer of a html invite
-    // NOTE <hr> used for some separation if css disabled
     return `
         <hr style='margin: 0; border-style: solid; border-color: #cccccc; border-width: 1px 0 0 0;'>
 
