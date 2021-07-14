@@ -79,8 +79,9 @@ export interface RecordProfileHost {
 }
 
 export interface RecordProfileHostState {
-    disp_config_name:string
+    secret:CryptoKey  // A secret unique to profile while not attached to any particular message
     resp_key:CryptoKeyPair
+    disp_config_name:string
     displayer_config_uploaded:boolean  // False when it needs updating
     responder_config_uploaded:boolean  // False when it needs updating
 }

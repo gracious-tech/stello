@@ -3,7 +3,7 @@ import {
     AppDatabaseConnection, RecordProfile, RecordProfileHost, RecordProfileSmtp,
     RecordProfileOptions, MessageOptionsIdentity, MessageOptionsSecurity, RecordProfileHostState,
 } from './types'
-import {generate_token, generate_key_asym} from '@/services/utils/crypt'
+import {generate_token, generate_key_asym, generate_key_sym} from '@/services/utils/crypt'
 import {buffer_to_url64} from '@/services/utils/coding'
 import {HostUser} from '@/services/hosts/types'
 import {OAUTH_SUPPORTED} from '@/services/tasks/oauth'
@@ -264,8 +264,9 @@ export class DatabaseProfiles {
                 credentials: null,
             },
             host_state: {
-                disp_config_name: generate_token(),
+                secret: await generate_key_sym(false, ['encrypt', 'decrypt']),
                 resp_key: await generate_key_asym(),
+                disp_config_name: generate_token(),
                 displayer_config_uploaded: false,
                 responder_config_uploaded: false,
             },

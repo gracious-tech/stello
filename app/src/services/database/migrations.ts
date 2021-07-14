@@ -260,6 +260,10 @@ async function to9(transaction:VersionChangeTransaction):Promise<void>{
         // Removed `credentials_responder`
         // @ts-ignore key no longer exists
         delete cursor.value.host.credentials_responder
+        // Added `secret`
+        cursor.value.host_state.secret = await crypto.subtle.generateKey(
+            {name: 'AES-GCM', length: 256}, false, ['encrypt', 'decrypt'])
+        // Save changes
         cursor.update(cursor.value)
     }
     for await (const cursor of transaction.objectStore('drafts')){
