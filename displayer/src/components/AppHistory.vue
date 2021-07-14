@@ -4,11 +4,11 @@
 div.history
     div.prev(v-if='prev')
         a(@click='prev.load') ← {{ prev.label }}
-        span Previous
+        span {{ prev.date }}
     | &nbsp;
     div.next(v-if='next')
         a(@click='next.load') {{ next.label }} →
-        span Next
+        span {{ next.date }}
 
 </template>
 
@@ -39,6 +39,7 @@ export default {
             const item = store._state.history[prev_i]
             return {
                 label: item.title,
+                date: item.published.toLocaleDateString(),
                 load: () => {
                     store.change_transition('prev')
                     store.change_current_msg(item.id, item.secret, item.title, item.published)
@@ -53,6 +54,7 @@ export default {
             const item = store._state.history[current.value + 1]
             return {
                 label: item.title,
+                date: item.published.toLocaleDateString(),
                 load: () => {
                     store.change_transition('next')
                     store.change_current_msg(item.id, item.secret, item.title, item.published)
