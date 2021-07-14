@@ -1,6 +1,9 @@
 
 import {App} from 'vue'
 
+import {database} from './src/services/database'
+import {store} from './src/services/store'
+
 
 declare global {
 
@@ -28,5 +31,7 @@ declare global {
         _fail_report(msg:string):void
         _fail_visual(network?:boolean):void
         _app:App
+        _db:typeof database
+        _store:typeof store
     }
 }

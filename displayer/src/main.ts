@@ -58,8 +58,11 @@ self._app.config.warnHandler = (msg, vm, trace) => {
 async function init(){
 
     // Wait for dependencies to be ready
+    // NOTE Exposed globally so can debug
     await database.connect()
+    self._db = database
     await store.init()
+    self._store = store
 
     // Mount the app
     self._app.mount('#app')
