@@ -84,3 +84,28 @@ export function respond_reaction(resp_token:string, reaction:string|null, sectio
 
     return respond(data)
 }
+
+
+export function respond_subscribed(resp_token:string, encrypted_address:string, subscribed:boolean)
+        :Promise<boolean>{
+    // Send subscription response
+    return respond({
+        type: 'subscribed',
+        encrypted: {
+            resp_token,
+            encrypted_address,
+            subscribed,
+        },
+    })
+}
+
+
+export function respond_resend(resp_token:string):Promise<boolean>{
+    // Send "resend" response
+    return respond({
+        type: 'resend',
+        encrypted: {
+            resp_token,
+        },
+    })
+}
