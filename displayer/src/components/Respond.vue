@@ -45,7 +45,7 @@ div.respondbar(@mouseenter='have_hovered = true')
 
 <script lang='ts'>
 
-import {ref, watch, computed, inject, PropType, Ref, onMounted, reactive} from 'vue'
+import {ref, watch, computed, PropType, Ref, reactive} from 'vue'
 
 import Progress from './Progress.vue'
 import ReactionSvg from './ReactionSvg.vue'
@@ -55,6 +55,7 @@ import {displayer_config} from '../services/displayer_config'
 import {respond_reply, respond_reaction} from '../services/responses'
 import {PublishedSection} from '../shared/shared_types'
 import {database} from '../services/database'
+import {store} from '../services/store'
 
 
 export default {
@@ -74,9 +75,10 @@ export default {
 
     setup(props){
 
+        // Static (component re-rendered for each new message)
+        const current_msg = store.state.current_msg!
+
         // Generic
-        const msg_id:string = inject('msg_id') as string
-        const resp_token:any = inject('resp_token')
         const have_hovered = ref(false)  // Don't create popup DOM until needed
         const subsect_id = computed(() => props.subsection ?? props.section.id)
 
@@ -117,7 +119,8 @@ export default {
             // Try send comment
             reply_success.value = null
             reply_waiting.value = true
-            reply_success.value = await respond_reply(resp_token.value, text, section, subsection)
+            reply_success.value = await respond_reply(current_msg.resp_token, text, section,
+                subsection)
             reply_waiting.value = false
 
             // Handle success
@@ -129,7 +132,7 @@ export default {
 
                 // Record in db
                 replies.value.push(new Date())
-                database.reply_add(msg_id, section, subsection)
+                database.reply_add(current_msg.id, section, subsection)
 
                 // Blur focus so popup disappears (if not hovered)
                 // @ts-ignore blur is a valid method
@@ -146,7 +149,8 @@ export default {
 
         watch(props, async () => {
             // Get reply dates from db
-            replies.value = await database.reply_list(msg_id, props.section.id, props.subsection)
+            replies.value = await database.reply_list(current_msg.id, props.section.id,
+                props.subsection)
         }, {immediate: true})
 
 
@@ -178,7 +182,7 @@ export default {
             chosen_reaction.value = type
 
             // Submit request
-            const result = await respond_reaction(resp_token.value, type, props.section.id,
+            const result = await respond_reaction(current_msg.resp_token, type, props.section.id,
                 props.subsection)
 
             // Deal with result
@@ -187,7 +191,7 @@ export default {
                 if (type === null){
                     database.reaction_remove(subsect_id.value)
                 } else {
-                    database.reaction_set(msg_id, props.section.id, props.subsection, type)
+                    database.reaction_set(current_msg.id, props.section.id, props.subsection, type)
                 }
             } else {
                 // Request failed so revert state to old value

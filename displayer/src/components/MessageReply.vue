@@ -26,12 +26,13 @@ form(v-if='allow_replies' @submit.prevent='send_reply')
 
 <script lang='ts'>
 
-import {ref, watch, computed, inject, Ref} from 'vue'
+import {ref, watch, computed, Ref} from 'vue'
 
 import Progress from './Progress.vue'
 import {displayer_config} from '../services/displayer_config'
 import {respond_reply} from '../services/responses'
 import {database} from '../services/database'
+import {store} from '../services/store'
 
 
 export default {
@@ -48,9 +49,8 @@ export default {
         const replies = ref<Date[]>([])
         const last_sent_contents = ref<string|null>(null)
 
-        // Injected
-        const msg_id = inject('msg_id') as string
-        const resp_token = inject('resp_token') as Ref<string>
+        // Static (component re-rendered for each message)
+        const current_msg = store.state.current_msg!
 
         // Computed
         const allow_replies = computed(() => displayer_config.allow_replies)
@@ -82,20 +82,20 @@ export default {
 
             // Try send
             waiting.value = true
-            success.value = await respond_reply(resp_token.value, cached_text, null, null)
+            success.value = await respond_reply(current_msg.resp_token, cached_text, null, null)
             waiting.value = false
 
             // Handle success
             if (success.value){
                 last_sent_contents.value = cached_text
                 text.value = ''
-                database.reply_add(msg_id, null, null)
+                database.reply_add(current_msg.id, null, null)
                 replies.value.push(new Date())
             }
         }
 
         // Fetch previous replies
-        database.reply_list(msg_id, null, null).then(dates => {
+        database.reply_list(current_msg.id, null, null).then(dates => {
             replies.value = dates
         })
 
