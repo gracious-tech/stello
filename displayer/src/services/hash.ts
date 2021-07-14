@@ -19,7 +19,7 @@ export async function decode_hash(hash:string){
     hash = decodeURIComponent(hash)
 
     // Extract fields from the hash
-    const [disp_config_name, msg_id, secret_url64, action] = hash.slice(1).split(',')
+    const [disp_config_name, msg_id, secret_url64, action, action_arg] = hash.slice(1).split(',')
     if (!disp_config_name || !msg_id || !secret_url64){
         return null
     }
@@ -39,6 +39,9 @@ export async function decode_hash(hash:string){
         if (action){
             validate_chars(action, 'a-z\\_')
         }
+        if (action_arg){
+            validate_chars(action_arg, url64_chars)
+        }
     } catch {
         return null
     }
@@ -48,5 +51,11 @@ export async function decode_hash(hash:string){
     const msg_secret = await import_key_sym(url64_to_buffer(secret_url64), true)
 
     // Return as object
-    return {disp_config_name, msg_id, msg_secret, action: action || null}
+    return {
+        disp_config_name,
+        msg_id,
+        msg_secret,
+        action: action || null,
+        action_arg: action_arg || null,
+    }
 }
