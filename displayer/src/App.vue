@@ -8,10 +8,12 @@ div(class='stello-displayer' :class='{dark}' tabindex='-1')
     SharedDarkToggle(:value='dark' @input='toggle_dark')
 
     div(class='content')
-        Message(v-if='current_msg' :msg_access='current_msg')
-        p.no_msg(v-else) No messages available
+        //- Don't insert new node until old gone (out-in) to avoid scrolling issues
+        transition(:name='transition' mode='out-in')
+            Message.msg(v-if='current_msg' :key='current_msg.id')
+        p.no_msg(v-if='!current_msg') No messages available
 
-    Unsubscribe(v-if='show_unsubscribe')
+        AppUnsubscribe(v-if='show_unsubscribe')
 
 </template>
 
@@ -22,17 +24,18 @@ import {computed, watch, onMounted, nextTick} from 'vue'
 
 import Message from './components/Message.vue'
 import SharedDarkToggle from './shared/SharedDarkToggle.vue'
-import Unsubscribe from './components/Unsubscribe.vue'
+import AppUnsubscribe from './components/AppUnsubscribe.vue'
 import {store} from './services/store'
 
 
 export default {
 
-    components: {Message, Unsubscribe, SharedDarkToggle},
+    components: {Message, AppUnsubscribe, SharedDarkToggle},
 
     setup(){
 
-        // Reactive access to dark
+        // Reactive access to store props
+        const transition = computed(() => store.state.transition)
         const dark = computed(() => store.state.dict.dark)
 
         // When can access DOM, keep background of root element up-to-date with container bg
@@ -46,6 +49,7 @@ export default {
         })
 
         return {
+            transition,
             dark,
             toggle_dark: () => {
                 store.toggle_dark()
@@ -61,13 +65,65 @@ export default {
 
 <style lang='sass' scoped>
 
-.stello-displayer .content
-    // Show narrower gutters for displayer since don't need space for menus
-    padding-left: 24px
-    padding-right: 24px
-    padding-top: 48px * 2  // Match editor, accounting for missing addbar
+
+
+.stello-displayer
+    outline-style: none  // Outline may appear due to tabindex attr
+
+    .content
+        // Show narrower gutters for displayer since don't need space for menus
+        padding-left: 24px
+        padding-right: 24px
+        padding-top: 48px * 2  // Match editor, accounting for missing addbar
+
 
 .no_msg
     text-align: center
+
+
+// Prev/next transition animations
+
+
+@keyframes slide-left-enter
+    from
+        transform: translateX(100%)
+    to
+        transform: translateX(0)
+
+@keyframes slide-left-leave
+    from
+        transform: translateX(0)
+    to
+        transform: translateX(-100%)
+
+@keyframes slide-right-enter
+    from
+        transform: translateX(-100%)
+    to
+        transform: translateX(0)
+
+@keyframes slide-right-leave
+    from
+        transform: translateX(0)
+    to
+        transform: translateX(100%)
+
+
+.msg
+    animation-duration: 375ms
+    animation-timing-function: linear
+
+    &.prev-enter-active
+        animation-name: slide-right-enter
+
+    &.prev-leave-active
+        animation-name: slide-right-leave
+
+    &.next-enter-active
+        animation-name: slide-left-enter
+
+    &.next-leave-active
+        animation-name: slide-left-leave
+
 
 </style>
