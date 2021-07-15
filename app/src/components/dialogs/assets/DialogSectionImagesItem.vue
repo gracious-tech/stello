@@ -4,7 +4,7 @@
 div(class='my-5')
     div(class='d-flex align-center mb-3')
         div(class='flex text-center')
-            div.displayer(:style='displayer_styles')
+            div.displayer(:style='displayer_styles' :class='{multiple}')
                 img.sizer(:src='sizer_src')
         div(class='d-flex flex-column')
             app-btn(@click='move_up' :disabled='is_first' icon='arrow_upward')
@@ -69,6 +69,11 @@ export default class extends Vue {
         return this.item_index === this.section.content.images.length - 1
     }
 
+    get multiple(){
+        // Whether multiple images exist in section
+        return this.section.content.images.length > 1
+    }
+
     move_up(){
         // Move this image up in the set
         const prev_item = this.section.content.images[this.item_index - 1]
@@ -100,7 +105,10 @@ export default class extends Vue {
 .displayer
     display: inline-block
     background-position: center
-    background-color: black
+
+    &.multiple
+        // Only solo images allow transparency, bg helps to show cropping/sizing when multiple
+        background-color: black
 
 .sizer
     width: 100%
