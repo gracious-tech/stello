@@ -1,6 +1,16 @@
 // CSS common to Stello app and rendered messages
 
 .stello-displayer
+
+    // VARIABLES
+
+    --stello-primary: #0044ff
+    &.dark
+        --stello-primary: #0088ff
+
+
+    // ROOT STYLES
+
     line-height: 1.65
     font-family: charter, Georgia, Cambria, "Times New Roman", Times, serif
     overflow-wrap: break-word  // Prevent layout breaks due to long words (like URLs)
@@ -17,6 +27,9 @@
     @media print
         background-color: #fff !important
         color: #000 !important
+
+
+    // STRUCTURAL
 
     .content
         max-width: $stello_content_width
@@ -134,7 +147,7 @@
                     box-sizing: border-box
 
 
-    // Standout
+    // STANDOUT
 
     .standout-subtle .inner
         @include standout-subtle
@@ -157,7 +170,7 @@
                 @include standout-important-dark
 
 
-    // Regular elements
+    // REGULAR ELEMENTS
 
     p, blockquote, h1, h2, ul, ol
         margin-top: 0  // Override browser default
@@ -211,6 +224,12 @@
         font-weight: 500
         background-color: rgba(#888, 0.2)
 
+        &:disabled
+            opacity: 0.5
+
+        &.s-primary:not(:disabled)
+            background-color: var(--stello-primary)
+
     .btn-icon  // Avoid `button` so don't mess up editor Vuetify ones etc
         padding: 12px
         background-color: transparent
@@ -230,13 +249,14 @@
         padding-left: 12px
 
     a
-        color: #0044ff  // No transparency for links to stand out more
+        color: var(--stello-primary)  // No transparency for links to stand out more
+        cursor: pointer  // Links without href are buttons
         text-decoration: none
         &:hover
             text-decoration: underline
     @media screen
         &.dark a
-            color: #0088ff  // Hue adjusted for better contrast ratio
+            color: var(--stello-primary)  // Hue adjusted for better contrast ratio
 
     iframe, img
         // Prevent these elements from having implicit bottom padding due to being 'inline'
@@ -254,3 +274,10 @@
             // NOTE Still brightish for dark mode as highlight known for being bright yellow
             background-color: rgba(100%, 100%, 0%, 30%)
             outline: 3px solid rgba(100%, 100%, 0%, 30%)
+
+
+    // UTILS
+
+    .ui
+        user-select: none
+        font-family: Roboto, sans-serif
