@@ -18,8 +18,7 @@ from cryptography.hazmat.primitives.asymmetric.padding import OAEP, MGF1
 
 
 # Constants
-# TODO VALID_TYPES = ('error', 'read', 'reply', 'reaction', 'delete', 'subscription', 'resend', 'change_address')
-VALID_TYPES = ('error', 'read', 'reply', 'reaction')
+VALID_TYPES = ('read', 'reply', 'reaction')
 
 
 # A base64-encoded 3w1h solid #ddeeff jpeg
@@ -51,18 +50,28 @@ SNS = boto3.client('sns', config=AWS_CONFIG)
 
 
 def entry(api_event, context):
-    """Entrypoint that handles CORS headers and otherwise passes off to `_entry` """
-    response = _entry(api_event, context)
+    """Entrypoint that wraps main logic to add exception handling and CORS headers"""
+
+    # Process event and catch exceptions
+    try:
+        response = _entry(api_event, context)
+    except:
+        # SECURITY Never reveal whether client or server error, just that it didn't work
+        _report_error()
+        response = {'statusCode': 400}
+
+    # Add CORS headers
     response.setdefault('headers', {})
     response['headers']['Access-Control-Allow-Origin'] = '*' if DEV else MSGS_BUCKET_ORIGIN
     # These two are required for pre-flight OPTIONS, but possibly not for actual requests
     response['headers']['Access-Control-Allow-Methods'] = 'GET,POST'
     response['headers']['Access-Control-Allow-Headers'] = '*'
+
     return response
 
 
 def _entry(api_event, context):
-    """Entrypoint for lambda execution
+    """Main processing logic
     NOTE api_event format and response expected below
     https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-develop-integrations-lambda.html
 
@@ -78,7 +87,6 @@ def _entry(api_event, context):
     Data saved to response bucket is: encrypted JSON {
         'event': ...,
         'ip': string,
-        'error': string|null,
     }
 
     """
@@ -89,43 +97,23 @@ def _entry(api_event, context):
 
     # Handle GET requests
     if api_event['requestContext']['http']['method'] == 'GET':
-        params = api_event['queryStringParameters']
-        try:
-            return get_invite_image(params)
-        except:
-            _report_error()
-            return {'statusCode': 400}
+        return get_invite_image(api_event['queryStringParameters'])
 
+    # Handle POST requests
+    ip = api_event['requestContext']['http']['sourceIp']
+    event = json.loads(api_event['body'])
 
-    success = True
-    try:
-        # Parse body
-        ip = api_event['requestContext']['http']['sourceIp']
-        event = json.loads(api_event['body'])  # TODO Don't overwrite existing var
+    # Load config (required to encrypt stored data, so can't do anything without)
+    config = _get_config()
 
-        # Load config (required to encrypt stored data, so can't do anything without)
-        config = _get_config()
+    # Handle the event and then store it
+    _general_validation(event)
+    handler = globals()[f'handle_{event["type"]}']
+    handler(config, event)
+    _put_resp(config, event, ip)
 
-        # Try handle the event, and store it whether success or not
-        try:
-            _general_validation(event)
-            handler = globals()[f'handle_{event["type"]}']
-            handler(config, event)
-        except:
-            # Have access to `put_resp` so use to report the error to Stello user
-            _report_error()
-            _put_resp(config, event, ip, format_exc())
-            success = False
-        else:
-            _put_resp(config, event, ip)
-    except:
-        # No matter what happens, ensure recipient knows result and don't 500
-        _report_error()
-        success = False
-
-    # SECURITY Recipient doesn't need to know anything other than success boolean
-    print(success)
-    return {'statusCode': 200 if success else 400}
+    # Report success
+    return {'statusCode': 200}
 
 
 # GET HANDLERS
@@ -161,11 +149,6 @@ def get_invite_image(params):
 
 
 # POST HANDLERS
-
-
-def handle_error(config, event):
-    """Handle errors from displayer"""
-    pass  # No processing needed
 
 
 def handle_read(config, event):
@@ -338,24 +321,22 @@ def _report_error():
     request.urlopen(request.Request(ERRORS_URL, json.dumps(data).encode(), headers))
 
 
-def _put_resp(config, event, ip, error=None):
-    """Save response object with encrypted data and optionally error if any
+def _put_resp(config, event, ip):
+    """Save response object with encrypted data
 
     SECURITY Ensure objects can't be placed in other dirs which app would never download
-    NOTE event data may be invalid if `put_resp` called in response to a validation error
 
     """
 
     # Work out object id
     # Timestamp prefix for order, uuid suffix for uniqueness
-    resp_type = event['type'] if event.get('type') in VALID_TYPES and not error else 'error'
+    resp_type = event['type']
     object_id = f'responses/{resp_type}/{int(time())}_{uuid4()}'
 
     # Encode data
     data = json.dumps({
         'event': event,
         'ip': ip,
-        'error': error,
     }).encode()
 
     # Decode asym public key and setup asym encrypter
