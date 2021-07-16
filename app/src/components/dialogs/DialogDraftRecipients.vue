@@ -35,7 +35,7 @@ v-card
                             v-list-item-title {{ group.display }}
                         v-list-item-icon(class='justify-end') {{ group.size }}
 
-            v-tab-item
+            v-tab-item.contacts
                 v-list
                     v-list-item(v-for='contact of contacts_visible_ui' :key='contact.id'
                             @click='contact.click' :color='contact.color')
@@ -43,6 +43,8 @@ v-card
                             app-svg(:name='contact.icon')
                         v-list-item-content
                             v-list-item-title {{ contact.display }}
+                        v-list-item-action(class='ellipsis')
+                            v-list-item-action-text {{ contact.address }}
                 p(v-if='is_limited || contacts_search' class='text-center')
                     app-btn(@click='reveal_more' small) {{ is_limited ? "Show more" : "Clear search" }}
 
@@ -117,6 +119,7 @@ export default class extends Vue {
             items.push({
                 id: contact.id,
                 display: contact.display,
+                address: contact.address,
                 icon: 'icon_checkbox_' + (in_final ? 'true' : (excluded ? 'cross' : 'false')),
                 color: excluded ? 'error' : (included ? 'accent' : ''),
                 click: () => {this.toggle_contact(contact.id)},
@@ -253,6 +256,15 @@ export default class extends Vue {
         .v-btn
             width: 40px
             height: 40px
+
+
+.contacts
+    .v-list-item__content, .v-list-item__action
+        flex-basis: 0  // So each item grows same as each other, regardless of content
+    .v-list-item__content
+        flex-grow: 4
+    .v-list-item__action
+        flex-grow: 3
 
 
 </style>
