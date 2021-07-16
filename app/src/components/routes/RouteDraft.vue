@@ -274,7 +274,6 @@ export default class extends Vue {
         this.$store.dispatch('show_dialog', {
             component: DialogDraftRecipients,
             props: {draft: this.draft, groups: this.groups, contacts: this.contacts},
-            tall: true,
         })
     }
 
