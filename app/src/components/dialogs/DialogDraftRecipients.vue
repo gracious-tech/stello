@@ -202,7 +202,7 @@ export default class extends Vue {
             // Was undefined, so now include
             this.draft.recipients.include_groups.push(group_id)
         }
-        self._db.drafts.set(this.draft)
+        this.save()
     }
 
     toggle_contact(contact_id){
@@ -218,6 +218,10 @@ export default class extends Vue {
             // Was undefined, so now include
             this.draft.recipients.include_contacts.push(contact_id)
         }
+        this.save()
+    }
+
+    save(){
         self._db.drafts.set(this.draft)
     }
 

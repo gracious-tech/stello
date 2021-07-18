@@ -68,7 +68,9 @@ import {Profile} from '@/services/database/profiles'
 import {Section} from '@/services/database/sections'
 import {Group} from '@/services/database/groups'
 import {Contact} from '@/services/database/contacts'
+import {Unsubscribe} from '@/services/database/unsubscribes'
 import {sort} from '@/services/utils/arrays'
+import {Task} from '@/services/tasks/tasks'
 
 
 @Component({
@@ -84,6 +86,7 @@ export default class extends Vue {
     profiles:Profile[] = []
     groups:Group[] = []
     contacts:Contact[] = []
+    unsubscribes:Unsubscribe[] = []
 
     async created(){
         // Load the draft and the contents of the draft's sections
@@ -104,15 +107,8 @@ export default class extends Vue {
             }
         })
 
-        // Load groups and contacts
-        self._db.groups.list().then(groups => {
-            sort(groups, 'name')
-            this.groups = groups
-        })
-        self._db.contacts.list().then(contacts => {
-            sort(contacts, 'name')
-            this.contacts = contacts
-        })
+        this.load_contacts()
+        this.load_unsubscribes()
     }
 
     @Watch('draft.sections') watch_sections(){
@@ -145,6 +141,20 @@ export default class extends Vue {
         })
     }
 
+    @Watch('draft.profile') watch_profile(){
+        // Unsubscribes are specific to profile
+        this.load_unsubscribes()
+    }
+
+    @Watch('$tm.data.finished') watch_finished(task:Task){
+        // Respond to task completions
+        if (task.name.startsWith('contacts_')){
+            this.load_contacts()
+        } else if (task.name === 'responses_receive'){
+            this.load_unsubscribes()
+        }
+    }
+
     get profile():Profile{
         // Get profile record for draft (if it exists)
         return this.profiles.find(p => p.id === this.draft.profile)
@@ -152,7 +162,7 @@ export default class extends Vue {
 
     get final_recipients(){
         // Return final recipients of message
-        return this.draft.get_final_recipients(this.groups)
+        return this.draft.get_final_recipients(this.contacts, this.groups, this.unsubscribes)
     }
 
     get sending_barrier(){
@@ -223,6 +233,9 @@ export default class extends Vue {
 
     get groups_included_desc(){
         // Get list of included groups as a string
+        if (this.draft.recipients.include_groups.includes('all')){
+            return "All contacts"
+        }
         return this.draft.recipients.include_groups
             .map(id => this.groups.find(c => c.id === id)?.display)
             .filter(i => i)
@@ -261,6 +274,26 @@ export default class extends Vue {
         })
     }
 
+    load_contacts(){
+        // Load contacts related
+        self._db.groups.list().then(groups => {
+            sort(groups, 'name')
+            this.groups = groups
+        })
+        self._db.contacts.list().then(contacts => {
+            sort(contacts, 'name')
+            this.contacts = contacts
+        })
+    }
+
+    async load_unsubscribes(){
+        // Load unsubscribes for profile (if known)
+        this.unsubscribes = []  // Clear previous
+        if (this.draft.profile){
+            this.unsubscribes = await self._db.unsubscribes.list_for_profile(this.draft.profile)
+        }
+    }
+
     show_profile_dialog(){
         // Open dialog for modifying draft's sending profile and related settings
         this.$store.dispatch('show_dialog', {
@@ -273,7 +306,12 @@ export default class extends Vue {
         // Open dialog for modifying draft's recipients
         this.$store.dispatch('show_dialog', {
             component: DialogDraftRecipients,
-            props: {draft: this.draft, groups: this.groups, contacts: this.contacts},
+            props: {
+                draft: this.draft,
+                groups: this.groups,
+                contacts: this.contacts,
+                unsubscribes: this.unsubscribes,
+            },
         })
     }
 

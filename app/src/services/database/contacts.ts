@@ -58,6 +58,12 @@ export class DatabaseContacts {
         return contacts.map(contact => new Contact(contact))
     }
 
+    async list_for_address(address:string):Promise<Contact[]>{
+        // Get all contacts with given address
+        const contacts = await this._conn.getAllFromIndex('contacts', 'by_address', address)
+        return contacts.map(contact => new Contact(contact))
+    }
+
     async get(id:string):Promise<Contact>{
         // Get single contact by id
         const contact = await this._conn.get('contacts', id)

@@ -9,6 +9,7 @@ import {DatabaseContacts} from './contacts'
 import {DatabaseGroups} from './groups'
 import {DatabaseOAuths} from './oauths'
 import {DatabaseProfiles} from './profiles'
+import {DatabaseUnsubscribes} from './unsubscribes'
 import {DatabaseDrafts, Draft} from './drafts'
 import {DatabaseMessages, Message} from './messages'
 import {DatabaseCopies, MessageCopy} from './copies'
@@ -27,7 +28,7 @@ import {migrate, DATABASE_VERSION} from './migrations'
 export function open_db():Promise<AppDatabaseConnection>{
     // Get access to db (and create/upgrade if needed)
     return openDB<AppDatabaseSchema>('main', DATABASE_VERSION, {
-        async upgrade(db, old_version, new_version, transaction){
+        upgrade(db, old_version, new_version, transaction){
             migrate(transaction, old_version)
         },
     })
@@ -42,6 +43,7 @@ export class Database {
     groups:DatabaseGroups
     oauths:DatabaseOAuths
     profiles:DatabaseProfiles
+    unsubscribes:DatabaseUnsubscribes
     drafts:DatabaseDrafts
     messages:DatabaseMessages
     copies:DatabaseCopies
@@ -57,6 +59,7 @@ export class Database {
         this.groups = new DatabaseGroups(connection)
         this.oauths = new DatabaseOAuths(connection)
         this.profiles = new DatabaseProfiles(connection)
+        this.unsubscribes = new DatabaseUnsubscribes(connection)
         this.drafts = new DatabaseDrafts(connection)
         this.messages = new DatabaseMessages(connection)
         this.copies = new DatabaseCopies(connection)
@@ -191,11 +194,13 @@ export class Database {
         })
 
         // Create copy objects for the recipients
-        const recipients = draft.get_final_recipients(await this.groups.list())
+        const contacts = await this.contacts.list()
+        const unsubs = await this.unsubscribes.list_for_profile(draft.profile)
+        const recipients = draft.get_final_recipients(contacts, await this.groups.list(), unsubs)
         const copies = await Promise.all(recipients.map(async contact_id => {
 
             // Get the contact's data
-            const contact = await this.contacts.get(contact_id)
+            const contact = contacts.find(c => c.id === contact_id)
 
             // Generate secret and derive response token from it
             // NOTE Response token is derived from secret in case message has expired
@@ -272,7 +277,10 @@ export class Database {
 
             // Collect known names
             const names = []
-            if (include_groups.length){
+            if (include_groups.includes('all')){
+                // All contacts included so ignore any other "includes"
+                names.push("All contacts")
+            } else if (include_groups.length){
                 // There's groups, and unlikely many, so list them all
                 for (const group_id of include_groups){
                     // If group not within group_names then haven't attempted to load yet
@@ -456,11 +464,22 @@ export class Database {
             'Harry']
         const last_names = ['Andrews', 'Beaver', 'Chapman', 'Driver', 'Edmonds', 'Fudge',
             'Goods', 'Harvard']
-        const contacts = await Promise.all([...range(100 * multiplier)].map(i => {
-            return this.contacts.create(
+        const contacts = await Promise.all([...range(100 * multiplier)].map(async i => {
+            const contact = await this.contacts.create(
                 `${sample(first_names)} ${sample(last_names)}`,
                 Math.random() > 0.8 ? '' : `blackhole+stello${i}@gracious.tech`,
             )
+            // Sometimes unsubscribe them
+            if (Math.random() > 0.75){
+                this.unsubscribes.set({
+                    profile: profile.id,
+                    contact: contact.id,
+                    sent: new Date(),
+                    ip: null,
+                    user_agent: null,
+                })
+            }
+            return contact
         }))
 
         // Create a text section
