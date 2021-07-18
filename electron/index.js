@@ -204,7 +204,12 @@ function open_window(){
 
     // Navigate to the app
     const load_index = () => {
-        window.loadFile(path.join(__dirname, 'app_dist/index.html'))
+        if (app.isPackaged){
+            window.loadFile(path.join(__dirname, 'app_dist/index.html'))
+        } else {
+            // Loading from a port in dev allows for hot module reloading
+            window.loadURL('http://127.0.0.1:8080')
+        }
     }
     load_index()
 
