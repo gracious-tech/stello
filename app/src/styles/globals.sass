@@ -74,6 +74,8 @@ $stello_layout_width: $stello_sidebar_width + $stello_scrollbar_width
     // Properties that should change when visible
     opacity: 0
     top: -10px
+    // Override Vuetify (rarely uses ::after, but does in e.g. list items for some reason)
+    min-height: $tooltip_height
 
 
 @mixin max_lines($num)
