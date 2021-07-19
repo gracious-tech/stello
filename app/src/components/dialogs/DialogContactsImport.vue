@@ -106,7 +106,7 @@ v-card
 import papaparse from 'papaparse'
 import vcard_json from 'vcard-json'
 import PostalMime from 'postal-mime'
-import * as zip from '@zip.js/zip.js/dist/zip'
+import * as zip from '@zip.js/zip.js/dist/zip'  // Avoids `import.meta` issue
 import {Component, Vue, Watch} from 'vue-property-decorator'
 
 import {drop} from '@/services/utils/exceptions'
