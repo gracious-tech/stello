@@ -27,6 +27,14 @@ v-card
         v-tabs-items(v-else v-model='tab')
             v-tab-item
                 v-list
+                    v-list-item(:key='group_all.id' @click='group_all.click'
+                            :color='group_all.color')
+                        v-list-item-icon
+                            app-svg(:name='group_all.icon')
+                        v-list-item-content
+                            v-list-item-title {{ group_all.display }}
+                        v-list-item-icon(class='justify-end') {{ group_all.size }}
+                    v-divider
                     v-list-item(v-for='group of groups_ui' :key='group.id' @click='group.click'
                             :color='group.color')
                         v-list-item-icon
@@ -38,7 +46,7 @@ v-card
             v-tab-item.contacts
                 v-list
                     v-list-item(v-for='contact of contacts_visible_ui' :key='contact.id'
-                            @click='contact.click' :color='contact.color')
+                            @click='contact.click' :class='contact.classes' :data-tip='contact.tip')
                         v-list-item-icon
                             app-svg(:name='contact.icon')
                         v-list-item-content
@@ -62,6 +70,7 @@ import {remove_item} from '@/services/utils/arrays'
 import {Draft} from '@/services/database/drafts'
 import {Group} from '@/services/database/groups'
 import {Contact} from '@/services/database/contacts'
+import {Unsubscribe} from '@/services/database/unsubscribes'
 
 
 @Component({})
@@ -70,6 +79,7 @@ export default class extends Vue {
     @Prop({type: Draft, required: true}) draft:Draft
     @Prop({type: Array, required: true}) groups:Group[]
     @Prop({type: Array, required: true}) contacts:Contact[]
+    @Prop({type: Array, required: true}) unsubscribes:Unsubscribe[]
 
     tab:number = 0
     contacts_filter:number = 0
@@ -78,12 +88,19 @@ export default class extends Vue {
 
     get final_recipients():string[]{
         // Get list of contact ids that will currently be included when all things accounted for
-        return this.draft.get_final_recipients(this.groups)
+        return this.draft.get_final_recipients(this.contacts, this.groups, this.unsubscribes)
     }
 
     get contact_ids():string[]{
         // A list of just contact ids (rather than objects)
         return this.contacts.map(c => c.id)
+    }
+
+    get unsubscribes_ids(){
+        // A list of contact ids for unsubscribes, rather than objects
+        return this.unsubscribes
+            .filter(u => u.profile === this.draft.profile)
+            .map(u => u.contact)
     }
 
     get groups_ui(){
@@ -107,21 +124,58 @@ export default class extends Vue {
         return items
     }
 
+    get group_all(){
+        // A special group item for including all contacts
+        const all_included = this.draft.recipients.include_groups.includes('all')
+        return {
+            id: 'all',
+            display: "All contacts",
+            size: this.contacts.length,
+            icon: `icon_checkbox_${all_included}`,
+            color: all_included ? 'accent' : '',
+            click: () => {
+                // NOTE Can't exclude all, like with other groups
+                if (all_included){
+                    remove_item(this.draft.recipients.include_groups, 'all')
+                } else {
+                    this.draft.recipients.include_groups.push('all')
+                }
+                this.save()
+            },
+        }
+    }
+
     get contacts_visible_ui(){
         // A UI view of the contacts data
         const items = []
         for (const contact of this.contacts_visible){
-            // Determine if the contact is explicitly included or excluded
+            // Determine if the contact is included or excluded, and why
             const included = this.draft.recipients.include_contacts.includes(contact.id)
             const excluded = this.draft.recipients.exclude_contacts.includes(contact.id)
-            // Return UI info for the contact
+            const unsubscribed = this.unsubscribes_ids.includes(contact.id)
             const in_final = this.final_recipients.includes(contact.id)
+            // Collect classes based on inclusion status
+            const classes = []
+            if (included){
+                classes.push('accent--text')
+            } else if (excluded){
+                classes.push('error--text')
+            }
+            if (unsubscribed){
+                classes.push('unsubscribed')
+            }
+            if (!in_final){
+                classes.push('opacity-disabled')
+            }
+            // Return props and methods
             items.push({
                 id: contact.id,
                 display: contact.display,
                 address: contact.address,
                 icon: 'icon_checkbox_' + (in_final ? 'true' : (excluded ? 'cross' : 'false')),
-                color: excluded ? 'error' : (included ? 'accent' : ''),
+                classes,
+                tip: unsubscribed ? "Unsubscribed"
+                    : (in_final && !included ? "Included by group" : null),
                 click: () => {this.toggle_contact(contact.id)},
             })
         }
@@ -134,7 +188,9 @@ export default class extends Vue {
             // TODO Improve search method, especially for i18n
             const lower_search = this.contacts_search.toLowerCase()
             return this.contacts.filter(contact => {
-                return contact.display.toLowerCase().includes(lower_search)
+                return contact.name.toLowerCase().includes(lower_search)
+                    || contact.name_hello.toLowerCase().includes(lower_search)
+                    || contact.address.toLowerCase().includes(lower_search)
             })
         } else if (this.contacts_filter !== 0){
             return this.contacts.filter(contact => {
@@ -263,12 +319,17 @@ export default class extends Vue {
 
 
 .contacts
-    .v-list-item__content, .v-list-item__action
-        flex-basis: 0  // So each item grows same as each other, regardless of content
-    .v-list-item__content
-        flex-grow: 4
-    .v-list-item__action
-        flex-grow: 3
+    .v-list-item
+        &.unsubscribed .v-list-item__content
+            text-decoration: line-through
+        &::after
+            left: 40%  // Easier to see in middle
+        .v-list-item__content, .v-list-item__action
+            flex-basis: 0  // So each item grows same as each other, regardless of content
+        .v-list-item__content
+            flex-grow: 4
+        .v-list-item__action
+            flex-grow: 3
 
 
 </style>
