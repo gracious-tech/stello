@@ -62,7 +62,7 @@ export async function responses_receive(task:Task):Promise<void>{
         return BY_PRIORITY.indexOf(b[1]) - BY_PRIORITY.indexOf(a[1])
     })
 
-    // Concurrently process batches in order
+    // Concurrently fetch/process/delete responses
     task.upcoming(responses.length)
     const jobs = concurrent(responses.map(([profile, type, key]) => {
         // Return a function/job that triggers downloading the response
@@ -144,7 +144,6 @@ async function download_response(profile:Profile, storage:HostUser, object_key:s
     await process_data(profile, data, sent)
 
     // Delete response object from bucket if processed successfully
-    // WARN Ensure have awaited all tasks involved with processing event before delete
     storage.delete_response(object_key)
 }
 
@@ -152,6 +151,7 @@ async function download_response(profile:Profile, storage:HostUser, object_key:s
 async function process_data(profile:Profile, data:ResponseData, sent:Date):Promise<void>{
     // Process and save data to db
     // SECURITY data contains untrusted user input and some responder function input
+    // WARN Must await all tasks so that failure prevents response deletion from bucket
 
     // Force type of common fields
     const ip = data.ip ? String(data.ip) : null
@@ -179,7 +179,7 @@ async function process_data(profile:Profile, data:ResponseData, sent:Date):Promi
         //      But so unlikely (as a timing issue) it is not worth worrying about
 
         // Determine if adding or removing an unsubscribe record
-        let apply:(c:string)=>void = c => self._db.unsubscribes.set(
+        let apply:(c:string)=>Promise<void> = c => self._db.unsubscribes.set(
             {profile: profile.id, contact: c, sent, ip, user_agent})
         if (data.event.subscribed){
             apply = c => self._db.unsubscribes.remove(profile.id, c)
@@ -190,7 +190,7 @@ async function process_data(profile:Profile, data:ResponseData, sent:Date):Promi
         if (address){
             for (const contact of await self._db.contacts.list_for_address(address)){
                 if (!contact.multiple){  // Multi-person contacts can't alter subscription
-                    apply(contact.id)
+                    await apply(contact.id)
                 }
             }
         }
@@ -198,7 +198,7 @@ async function process_data(profile:Profile, data:ResponseData, sent:Date):Promi
         // If copy still exists, also create record for its contact (harmless if already done)
         const copy = await self._db.copies.get_by_resp_token(resp_token)
         if (copy && !copy.contact_multiple){  // Multi-person contacts can't alter subscription
-            apply(copy.contact_id)
+            await apply(copy.contact_id)
         }
 
     } else {
