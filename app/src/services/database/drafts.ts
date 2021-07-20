@@ -4,8 +4,10 @@ import {
     RecordDraftRecipients,
 } from './types'
 import {Group} from './groups'
+import {Contact} from './contacts'
+import {Unsubscribe} from './unsubscribes'
 import {generate_token} from '@/services/utils/crypt'
-import {remove_item} from '@/services/utils/arrays'
+import {remove_value} from '@/services/utils/arrays'
 
 
 export class Draft implements RecordDraft {
@@ -30,12 +32,14 @@ export class Draft implements RecordDraft {
         return this.title.trim() || "[Untitled]"
     }
 
-    get_final_recipients(groups:Group[]):string[]{
+    get_final_recipients(contacts:Contact[], groups:Group[], unsubscribes:Unsubscribe[]):string[]{
         // Return array of contact ids to send to after accounting for all includes/excludes
         const recipients:string[] = []
 
         // Create a mapping of group ids to their contacts
-        const groups_dict:Record<string, string[]> = {}
+        const groups_dict:Record<string, string[]> = {
+            all: contacts.map(contact => contact.id),
+        }
         for (const group of groups){
             groups_dict[group.id] = group.contacts
         }
@@ -43,6 +47,7 @@ export class Draft implements RecordDraft {
         // Add all contacts included by groups
         for (const group_id of this.recipients.include_groups){
             if (group_id in groups_dict){  // WARN Group may no longer exist
+                // WARN Can easily result in duplicate ids, which will be filtered out later
                 recipients.push(...groups_dict[group_id])
             }
         }
@@ -51,21 +56,46 @@ export class Draft implements RecordDraft {
         for (const group_id of this.recipients.exclude_groups){
             if (group_id in groups_dict){  // WARN Group may no longer exist
                 for (const contact_id of groups_dict[group_id]){
-                    remove_item(recipients, contact_id)
+                      // WARN May need to remove duplicates, so search whole array
+                    remove_value(recipients, contact_id)
                 }
             }
         }
 
-        // Add all contacts included explicitly (overrides group exclude)
+
+        // Remove all contacts who have unsubscribed (only applies to group inclusions)
+        for (const unsub of unsubscribes){
+            if (unsub.profile === this.profile){
+                // WARN May need to remove duplicates, so search whole array
+                remove_value(recipients, unsub.contact)
+            }
+        }
+
+        // Add all contacts included explicitly (overrides group exclude & unsubscribes)
         recipients.push(...this.recipients.include_contacts)
 
         // Remove all contacts excluded explicitly (overrides all)
         for (const contact_id of this.recipients.exclude_contacts){
-            remove_item(recipients, contact_id)
+            remove_value(recipients, contact_id)  // WARN Must search whole array in case duplicates
         }
 
-        // Deduplicate
-        return Array.from(new Set(recipients).values())
+        // Deduplicate (both ids and addresses)
+        const address_map = Object.fromEntries(contacts.map(c => [c.id, c.address?.trim()]))
+        const included_ids = new Set()
+        const included_addresses = new Set()
+        return recipients.filter(id => {
+            if (included_ids.has(id)){
+                return false
+            }
+            included_ids.add(id)
+            if (address_map[id]){
+                if (included_addresses.has(address_map[id])){
+                    return false
+                }
+                included_addresses.add(address_map[id])
+            }
+            return true
+        })
     }
 
 }

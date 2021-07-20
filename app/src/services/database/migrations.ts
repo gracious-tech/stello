@@ -18,6 +18,8 @@ export const DATABASE_VERSION = 9
 export function migrate(transaction:VersionChangeTransaction, old_version:number){
     // Begin upgrade at whichever version is already present (no break statements)
     // WARN Ensure all versions accounted for, or none will match
+    // WARN Database waits for transaction actions to finish, not for this function to finish
+    // WARN Do not await anything (except db methods) or transaction will close before done
     switch (old_version){
         default:
             throw new Error("Database version unknown (should never happen)")
@@ -247,25 +249,19 @@ async function to8(transaction:VersionChangeTransaction):Promise<void>{
 
 async function to9(transaction:VersionChangeTransaction):Promise<void>{
 
-    // `invite_image` added to `msg_options_identity`
-    const default_invite_image = await (await fetch('migrations/default_invite_image.jpg')).blob()
+    // Added reply template to profiles, and removed credentials for responder
     for await (const cursor of transaction.objectStore('profiles')){
-        cursor.value.msg_options_identity.invite_image = default_invite_image
-        // Also added reply defaults to general options
-        cursor.value.options.reply_invite_image = default_invite_image
         cursor.value.options.reply_invite_tmpl_email = `
             <p>Hi <span data-mention data-id='contact_hello'></span>,</p>
             <p><span data-mention data-id='sender_name'></span> has replied to you.</p>
         `
-        // Removed `credentials_responder`
         // @ts-ignore key no longer exists
         delete cursor.value.host.credentials_responder
-        // Added `secret`
-        cursor.value.host_state.secret = await crypto.subtle.generateKey(
-            {name: 'AES-GCM', length: 256}, false, ['encrypt', 'decrypt'])
         // Save changes
         cursor.update(cursor.value)
     }
+
+    // Invite image property added to drafts
     for await (const cursor of transaction.objectStore('drafts')){
         cursor.value.options_identity.invite_image = null
         cursor.update(cursor.value)
@@ -275,10 +271,50 @@ async function to9(transaction:VersionChangeTransaction):Promise<void>{
         cursor.update(cursor.value)
     }
 
-    // `secret_sse` added to copies
-    for await (const cursor of transaction.objectStore('copies')){
-        cursor.value.secret_sse = await crypto.subtle.generateKey(
-            {name: 'AES-GCM', length: 256}, true, ['encrypt'])
+    // New store for unsubscribes
+    const unsubscribes = transaction.db.createObjectStore('unsubscribes',
+        {keyPath: ['profile', 'contact']})
+    unsubscribes.createIndex('by_profile', 'profile')
+    unsubscribes.createIndex('by_contact', 'contact')
+
+    // New `multiple` property for contacts and copies
+    for await (const cursor of transaction.objectStore('contacts')){
+        cursor.value.multiple = false
         cursor.update(cursor.value)
     }
+    for await (const cursor of transaction.objectStore('copies')){
+        cursor.value.contact_multiple = false
+        cursor.update(cursor.value)
+    }
+
+    // New index for contacts
+    transaction.objectStore('contacts').createIndex('by_address', 'address')
+
+    // Post-upgrade migrations
+    // WARN Only start once upgrade transaction finished, otherwise could overwrite previous changes
+    // WARN App will not wait for these to complete before mounting
+    const db = transaction.db
+    transaction.done.then(async () => {
+
+        // `secret_sse` added to copies
+        for (const copy of await db.getAll('copies')){
+            copy.secret_sse = await crypto.subtle.generateKey(
+                {name: 'AES-GCM', length: 256}, true, ['encrypt'])
+            db.put('copies', copy)
+        }
+
+        // Invite image and secret added to profiles
+        const profiles = await db.getAll('profiles')
+        if (profiles.length){
+            const default_invite_image =
+                await (await fetch('migrations/default_invite_image.jpg')).blob()
+            for (const profile of profiles){
+                profile.msg_options_identity.invite_image = default_invite_image
+                profile.options.reply_invite_image = default_invite_image
+                profile.host_state.secret = await crypto.subtle.generateKey(
+                    {name: 'AES-GCM', length: 256}, false, ['encrypt', 'decrypt'])
+                db.put('profiles', profile)
+            }
+        }
+    })
 }

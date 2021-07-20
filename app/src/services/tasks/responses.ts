@@ -2,15 +2,15 @@
 import {Task} from './tasks'
 import {Profile} from '../database/profiles'
 import {concurrent} from '../utils/async'
-import {utf8_to_string} from '../utils/coding'
-import {decrypt_asym} from '../utils/crypt'
+import {url64_to_buffer, utf8_to_string} from '../utils/coding'
+import {decrypt_asym, decrypt_sym} from '../utils/crypt'
 import {get_last, remove_matches} from '../utils/arrays'
 import {HostUser} from '../hosts/types'
 import type {ResponseData} from '../../shared/shared_types'
 
 
-const BY_PRIORITY = ['read', 'reaction', 'reply'] as const  // least to greatest
-type ResponseType = typeof BY_PRIORITY[number]
+const BY_PRIORITY = ['read', 'subscription', 'reaction', 'reply'] as const  // least to greatest
+export type ResponseType = typeof BY_PRIORITY[number]
 
 
 export async function responses_receive(task:Task):Promise<void>{
@@ -66,10 +66,9 @@ export async function responses_receive(task:Task):Promise<void>{
     task.upcoming(responses.length)
     const jobs = concurrent(responses.map(([profile, type, key]) => {
         // Return a function/job that triggers downloading the response
-        const decrypt_key = profile.host_state.resp_key.privateKey
         return async () => {
             try {
-                await task.expected(download_response(storages[profile.id], decrypt_key, key))
+                await task.expected(download_response(profile, storages[profile.id], key))
             } catch (error){
                 // Don't throw so don't prevent processing of the rest of responses
                 deferred_throw = error
@@ -85,28 +84,32 @@ export async function responses_receive(task:Task):Promise<void>{
 }
 
 
-async function download_response(storage:HostUser, decrypt_key:CryptoKey, object_key:string)
+async function download_response(profile:Profile, storage:HostUser, object_key:string)
         :Promise<void>{
     // Download a response and process it
     // NOTE Can generally allow throws, except sometimes may want to delete object if safe to do so
+
+    // Access profile's keys
+    const sym_secret = profile.host_state.secret
+    const asym_secret = profile.host_state.resp_key.privateKey
 
     // Download and decrypt the data
     const resp = await storage.download_response(object_key)
     let binary_data:ArrayBuffer
     try {
-        binary_data = await decrypt_asym(utf8_to_string(resp), decrypt_key)
+        binary_data = await decrypt_asym(utf8_to_string(resp), asym_secret)
     } catch {
         // Likely failed due to _responder_ having an old key of a profile
         // Since unlikely ever able to recover, delete response and throw
         storage.delete_response(object_key)
         throw new Error("Could not decrypt response")
     }
-    const data = JSON.parse(utf8_to_string(binary_data)) as ResponseData
+    const data = JSON.parse(utf8_to_string(binary_data))
 
     // Decrypt and unpack encrypted fields
     let encrypted_field:ArrayBuffer
     try {
-        encrypted_field = await decrypt_asym((data.event as any).encrypted, decrypt_key)
+        encrypted_field = await decrypt_asym(data.event.encrypted, asym_secret)
     } catch {
         // Likely failed due to _displayer_ having an old key of a profile
         // Since unlikely ever able to recover, delete response and throw
@@ -123,12 +126,22 @@ async function download_response(storage:HostUser, decrypt_key:CryptoKey, object
         data.event[prop] = encrypted_data[prop]
     }
 
+    // Decrypt symmetrically encrypted data, if any
+    // SECURITY Do NOT merge into top level of object, as then can't distinguish which were plain
+    //      Unlike asym encryption, sym encryption MUST gaurantee data is authenticated
+    //      Asym data comes from the browser, but sym data comes from the user/application
+    //      e.g. {a:'unauthed'} & {sym_encrypted:{a:'authed'}} would both result in {a:'...'}
+    if ('sym_encrypted' in data.event){
+        data.event.sym_encrypted = JSON.parse(utf8_to_string(
+            await decrypt_sym(url64_to_buffer(data.event.sym_encrypted), sym_secret)))
+    }
+
     // Get sent date from object key
     const timestamp_seconds = Number(get_last(object_key.split('/')).split('_')[0])
     const sent = new Date(timestamp_seconds * 1000)
 
     // Process
-    await process_data(data, sent)
+    await process_data(profile, data, sent)
 
     // Delete response object from bucket if processed successfully
     // WARN Ensure have awaited all tasks involved with processing event before delete
@@ -136,7 +149,7 @@ async function download_response(storage:HostUser, decrypt_key:CryptoKey, object
 }
 
 
-async function process_data(data:ResponseData, sent:Date):Promise<void>{
+async function process_data(profile:Profile, data:ResponseData, sent:Date):Promise<void>{
     // Process and save data to db
     // SECURITY data contains untrusted user input and some responder function input
 
@@ -157,8 +170,37 @@ async function process_data(data:ResponseData, sent:Date):Promise<void>{
             ip,
             user_agent,
         )
+
     } else if (data.event.type === 'read'){
         await self._db.read_create(sent, resp_token, ip, user_agent)
+
+    } else if (data.event.type === 'subscription'){
+        // NOTE Possible that no address available (if didn't use invite's URL) and copy deleted
+        //      But so unlikely (as a timing issue) it is not worth worrying about
+
+        // Determine if adding or removing an unsubscribe record
+        let apply:(c:string)=>void = c => self._db.unsubscribes.set(
+            {profile: profile.id, contact: c, sent, ip, user_agent})
+        if (data.event.subscribed){
+            apply = c => self._db.unsubscribes.remove(profile.id, c)
+        }
+
+        // Create unsubscribed records for all contacts that match address (if given)
+        const address = data.event.sym_encrypted?.address.trim()
+        if (address){
+            for (const contact of await self._db.contacts.list_for_address(address)){
+                if (!contact.multiple){  // Multi-person contacts can't alter subscription
+                    apply(contact.id)
+                }
+            }
+        }
+
+        // If copy still exists, also create record for its contact (harmless if already done)
+        const copy = await self._db.copies.get_by_resp_token(resp_token)
+        if (copy && !copy.contact_multiple){  // Multi-person contacts can't alter subscription
+            apply(copy.contact_id)
+        }
+
     } else {
         throw new Error("Invalid type")
     }

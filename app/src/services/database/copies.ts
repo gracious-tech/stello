@@ -17,6 +17,7 @@ export class MessageCopy implements RecordMessageCopy {
     contact_name:string
     contact_hello:string
     contact_address:string
+    contact_multiple:boolean
 
     constructor(db_object:RecordMessageCopy){
         Object.assign(this, db_object)

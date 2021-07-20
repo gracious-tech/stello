@@ -23,7 +23,7 @@ div
         div.names
             app-text(v-model='name' :readonly='synced' label="Full name" @click='synced_change_name')
             app-text(v-model='name_hello' :placeholder='contact.name_hello_result' label="Greet as"
-                hint="Defaults to excluding last name")
+                :hint='multiple ? "" : "Defaults to excluding last name"')
 
         app-text(v-model.trim='address' :readonly='synced' @click='synced_change_email'
             label="Email address")
@@ -34,6 +34,12 @@ div
                 app-list-item(@click='new_group' color='accent') Create new group
 
         app-textarea(v-model='notes' :readonly='synced' @click='synced_change_notes' label="Notes")
+
+        app-switch(v-model='multiple' label="Messages to this contact will go to many people"
+            hint="Hides unsubscribe links & always allows infinite message opens until expiry")
+
+        app-select(v-model='unsubscribes_profiles' :items='profiles_ui' multiple select
+            :disabled='multiple' label="Unsubscribed from")
 
         div.saved(:class='{changed}') Changes saved
 
@@ -52,7 +58,9 @@ import {partition} from '@/services/utils/strings'
 import {Contact} from '@/services/database/contacts'
 import {Group} from '@/services/database/groups'
 import {OAuth} from '@/services/database/oauths'
-import {remove_item, sort} from '@/services/utils/arrays'
+import {Profile} from '@/services/database/profiles'
+import {Unsubscribe} from '@/services/database/unsubscribes'
+import {remove_item, remove_match, sort} from '@/services/utils/arrays'
 import {Task, task_manager} from '@/services/tasks/tasks'
 
 
@@ -63,11 +71,16 @@ export default class extends Vue {
 
     contact:Contact = null
     possible_groups:Group[] = null
+    profiles:Profile[] = []
+    unsubscribes:Unsubscribe[] = []
     oauth:OAuth = null
     changed:boolean = false
 
     created(){
-        this.load()
+        // Load data from db
+        this.load_contact_related()
+        this.load_profiles()
+        this.load_unsubscribes()
     }
 
     beforeDestroy(){
@@ -117,6 +130,11 @@ export default class extends Vue {
             )
         }
         return final
+    }
+
+    get profiles_ui():{value:string, text:string}[]{
+        // Get profiles as array in format select component accepts
+        return this.profiles.map(profile => ({value: profile.id, text: profile.display}))
     }
 
     // GET/SET CONTACT PROPERTIES
@@ -176,6 +194,47 @@ export default class extends Vue {
         }
     }
 
+    get multiple(){
+        return this.contact.multiple
+    }
+    set multiple(value:boolean){
+        this.contact.multiple = value
+        this.save()
+        if (value){
+            this.unsubscribes_profiles = []  // Multi-person contacts can't unsubscribe
+        }
+    }
+
+    // GET/SET OTHER
+
+    get unsubscribes_profiles():string[]{
+        // List of profile ids for unsubscribes
+        return this.unsubscribes.map(unsub => unsub.profile)
+    }
+    set unsubscribes_profiles(new_profiles:string[]){
+        // Handle removal of profiles
+        for (const old_id of this.unsubscribes_profiles){
+            if (!new_profiles.includes(old_id)){
+                self._db.unsubscribes.remove(old_id, this.contact_id)
+                remove_match(this.unsubscribes, unsub => unsub.profile === old_id)
+            }
+        }
+        // Handle addition of profiles
+        for (const new_id of new_profiles){
+            if (!this.unsubscribes_profiles.includes(new_id)){
+                const record:Unsubscribe = {
+                    profile: new_id,
+                    contact: this.contact_id,
+                    sent: new Date(),
+                    ip: null,
+                    user_agent: null,
+                }
+                self._db.unsubscribes.set(record)
+                this.unsubscribes.push(record)
+            }
+        }
+    }
+
     // WATCH
 
     @Watch('$tm.data.finished') watch_finished(task:Task){
@@ -184,15 +243,17 @@ export default class extends Vue {
             // Any contact task completing while looking at a contact is 99% likely to be relevant
             // NOTE This is important to do when oauth fails while trying to change email address
             //      as it may have failed because the contact no longer exists
-            this.load()
+            this.load_contact_related()
+        } else if (task.name === 'responses_receive'){
+            // May have received a subscription response for this contact
+            this.load_unsubscribes()
         }
     }
 
     // METHODS
 
-    async load():Promise<void>{
-        // Load contact and other necessary resources
-        Promise.all([
+    async load_contact_related():Promise<void>{
+        await Promise.all([
             self._db.contacts.get(this.contact_id),
             self._db.groups.list(),
         ]).then(async ([contact, groups]) => {
@@ -206,6 +267,16 @@ export default class extends Vue {
             }
             this.contact = contact
         })
+    }
+
+    async load_profiles():Promise<void>{
+        // Load profiles that could be unsubscribed from
+        this.profiles = (await self._db.profiles.list()).filter(p => p.setup_complete)
+    }
+
+    async load_unsubscribes():Promise<void>{
+        // Load unsubscribes for this contact
+        this.unsubscribes = await self._db.unsubscribes.list_for_contact(this.contact_id)
     }
 
     save():void{

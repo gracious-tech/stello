@@ -220,6 +220,7 @@ export class Sender {
         const pub_copy:PublishedCopy = {
             ...pub_copy_base,
             has_max_reads: max_reads !== Infinity,
+            permission_subscription: !copy.contact_multiple,
             // Clone sections so can replace contact variables without affecting `pub_copy_base`
             sections: pub_copy_base.sections.map(srow => srow.map(section => {
                 if (section.content.type !== 'text'){

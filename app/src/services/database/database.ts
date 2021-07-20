@@ -229,6 +229,7 @@ export class Database {
                 contact_name: contact.name,
                 contact_hello: contact.name_hello_result,
                 contact_address: contact.address,
+                contact_multiple: contact.multiple,
             })
         }))
 
@@ -481,6 +482,10 @@ export class Database {
             }
             return contact
         }))
+
+        // Create groups
+        await this.groups.create('Friends', [...percent(contacts, 0.2)].map(c => c.id))
+        await this.groups.create('Subscribers', [...percent(contacts, 0.5)].map(c => c.id))
 
         // Create a text section
         const section_text = await this.sections.create({

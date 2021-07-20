@@ -21,6 +21,7 @@ export interface RecordContact {
     notes:string
     service_account:string  // issuer:issuer_id
     service_id:string  // The id for this contact in the service account
+    multiple:boolean  // Whether the contact represents multiple people rather than an individual
 }
 
 
@@ -36,7 +37,6 @@ export interface RecordGroup {
 
 
 // OAuth
-
 
 export interface RecordOAuth {
     id:string  // Random internal id
@@ -133,7 +133,7 @@ export interface RecordDraft {
 }
 
 export interface RecordDraftRecipients {
-    include_groups:string[]
+    include_groups:string[]  // 'all' is a special case that is to include all contacts
     include_contacts:string[]
     exclude_groups:string[]
     exclude_contacts:string[]
@@ -227,24 +227,29 @@ export interface RecordMessageCopy {
     contact_name:string
     contact_hello:string  // The final result hello (not raw value hello)
     contact_address:string
+    contact_multiple:boolean
 }
 
 
 // Responses
 
-export interface RecordResponse {
-    id:string
+export interface RecordResponseCore {
+    // All responses have these basics for debugging and analysing threats
     sent:Date
-    ip:string
-    user_agent:string
+    ip:string|null  // May be null if record created locally (e.g. unsubscribes)
+    user_agent:string|null  // May be null if record created locally (e.g. unsubscribes)
+}
+
+export interface RecordResponseCommon extends RecordResponseCore {
+    // Properties present in common responses like reads/reactions/replies
+    id:string
     copy_id:string
     msg_id:string  // So don't have to retrieve copy every time want to know msg_id
 }
 
-export interface RecordRead extends RecordResponse {
-}
+export interface RecordRead extends RecordResponseCommon {}
 
-export interface RecordReplaction extends RecordResponse {
+export interface RecordReplaction extends RecordResponseCommon {
     msg_title:string  // In case message object later deleted
     contact_id:string  // So don't have to retrieve copy every time want to know contact
     contact_name:string  // So can still know contact name even if contact object deleted
@@ -258,11 +263,15 @@ export interface RecordReplaction extends RecordResponse {
     archived:boolean
 }
 
-export interface RecordReaction extends RecordReplaction {
+export interface RecordReaction extends RecordReplaction {}
+
+export interface RecordReply extends RecordReplaction {}
+
+export interface RecordUnsubscribe extends RecordResponseCore {
+    profile:string  // id[0]
+    contact:string  // id[1]
 }
 
-export interface RecordReply extends RecordReplaction {
-}
 
 
 // Generic
@@ -294,6 +303,7 @@ export interface AppDatabaseSchema extends DBSchema {
         value:RecordContact,
         indexes:{
             by_service_account:string,
+            by_address:string,
         },
     }
     groups:{
@@ -313,6 +323,14 @@ export interface AppDatabaseSchema extends DBSchema {
     profiles:{
         key:string,
         value:RecordProfile,
+    }
+    unsubscribes:{
+        key:[string, string],
+        value:RecordUnsubscribe,
+        indexes:{
+            by_profile:string,
+            by_contact:string,
+        },
     }
     drafts:{
         key:string,

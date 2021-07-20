@@ -15,6 +15,7 @@ export class Contact implements RecordContact {
     notes:string
     service_account:string
     service_id:string
+    multiple:boolean
 
     constructor(db_object:RecordContact){
         Object.assign(this, db_object)
@@ -31,8 +32,9 @@ export class Contact implements RecordContact {
     get name_hello_result():string{
         // Returns value if given or otherwise defaults to all parts of name except the last
         // e.g. "Sarah & Simon Smith" -> "Sarah & Simon"
+        // NOTE If multiple, defaults to whole name
         return this.name_hello.trim()
-            || this.name.trim().split(' ').slice(0, -1).join(' ')
+            || (!this.multiple && this.name.trim().split(' ').slice(0, -1).join(' '))
             || this.name
     }
 }
@@ -86,6 +88,7 @@ export class DatabaseContacts {
             notes: '',
             service_account: null,
             service_id: null,
+            multiple: false,
         })
     }
 
