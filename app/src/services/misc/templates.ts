@@ -53,7 +53,7 @@ export function gen_variable_items(contact_hello:string|null, contact_name:strin
         },
         msg_max_reads: {
             label: "Max opens",
-            value: max_reads === Infinity ? '[unlimited]' : `${max_reads}`,
+            value: msg_max_reads_value(max_reads),
         },
         msg_lifespan: {
             label: "Time till expires",
@@ -67,8 +67,8 @@ export function gen_variable_items(contact_hello:string|null, contact_name:strin
 }
 
 
-export function update_template_values(html:string, context:TemplateVariables, empty?:string,
-        ):string{
+export function update_template_values(html:string, context:Record<string, {value:string|null}>,
+        empty?:string):string{
     // Update the values of template variables (preserves the actual spans and ids)
     // NOTE If a value is missing from context it is set to empty (but only if defined)
     const dom = new DOMParser().parseFromString(html, 'text/html')
@@ -79,4 +79,10 @@ export function update_template_values(html:string, context:TemplateVariables, e
         }
     }
     return dom.body.innerHTML  // Doesn't include body tag which is auto created by DOMParser
+}
+
+
+export function msg_max_reads_value(max_reads:number):string{
+    // Generate a string for the value of msg_max_reads
+    return max_reads === Infinity ? '[unlimited]' : `${max_reads}`
 }

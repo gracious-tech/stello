@@ -18,7 +18,8 @@ import {send_emails} from '../native/native'
 import type {PublishedCopyBase, PublishedAsset, PublishedCopy, PublishedSection, PublishedImage,
     PublishedContentText} from '@/shared/shared_types'
 import {render_invite_html} from '../misc/invites'
-import {gen_variable_items, update_template_values, TemplateVariables} from '../misc/templates'
+import {gen_variable_items, update_template_values, TemplateVariables, msg_max_reads_value,
+    } from '../misc/templates'
 import {MustReauthenticate, MustReconfigure, MustReconnect} from '../utils/exceptions'
 import {Email} from '../native/types'
 import {send_emails_oauth} from './email'
@@ -149,10 +150,12 @@ export class Sender {
             assets_key: buffer_to_url64(await export_key(this.msg.assets_key)),
         }
 
+        // Get copies
+        const copies = await this._get_copies()
+
         // Upload copies
         // TODO Use RxJS to start queuing emails as soon as copy uploaded so two concurrent queues
         // TODO (although nodemailer needs to do it via its own pools...)
-        const copies = await self._db.copies.list_for_msg(this.msg_id)
         await concurrent(copies.map(copy => {
             return () => this._publish_copy(copy, pub_copy_base)
         }))
@@ -179,18 +182,40 @@ export class Sender {
         self._db.messages.set(this.msg)
     }
 
+    async _get_copies():Promise<MessageCopy[]>{
+        // Get copies, filter out already sent/expired, and refresh their contact data
+        let copies = await self._db.copies.list_for_msg(this.msg_id)
+
+        // Nothing to do if expired OR already uploaded+sent
+        copies = copies.filter(copy => !copy.expired && (!copy.uploaded_latest || !copy.invited))
+
+        // Get latest contact data (as may have changed if resuming an unfinished send)
+        // NOTE Important when fixing an incorrect email address
+        // NOTE Contact may no longer exist
+        for (const copy of copies){
+            const contact = await self._db.contacts.get(copy.contact_id)
+            if (contact){
+                copy.contact_name = contact.name
+                copy.contact_hello = contact.name_hello_result
+                copy.contact_address = contact.address
+                copy.contact_multiple = contact.multiple
+                self._db.copies.set(copy)
+            }
+        }
+
+        return copies
+    }
+
     async _publish_copy(copy:MessageCopy, pub_copy_base:PublishedCopyBase):Promise<void>{
         // Encrypt and upload the copy
-
-        // Do not publish if already retracted
-        if (copy.expired){
-            return
-        }
 
         // Check if latest already uploaded
         if (copy.uploaded_latest){
             return
         }
+
+        // Determine max_reads, taking into account contact_multiple
+        const max_reads = copy.contact_multiple ? Infinity : this.msg.safe_max_reads
 
         // Package copy's data
         const pub_copy:PublishedCopy = {
@@ -203,8 +228,9 @@ export class Sender {
                 const cloned = cloneDeep(section) as PublishedSection<PublishedContentText>
                 // NOTE Not passing `empty` arg so that other variables are not touched
                 cloned.content.html = update_template_values(cloned.content.html, {
-                    contact_hello: {value: copy.contact_hello, label: ''},
-                    contact_name: {value: copy.contact_name, label: ''},
+                    contact_hello: {value: copy.contact_hello},
+                    contact_name: {value: copy.contact_name},
+                    msg_max_reads: {value: msg_max_reads_value(max_reads)},
                 })
                 return cloned
             })),
@@ -214,7 +240,7 @@ export class Sender {
         const binary = string_to_utf8(JSON.stringify(pub_copy))
         const encrypted = await encrypt_sym(binary, copy.secret)
         await this.host.upload_file(`copies/${copy.id}`, encrypted,
-            this.msg.safe_lifespan_remaining, this.msg.safe_max_reads)
+            this.msg.safe_lifespan_remaining, max_reads)
 
         // Encrypt and upload invite image
         // NOTE Uploaded even if not sending by email (re-eval if non-email invites widely used)
@@ -234,25 +260,8 @@ export class Sender {
     async _send_emails(copies:MessageCopy[]):Promise<void>{
         // Send emails for the contacts with email addresses
 
-        // Filter out copies that have already been sent to
-        // NOTE Don't filter out non-email addresses yet, until get latest contact data
-        copies = copies.filter(copy => !copy.invited)
-
-        // Update contact details for all copies (in case changed)
-        // NOTE Important for allowing user to correct addresses without having to recreate message
-        await Promise.all(copies.map(async copy => {
-            const contact = await self._db.contacts.get(copy.contact_id)
-            if (!contact){
-                return  // Contact has since been deleted
-            }
-            copy.contact_name = contact.name
-            copy.contact_hello = contact.name_hello_result
-            copy.contact_address = contact.address
-            self._db.copies.set(copy)
-        }))
-
-        // Filter out copies that don't have email addresses
-        copies = copies.filter(copy => copy.contact_address)
+        // Filter out copies that aren't to be sent by email OR have already been sent to
+        copies = copies.filter(copy => copy.contact_address && !copy.invited)
 
         // Construct properties common to all emails
         const from = {
@@ -269,9 +278,11 @@ export class Sender {
 
         // Generate email objects from copies
         const emails:Email[] = await Promise.all(copies.map(async copy => {
+            const max_reads = copy.contact_multiple ? Infinity : this.msg.safe_max_reads
             const contents = update_template_values(template, {
-                contact_hello: {value: copy.contact_hello, label: ''},
-                contact_name: {value: copy.contact_name, label: ''},
+                contact_hello: {value: copy.contact_hello},
+                contact_name: {value: copy.contact_name},
+                msg_max_reads: {value: msg_max_reads_value(max_reads)},
             })
             const url = this.profile.view_url(copy.id, await export_key(copy.secret))
             const secret_sse_url64 = buffer_to_url64(await export_key(copy.secret_sse))
