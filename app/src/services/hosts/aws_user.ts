@@ -9,6 +9,7 @@ import {HostCloud, HostCredentials, HostUser} from './types'
 import {StorageBaseAws} from './aws_common'
 import {enforce_range} from '../utils/numbers'
 import {stream_to_buffer} from '../utils/coding'
+import {sort} from '../utils/arrays'
 
 
 export class HostUserAws extends StorageBaseAws implements HostUser {
@@ -165,15 +166,22 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
 
     async _list_objects(bucket:string, prefix:string=''):Promise<string[]>{
         // List objects in a bucket
-        const objects:string[] = []
+        // WARN Application logic (such as response processing) expects in ascending order by date
         const paginator = paginateListObjectsV2({client: this.s3}, {
             Bucket: bucket,
             Prefix: this._prefix + prefix,
         })
+        const objects:{key:string, date:Date}[] = []
         for await (const resp of paginator){
             // NOTE Keys returned have any user-prefix already removed (but not prefix arg)
-            objects.push(...(resp.Contents ?? []).map(obj => obj.Key.slice(this._prefix.length)))
+            objects.push(...(resp.Contents ?? []).map(obj => {
+                return {
+                    key: obj.Key.slice(this._prefix.length),
+                    date: obj.LastModified,
+                }
+            }))
         }
-        return objects
+        sort(objects, 'date')
+        return objects.map(obj => obj.key)
     }
 }
