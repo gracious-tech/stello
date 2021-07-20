@@ -17,11 +17,21 @@ export const INVITE_HTML_IMAGE_STYLES =
 
 
 export function render_invite_html(contents:string, title:string, url:string, image:string,
-        reply:boolean, encrypted_address:string):string{
+        reply:boolean, encrypted_address?:string):string{
     // Render a HTML invite template with the provided contents
     // NOTE Header image must be wrapped in <a> to prevent gmail showing download button for it
     // NOTE Styles are inline so preserved when replying/forwarding
     // NOTE <hr> etc used for some separation if css disabled
+    let subscription_links = ''
+    if (encrypted_address){
+        subscription_links = `
+            <a href='${url},unsub,${encrypted_address}' style='color: #aaaaaa;'>
+                <small style='font-size: 0.8em;'>Unsubscribe</small></a>
+            |
+            <a href='${url},address,${encrypted_address}' style='color: #aaaaaa;'>
+                <small style='font-size: 0.8em;'>Change email address</small></a>
+        `
+    }
     return `
         <!DOCTYPE html>
         <html>
@@ -39,11 +49,7 @@ export function render_invite_html(contents:string, title:string, url:string, im
             <hr style='border-style: none;'>
             <p>&nbsp;</p>
             <p style='text-align: center;'>
-                <a href='${url},unsub,${encrypted_address}' style='color: #aaaaaa;'>
-                    <small style='font-size: 0.8em;'>Unsubscribe</small></a>
-                |
-                <a href='${url},address,${encrypted_address}' style='color: #aaaaaa;'>
-                    <small style='font-size: 0.8em;'>Change email address</small></a>
+                ${subscription_links}
             </p>
         </body>
         </html>

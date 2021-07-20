@@ -288,8 +288,11 @@ export class Sender {
             const secret_sse_url64 = buffer_to_url64(await export_key(copy.secret_sse))
             const image = `${responder_url}?image=${copy.id}&k=${secret_sse_url64}`
             const address_buffer = string_to_utf8(JSON.stringify({address: copy.contact_address}))
-            const encrypted_address = buffer_to_url64(await encrypt_sym(address_buffer,
+            let encrypted_address:string
+            if (!copy.contact_multiple){  // Don't show subscription links if multiple people
+                encrypted_address = buffer_to_url64(await encrypt_sym(address_buffer,
                     this.profile.host_state.secret))
+            }
             return {
                 id: copy.id,  // Use copy's id for email id for matching later
                 to: {name: copy.contact_name, address: copy.contact_address},
