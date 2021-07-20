@@ -4,13 +4,13 @@ import {Profile} from '../database/profiles'
 import {concurrent} from '../utils/async'
 import {url64_to_buffer, utf8_to_string} from '../utils/coding'
 import {decrypt_asym, decrypt_sym} from '../utils/crypt'
-import {get_last, remove_matches} from '../utils/arrays'
+import {get_last} from '../utils/arrays'
 import {HostUser} from '../hosts/types'
 import type {ResponseData} from '../../shared/shared_types'
 
 
-const BY_PRIORITY = ['read', 'subscription', 'reaction', 'reply'] as const  // least to greatest
-export type ResponseType = typeof BY_PRIORITY[number]
+const RESP_TYPES_ASYNC = ['read', 'reaction', 'reply']  // Least priority -> greatest
+const RESP_TYPES_SYNC = ['subscription']  // Require sequential processing
 
 
 export async function responses_receive(task:Task):Promise<void>{
@@ -29,55 +29,62 @@ export async function responses_receive(task:Task):Promise<void>{
     // Get all active profiles
     const profiles = (await self._db.profiles.list()).filter(profile => profile.setup_complete)
 
-    // Preserve instances of storage for each profile
-    const storages:{[id:string]:HostUser} = {}
-
-    // Form list of [profile, type, key] tuples for all responses in all profiles
-    const responses:[Profile, ResponseType, string][] = []
+    // Form list of processing functions for all responses in all profiles
+    const resp_fns_sync:(()=>Promise<void>)[] = []
+    const resp_fns_async:{type:string, fn:()=>Promise<void>}[] = []
     for (const profile of profiles){
-        storages[profile.id] = profile.new_host_user()
+        const storage = profile.new_host_user()
         try {
-            const keys_for_profile = await storages[profile.id].list_responses()
-            responses.push(...keys_for_profile.map(k => {
-                const type = k.split('/')[1] as ResponseType
-                return [profile, type, k] as [Profile, ResponseType, string]
-            }))
+            // Get object keys for all responses for profile
+            // NOTE Returns keys in order of last modified (important for sync processing)
+            for (const key of await storage.list_responses()){
+
+                // Extract response type from key
+                const type = key.split('/')[1]
+
+                // Create fn for downloading and processing the response
+                const fn = async () => {
+                    try {
+                        await task.expected(download_response(profile, storage, key))
+                    } catch (error){
+                        // Don't throw so don't prevent processing of the rest of responses
+                        deferred_throw = error
+                    }
+                }
+
+                // Place the fn in the approriate list
+                if (RESP_TYPES_SYNC.includes(type)){
+                    resp_fns_sync.push(fn)
+                } else if (RESP_TYPES_ASYNC.includes(type)){
+                    resp_fns_async.push({type, fn})
+                } else {
+                    deferred_throw = new Error(`Invalid response type: ${type}`)
+                }
+            }
         } catch (error){
             // Other profiles may still work fine so reraise this later instead of interrupting
             deferred_throw = error
         }
     }
 
-    // Ignore and report any invalid types
-    // NOTE Not deleting as might be able to fix later with a patch
-    const invalid = remove_matches(responses, ([p, type, k]) => !BY_PRIORITY.includes(type))
-    if (invalid.length){
-        deferred_throw = new Error(`Invalid response type: ${invalid[0][1]}`)  // Just report first
-    }
-
-    // Sort responses by type, prioritising them by importance
-    responses.sort((a, b) => {
-        // BY_PRIORITY is ordered from least to greatest, which works well for the -1 no match
+    // Sort async responses by type, prioritising them by importance
+    resp_fns_async.sort((a, b) => {
+        // RESP_TYPES_ASYNC is ordered from least to greatest, which works well for the -1 no match
         // But want to sort from greatest to least, hence b - a (negative puts a first)
-        return BY_PRIORITY.indexOf(b[1]) - BY_PRIORITY.indexOf(a[1])
+        return RESP_TYPES_ASYNC.indexOf(b.type) - RESP_TYPES_ASYNC.indexOf(a.type)
     })
 
-    // Concurrently fetch/process/delete responses
-    task.upcoming(responses.length)
-    const jobs = concurrent(responses.map(([profile, type, key]) => {
-        // Return a function/job that triggers downloading the response
-        return async () => {
-            try {
-                await task.expected(download_response(profile, storages[profile.id], key))
-            } catch (error){
-                // Don't throw so don't prevent processing of the rest of responses
-                deferred_throw = error
-            }
-        }
-    }))
+    // Update task counter with number of responses
+    task.upcoming(resp_fns_async.length + resp_fns_sync.length)
 
-    // Complete task when all done
-    await jobs
+    // Concurrently process async responses
+    await concurrent(resp_fns_async.map(item => item.fn))
+
+    // Synchronous tasks must be done in order as can override each other
+    // NOTE No performance loss since sync task types are rare anyway
+    await Promise.all(resp_fns_sync.map(fn => fn()))
+
+    // If error occured at any point, can throw it now that processing done
     if (deferred_throw){
         throw deferred_throw
     }
