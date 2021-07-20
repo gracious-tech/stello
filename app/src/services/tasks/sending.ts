@@ -145,7 +145,6 @@ export class Sender {
             title: this.msg.draft.title,
             published: this.msg.published.toJSON(),
             base_msg_id: this.msg_id,
-            has_max_reads: this.msg.safe_max_reads !== Infinity,
             sections: pub_sections,
             assets_key: buffer_to_url64(await export_key(this.msg.assets_key)),
         }
@@ -220,6 +219,7 @@ export class Sender {
         // Package copy's data
         const pub_copy:PublishedCopy = {
             ...pub_copy_base,
+            has_max_reads: max_reads !== Infinity,
             // Clone sections so can replace contact variables without affecting `pub_copy_base`
             sections: pub_copy_base.sections.map(srow => srow.map(section => {
                 if (section.content.type !== 'text'){

@@ -5,13 +5,12 @@ export interface PublishedCopyBase {
     title:string
     published:string
     base_msg_id:string  // Needed for working out where assets are
-    has_max_reads:boolean
     sections:PublishedSection[][]
     assets_key:string
 }
 
 export interface PublishedCopy extends PublishedCopyBase {
-    // TODO Anything unique to the contact...
+    has_max_reads:boolean
 }
 
 export interface PublishedSection<TContent extends PublishedSectionContent=PublishedSectionContent>{
