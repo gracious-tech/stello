@@ -11,8 +11,9 @@ cd ../displayer
 # Build
 ./node_modules/.bin/vite build --assetsDir 'displayer'
 
+# Fix issue with vite dynamic import (https://github.com/vitejs/vite/discussions/4319)
 # Give dynamic import of lottie a root-relative path instead of a script-relative path
-# TODO Confirm if this fixes import issue
+# NOTE This issue only occurs randomly in some browsers and is hard to reproduce
 sed --in-place 's/\.\/lottie_light/\/displayer\/lottie_light/' dist/displayer/index.*.js
 
 # Tar index and assets and place in app
