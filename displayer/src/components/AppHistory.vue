@@ -1,6 +1,9 @@
 
 <template lang='pug'>
 
+hr
+h2.title(class='ui') Other Messages
+
 div.history(class='ui')
     div.prev(v-if='prev')
         a(@click='prev.load') ← {{ prev.label }}
@@ -72,10 +75,17 @@ export default {
 
 <style lang='sass' scoped>
 
+hr
+    margin-top: 100px !important
+
+.title
+    text-align: center
+    opacity: 0.8
+    font-size: 14px !important
+
 .history
     display: flex
     justify-content: space-between
-    margin-top: 100px
 
     .prev, .next
         display: flex
