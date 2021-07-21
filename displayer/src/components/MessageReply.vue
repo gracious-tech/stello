@@ -2,7 +2,7 @@
 <template lang='pug'>
 
 //- Using form important for enabling submit button in virtual keyboards
-form(v-if='allow_replies' @submit.prevent='send_reply')
+form(v-if='allow_replies' @submit.prevent='send_reply' class='ui')
 
     div.prev(v-if='replies.length')
         strong Replied:&nbsp;
@@ -16,7 +16,7 @@ form(v-if='allow_replies' @submit.prevent='send_reply')
         textarea(v-model='text' ref='textarea' @keyup.ctrl.enter='send_reply' :disabled='waiting'
             placeholder="Secure reply...")
         button(type='submit' class='btn-icon' :class='{error: success === false}')
-            Progress(v-if='waiting')
+            AppProgress(v-if='waiting')
             svg(v-else viewBox='0 0 24 24')
                 path(d='M2.01 21L23 12 2.01 3 2 10l15 2-15 2z')
     p.note All comments/reactions/replies securely encrypted &amp; only visible to author
@@ -28,7 +28,6 @@ form(v-if='allow_replies' @submit.prevent='send_reply')
 
 import {ref, watch, computed, Ref} from 'vue'
 
-import Progress from './Progress.vue'
 import {displayer_config} from '../services/displayer_config'
 import {respond_reply} from '../services/responses'
 import {database} from '../services/database'
@@ -36,8 +35,6 @@ import {store} from '../services/store'
 
 
 export default {
-
-    components: {Progress},
 
     setup(){
 
@@ -117,10 +114,6 @@ form
     display: flex
     flex-direction: column
     margin-top: 36px
-    font-family: Roboto, sans-serif
-
-    @media print
-        display: none
 
     .prev, .last
         font-size: 14px
@@ -132,20 +125,10 @@ form
         opacity: 0.8
 
     textarea
-        @include stello_themed(background-color, #0002, #fff2)
-        border-style: none
-        box-sizing: border-box
-        width: 100%
-        padding: 12px
-        font-size: 16px
-        color: inherit
-        border-radius: 12px
         min-height: 100px
         max-height: 400px
         margin-right: 4px
-
-        &:focus
-            outline-style: none
+        resize: none
 
     .fields
         display: flex

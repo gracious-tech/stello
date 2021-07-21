@@ -221,6 +221,7 @@ export class Sender {
             ...pub_copy_base,
             has_max_reads: max_reads !== Infinity,
             permission_subscription: !copy.contact_multiple,
+            contact_address: copy.contact_address,
             // Clone sections so can replace contact variables without affecting `pub_copy_base`
             sections: pub_copy_base.sections.map(srow => srow.map(section => {
                 if (section.content.type !== 'text'){

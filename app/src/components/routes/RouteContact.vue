@@ -25,6 +25,7 @@ div
             app-text(v-model='name_hello' :placeholder='contact.name_hello_result' label="Greet as"
                 :hint='multiple ? "" : "Defaults to excluding last name"')
 
+        //- WARN Application logic currently depends on address being trimmed
         app-text(v-model.trim='address' :readonly='synced' @click='synced_change_email'
             label="Email address")
 

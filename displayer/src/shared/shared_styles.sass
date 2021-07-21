@@ -4,9 +4,12 @@
 
     // VARIABLES
 
-    --stello-primary: #0044ff
-    &.dark
-        --stello-primary: #0088ff
+    --stello-primary-fg: #0044ff
+    --stello-primary-bg: #0044ff88
+    @media screen
+        &.dark
+            --stello-primary-fg: #0088ff
+            --stello-primary-bg: #0088ff88
 
 
     // ROOT STYLES
@@ -113,9 +116,6 @@
         display: flex
         justify-content: space-around
         margin: 12px 0
-
-        @media print
-            display: none
 
         &:hover
             button.respond
@@ -228,7 +228,7 @@
             opacity: 0.5
 
         &.s-primary:not(:disabled)
-            background-color: var(--stello-primary)
+            background-color: var(--stello-primary-bg)
 
     .btn-icon  // Avoid `button` so don't mess up editor Vuetify ones etc
         padding: 12px
@@ -249,14 +249,11 @@
         padding-left: 12px
 
     a
-        color: var(--stello-primary)  // No transparency for links to stand out more
+        color: var(--stello-primary-fg)
         cursor: pointer  // Links without href are buttons
         text-decoration: none
         &:hover
             text-decoration: underline
-    @media screen
-        &.dark a
-            color: var(--stello-primary)  // Hue adjusted for better contrast ratio
 
     iframe, img
         // Prevent these elements from having implicit bottom padding due to being 'inline'
@@ -281,3 +278,7 @@
     .ui
         user-select: none
         font-family: Roboto, sans-serif
+        font-size: 16px
+
+        @media print
+            display: none

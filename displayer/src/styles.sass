@@ -5,5 +5,21 @@
 @import './shared/shared_styles'
 
 
+// Styles that aren't needed in app and might negatively affect app-specific things (like <input>)
 .stello-displayer  // To match specificity of shared styles
-    // pass
+
+    input, textarea
+        box-sizing: border-box
+        width: 100%
+        padding: 12px
+        border-radius: 12px
+        border-style: none
+        outline-style: none
+        background-color: rgba(#888, 0.3)
+        color: inherit
+        font-size: 16px
+
+        &::placeholder
+            // Inherit rather than having a solid grey color
+            color: inherit
+            opacity: 0.5

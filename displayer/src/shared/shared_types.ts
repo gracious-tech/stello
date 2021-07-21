@@ -11,6 +11,8 @@ export interface PublishedCopyBase {
 
 export interface PublishedCopy extends PublishedCopyBase {
     has_max_reads:boolean
+    permission_subscription:boolean
+    contact_address:string
 }
 
 export interface PublishedSection<TContent extends PublishedSectionContent=PublishedSectionContent>{
@@ -59,26 +61,48 @@ export interface PublishedAsset {
 export interface ResponseData {
     event:ResponseEvent
     ip:string|null  // May not be available for some setups
-    error:string|null
 }
 
-export type ResponseEvent = ResponseEventRead|ResponseEventReplaction
+export type ResponseEvent =
+    ResponseEventRead|ResponseEventReplaction|ResponseEventSubscription|ResponseEventAddress
+
+export type ResponseType = ResponseEvent['type']
 
 export interface ResponseEventRead {
     type:'read'
-    resp_token:string
     user_agent:string
+    resp_token:string
     copy_id:string  // Only for responder's use
     has_max_reads:boolean  // Only for responder's use
 }
 
 export interface ResponseEventReplaction {
     type:'reply'|'reaction'
-    resp_token:string
     user_agent:string
+    resp_token:string
     content:string|null  // Reaction can be null to clear any previous
     section_id:string|null
     subsection_id:string|null
+}
+
+export interface ResponseEventSubscription {
+    type:'subscription'
+    user_agent:string
+    resp_token:string
+    subscribed:boolean
+    sym_encrypted?: {
+        address:string,
+    }
+}
+
+export interface ResponseEventAddress {
+    type:'address'
+    user_agent:string
+    resp_token:string
+    new_address:string
+    sym_encrypted?: {
+        address:string,  // The old address
+    }
 }
 
 

@@ -1,81 +1,99 @@
 
 <template lang='pug'>
 
-MessageContents(v-if='msg' :msg='msg')
+div
+    AppUnsubscribed
 
-div.no_msg(v-else)
-    div(v-if='error')
-        p {{ error }}
-        button(@click='get_message' class='btn-text') Retry
-    Progress(v-else)
+    MessageContents(v-if='msg' :msg='msg')
+
+    div.no_msg(v-else class='ui')
+
+        h1 {{ current_msg.title }}
+        p.date {{ current_msg.published?.toLocaleString() }}
+
+        template(v-if='error')
+            h2.error {{ error_desc }}
+            button(@click='fix' class='btn-text s-primary') {{ fix_desc }}
+        AppProgress(v-else)
+
+    AppHistory
+
+    AppFooter(:msg='msg')
 
 </template>
 
 
 <script lang='ts'>
 
-import {ref, provide, PropType} from 'vue'
+import {ref, provide} from 'vue'
 
-import Progress from './Progress.vue'
+import AppFooter from './AppFooter.vue'
+import AppHistory from './AppHistory.vue'
+import AppUnsubscribed from './AppUnsubscribed.vue'
 import MessageContents from './MessageContents.vue'
-import {decrypt_sym, export_key, generate_hash} from '../services/utils/crypt'
+import {decrypt_sym} from '../services/utils/crypt'
 import {request_buffer} from '../services/utils/http'
-import {buffer_to_url64, utf8_to_string, url64_to_buffer} from '../services/utils/coding'
-import {store, MessageAccess} from '../services/store'
+import {utf8_to_string, url64_to_buffer} from '../services/utils/coding'
+import {store} from '../services/store'
 import {PublishedCopy} from '../shared/shared_types'
 import {import_key_sym} from '../services/utils/crypt'
 import {deployment_config} from '../services/deployment_config'
-import {respond_read} from '../services/responses'
+import {respond_read, respond_resend} from '../services/responses'
 
 
 export default {
 
 
-components: {MessageContents, Progress},
+components: {MessageContents, AppHistory, AppFooter, AppUnsubscribed},
 
-props: {
-    msg_access: {
-        type: Object as PropType<MessageAccess>,
-        required: true,
-    },
-},
-
-setup(props, context){
+setup(){
 
     // State
+    const current_msg = store.state.current_msg!
     const msg = ref<PublishedCopy>()
-    const error = ref<string|null>(null)
+    const error = ref<'network'|'expired'|'corrupted'|null>(null)
+    const error_desc = ref<string|null>(null)
+    const fix_desc = ref<string|null>(null)
     const get_asset = ref<(asset_id:string) => Promise<ArrayBuffer>>()
-    const resp_token = ref<string>()
+
+    // Access to secret that ignores fact is readonly due to store (doesn't matter but TS complains)
+    const secret = current_msg.secret as CryptoKey
 
     // Provides
-    provide('msg_id', props.msg_access.id)
-    provide('resp_token', resp_token)
     provide('get_asset', get_asset)
 
     // Method for downloading and decrypting the message
     const get_message = async () => {
 
+        // Reset error value
+        error.value = null
+
         // Try download the message
-        const url = `${deployment_config.url_msgs}copies/${props.msg_access.id}`
+        const url = `${deployment_config.url_msgs}copies/${current_msg.id}`
         let encrypted:ArrayBuffer|null
         try {
             encrypted = await request_buffer(url, {}, true)
         } catch {
-            error.value = "Download interrupted (check your internet connection)"
+            error.value = 'network'
+            error_desc.value = "Download interrupted (check your internet connection)"
+            fix_desc.value = "Retry"
             return
         }
         if (!encrypted){
-            error.value = "Message not found (it probably expired)"
+            error.value = 'expired'
+            error_desc.value = "Message has expired"
+            fix_desc.value = "Request new copy"
             return
         }
 
         // Try to decrypt the message
         let decrypted:ArrayBuffer
         try {
-            decrypted = await decrypt_sym(encrypted, props.msg_access.secret)
+            decrypted = await decrypt_sym(encrypted, secret)
         } catch {
-            error.value = "Could not read message (part of the link may be missing)"
+            error.value = 'corrupted'
+            error_desc.value = "Could not read message (part of the link may be missing)"
+            fix_desc.value = "Retry"
             return
         }
 
@@ -87,10 +105,6 @@ setup(props, context){
             // @ts-ignore old format
             msg_data.sections = msg_data.sections.map(section => [section])
         }
-
-        // Generate response token
-        resp_token.value =
-            buffer_to_url64(await generate_hash(await export_key(props.msg_access.secret)))
 
         // Import the assets key and make a method for downloading and decrypting assets
         const assets_key = await import_key_sym(url64_to_buffer(msg_data.assets_key))
@@ -104,20 +118,28 @@ setup(props, context){
         // WARN Do not do this before exposing `get_asset()` as message will be displayed too early
         msg.value = msg_data
 
-        // Consider read if message contents displayed for x seconds
-        // TODO Add delay and account for changing message, component update, etc
-        respond_read(resp_token.value, props.msg_access.id, msg_data.has_max_reads)
+        // Report that message has been read/opened
+        respond_read(current_msg.resp_token, current_msg.id, msg_data.has_max_reads)
 
         // Update the page title
         self.document.title = msg_data.title
 
         // Save the metadata in db
         store.save_message_meta({
-            id: props.msg_access.id,
-            secret: props.msg_access.secret,
+            id: current_msg.id,
+            secret: secret,
             title: msg.value.title,
-            published: msg.value.published,
+            published: new Date(msg.value.published),
         })
+    }
+
+    // Method for resolving errors
+    const fix = () => {
+        if (error.value === 'expired'){
+            // TODO Open dialog for requesting resend
+        } else {
+            get_message()
+        }
     }
 
     // Fetch the message now and decrypt it
@@ -126,7 +148,10 @@ setup(props, context){
     return {
         msg,
         error,
-        get_message,
+        error_desc,
+        fix,
+        fix_desc,
+        current_msg,
     }
 },
 
@@ -138,8 +163,23 @@ setup(props, context){
 
 <style lang='sass' scoped>
 
+@import '../shared/shared_mixins'
+
 .no_msg
     margin-top: 100px
     text-align: center
+
+    h1
+        margin-bottom: 0
+
+    .date
+        margin-bottom: 36px
+
+    .loading
+        margin-bottom: 44px
+
+    .error
+        margin-bottom: 36px
+        @include stello_themed(color, #b70, #f90)
 
 </style>

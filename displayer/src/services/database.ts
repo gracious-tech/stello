@@ -54,7 +54,7 @@ export interface MessageRecord {
 }
 
 
-const DATABASE_VERSION = 2
+const DATABASE_VERSION = 3
 
 
 class DisplayerDatabase {
@@ -65,7 +65,8 @@ class DisplayerDatabase {
         // Init connection to the database
         // WARN May be called again if connection terminated
         this._conn = await openDB<DisplayerDatabaseSchema>('stello', DATABASE_VERSION, {
-            upgrade(db, old_version, new_version, transaction){
+            async upgrade(db, old_version, new_version, transaction){
+                // WARN Do not await anything except db methods, as transaction will close
                 switch (old_version){
                     default:
                         throw new Error("Database version unknown (should never happen)")
@@ -76,6 +77,20 @@ class DisplayerDatabase {
                         db.createObjectStore('reactions', {keyPath: 'id'})
                         const replies = db.createObjectStore('replies', {keyPath: 'id'})
                         replies.createIndex('by_subsect', ['message', 'section', 'subsection'])
+                    case 2:
+                        // Published values were being incorrectly stored as strings
+                        for await (const cursor of transaction.objectStore('messages')){
+                            cursor.value.published = new Date(cursor.value.published)
+                            cursor.update(cursor.value)
+                        }
+                        // Last read now a single id rather than object
+                        const last_read = await transaction.objectStore('dict').get('last_read')
+                        if (last_read){
+                            transaction.objectStore('dict').put({
+                                key: 'last_read',
+                                value: last_read.value.id,
+                            })
+                        }
                 }
             },
             blocked(){
@@ -127,6 +142,13 @@ class DisplayerDatabase {
     async message_set(message:MessageRecord):Promise<void>{
         // Save a message
         await this._conn.put('messages', message)
+    }
+
+    async message_get_all():Promise<MessageRecord[]>{
+        // Get all message history, sorted by pub date
+        const messages = await this._conn.getAll('messages')
+        messages.sort((a, b) => a.published.getTime() - b.published.getTime())
+        return messages
     }
 
     async reaction_get(subsect:string):Promise<string|null>{

@@ -1,7 +1,7 @@
 
 <template lang='pug'>
 
-div.respondbar(@mouseenter='have_hovered = true')
+div.respondbar(@mouseenter='have_hovered = true' class='ui')
 
     div.reply_container(v-if='allow_replies')
         SharedRespondReply(@click='focus_textarea' :replied='!!replies.length'
@@ -19,7 +19,7 @@ div.respondbar(@mouseenter='have_hovered = true')
                     textarea(v-model='reply_text' ref='reply_textarea' :disabled='reply_waiting'
                         @keyup.ctrl.enter='send_comment' placeholder="Only author can see...")
                     button(type='submit' class='btn-icon' :class='{error: reply_success === false}')
-                        Progress(v-if='reply_waiting')
+                        AppProgress(v-if='reply_waiting')
                         svg(v-else viewBox='0 0 24 24')
                             path(d='M2.01 21L23 12 2.01 3 2 10l15 2-15 2z')
 
@@ -47,7 +47,6 @@ div.respondbar(@mouseenter='have_hovered = true')
 
 import {ref, watch, computed, PropType, Ref, reactive} from 'vue'
 
-import Progress from './Progress.vue'
 import ReactionSvg from './ReactionSvg.vue'
 import SharedRespondReact from '../shared/SharedRespondReact.vue'
 import SharedRespondReply from '../shared/SharedRespondReply.vue'
@@ -60,7 +59,7 @@ import {store} from '../services/store'
 
 export default {
 
-    components: {Progress, SharedRespondReact, SharedRespondReply, ReactionSvg},
+    components: {SharedRespondReact, SharedRespondReply, ReactionSvg},
 
     props: {
         section: {
@@ -225,7 +224,6 @@ export default {
 
 
 .reply_container, .react_container
-    font-family: Roboto, sans-serif
 
     .position
         display: none
@@ -238,7 +236,6 @@ export default {
         border-radius: 12px
 
     .note
-        user-select: none
         text-align: center
         font-size: 12px
         opacity: 0.6
@@ -289,19 +286,10 @@ export default {
 
         textarea
             @include stello_themed(background-color, #0001, #0006)
-            border-style: none
-            box-sizing: border-box
-            width: 100%
-            padding: 12px
-            font-size: 16px
-            color: inherit
-            border-radius: 12px
             min-height: 100px
             max-height: 400px
             margin-right: 6px
-
-            &:focus
-                outline-style: none
+            resize: none
 
         button.error
                 background-color: rgba(#f00, 0.3)

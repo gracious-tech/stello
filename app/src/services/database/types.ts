@@ -272,6 +272,18 @@ export interface RecordUnsubscribe extends RecordResponseCore {
     contact:string  // id[1]
 }
 
+export interface RecordRequestAddress extends RecordResponseCore {
+    contact:string  // id
+    old_address:string
+    new_address:string
+}
+
+export interface RecordRequestResend extends RecordResponseCore {
+    contact:string  // id[0]
+    message_id:string  // id[1]
+    message_title:string
+    reason:string
+}
 
 
 // Generic

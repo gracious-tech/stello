@@ -11,9 +11,11 @@ div(class='stello-displayer' :class='{dark}' tabindex='-1')
         //- Don't insert new node until old gone (out-in) to avoid scrolling issues
         transition(:name='transition' mode='out-in')
             Message.msg(v-if='current_msg' :key='current_msg.id')
-        p.no_msg(v-if='!current_msg') No messages available
+        //- This will only be shown if no hash and no history in db
+        //- e.g. Manually copied URL without hash, or refreshed browser that has no idb access
+        p.no_msg(v-if='!current_msg') Click original link to view message
 
-        AppUnsubscribe(v-if='show_unsubscribe')
+    AppDialog
 
 </template>
 
@@ -23,14 +25,14 @@ div(class='stello-displayer' :class='{dark}' tabindex='-1')
 import {computed, watch, onMounted, nextTick} from 'vue'
 
 import Message from './components/Message.vue'
+import AppDialog from './components/AppDialog.vue'
 import SharedDarkToggle from './shared/SharedDarkToggle.vue'
-import AppUnsubscribe from './components/AppUnsubscribe.vue'
 import {store} from './services/store'
 
 
 export default {
 
-    components: {Message, AppUnsubscribe, SharedDarkToggle},
+    components: {Message, SharedDarkToggle, AppDialog},
 
     setup(){
 
@@ -55,7 +57,6 @@ export default {
                 store.toggle_dark()
             },
             current_msg: computed(() => store.state.current_msg),
-            show_unsubscribe: computed(() => store.state.show_unsubscribe)
         }
     },
 }
@@ -110,7 +111,7 @@ export default {
 
 
 .msg
-    animation-duration: 375ms
+    animation-duration: 200ms
     animation-timing-function: linear
 
     &.prev-enter-active

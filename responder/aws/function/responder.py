@@ -18,7 +18,7 @@ from cryptography.hazmat.primitives.asymmetric.padding import OAEP, MGF1
 
 
 # Constants
-VALID_TYPES = ('read', 'reply', 'reaction')
+VALID_TYPES = ('read', 'reply', 'reaction', 'subscription', 'address')
 
 
 # A base64-encoded 3w1h solid #ddeeff jpeg
@@ -238,6 +238,14 @@ def handle_reaction(config, event):
             raise Exception("Reaction content too long")
 
     _send_notification(config, event)
+
+
+def handle_subscription(config, event):
+    """Subscription modifications don't need any processing"""
+
+
+def handle_address(config, event):
+    """Subscription address modifications don't need any processing"""
 
 
 def handle_delete(config, event):

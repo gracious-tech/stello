@@ -1,7 +1,7 @@
 
 <template lang='pug'>
 
-div.history
+div.history(class='ui')
     div.prev(v-if='prev')
         a(@click='prev.load') ← {{ prev.label }}
         span {{ prev.date }}
@@ -75,7 +75,7 @@ export default {
 .history
     display: flex
     justify-content: space-between
-    font-family: Roboto, sans-serif
+    margin-top: 100px
 
     .prev, .next
         display: flex

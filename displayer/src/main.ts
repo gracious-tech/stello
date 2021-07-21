@@ -9,6 +9,7 @@ import {database} from './services/database'
 import {error_to_string} from './services/utils/exceptions'
 // @ts-ignore For some reason TS imports below fine but says it can't when checking types
 import App from './App.vue'
+import AppProgress from './components/AppProgress.vue'
 
 
 // Embed stello styles in JS (so doesn't block first render)
@@ -52,6 +53,10 @@ self._app.config.warnHandler = (msg, vm, trace) => {
         self._fail_visual()
     }
 }
+
+
+// Register global components
+self._app.component('AppProgress', AppProgress)
 
 
 // Do init within an async function so can use await
