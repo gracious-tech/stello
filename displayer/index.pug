@@ -218,14 +218,24 @@ html
                     }
                 }
 
+
+                // List of keywords that if present anywhere in an error message, should ignore
+                const ignore_errors = ['@safari-extension://']
+
+
                 // ERROR HANDLING
 
 
                 self.addEventListener('error', (event:ErrorEvent):void => {
                     // Handle uncaught errors
                     const error = event.error ?? event.message ?? 'unknown'
-                    console.error(error)
                     const msg = error_to_string(error)
+                    for (const code of ignore_errors){
+                        if (msg.includes(code)){
+                            return
+                        }
+                    }
+                    console.error(error)
                     self._fail_report(msg)
                     self._fail_visual()
                 })
@@ -233,7 +243,13 @@ html
 
                 self.addEventListener('unhandledrejection', event => {
                     // Report uncaught errors in promises
-                    self._fail_report(error_to_string(event.reason))
+                    const msg = error_to_string(event.reason)
+                    for (const code of ignore_errors){
+                        if (msg.includes(code)){
+                            return
+                        }
+                    }
+                    self._fail_report(msg)
                     self._fail_visual()
                 })
 
