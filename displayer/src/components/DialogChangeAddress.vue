@@ -24,6 +24,7 @@ import {computed, ref} from 'vue'
 
 import {store} from '../services/store'
 import {respond_address} from '../services/responses'
+import {email_address_like} from '../services/utils/misc'
 
 
 export default {
@@ -39,7 +40,7 @@ export default {
         const error = ref(false)
 
         // Computed
-        const valid = computed(() => /.+@.+\..+/.test(address.value))
+        const valid = computed(() => email_address_like(address.value))
 
         // Methods
         const close = () => {store.dialog_close()}
