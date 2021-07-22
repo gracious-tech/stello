@@ -2,7 +2,9 @@
 <template lang='pug'>
 
 div
-    app-content(class='pa-3')
+    app-content(class='pa-6')
+
+        RouteRootAddressRequests
 
         img.decor(src='_assets/decor_root.svg')
 
@@ -38,9 +40,12 @@ div
 import {Component, Vue} from 'vue-property-decorator'
 
 import app_config from '@/app_config.json'
+import RouteRootAddressRequests from './assets/RouteRootAddressRequests.vue'
 
 
-@Component({})
+@Component({
+    components: {RouteRootAddressRequests},
+})
 export default class extends Vue {
 
     get version(){

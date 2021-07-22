@@ -457,8 +457,8 @@ export class Database {
         profile.msg_options_identity.sender_name = "Sender Name"
         profile.host = JSON.parse(process.env.VUE_APP_DEV_HOST_SETTINGS)
         profile.setup_step = null
-        await this.profiles.set(profile)
-        await this.state.set({key: 'default_profile', value: profile.id})
+        this.profiles.set(profile)
+        this.state.set({key: 'default_profile', value: profile.id})
 
         // Create contacts
         const first_names = ['Adam', 'Ben', 'Charlie', 'David', 'Edward', 'Fred', 'Greg',
@@ -480,12 +480,23 @@ export class Database {
                     user_agent: null,
                 })
             }
+            // Sometimes request to change address
+            if (Math.random() > 0.9 && contact.address){
+                this._conn.put('request_address', {
+                    contact: contact.id,
+                    new_address: contact.address + '.new',
+                    old_address: contact.address,
+                    sent: new Date(),
+                    ip: null,
+                    user_agent: null,
+                })
+            }
             return contact
         }))
 
         // Create groups
-        await this.groups.create('Friends', [...percent(contacts, 0.2)].map(c => c.id))
-        await this.groups.create('Subscribers', [...percent(contacts, 0.5)].map(c => c.id))
+        this.groups.create('Friends', [...percent(contacts, 0.2)].map(c => c.id))
+        this.groups.create('Subscribers', [...percent(contacts, 0.5)].map(c => c.id))
 
         // Create a text section
         const section_text = await this.sections.create({
@@ -531,7 +542,7 @@ export class Database {
             [section_youtube.id, section_vimeo.id],
         ]
         draft.recipients.include_contacts = contacts.slice(0, 10 * multiplier).map(c => c.id)
-        await this.drafts.set(draft)
+        this.drafts.set(draft)
 
         // Create sent messages
         const titles = cycle([
@@ -543,8 +554,7 @@ export class Database {
         const messages = await Promise.all([...range(10 * multiplier)].map(async i => {
             const draft_copy = await this.draft_copy(
                 new Draft({...draft, title: titles.next().value}))
-            const msg = await this.draft_to_message(draft_copy.id)
-            return msg
+            return this.draft_to_message(draft_copy.id)
         }))
 
         // Date creation helper
@@ -567,15 +577,15 @@ export class Database {
             const msg_subsection_ids = cycle([null, section_image.content.images[0].id, null, null])
             for (const msg_copy of percent(await this.copies.list_for_msg(msg.id))){
                 if (Math.random() > 0.5){
-                    await this.reply_create(random_reply(), random_date(), msg_copy.resp_token,
+                    this.reply_create(random_reply(), random_date(), msg_copy.resp_token,
                         null, null, '', '')
                 }
                 if (Math.random() > 0.5){
-                    await this.reply_create(random_reply(), random_date(), msg_copy.resp_token,
+                    this.reply_create(random_reply(), random_date(), msg_copy.resp_token,
                         msg_section_ids.next().value, msg_subsection_ids.next().value, '', '')
                 }
                 if (Math.random() > 0.5){
-                    await this.reaction_create(reactions.next().value, random_date(),
+                    this.reaction_create(reactions.next().value, random_date(),
                         msg_copy.resp_token, msg_section_ids.next().value,
                         msg_subsection_ids.next().value, '', '')
                 }

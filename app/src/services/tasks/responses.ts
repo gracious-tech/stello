@@ -11,7 +11,7 @@ import type {ResponseData} from '../../shared/shared_types'
 
 
 const RESP_TYPES_ASYNC = ['read', 'reaction', 'reply']  // Least priority -> greatest
-const RESP_TYPES_SYNC = ['subscription']  // Require sequential processing
+const RESP_TYPES_SYNC = ['subscription', 'address']  // Require sequential processing
 
 
 export async function responses_receive(task:Task):Promise<void>{
