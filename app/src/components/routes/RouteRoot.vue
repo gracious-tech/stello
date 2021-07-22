@@ -11,26 +11,22 @@ div
         div(class='notes')
             div(class='notes-inner app-bg-accent-relative')
                 h1(class='text-h6 mb-0') What's new
-                h1(class='text-subtitle-2 opacity-secondary mt-0') {{ version }}
+                h1(class='text-subtitle-2 opacity-secondary mt-0') Version {{ version }}
                 ul
-                    li Better slideshows
-                    li Highlight text
-                    li Dynamic content (merge fields)
-                        ul
-                            li Address contacts by name within messages
-                            li Include the date a message will expire in emails
-                            li etc
-                p(class='text-body-2') plus many little improvements
+                    li Readers can now unsubscribe
+                    li Emails now have a customisable header image
+                    li Can now customise the email sent for replies
+                p(class='text-body-2') plus many other improvements
 
         div(class='notes')
             div(class='notes-inner')
                 h1(class='text-h6') Still to come
                 ul
-                    li Unsubscribing
-                    li Header image for emails
-                    li An actually helpful dashboard
+                    li A more useful dashboard
+                    li Reducing the chance of errors when sending
+                    li Attach files / polls / graphs / and other media types
                 p plus many many more...
-                app-btn(href='https://give.gracious.tech' color='#fa5788' raised small) Help us
+                app-btn(href='https://give.gracious.tech' color='#fa5788' raised small) Help fund improvements
 
 </template>
 
