@@ -5,6 +5,7 @@ import {concurrent} from '../utils/async'
 import {url64_to_buffer, utf8_to_string} from '../utils/coding'
 import {decrypt_asym, decrypt_sym} from '../utils/crypt'
 import {get_last} from '../utils/arrays'
+import {email_address_like} from '../utils/misc'
 import {HostUser} from '../hosts/types'
 import type {ResponseData} from '../../shared/shared_types'
 
@@ -193,7 +194,8 @@ async function process_data(profile:Profile, data:ResponseData, sent:Date):Promi
         }
 
         // Create unsubscribed records for all contacts that match address (if given)
-        const address = data.event.sym_encrypted?.address.trim()
+        // SECURITY Don't need resp_token since address' encryption provides authenticity
+        const address = String(data.event.sym_encrypted?.address.trim() ?? '')
         if (address){
             for (const contact of await self._db.contacts.list_for_address(address)){
                 if (!contact.multiple){  // Multi-person contacts can't alter subscription
@@ -206,6 +208,41 @@ async function process_data(profile:Profile, data:ResponseData, sent:Date):Promi
         const copy = await self._db.copies.get_by_resp_token(resp_token)
         if (copy && !copy.contact_multiple){  // Multi-person contacts can't alter subscription
             await apply(copy.contact_id)
+        }
+
+    } else if (data.event.type === 'address'){
+        // NOTE Possible that no encrypted address available (if didn't use invite's URL)
+        //      But so unlikely (as a timing issue) it is not worth worrying about
+
+        // Do basic validation of new address
+        // SECURITY In the end, only the user can verify if looks legit
+        const new_address = String(data.event.new_address)
+        if (!email_address_like(new_address)){
+            console.warn("Invalid email address: " + new_address)
+            return  // Do nothing and allow response to be deleted
+        }
+
+        // Helper for creating request records
+        const create_record = async (contact:string, old_address:string) => {
+            await self._db._conn.put('request_address',
+                {sent, ip, user_agent, contact, old_address, new_address})
+        }
+
+        // Create change address records for all contacts that match address (if given)
+        // SECURITY Don't need resp_token since address' encryption provides authenticity
+        const old = String(data.event.sym_encrypted?.address.trim() ?? '')
+        if (old){
+            for (const contact of await self._db.contacts.list_for_address(old)){
+                if (!contact.multiple){  // Multi-person contacts can't alter address
+                    await create_record(contact.id, contact.address)
+                }
+            }
+        }
+
+        // If copy still exists, also create record for its contact (harmless if already done)
+        const copy = await self._db.copies.get_by_resp_token(resp_token)
+        if (copy && !copy.contact_multiple){  // Multi-person contacts can't alter address
+            await create_record(copy.contact_id, copy.contact_address)
         }
 
     } else {

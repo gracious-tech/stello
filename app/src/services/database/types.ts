@@ -344,6 +344,10 @@ export interface AppDatabaseSchema extends DBSchema {
             by_contact:string,
         },
     }
+    request_address:{
+        key:string,
+        value:RecordRequestAddress,
+    }
     drafts:{
         key:string,
         value:RecordDraft,
