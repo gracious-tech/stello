@@ -212,10 +212,6 @@ def handle_reply(config, event):
     if not config['allow_replies']:
         raise Exception("Replies disabled")
 
-    # Ensure content supplied if configured that way
-    if config['notify_include_contents'] and 'content' not in event:
-        raise Exception(f"Field missing: content")
-
     _send_notification(config, event)
 
 
@@ -226,13 +222,9 @@ def handle_reaction(config, event):
     if not config['allow_reactions']:
         raise Exception("Reactions disabled")
 
-    # Ensure content supplied if configured that way
-    if config['notify_include_contents'] and 'content' not in event:
-        raise Exception(f"Field missing: content")
-
     # Ensure reaction is a short single hyphenated word if present
     # SECURITY Prevents inserting long messages as a "reaction" but allows future codes too
-    if config['notify_include_contents']:
+    if 'content' in event:
         _ensure_valid_chars(event, 'content', string.ascii_letters + string.digits + '-')
         if len(event['content']) > 25:
             raise Exception("Reaction content too long")
@@ -403,7 +395,8 @@ def _send_notification(config, event):
         config['notify_include_contents'] = False
 
     # Prepare message
-    if config['notify_include_contents']:
+    # NOTE Possible to have race condition where contents should be included but isn't, so check
+    if config['notify_include_contents'] and 'content' in event:
         subject = "Stello: New reaction" if reaction else "Stello: New reply"
         msg = f"Someone reacted with: {event['content']}" if reaction else event['content']
         msg += "\n" * 10
