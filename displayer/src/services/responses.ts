@@ -114,12 +114,13 @@ export function respond_address(resp_token:string, new_address:string,
 }
 
 
-export function respond_resend(resp_token:string):Promise<boolean>{
+export function respond_resend(resp_token:string, reason:string):Promise<boolean>{
     // Send "resend" response
     return respond({
         type: 'resend',
         encrypted: {
             resp_token,
+            reason,
         },
     })
 }

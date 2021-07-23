@@ -30,6 +30,7 @@ import {ref, provide} from 'vue'
 import AppFooter from './AppFooter.vue'
 import AppHistory from './AppHistory.vue'
 import AppUnsubscribed from './AppUnsubscribed.vue'
+import DialogResend from './DialogResend.vue'
 import MessageContents from './MessageContents.vue'
 import {decrypt_sym} from '../services/utils/crypt'
 import {request_buffer} from '../services/utils/http'
@@ -38,7 +39,7 @@ import {store} from '../services/store'
 import {PublishedCopy} from '../shared/shared_types'
 import {import_key_sym} from '../services/utils/crypt'
 import {deployment_config} from '../services/deployment_config'
-import {respond_read, respond_resend} from '../services/responses'
+import {respond_read} from '../services/responses'
 
 
 export default {
@@ -79,7 +80,9 @@ setup(){
             fix_desc.value = "Retry"
             return
         }
-        if (!encrypted){
+        // NOTE Vite dev server serves index.html instead of 404 for missing files
+        if (!encrypted ||
+                (import.meta.env.DEV && utf8_to_string(encrypted.slice(0, 5)) === '<!DOC')){
             error.value = 'expired'
             error_desc.value = "Message has expired"
             fix_desc.value = "Request new copy"
@@ -136,7 +139,7 @@ setup(){
     // Method for resolving errors
     const fix = () => {
         if (error.value === 'expired'){
-            // TODO Open dialog for requesting resend
+            store.dialog_open(DialogResend)
         } else {
             get_message()
         }

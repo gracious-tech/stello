@@ -61,5 +61,28 @@ export default {
         width: 80%
         max-height: 80%
 
+        ::v-deep(.actions)
+            align-self: flex-end
+            display: flex
+            margin-top: 18px
+
+            button
+                margin-left: 12px
+                min-width: 90px
+                justify-content: center
+
+                &.error
+                    background-color: rgba(#f00, 0.3) !important
+
+                &.progress
+                    padding: 6px
+
+                svg  // AppProgress
+                    width: 20px
+                    height: 20px
+
+                    circle
+                        stroke: currentColor !important
+
 
 </style>

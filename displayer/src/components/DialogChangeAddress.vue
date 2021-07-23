@@ -5,7 +5,7 @@ h2 Change email address
 
 p(v-if='old_address') This message was sent to: #[em {{ old_address }}]
 
-input(v-model='address' type='email' class='input-text' placeholder="New email address...")
+input(v-model='address' type='email' placeholder="New email address...")
 
 div.actions
     button(@click='close' class='btn-text') Cancel
@@ -70,28 +70,5 @@ input
     margin-top: 12px
     margin-bottom: 24px
     max-width: 350px
-
-.actions
-    align-self: flex-end
-    display: flex
-
-    button
-        margin-left: 12px
-        min-width: 90px
-        justify-content: center
-
-        &.error
-            background-color: rgba(#f00, 0.3) !important
-
-        &.progress
-            padding: 6px
-
-        svg  // AppProgress
-            width: 20px
-            height: 20px
-
-            ::v-deep(circle)
-                stroke: currentColor !important
-
 
 </style>
