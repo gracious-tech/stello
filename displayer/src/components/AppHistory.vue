@@ -1,17 +1,18 @@
 
 <template lang='pug'>
 
-hr
-h2.title(class='ui') Other Messages
+template(v-if='prev || next')
+    hr
+    h2.title(class='ui') Other Messages
 
-div.history(class='ui')
-    div.prev(v-if='prev')
-        a(@click='prev.load') ← {{ prev.label }}
-        span {{ prev.date }}
-    | &nbsp;
-    div.next(v-if='next')
-        a(@click='next.load') {{ next.label }} →
-        span {{ next.date }}
+    div.history(class='ui')
+        div.prev(v-if='prev')
+            a(@click='prev.load') ← {{ prev.label }}
+            span {{ prev.date }}
+        | &nbsp;
+        div.next(v-if='next')
+            a(@click='next.load') {{ next.label }} →
+            span {{ next.date }}
 
 </template>
 
