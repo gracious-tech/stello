@@ -277,8 +277,9 @@ async function to9(transaction:VersionChangeTransaction):Promise<void>{
     unsubscribes.createIndex('by_profile', 'profile')
     unsubscribes.createIndex('by_contact', 'contact')
 
-    // New store for address requests
+    // New stores for requests
     transaction.db.createObjectStore('request_address', {keyPath: 'contact'})
+    transaction.db.createObjectStore('request_resend', {keyPath: ['contact', 'message']})
 
     // New `multiple` property for contacts and copies
     for await (const cursor of transaction.objectStore('contacts')){

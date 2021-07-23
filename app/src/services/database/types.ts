@@ -280,8 +280,7 @@ export interface RecordRequestAddress extends RecordResponseCore {
 
 export interface RecordRequestResend extends RecordResponseCore {
     contact:string  // id[0]
-    message_id:string  // id[1]
-    message_title:string
+    message:string  // id[1]
     reason:string
 }
 
@@ -347,6 +346,10 @@ export interface AppDatabaseSchema extends DBSchema {
     request_address:{
         key:string,
         value:RecordRequestAddress,
+    }
+    request_resend:{
+        key:[string, string],
+        value:RecordRequestResend,
     }
     drafts:{
         key:string,

@@ -63,8 +63,8 @@ export interface ResponseData {
     ip:string|null  // May not be available for some setups
 }
 
-export type ResponseEvent =
-    ResponseEventRead|ResponseEventReplaction|ResponseEventSubscription|ResponseEventAddress
+export type ResponseEvent = ResponseEventRead|ResponseEventReplaction|ResponseEventSubscription
+    |ResponseEventAddress|ResponseEventResend
 
 export type ResponseType = ResponseEvent['type']
 
@@ -103,6 +103,13 @@ export interface ResponseEventAddress {
     sym_encrypted?: {
         address:string,  // The old address
     }
+}
+
+export interface ResponseEventResend {
+    type:'resend'
+    user_agent:string
+    resp_token:string
+    content:string
 }
 
 

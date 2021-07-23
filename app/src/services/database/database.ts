@@ -555,7 +555,22 @@ export class Database {
         const messages = await Promise.all([...range(10 * multiplier)].map(async i => {
             const draft_copy = await this.draft_copy(
                 new Draft({...draft, title: titles.next().value}))
-            return this.draft_to_message(draft_copy.id)
+            const msg = await this.draft_to_message(draft_copy.id)
+
+            // Sometimes create resend requests
+            if (Math.random() > 0.9){
+                await this._conn.put('request_resend', {
+                    contact: draft.recipients.include_contacts[0],
+                    message: msg.id,
+                    reason: "I'd like another copy of this message please. "
+                        .repeat(Math.random() * 10 + 1),
+                    sent: new Date(),
+                    ip: null,
+                    user_agent: null,
+                })
+            }
+
+            return msg
         }))
 
         // Date creation helper

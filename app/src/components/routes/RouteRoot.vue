@@ -6,6 +6,8 @@ div
 
         RouteRootAddressRequests
 
+        RouteRootResendRequests
+
         img.decor(src='_assets/decor_root.svg')
 
         div(class='notes')
@@ -37,10 +39,11 @@ import {Component, Vue} from 'vue-property-decorator'
 
 import app_config from '@/app_config.json'
 import RouteRootAddressRequests from './assets/RouteRootAddressRequests.vue'
+import RouteRootResendRequests from './assets/RouteRootResendRequests.vue'
 
 
 @Component({
-    components: {RouteRootAddressRequests},
+    components: {RouteRootAddressRequests, RouteRootResendRequests},
 })
 export default class extends Vue {
 
@@ -54,6 +57,10 @@ export default class extends Vue {
 
 
 <style lang='sass' scoped>
+
+
+.v-card
+    margin: 48px 0
 
 
 .decor

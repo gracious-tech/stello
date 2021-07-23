@@ -3,7 +3,7 @@ import {Task} from './tasks'
 import {Profile} from '../database/profiles'
 import {concurrent} from '../utils/async'
 import {url64_to_buffer, utf8_to_string} from '../utils/coding'
-import {decrypt_asym, decrypt_sym} from '../utils/crypt'
+import {decrypt_asym, decrypt_sym, generate_token} from '../utils/crypt'
 import {get_last} from '../utils/arrays'
 import {email_address_like} from '../utils/misc'
 import {HostUser} from '../hosts/types'
@@ -11,7 +11,7 @@ import type {ResponseData} from '../../shared/shared_types'
 
 
 const RESP_TYPES_ASYNC = ['read', 'reaction', 'reply']  // Least priority -> greatest
-const RESP_TYPES_SYNC = ['subscription', 'address']  // Require sequential processing
+const RESP_TYPES_SYNC = ['subscription', 'address', 'resend']  // Require sequential processing
 
 
 export async function responses_receive(task:Task):Promise<void>{
@@ -244,6 +244,30 @@ async function process_data(profile:Profile, data:ResponseData, sent:Date):Promi
         if (copy && !copy.contact_multiple){  // Multi-person contacts can't alter address
             await create_record(copy.contact_id, copy.contact_address)
         }
+
+    } else if (data.event.type === 'resend'){
+
+        // Validate user input
+        const reason = String(data.event.content)
+
+        // Get copy by resp_token
+        const copy = await self._db.copies.get_by_resp_token(resp_token)
+
+        // If copy still exists good, otherwise generate fake id so db can still index record
+        // NOTE Same secenario if user deletes the message/contact after saving this record anyway
+        let contact:string
+        let message:string
+        if (copy){
+            contact = copy.contact_id
+            message = copy.msg_id
+        } else {
+            const fake_id = generate_token()
+            contact = fake_id
+            message = fake_id
+        }
+
+        // Create request record
+        await self._db._conn.put('request_resend', {sent, ip, user_agent, contact, message, reason})
 
     } else {
         throw new Error("Invalid type")
