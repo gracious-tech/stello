@@ -79,10 +79,15 @@ class DisplayerDatabase {
                         replies.createIndex('by_subsect', ['message', 'section', 'subsection'])
                     case 2:
                         // Published values were being incorrectly stored as strings
-                        for await (const cursor of transaction.objectStore('messages')){
-                            cursor.value.published = new Date(cursor.value.published)
-                            cursor.update(cursor.value)
-                        }
+                        // NOTE `for await` not supported by vite when targeting older browsers
+                        await (async () => {
+                            let cursor = await transaction.objectStore('messages').openCursor()
+                            while (cursor){
+                                cursor.value.published = new Date(cursor.value.published)
+                                cursor.update(cursor.value)
+                                cursor = await cursor.continue()  // null when no more records
+                            }
+                        })()
                         // Last read now a single id rather than object
                         const last_read = await transaction.objectStore('dict').get('last_read')
                         if (last_read){

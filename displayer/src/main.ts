@@ -9,6 +9,7 @@ import {database} from './services/database'
 import {error_to_string} from './services/utils/exceptions'
 // @ts-ignore For some reason TS imports below fine but says it can't when checking types
 import App from './App.vue'
+// @ts-ignore For some reason TS imports below fine but says it can't when checking types
 import AppProgress from './components/AppProgress.vue'
 
 

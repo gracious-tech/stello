@@ -1,6 +1,7 @@
 
 import {reactive, readonly, DeepReadonly, Component, markRaw} from 'vue'
 
+// @ts-ignore For some reason TS imports below fine but says it can't when checking types
 import DialogChangeAddress from '../components/DialogChangeAddress.vue'
 import {database, MessageRecord} from './database'
 import {displayer_config} from './displayer_config'
