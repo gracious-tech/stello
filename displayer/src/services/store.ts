@@ -128,7 +128,7 @@ export class DisplayerStore {
 
         // Load msg if valid
         if (hash){
-            this.change_current_msg(hash.msg_id, hash.msg_secret, null, null)
+            await this.change_current_msg(hash.msg_id, hash.msg_secret, null, null)
 
             // Handle action if any
             if (hash.action === 'unsub'){
