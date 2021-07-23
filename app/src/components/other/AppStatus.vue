@@ -5,9 +5,12 @@ transition(name='statusbar' appear)
     div.statusbar(v-if='tasks.length || failure || finished' class='elevation-20')
         div.tasks
             transition(v-if='finished' name='finished' appear)
-                div.finished
-                    div(class='ellipsis') {{ finished.display }}
-                    app-svg(name='icon_done')
+                div.finished(:class='{aborted: finished.aborted}')
+                    div(class='ellipsis')
+                        strong(v-if='finished.aborted') Aborted -
+                        |
+                        | {{ finished_display }}
+                    app-svg(v-if='!finished.aborted' name='icon_done')
             template(v-else-if='tasks.length')
                 v-progress-linear(:value='first.percent' :buffer-value='0' color='accent' stream
                     :indeterminate='first.subtasks_total < 2')
@@ -18,7 +21,7 @@ transition(name='statusbar' appear)
                 div.inactive No active tasks
         div.fails(v-if='failure' @click='show_fails_dialog' class='app-bg-error')
             app-svg(name='icon_error')
-            div(class='ellipsis') Failed: {{ failure }}
+            div(class='ellipsis') #[strong Failed:] {{ failure }}
             strong(class='ml-4') FIX
 
 </template>
@@ -63,6 +66,14 @@ export default class extends Vue {
         return this.finished_queue[0]
     }
 
+    get finished_display():string{
+        // Get display text for finished task
+        if (typeof this.finished.aborted === 'string'){  // NOTE May just be `true`
+            return this.finished.aborted
+        }
+        return this.finished.display
+    }
+
     get first():Task{
         // Shortcut for the first active task
         return this.tasks[0]
@@ -71,7 +82,7 @@ export default class extends Vue {
     @Watch('task_manager_finished') watch_finished(task:Task):void{
         // Watch task manager's finished property and store them in queue for brief display
         this.finished_queue.push(task)
-        setTimeout(() => {this.finished_queue.shift()}, 4000)
+        setTimeout(() => {this.finished_queue.shift()}, task.aborted ? 8000 : 4000)
     }
 
     show_fails_dialog():void{
@@ -109,6 +120,8 @@ $statusbar_height: 40px
 
         .finished
             color: $accent_lighter
+            &.aborted
+                color: $error_lighter
             svg
                 margin-left: 12px
 

@@ -30,7 +30,15 @@ export async function send_oauth_setup(task:Task):Promise<void>{
     // NOTE Doesn't validate whether have correct scopes as can fix later if a send task fails
     const [oauth_id, profile_id] = task.params
     const oauth = await self._db.oauths.get(oauth_id)
+    if (!oauth){
+        task.aborted = "Credentials missing"
+        return
+    }
     const profile = await self._db.profiles.get(profile_id)
+    if (!profile){
+        task.aborted = "Sending account no longer exists"
+        return
+    }
 
     // Still set task label as will show briefly that task has been completed
     task.label = `Use ${oauth.email} to send emails`
@@ -106,19 +114,33 @@ export class Sender {
         // Get the msg data
         this.msg_id = task.params[0]
         this.msg = await self._db.messages.get(this.msg_id)
-        this.profile = await self._db.profiles.get(this.msg.draft.profile)
+        if (!this.msg){
+            task.aborted = "Message no longer exists"
+            return
+        }
 
         // Setup task
         // TODO Add tracking of subtasks
         task.label = `Sending message "${this.msg.display}"`
 
+        // Get the profile
+        this.profile = await self._db.profiles.get(this.msg.draft.profile)
+        if (!this.profile){
+            task.aborted = "Sending account no longer exists"
+            return
+        }
+
         // Provide fix options (will detect appropriate one to use in failure dialog)
         task.fix_oauth = this.profile.smtp_settings.oauth  // May be null which is fine
         task.fix_settings = async () => {
             const fresh_profile = await self._db.profiles.get(this.profile.id)
-            self._store.dispatch('show_dialog', {
-                component: DialogEmailSettings, props: {profile: fresh_profile},
-            })
+            if (fresh_profile){
+                self._store.dispatch('show_dialog', {
+                    component: DialogEmailSettings, props: {profile: fresh_profile},
+                })
+            } else {
+                return "Sending account no longer exists"
+            }
         }
         task.fix_auth = task.fix_settings
 

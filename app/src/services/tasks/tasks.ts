@@ -39,8 +39,8 @@ export class Task {
     // Configurable
     label:string = null
     show_count:boolean = false
-    fix_settings:()=>void = null
-    fix_auth:()=>void = null
+    fix_settings:()=>Promise<void|string> = null  // Return error string to abort failed task
+    fix_auth:()=>Promise<void|string> = null  // Return error string to abort failed task
     fix_oauth:string = null  // Don't provide actual oauth object as should get fresh when needed
 
     // Readable
@@ -48,7 +48,7 @@ export class Task {
     readonly params:any[]  // Must be serializable for storing as post-oauth actions
     readonly options:any[]  // Must be serializable for storing as post-oauth actions
     readonly done:Promise<any>  // Resolves with an error value (if any) when task done
-    aborted:boolean = false
+    aborted:boolean|string = false  // Can be a string describing why aborted, or just true/false
     error:any = null  // Error value is both resolved for `done` and set as a property
 
     // Private
@@ -154,6 +154,7 @@ export class Task {
 
     abort():Promise<void>{
         // Abort as soon as possible
+        // WARN Do not await if called within a task as `done` won't resolve until task finishes
         this.aborted = true
         return this.done
     }
@@ -227,6 +228,13 @@ export class TaskManager {
         })
 
         return task
+    }
+
+    abort_failed(task:Task, abort_msg?:string):void{
+        // Abort a task that has already failed
+        task.aborted = abort_msg || true
+        remove_item(this.data.fails, task)
+        this.data.finished = task
     }
 
     // Start methods for sake of tying expected arguments to task names

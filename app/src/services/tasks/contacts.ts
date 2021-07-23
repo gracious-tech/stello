@@ -35,6 +35,10 @@ export async function contacts_oauth_setup(task:Task):Promise<void>{
     // NOTE This isn't done when first receiving new auth, especially when using an existing one
     const [oauth_id] = task.params
     const oauth = await self._db.oauths.get(oauth_id)
+    if (!oauth){
+        task.aborted = "No longer have access to contacts account"
+        return
+    }
     oauth.contacts_sync = true
     await self._db.oauths.set(oauth)
 
@@ -49,6 +53,10 @@ export async function contacts_sync(task:Task):Promise<void>{
     // Extract args from task object and get oauth record
     const [oauth_id] = task.params
     let oauth = await self._db.oauths.get(oauth_id)
+    if (!oauth){
+        task.aborted = "No longer have access to contacts account"
+        return
+    }
 
     // Configure task object
     task.label = `Syncing contacts for ${oauth.display_issuer} account ${oauth.email}`
@@ -73,9 +81,17 @@ export async function contacts_change_property(task:Task):Promise<void>{
     const [oauth_id, contact_id, property] = task.params
     const [value] = task.options
     const oauth = await self._db.oauths.get(oauth_id)
+    if (!oauth){
+        task.aborted = "No longer have access to contacts account"
+        return
+    }
 
     // Get the contact's record
     const contact = await self._db.contacts.get(contact_id)
+    if (!contact){
+        task.aborted = "Contact no longer exists"
+        return
+    }
 
     // Configure task object
     task.label = `Changing ${property} for "${contact.display}"`
@@ -97,9 +113,17 @@ export async function contacts_change_email(task:Task):Promise<void>{
     const [oauth_id, contact_id] = task.params
     const [addresses, chosen] = task.options
     const oauth = await self._db.oauths.get(oauth_id)
+    if (!oauth){
+        task.aborted = "No longer have access to contacts account"
+        return
+    }
 
     // Get the contact's record
     const contact = await self._db.contacts.get(contact_id)
+    if (!contact){
+        task.aborted = "Contact no longer exists"
+        return
+    }
 
     // Configure task object
     task.label = `Changing email address for "${contact.display}"`
@@ -120,9 +144,17 @@ export async function contacts_remove(task:Task):Promise<void>{
     // Extract args from task object and get oauth record
     const [oauth_id, contact_id] = task.params
     const oauth = await self._db.oauths.get(oauth_id)
+    if (!oauth){
+        task.aborted = "No longer have access to contacts account"
+        return
+    }
 
     // Get the contact's record
     const contact = await self._db.contacts.get(contact_id)
+    if (!contact){
+        task.aborted = "Contact no longer exists"
+        return
+    }
 
     // Configure task object
     task.label = `Deleting contact "${contact.display}"`

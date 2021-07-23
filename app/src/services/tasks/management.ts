@@ -10,10 +10,18 @@ export async function retract_message(task:Task):Promise<void>{
     const [msg_id] = task.params as [string]
     const [remove] = task.options as [boolean]
     let msg = await self._db.messages.get(msg_id)
+    if (!msg){
+        task.aborted = "Message no longer exists"
+        return
+    }
     task.label = `${remove ? "Deleting" : "Retracting"} message "${msg.draft.title}"`
 
     // Get access to storage
     const profile = await self._db.profiles.get(msg.draft.profile)
+    if (!profile){
+        task.aborted = "Sending account no longer exists"
+        return
+    }
     const storage = profile.new_host_user()
 
     // Delete copies

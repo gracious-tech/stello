@@ -124,21 +124,27 @@ export default class extends Vue {
         }
     }
 
-    fix():void{
+    async fix():Promise<void>{
         // Attempt to fix the problem
         const task_args:TaskStartArgs = [this.task.name, this.task.params, this.task.options]
+        let abort_msg:void|string
         if (this.error_type === 'oauth_useless' && this.task.fix_settings){
-            this.task.fix_settings()
+            abort_msg = await this.task.fix_settings()
         } else if (this.error_type.startsWith('oauth_')){
             // Need new credentials for same scopes as before
             oauth_pretask_reauth(task_args, this.oauth)
         } else if (this.error_type === 'auth' && this.task.fix_auth){
-            this.task.fix_auth()
+            abort_msg = await this.task.fix_auth()
         } else if (this.error_type === 'settings' && this.task.fix_settings){
-            this.task.fix_settings()
+            abort_msg = await this.task.fix_settings()
         } else {
             // Only other thing to do is simply retry...
             this.$tm.start(...task_args)
+        }
+
+        // If fix returned an abort message, abort task
+        if (abort_msg){
+            this.$tm.abort_failed(this.task, abort_msg)
         }
     }
 }
