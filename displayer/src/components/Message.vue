@@ -13,7 +13,7 @@ div
 
         template(v-if='error')
             h2.error {{ error_desc }}
-            button(@click='fix' class='btn-text s-primary') {{ fix_desc }}
+            button(v-if='fix_desc' @click='fix' class='btn-text s-primary') {{ fix_desc }}
         AppProgress(v-else)
 
     AppHistory
@@ -40,6 +40,7 @@ import {PublishedCopy} from '../shared/shared_types'
 import {import_key_sym} from '../services/utils/crypt'
 import {deployment_config} from '../services/deployment_config'
 import {respond_read} from '../services/responses'
+import {displayer_config} from '../services/displayer_config'
 
 
 export default {
@@ -85,7 +86,7 @@ setup(){
                 (import.meta.env.DEV && utf8_to_string(encrypted.slice(0, 5)) === '<!DOC')){
             error.value = 'expired'
             error_desc.value = "Message has expired"
-            fix_desc.value = "Request new copy"
+            fix_desc.value = displayer_config.allow_resend_requests ? "Request new copy" : null
             return
         }
 
