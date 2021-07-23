@@ -48,7 +48,7 @@ div
                     infinity)
                 app-integer(v-model='msg_max_reads' v-bind='$t("msg_max_reads")' :min='1' infinity)
                 app-switch(disabled v-model='allow_delete' v-bind='$t("allow_delete")')
-                app-switch(disabled v-model='allow_resend_requests' v-bind='$t("allow_resend_requests")')
+                app-switch(v-model='allow_resend_requests' v-bind='$t("allow_resend_requests")')
 
 
         //- h2 Auto-exclude recipients
