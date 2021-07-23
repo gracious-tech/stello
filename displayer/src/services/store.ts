@@ -153,10 +153,11 @@ export class DisplayerStore {
         self.document.title = title || "Message Viewer"
     }
 
-    save_message_meta(message:MessageRecord):void{
+    async save_message_meta(message:MessageRecord):Promise<void>{
         // Save the metadata for a message that has been successfully decrypted
-        database.message_set(message)
-        database.dict_set('last_read', message.id)
+        await database.message_set(message)
+        this._state.history = await database.message_get_all()
+        await database.dict_set('last_read', message.id)
     }
 
     toggle_dark():void{
