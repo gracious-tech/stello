@@ -116,11 +116,16 @@ export function respond_address(resp_token:string, new_address:string,
 
 export function respond_resend(resp_token:string, reason:string):Promise<boolean>{
     // Send "resend" response
-    return respond({
+    const data:any = {
         type: 'resend',
         encrypted: {
             resp_token,
-            reason,
         },
-    })
+    }
+
+    // Store content inside/outside encryption depending on notify setting
+    const container = displayer_config.notify_include_contents ? data : data.encrypted
+    container.content = reason
+
+    return respond(data)
 }

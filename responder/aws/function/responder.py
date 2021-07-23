@@ -18,7 +18,7 @@ from cryptography.hazmat.primitives.asymmetric.padding import OAEP, MGF1
 
 
 # Constants
-VALID_TYPES = ('read', 'reply', 'reaction', 'subscription', 'address')
+VALID_TYPES = ('read', 'reply', 'reaction', 'subscription', 'address', 'resend')
 
 
 # A base64-encoded 3w1h solid #ddeeff jpeg
@@ -55,6 +55,8 @@ def entry(api_event, context):
     # Process event and catch exceptions
     try:
         response = _entry(api_event, context)
+    except Abort:
+        response = {'statusCode': 400}
     except:
         # SECURITY Never reveal whether client or server error, just that it didn't work
         _report_error()
@@ -207,11 +209,8 @@ def handle_read(config, event):
 
 def handle_reply(config, event):
     """Notify user of replies to their messages"""
-
-    # Shouldn't be getting replies if disabled them
     if not config['allow_replies']:
-        raise Exception("Replies disabled")
-
+        raise Abort()
     _send_notification(config, event)
 
 
@@ -220,7 +219,7 @@ def handle_reaction(config, event):
 
     # Shouldn't be getting reactions if disabled them
     if not config['allow_reactions']:
-        raise Exception("Reactions disabled")
+        raise Abort()
 
     # Ensure reaction is a short single hyphenated word if present
     # SECURITY Prevents inserting long messages as a "reaction" but allows future codes too
@@ -238,6 +237,13 @@ def handle_subscription(config, event):
 
 def handle_address(config, event):
     """Subscription address modifications don't need any processing"""
+
+
+def handle_resend(config, event):
+    """Handle resend requests"""
+    if not config['allow_resend_requests']:
+        raise Abort()
+    _send_notification(config, event)
 
 
 def handle_delete(config, event):
@@ -259,6 +265,10 @@ def handle_delete(config, event):
 
 
 # HELPERS
+
+
+class Abort(Exception):
+    """Abort and respond with failure, but don't report any error"""
 
 
 def _url64_to_bytes(url64_string):
@@ -374,14 +384,15 @@ def _count_resp_objects(resp_type):
 
 
 def _send_notification(config, event):
-    """Notify user of replies/reactions to their messages (if configured to)
+    """Notify user of replies/reactions/resends for their messages (if configured to)
 
     Notify modes: none, first_new_reply, replies, replies_and_reactions
     Including contents only applies to: replies, replies_and_reactions
 
     """
 
-    # Determine if a reply or a reaction
+    # Determine if a reaction or reply/resend
+    # NOTE To keep things simple, resends are considered "replies" for purpose of notifications
     reaction = event['type'] == 'reaction'
 
     # Do nothing if notifications disabled
@@ -407,7 +418,7 @@ def _send_notification(config, event):
         )
     else:
         # Work out counts
-        reply_count = _count_resp_objects('reply')
+        reply_count = _count_resp_objects('reply') + _count_resp_objects('resend')
         reaction_count = _count_resp_objects('reaction')
         if reaction:
             reaction_count += 1
