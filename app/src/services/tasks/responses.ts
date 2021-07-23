@@ -139,7 +139,7 @@ async function download_response(profile:Profile, storage:HostUser, object_key:s
     //      Unlike asym encryption, sym encryption MUST gaurantee data is authenticated
     //      Asym data comes from the browser, but sym data comes from the user/application
     //      e.g. {a:'unauthed'} & {sym_encrypted:{a:'authed'}} would both result in {a:'...'}
-    if ('sym_encrypted' in data.event){
+    if (data.event.sym_encrypted){
         data.event.sym_encrypted = JSON.parse(utf8_to_string(
             await decrypt_sym(url64_to_buffer(data.event.sym_encrypted), sym_secret)))
     }
