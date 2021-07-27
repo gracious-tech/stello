@@ -71,7 +71,7 @@ export default class extends Vue {
 
 .preview
     border: 1px solid #8888
-    white-space: pre
+    white-space: pre-wrap
     padding: 12px
     opacity: 0.5
     user-select: none
