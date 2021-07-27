@@ -13,7 +13,7 @@ export class Reaction implements RecordReaction {
     msg_title:string
     contact_id:string
     contact_name:string
-    section_id:string
+    section_id:string|null
     section_num:number
     section_type:string
     subsection_id:string|null
@@ -32,6 +32,13 @@ export class Reaction implements RecordReaction {
 
     get is_reply(){
         return false  // So can access when dealing with a replaction (type unknown)
+    }
+
+    get id_from_properties():string{
+        // Get the reaction's id from its properties (actual `id` property is this value when saved)
+        // NOTE Reactions always have a copy_id and are deleted if don't
+        // NOTE section_id/subsection_id may be "null" which will never clash with an actual id
+        return `${this.copy_id}-${this.section_id}-${this.subsection_id}`
     }
 }
 

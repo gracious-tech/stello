@@ -334,4 +334,15 @@ async function to10(transaction:VersionChangeTransaction):Promise<void>{
         cursor.value.host_state.responder_config_uploaded = false
         cursor.update(cursor.value)
     }
+
+    // Reaction ids now formed from their own properties
+    for await (const cursor of transaction.objectStore('reactions')){
+        // Recreate all reactions that have a copy_id with a new form of key
+        if (cursor.value.copy_id){
+            cursor.value.id =
+                `${cursor.value.copy_id}-${cursor.value.section_id}-${cursor.value.subsection_id}`
+            cursor.source.put(cursor.value)  // Can't use `update()` since changing id
+        }
+        cursor.delete()
+    }
 }

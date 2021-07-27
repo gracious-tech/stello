@@ -10,8 +10,8 @@ import {HostUser} from '../hosts/types'
 import type {ResponseData} from '../../shared/shared_types'
 
 
-const RESP_TYPES_ASYNC = ['read', 'reaction', 'reply']  // Least priority -> greatest
-const RESP_TYPES_SYNC = ['subscription', 'address', 'resend']  // Require sequential processing
+const RESP_TYPES_ASYNC = ['read', 'reply']  // Least priority -> greatest
+const RESP_TYPES_SYNC = ['subscription', 'address', 'resend', 'reaction']  // Require order
 
 
 export async function responses_receive(task:Task):Promise<void>{
@@ -85,7 +85,6 @@ export async function responses_receive(task:Task):Promise<void>{
     await concurrent(resp_fns_async.map(item => item.fn))
 
     // Synchronous tasks must be done in order as can override each other
-    // NOTE No performance loss since sync task types are rare anyway
     await Promise.all(resp_fns_sync.map(fn => fn()))
 
     // If error occured at any point, can throw it now that processing done

@@ -240,7 +240,8 @@ export class Database {
                 || await this.reactions.get(draft.reply_to)
             if (replaction && !replaction.replied){
                 replaction.replied = true
-                this[replaction.is_reply ? 'replies' : 'reactions'].set(replaction)
+                // NOTE Typescript gets confused here, so cast as Reaction to keep it happy
+                this[replaction.is_reply ? 'replies' : 'reactions'].set(replaction as Reaction)
             }
         }
 
@@ -352,7 +353,7 @@ export class Database {
 
         // Construct new object with data already known
         const replaction:RecordReplaction = {
-            id: generate_token(),
+            id: null,  // Set later by calling methods
             sent: sent,
             ip: ip,
             user_agent: user_agent,
@@ -402,31 +403,23 @@ export class Database {
     }
 
     async reaction_create(content:string|null, sent:Date, resp_token:string, section_id:string,
-            subsection_id:string|null, ip:string, user_agent:string):Promise<Reaction>{
+            subsection_id:string|null, ip:string, user_agent:string):Promise<Reaction|null>{
         // Create a new reaction
-        const reaction = new Reaction(
-            await this._gen_replaction(content, sent, resp_token, section_id, subsection_id, ip,
-                user_agent))
+        const reaction = new Reaction(await this._gen_replaction(content, sent, resp_token,
+            section_id, subsection_id, ip, user_agent))
 
-        // Delete any previous reactions for same contact & section
-        // TODO Could improve performance by indexing on copy_id instead of contact_id
-        if (reaction.contact_id){
-            const existing_reactions = await this._conn.getAllFromIndex(
-                'reactions', 'by_contact', reaction.contact_id)
-            for (const existing of existing_reactions){
-                if (existing.section_id === section_id && existing.subsection_id === subsection_id){
-                    // If existing reaction is newer, cancel save, otherwise delete existing
-                    if (existing.sent > reaction.sent){
-                        return  // Existing is newer
-                    }
-                    this.reactions.remove(existing.id)
-                }
-            }
+        // Reactions are useless without knowing who from (and can't give unique id either)
+        if (!reaction.copy_id){
+            return null
         }
 
-        // If a null reaction then just needed to delete, not save
+        // Can now set id from other properties so only one reaction per section
+        reaction.id = reaction.id_from_properties
+
+        // Null content means must delete any existing reaction with same id
         if (content === null){
-            return
+            await this._conn.delete('reactions', reaction.id)
+            return null
         }
 
         await this._conn.add('reactions', reaction)
@@ -436,10 +429,9 @@ export class Database {
     async reply_create(content:string, sent:Date, resp_token:string, section_id:string,
             subsection_id:string|null, ip:string, user_agent:string):Promise<Reply>{
         // Create a new reply
-        const reply = new Reply({
-            ...await this._gen_replaction(content, sent, resp_token, section_id, subsection_id, ip,
-                user_agent),
-        })
+        const reply = new Reply(await this._gen_replaction(content, sent, resp_token, section_id,
+            subsection_id, ip, user_agent))
+        reply.id = generate_token()
         await this._conn.add('replies', reply)
         return reply
     }
