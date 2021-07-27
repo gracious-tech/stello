@@ -209,8 +209,11 @@ async function process_data(profile:Profile, data:ResponseData, sent:Date):Promi
 
         // If copy still exists, also create record for its contact (harmless if already done)
         const copy = await self._db.copies.get_by_resp_token(resp_token)
-        if (copy && !copy.contact_multiple){  // Multi-person contacts can't alter subscription
-            await apply(copy.contact_id)
+        if (copy){
+            const contact = await self._db.contacts.get(copy.contact_id)
+            if (contact && !contact.multiple){  // Multi-person contacts can't alter subscription
+                await apply(contact.id)
+            }
         }
 
     } else if (data.event.type === 'address'){
@@ -227,8 +230,10 @@ async function process_data(profile:Profile, data:ResponseData, sent:Date):Promi
 
         // Helper for creating request records
         const create_record = async (contact:string, old_address:string) => {
-            await self._db._conn.put('request_address',
-                {sent, ip, user_agent, contact, old_address, new_address})
+            if (old_address !== new_address){
+                await self._db._conn.put('request_address',
+                    {sent, ip, user_agent, contact, old_address, new_address})
+            }
         }
 
         // Create change address records for all contacts that match address (if given)
@@ -244,8 +249,11 @@ async function process_data(profile:Profile, data:ResponseData, sent:Date):Promi
 
         // If copy still exists, also create record for its contact (harmless if already done)
         const copy = await self._db.copies.get_by_resp_token(resp_token)
-        if (copy && !copy.contact_multiple){  // Multi-person contacts can't alter address
-            await create_record(copy.contact_id, copy.contact_address)
+        if (copy){
+            const contact = await self._db.contacts.get(copy.contact_id)
+            if (contact && !contact.multiple){  // Multi-person contacts can't alter subscription
+                await create_record(copy.contact_id, copy.contact_address)
+            }
         }
 
     } else if (data.event.type === 'resend'){
