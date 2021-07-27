@@ -12,7 +12,7 @@ type VersionChangeTransaction = IDBPTransaction<
 >
 
 
-export const DATABASE_VERSION = 9
+export const DATABASE_VERSION = 10
 
 
 export function migrate(transaction:VersionChangeTransaction, old_version:number){
@@ -41,6 +41,8 @@ export function migrate(transaction:VersionChangeTransaction, old_version:number
             to8(transaction)
         case 8:
             to9(transaction)
+        case 9:
+            to10(transaction)
     }
 }
 
@@ -321,4 +323,15 @@ async function to9(transaction:VersionChangeTransaction):Promise<void>{
             }
         }
     })
+}
+
+
+async function to10(transaction:VersionChangeTransaction):Promise<void>{
+
+    // New `version` property added to configs, so all must be reuploaded
+    for await (const cursor of transaction.objectStore('profiles')){
+        cursor.value.host_state.displayer_config_uploaded = false
+        cursor.value.host_state.responder_config_uploaded = false
+        cursor.update(cursor.value)
+    }
 }
