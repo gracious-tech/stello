@@ -31,13 +31,11 @@ export async function send_oauth_setup(task:Task):Promise<void>{
     const [oauth_id, profile_id] = task.params
     const oauth = await self._db.oauths.get(oauth_id)
     if (!oauth){
-        task.aborted = "Credentials missing"
-        return
+        throw task.abort("Credentials missing")
     }
     const profile = await self._db.profiles.get(profile_id)
     if (!profile){
-        task.aborted = "Sending account no longer exists"
-        return
+        throw task.abort("Sending account no longer exists")
     }
 
     // Still set task label as will show briefly that task has been completed
@@ -115,19 +113,18 @@ export class Sender {
         this.msg_id = task.params[0]
         this.msg = await self._db.messages.get(this.msg_id)
         if (!this.msg){
-            task.aborted = "Message no longer exists"
-            return
+            throw task.abort("Message no longer exists")
         }
 
         // Setup task
         // TODO Add tracking of subtasks
+        task.abortable = true
         task.label = `Sending message "${this.msg.display}"`
 
         // Get the profile
         this.profile = await self._db.profiles.get(this.msg.draft.profile)
         if (!this.profile){
-            task.aborted = "Sending account no longer exists"
-            return
+            throw task.abort("Sending account no longer exists")
         }
 
         // Provide fix options (will detect appropriate one to use in failure dialog)
@@ -174,11 +171,17 @@ export class Sender {
         // Get copies
         const copies = await this._get_copies()
 
+        // Check if aborted before uploading copies
+        task.check_aborted()
+
         // Upload copies
         // TODO Use RxJS to start queuing emails as soon as copy uploaded so two concurrent queues
         // TODO (although nodemailer needs to do it via its own pools...)
         await concurrent(copies.map(copy => {
-            return () => this._publish_copy(copy, pub_copy_base)
+            return async () => {
+                await this._publish_copy(copy, pub_copy_base)
+                task.check_aborted()
+            }
         }))
 
         // Sent email invites

@@ -15,7 +15,10 @@ transition(name='statusbar' appear)
                 v-progress-linear(:value='first.percent' :buffer-value='0' color='accent' stream
                     :indeterminate='first.subtasks_total < 2')
                 div.active
-                    div(class='ellipsis') {{ first.status }}
+                    div(class='ellipsis flex') {{ first.status }}
+                    app-btn(v-if='first.abortable' @click='() => {first.abort()}'
+                            :disabled='!!first.aborted' color='error')
+                        | {{ first.aborted ? "Stopping" : "Stop" }}
                     div.other(v-if='tasks.length > 1') +{{ tasks.length - 1 }}
             template(v-else)
                 div.inactive No active tasks
@@ -68,10 +71,8 @@ export default class extends Vue {
 
     get finished_display():string{
         // Get display text for finished task
-        if (typeof this.finished.aborted === 'string'){  // NOTE May just be `true`
-            return this.finished.aborted
-        }
-        return this.finished.display
+        // NOTE May be aborted, and even if so, may not have a message
+        return this.finished.aborted?.message || this.finished.display
     }
 
     get first():Task{
@@ -131,7 +132,6 @@ $statusbar_height: 40px
         .active
             flex-grow: 1
             display: flex
-            justify-content: space-between
             align-items: center
             padding-left: 24px
             padding-right: 12px

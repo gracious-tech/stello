@@ -33,6 +33,11 @@ const TASKS:Record<string, TaskFunction> = Object.fromEntries([
 ].map(fn => [fn.name, fn]))
 
 
+export class TaskAborted extends Error {
+    // The error returned when a task has been aborted
+}
+
+
 export class Task {
     // Represents a task for tracking its progress
 
@@ -48,7 +53,8 @@ export class Task {
     readonly params:any[]  // Must be serializable for storing as post-oauth actions
     readonly options:any[]  // Must be serializable for storing as post-oauth actions
     readonly done:Promise<any>  // Resolves with an error value (if any) when task done
-    aborted:boolean|string = false  // Can be a string describing why aborted, or just true/false
+    abortable:boolean = false  // Whether task can be manually aborted (always internally abortable)
+    aborted:TaskAborted|null = null  // An abort error if task has been aborted
     error:any = null  // Error value is both resolved for `done` and set as a property
 
     // Private
@@ -152,11 +158,18 @@ export class Task {
         this.subtasks_total += num
     }
 
-    abort():Promise<void>{
-        // Abort as soon as possible
-        // WARN Do not await if called within a task as `done` won't resolve until task finishes
-        this.aborted = true
-        return this.done
+    abort(reason?:string):TaskAborted{
+        // Abort ASAP by setting the aborted property which tasks will periodically check
+        // NOTE When called within tasks, should also throw the returned value
+        this.aborted = new TaskAborted(reason)
+        return this.aborted
+    }
+
+    check_aborted():void{
+        // Check if the task has been manually aborted and throw the abort error if so
+        if (this.aborted){
+            throw this.aborted
+        }
     }
 
     finish(error:any=null){
@@ -207,16 +220,22 @@ export class TaskManager {
 
         // Start doing the work
         TASKS[name](task).then(async subtasks => {
+            // If task returns a value, they are subtasks to be tracked and awaited
             if (subtasks){
                 await task.add(...(Array.isArray(subtasks) ? subtasks : [subtasks]))
             }
+            // Return null since no error thrown
             return null
         }).catch(error => {
+            // Return value of `then` is null, so simply return error to mark task as failed
             return error
         }).then((error:any) => {
+            // Resolve task's promise with error if any
             task.finish(error)
+            // Remove task from active list
             remove_item(this.data.tasks, task)
-            if (error === null){
+            // If no error, or task was aborted, put in finished (otherwise append to fails)
+            if (error === null || task.aborted){
                 this.data.finished = task
             } else {
                 this.data.fails.push(task)
@@ -230,9 +249,9 @@ export class TaskManager {
         return task
     }
 
-    abort_failed(task:Task, abort_msg?:string):void{
+    abort_failed(task:Task, reason?:string):void{
         // Abort a task that has already failed
-        task.aborted = abort_msg || true
+        task.abort(reason)
         remove_item(this.data.fails, task)
         this.data.finished = task
     }

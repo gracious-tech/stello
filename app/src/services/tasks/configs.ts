@@ -11,8 +11,7 @@ export async function configs_update(task:Task){
     const [profile_id] = task.params
     let profile = await self._db.profiles.get(profile_id)
     if (!profile){
-        task.aborted = "Sending account no longer exists"
-        return
+        throw task.abort("Sending account no longer exists")
     }
 
     // Setup task

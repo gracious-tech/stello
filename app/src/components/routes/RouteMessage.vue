@@ -21,9 +21,13 @@ div
                 div(class='text-center')
                     strong {{ num_copies_read }} of {{ copies.length }} opened
 
-                div(v-if='send_in_progress' class='text-center accent--text mt-3')
+                div(v-if='sending_task' class='text-center accent--text mt-3')
                     | Sending
-                    v-progress-circular(indeterminate color='accent' class='ml-3')
+                    v-progress-circular(indeterminate width='2' size='20' color='accent'
+                        class='ml-6 mr-3')
+                    app-btn(@click='() => {sending_task.abort()}' :disabled='!!sending_task.aborted'
+                            color='error' small)
+                        | {{ sending_task.aborted ? "Stopping" : "Stop" }}
 
                 div(v-else-if='!automated_sending_done' class='text-center mt-3')
                     span(class='error--text') Some messages could not be sent
@@ -140,9 +144,9 @@ export default class extends Vue {
         return !this.copies.some(c => c.status === 'manual')
     }
 
-    get send_in_progress():boolean{
-        // Whether message is currently being sent
-        return !!this.$tm.data.tasks.find(
+    get sending_task():Task{
+        // The task if message is currently being sent
+        return this.$tm.data.tasks.find(
             t => t.name === 'send_message' && t.params[0] === this.msg_id)
     }
 
