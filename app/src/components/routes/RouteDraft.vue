@@ -87,6 +87,7 @@ export default class extends Vue {
     groups:Group[] = []
     contacts:Contact[] = []
     unsubscribes:Unsubscribe[] = []
+    sending:boolean = false
 
     async created(){
         // Load the draft and the contents of the draft's sections
@@ -331,25 +332,24 @@ export default class extends Vue {
             return
         }
 
+        // Don't allow if already sending
+        // WARN `draft_to_message` may take some ms, so avoid even slight chance of double send
+        if (this.sending){
+            return
+        }
+        this.sending = true
+
         // Convert to message
         const msg = await self._db.draft_to_message(this.draft_id)
 
         // Increase send counter
         this.$store.commit('dict_set', ['usage_sends', this.$store.state.usage_sends + 1])
 
-        // Upload configs first if needed
-        if (this.profile.configs_need_uploading){
-            const error = await (await this.$tm.start_configs_update(this.profile.id)).done
-            if (error){
-                return  // Failed to upload configs / let user fix via failed tasks UI first
-            }
-        }
+        // Go to sent message now, so user knows things are happening
+        this.$router.push({name: 'message', params: {msg_id: msg.id}})
 
         // Start sending task
         this.$tm.start_send_message(msg.id)
-
-        // Navigate to sent message route
-        this.$router.push({name: 'message', params: {msg_id: msg.id}})
     }
 
     async copy_to_draft(){

@@ -23,6 +23,7 @@ import {gen_variable_items, update_template_values, TemplateVariables, msg_max_r
 import {MustReauthenticate, MustReconfigure, MustReconnect} from '../utils/exceptions'
 import {Email} from '../native/types'
 import {send_emails_oauth} from './email'
+import {configs_update} from './configs'
 
 
 export async function send_oauth_setup(task:Task):Promise<void>{
@@ -120,6 +121,9 @@ export class Sender {
         // TODO Add tracking of subtasks
         task.abortable = true
         task.label = `Sending message "${this.msg.display}"`
+
+        // Ensure configs are up-to-date
+        await configs_update(new Task('configs_update', [this.msg.draft.profile], []))
 
         // Get the profile
         this.profile = await self._db.profiles.get(this.msg.draft.profile)
