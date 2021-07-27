@@ -120,7 +120,7 @@ export class DatabaseDrafts {
         return draft && new Draft(draft)
     }
 
-    async set(draft:Draft):Promise<void>{
+    async set(draft:RecordDraft):Promise<void>{
         // Insert or update given draft
         await this._conn.put('drafts', draft)
     }

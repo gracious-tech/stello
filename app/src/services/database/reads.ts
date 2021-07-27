@@ -31,7 +31,7 @@ export class DatabaseReads {
         return reads.map(read => new Read(read))
     }
 
-    async set(read:Read):Promise<void>{
+    async set(read:RecordRead):Promise<void>{
         // Insert or update given read
         await this._conn.put('reads', read)
     }

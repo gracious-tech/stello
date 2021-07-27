@@ -240,8 +240,7 @@ export class Database {
                 || await this.reactions.get(draft.reply_to)
             if (replaction && !replaction.replied){
                 replaction.replied = true
-                // NOTE Typescript gets confused here, so cast as Reaction to keep it happy
-                this[replaction.is_reply ? 'replies' : 'reactions'].set(replaction as Reaction)
+                this[replaction.is_reply ? 'replies' : 'reactions'].set(replaction)
             }
         }
 

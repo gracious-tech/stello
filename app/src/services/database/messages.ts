@@ -82,7 +82,7 @@ export class DatabaseMessages {
         return message && new Message(message)
     }
 
-    async set(message:Message):Promise<void>{
+    async set(message:RecordMessage):Promise<void>{
         // Insert or update given message
         await this._conn.put('messages', message)
     }

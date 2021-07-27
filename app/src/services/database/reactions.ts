@@ -62,7 +62,7 @@ export class DatabaseReactions {
         return reaction && new Reaction(reaction)
     }
 
-    async set(reaction:Reaction):Promise<void>{
+    async set(reaction:RecordReaction):Promise<void>{
         // Insert or update given reaction
         await this._conn.put('reactions', reaction)
     }

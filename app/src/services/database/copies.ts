@@ -75,7 +75,7 @@ export class DatabaseCopies {
         return copy && new MessageCopy(copy)
     }
 
-    async set(copy:MessageCopy):Promise<void>{
+    async set(copy:RecordMessageCopy):Promise<void>{
         // Insert or update given copy
         await this._conn.put('copies', copy)
     }

@@ -36,7 +36,7 @@ export class DatabaseUnsubscribes {
         return unsubscribes.map(unsubscribe => new Unsubscribe(unsubscribe))
     }
 
-    async set(unsubscribe:Unsubscribe):Promise<void>{
+    async set(unsubscribe:RecordUnsubscribe):Promise<void>{
         // Insert or update given unsubscribe
         await this._conn.put('unsubscribes', unsubscribe)
     }

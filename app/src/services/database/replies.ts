@@ -55,7 +55,7 @@ export class DatabaseReplies {
         return reply && new Reply(reply)
     }
 
-    async set(reply:Reply):Promise<void>{
+    async set(reply:RecordReply):Promise<void>{
         // Insert or update given reply
         await this._conn.put('replies', reply)
     }
