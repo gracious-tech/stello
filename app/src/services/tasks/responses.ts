@@ -59,7 +59,10 @@ export async function responses_receive(task:Task):Promise<void>{
                 } else if (RESP_TYPES_ASYNC.includes(type)){
                     resp_fns_async.push({type, fn})
                 } else {
-                    deferred_throw = new Error(`Invalid response type: ${type}`)
+                    // Should never have an unknown type unless responder higher version than app
+                    // User can't do anything about this issue, so silently report
+                    // NOTE Not deleting response as may be able to process when updated
+                    self._fail_report(new Error(`Invalid response type: ${type}`))
                 }
             }
         } catch (error){
