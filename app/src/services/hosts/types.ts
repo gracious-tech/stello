@@ -3,7 +3,7 @@ import {Task} from '@/services/tasks/tasks'
 import {DeploymentConfig} from '@/shared/shared_types'
 
 
-export const HostStorageVersion = 8  // Bump whenever an update to storage services needed
+export const HostStorageVersion = 9  // Bump whenever an update to storage services needed
 
 
 // SIMPLE TYPES
