@@ -59,7 +59,7 @@ def entry(api_event, context):
         response = {'statusCode': 400}
     except:
         # SECURITY Never reveal whether client or server error, just that it didn't work
-        _report_error()
+        _report_error(api_event)
         response = {'statusCode': 400}
 
     # Add CORS headers
@@ -316,16 +316,29 @@ def _general_validation(event):
     _ensure_type(event, 'encrypted', str)
 
 
-def _report_error():
+def _report_error(api_event):
     """Send error data to errors URL (unless dev)"""
+
+    # Form message using stack trace and IP/UA if available
+    msg = format_exc()
+    try:
+        request_ip = api_event['requestContext']['http']['sourceIp']
+        request_ua = api_event['requestContext']['http']['userAgent']
+        msg += f'\n\nRequest IP: {request_ip}\nRequest UA: {request_ua}'
+    except:
+        pass
+
+    # Just print if in dev
     if DEV:
-        print(format_exc())
+        print(msg)
         return
+
+    # Otherwise send to errors url
     data = {
         'app': 'stello',
         'type': 'responder-fatal',
         'version': VERSION,
-        'message': format_exc(),
+        'message': msg,
     }
     headers = {'Content-type': 'application/json'}
     request.urlopen(request.Request(ERRORS_URL, json.dumps(data).encode(), headers))
