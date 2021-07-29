@@ -22,14 +22,19 @@ export function render_invite_html(contents:string, title:string, url:string, im
     // NOTE Header image must be wrapped in <a> to prevent gmail showing download button for it
     // NOTE Styles are inline so preserved when replying/forwarding
     // NOTE <hr> etc used for some separation if css disabled
+    // NOTE Some styles must be directly on elements to not be overriden (e.g. color on <a>)
     let subscription_links = ''
     if (encrypted_address){
         subscription_links = `
-            <a href='${url},unsub,${encrypted_address}' style='color: #aaaaaa;'>
-                <small style='font-size: 0.8em;'>Unsubscribe</small></a>
-            |
-            <a href='${url},address,${encrypted_address}' style='color: #aaaaaa;'>
-                <small style='font-size: 0.8em;'>Change email address</small></a>
+            <hr style='border-style: none;'>
+            <p>&nbsp;</p>
+            <p style='text-align: center; color: #aaaaaa;'>
+                <a href='${url},unsub,${encrypted_address}' style='color: #aaaaaa;'>
+                    <small style='font-size: 0.8em;'>Unsubscribe</small></a>
+                |
+                <a href='${url},address,${encrypted_address}' style='color: #aaaaaa;'>
+                    <small style='font-size: 0.8em;'>Change email address</small></a>
+            </p>
         `
     }
     return `
@@ -46,11 +51,7 @@ export function render_invite_html(contents:string, title:string, url:string, im
                 </div>
                 ${render_invite_html_action(title, url, reply)}
             </div>
-            <hr style='border-style: none;'>
-            <p>&nbsp;</p>
-            <p style='text-align: center;'>
-                ${subscription_links}
-            </p>
+            ${subscription_links}
         </body>
         </html>
     `
