@@ -421,7 +421,7 @@ export class Database {
             return null
         }
 
-        await this._conn.add('reactions', reaction)
+        await this._conn.put('reactions', reaction)
         return reaction
     }
 
