@@ -380,8 +380,8 @@ export async function oauth_pretask_process(url:string):Promise<void>{
     // Either update existing auth, or create new one
     let oauth_instance:OAuth
     if (existing){
-        // TODO This could potentially revoke previously held permissions
-        //      Too complicated to deal with now, so just let those tasks fail next time they run
+        // NOTE This may revoke previously held permissions but can't do anything about it
+        //      If new refresh token generated then old one will already be invalidated
         oauth_instance = new OAuth({...existing, ...auth})
         self._db.oauths.set(oauth_instance)
     } else {
