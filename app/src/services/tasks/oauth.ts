@@ -115,8 +115,9 @@ export const OAUTH_SUPPORTED:Record<OAuthIssuer, IssuerConfig> = {
     },
     microsoft: {
         // https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow
+        // NOTE `common` tenant in path allows both personal and work accounts to login
         endpoint: 'https://login.microsoftonline.com/common/v2.0',
-        client_id: '9900ba50-c70b-44dd-ac0c-335cd924e865',
+        client_id: '532be7c2-7273-44d0-85b3-c094f90f07f8',
         client_secret: '',  // Empty string since a URL param, not JSON
         scopes: {
             always: ['offline_access'],  // Request refresh tokens (like Google's `access_type`)

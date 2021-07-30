@@ -337,7 +337,7 @@ export class Sender {
         const reply_to = this.profile.smtp_reply_to
         if (this.profile.smtp_settings.oauth){
             await send_emails_oauth(this.profile.smtp_settings.oauth, emails, from, reply_to)
-        } else {
+        } else if (this.profile.smtp_settings.pass){
             const error = await send_emails(this.profile.smtp_settings, emails, from, reply_to)
             // Translate email error to standard forms
             if (error){
@@ -350,6 +350,9 @@ export class Sender {
                 }
                 throw new Error(error.details)
             }
+        } else {
+            // SMTP hasn't been configured yet, or was removed (e.g. oauth record deleted)
+            throw new MustReconfigure()
         }
     }
 }

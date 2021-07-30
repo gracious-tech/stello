@@ -12,7 +12,7 @@ type VersionChangeTransaction = IDBPTransaction<
 >
 
 
-export const DATABASE_VERSION = 10
+export const DATABASE_VERSION = 11
 
 
 export function migrate(transaction:VersionChangeTransaction, old_version:number){
@@ -43,6 +43,8 @@ export function migrate(transaction:VersionChangeTransaction, old_version:number
             to9(transaction)
         case 9:
             to10(transaction)
+        case 10:
+            to11(transaction)
     }
 }
 
@@ -345,4 +347,27 @@ async function to10(transaction:VersionChangeTransaction):Promise<void>{
         }
         cursor.delete()
     }
+}
+
+
+async function to11(transaction:VersionChangeTransaction):Promise<void>{
+
+    // Delete microsoft oauth records since have changed client id
+    const deleted_oauths = []
+    for await (const cursor of transaction.objectStore('oauths')){
+        if (cursor.value.issuer === 'microsoft'){
+            deleted_oauths.push(cursor.value.id)
+            cursor.delete()
+        }
+    }
+
+    // Remove affected oauths from profiles, forcing them to prompt for new email settings
+    // NOTE Microsoft oauths up-till-now only used for email, not contacts
+    for await (const cursor of transaction.objectStore('profiles')){
+        if (deleted_oauths.includes(cursor.value.smtp.oauth)){
+            cursor.value.smtp.oauth = null
+            cursor.update(cursor.value)
+        }
+    }
+
 }
