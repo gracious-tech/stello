@@ -221,9 +221,10 @@ def handle_reaction(config, event):
     if not config['allow_reactions']:
         raise Abort()
 
-    # Ensure reaction is a short single hyphenated word if present
+    # Ensure reaction is a short single hyphenated word if present (or null)
     # SECURITY Prevents inserting long messages as a "reaction" but allows future codes too
-    if 'content' in event:
+    #   Noting that user may have enabled notifications for reactions, putting their value in emails
+    if 'content' in event and event['content'] is not None:
         _ensure_valid_chars(event, 'content', string.ascii_letters + string.digits + '-')
         if len(event['content']) > 25:
             raise Exception("Reaction content too long")
@@ -421,6 +422,11 @@ def _send_notification(config, event):
     # Prepare message
     # NOTE Possible to have race condition where contents should be included but isn't, so check
     if config['notify_include_contents'] and 'content' in event:
+
+        # If content is null, just clearing a previous reaction, so don't notify
+        if event['content'] is None:
+            return
+
         subject = "Stello: New reaction" if reaction else "Stello: New reply"
         msg = f"Someone reacted with: {event['content']}" if reaction else event['content']
         msg += "\n" * 10
