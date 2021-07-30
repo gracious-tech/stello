@@ -1,5 +1,6 @@
 
 // WARN Electron overrides `fs` module with magic for asar files, which breaks `access()` test
+const asar_fs = require('fs').promises
 const fs = require('original-fs').promises
 const fs_constants = require('original-fs').constants
 const dns = require('dns').promises
@@ -35,7 +36,7 @@ const http_server = http.createServer(async (request, response) => {
     } else {
         // Default route that simply prompts the user to close the window
         const template_path = path.join(__dirname, 'server_response.html')
-        const template = await fs.readFile(template_path, {encoding: 'utf8'})
+        const template = await asar_fs.readFile(template_path, {encoding: 'utf8'})
         response.write(template)
     }
     response.end()
