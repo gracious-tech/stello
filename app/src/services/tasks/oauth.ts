@@ -262,7 +262,7 @@ async function oauth_authorize_complete(url:string):Promise<AuthCompletion>{
             issuer_config,
             issuer_id: id_info.sub,
             email: id_info.email,
-            name: id_info.name,
+            name: id_info.name,  // Probably won't exist without `profile` scope, but pass anyway
             scope_sets: granted_scope_sets,
             token_refresh: token_resp.refreshToken,
             token_access: token_resp.accessToken,
