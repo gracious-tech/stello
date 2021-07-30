@@ -415,6 +415,12 @@ export async function oauth_pretask_process(url:string):Promise<void>{
 
 export async function oauth_refresh(oauth:OAuth):Promise<void>{
     // Refresh oauth's access token
+
+    // If refresh token was not granted on last token request, must reauth
+    if (!oauth.token_refresh){
+        throw new MustReauthenticate()
+    }
+
     const handler = new appauth.BaseTokenRequestHandler(new appauth.FetchRequestor())
     let token_resp:appauth.TokenResponse
     try {
