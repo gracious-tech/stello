@@ -24,6 +24,16 @@ export type OAuthIssuer = 'google'|'microsoft'
 export type ScopeSet = 'email_send'|'contacts'
 
 
+interface IssuerConfig {
+    // Config specific to issuers
+    endpoint:string
+    client_id:string
+    client_secret:string  // Shouldn't be required for desktop apps, but Google does anyway
+    scopes:{always:string[], email_send:string[], contacts:string[]}
+    code_request_extras:Record<string, string>  // Must be strings as sent as params, not JSON
+}
+
+
 interface IDToken {
     // Required
     iss:string  // Issuer (as a url)
@@ -81,8 +91,9 @@ interface AuthCompletion<Meta=Record<string, any>> {
 const REDIRECT_PORT = 44932
 const REDIRECT_URI = `http://127.0.0.1:${REDIRECT_PORT}/oauth`
 
-export const OAUTH_SUPPORTED = {
+export const OAUTH_SUPPORTED:Record<OAuthIssuer, IssuerConfig> = {
     google: {
+        // https://developers.google.com/identity/protocols/oauth2/native-app
         endpoint: 'https://accounts.google.com/',
         client_id: '1063868460974-iq39c1ajf4he8gn0d1d4s9snv9pkhqv3.apps.googleusercontent.com',
         // SECURITY Google for some reason requires client_secret even for Desktop apps
@@ -90,17 +101,29 @@ export const OAUTH_SUPPORTED = {
         // See https://stackoverflow.com/questions/59416326/
         client_secret: process.env.VUE_APP_OAUTH_SECRET_GOOGLE,
         scopes: {
+            always: [],
             email_send: ['https://www.googleapis.com/auth/gmail.send'],
             contacts: ['https://www.googleapis.com/auth/contacts'],
         },
+        code_request_extras: {
+            access_type: 'offline',  // Request refresh tokens (Google only)
+            // Google doesn't currently support `include_granted_scopes` for desktop apps
+            // Instead Stello remembers itself which scopes have prev been granted and rerequests
+            // But leaving this in case Google does enable in future
+            include_granted_scopes: 'true',
+    },
     },
     microsoft: {
+        // https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow
         endpoint: 'https://login.microsoftonline.com/common/v2.0',
         client_id: '9900ba50-c70b-44dd-ac0c-335cd924e865',
+        client_secret: '',  // Empty string since a URL param, not JSON
         scopes: {
+            always: ['offline_access'],  // Request refresh tokens (like Google's `access_type`)
             email_send: ['https://graph.microsoft.com/Mail.Send'],
             contacts: ['https://graph.microsoft.com/Contacts.ReadWrite'],
         },
+        code_request_extras: {},
     },
 }
 
@@ -130,7 +153,7 @@ async function oauth_authorize_init(issuer:OAuthIssuer, scope_sets:string[],
     // Work out what scopes are required
     // NOTE email always required so user can identify the account in the UI
     // NOTE `email` is an alias for `https://www.googleapis.com/auth/userinfo.email` in Google
-    const scopes = ['openid', 'email']
+    const scopes = ['openid', 'email', ...issuer_config.scopes.always]
     for (const set of scope_sets){
         scopes.push(...issuer_config.scopes[set])
     }
@@ -147,8 +170,11 @@ async function oauth_authorize_init(issuer:OAuthIssuer, scope_sets:string[],
         redirect_uri: REDIRECT_URI,
         scope: scopes.join(' '),
         extras: {
+            // These extras are supported by all issuers
             login_hint: email,  // Auto-select/fill correct address if known
+            // NOTE prompt is not supported by Google for desktop apps, but may in future
             prompt: email ? 'consent' : 'select_account',  // Ask which account if adding a new one
+            ...issuer_config.code_request_extras,
         },
         // Add data that's needed in complete step but stored securely internally
         internal: {issuer, meta} as any,  // AppAuth's type requires strings, but can take anything
@@ -204,7 +230,6 @@ async function oauth_authorize_complete(url:string):Promise<AuthCompletion>{
                 extras: {
                     // SECURITY Supports PKCE to prevent auth being stolen during non-https redirect
                     code_verifier: internal.code_verifier,  // Value auto-created by AppAuth
-                    // @ts-ignore Client secret may not be required
                     client_secret: OAUTH_SUPPORTED[issuer].client_secret,
                 },
             }),
@@ -401,7 +426,6 @@ export async function oauth_refresh(oauth:OAuth):Promise<void>{
                 refresh_token: oauth.token_refresh,
                 redirect_uri: REDIRECT_URI,
                 extras: {
-                    // @ts-ignore Client secret may not be required
                     client_secret: OAUTH_SUPPORTED[oauth.issuer].client_secret,
                 },
             }),
@@ -432,7 +456,6 @@ export async function oauth_revoke(oauth:OAuth):Promise<void>{
             oauth.issuer_config as appauth.AuthorizationServiceConfiguration,
             new appauth.RevokeTokenRequest({
                 client_id: OAUTH_SUPPORTED[oauth.issuer].client_id,
-                // @ts-ignore Client secret may not be required
                 client_secret: OAUTH_SUPPORTED[oauth.issuer].client_secret,
                 token: oauth.token_access,
             }),
