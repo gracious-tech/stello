@@ -1,6 +1,8 @@
 
 const fs = require('fs')
 
+const sass = require('sass')
+
 
 module.exports = {
 
@@ -66,13 +68,33 @@ module.exports = {
         // Write i18n data in YAML
         config.module.rule('i18n').use('yaml').loader('yaml-loader')
 
+        // Add sass filter to pug loader
+        // WARN Vue templates use pug-plain-loader
+        //      But pug-loader returns template fn (rather than string) so plugin can pass in env
+        config.module.rule('pug').oneOf('pug-index').before('pug-vue').test(/index\.pug$/)
+                .use('pug-loader').loader('pug-loader').options({
+            filters: {
+                sass: (text, options) => {
+                    // Render sass blocks
+                    delete options.filename  // Don't include pug-specific config
+                    return sass.renderSync({
+                        data: text,
+                        indentedSyntax: true,
+                        outputStyle: 'expanded',
+                        indentWidth: 4,
+                        sourceMap: 'sass.map',  // Name not important and can't be `true`
+                        sourceMapEmbed: true,
+                        sourceMapContents: true,
+                        ...options
+                    }).css.toString()
+                },
+            }
+        })
+
         // Customise HTML plugin
         config.plugin('html').tap(args => {
             // Load pug index template from custom location
-            // WARN Cannot use pug-plain-loader and must use !loader! syntax
-            //      The html plugin looks for '!' and changes its behaviour if found
-            //      pug-loader returns template fn (rather than string) so plugin can pass in env
-            args[0].template = '!!pug-loader!src/index/index.pug'  // Relative to project root
+            args[0].template = 'src/index/index.pug'  // Relative to project root
             args[0].templateParameters = (compilation, assets, assetTags, options) => {
                 // Extend default vars available in template
                 // NOTE These end up with names different to what docs describe but still all there

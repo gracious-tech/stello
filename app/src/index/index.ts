@@ -7,15 +7,9 @@ NOTE Declare window-level properties and methods in `services/types.d.ts`
 
 */
 
-
 import app_config from '@/app_config.json'
 import {mailto} from '@/services/utils/misc'
 import {drop, error_to_string} from '@/services/utils/exceptions'
-
-
-// Trigger packaging of index's styles
-// TODO Import from index.pug so this file doesn't have lots of import code when bundled (use vite?)
-import './index.sass'
 
 
 self._error_to_debug = (error:any):string => {
