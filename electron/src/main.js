@@ -143,7 +143,7 @@ app.whenReady().then(async () => {
             result?.downloadPromise?.then(() => {
                 update_downloaded = true
                 // Notify app
-                BrowserWindow.getAllWindows()[0]?.webContents.send('update')
+                BrowserWindow.getAllWindows()[0]?.webContents.send('update_ready')
             })
         })
 
@@ -363,10 +363,9 @@ function sleep(ms){
 // IPC handlers
 
 
-ipcMain.handle('restart', async event => {
-    // Restart the app
-    app.relaunch()
-    app.exit()  // Must call in addition to `relaunch` to close the original instance
+ipcMain.handle('update', async event => {
+    // Quit/install/restart
+    autoUpdater.quitAndInstall(false, true)
 })
 
 

@@ -3,9 +3,7 @@
 
 
 html
-    // Disable auto enlarging of text when in landscape (e.g. on iPhone 4)
-    // NOTE this also disables zoom on some devices (disabled via meta anyway)
-    text-size-adjust: none
+    font-family: Roboto, sans-serif
     // Prevent width increases that break layout due to long words like URLs
     // NOTE word-wrap is an old alias of overflow-wrap
     overflow-wrap: break-word  // Break when needed (expand container to its limit first though)
@@ -81,6 +79,70 @@ body
 
     hr
         border-color: #5554
+
+
+// Basic layout
+
+
+html, body, #app, .v-application--wrap, .docked
+    // All elements down to app layout element (.docked) must have height set to prevent
+    //      growing off screen and resulting in scrollable area not thinking it needs to scroll
+    height: 100%
+
+body
+    // Allow showing reload bar above app
+    display: flex
+    flex-direction: column
+
+#app
+    display: flex
+    justify-content: center
+    align-items: center
+
+
+// Error styling (rendered outside of Vue)
+
+
+.reload-bar
+    position: relative  // So z-index has an effect
+    z-index: 9999
+    display: flex
+    align-items: center
+    justify-content: space-between
+    padding: 10px 24px
+    font-weight: bold
+    line-height: 1
+    font-size: 16px
+
+    div
+        font-size: 14px
+
+    a
+        color: $accent_lighter
+        text-decoration: none
+        margin: 8px
+
+    button
+        border-style: none
+        border-radius: 6px
+        padding: 6px 8px
+        margin-left: 8px
+        cursor: pointer
+        box-shadow: 0px 2px 5px 1px rgba(0, 0, 0, 0.2)
+        background-color: white
+        color: rgba(black, 0.8)
+        outline-style: none
+
+    &.update
+        background-color: $accent
+        color: $on_accent
+
+    &.fail
+        background-color: $error
+        color: $on_error
+
+        a
+            color: $accent_lighter
 
 
 // Vuetify fixes

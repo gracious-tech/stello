@@ -14,7 +14,7 @@ import app_config from '@/app_config.json'
 import {Database, open_db} from '@/services/database/database'
 import {get_store} from '@/services/store/store'
 import {get_router} from '@/services/router'
-import {error_to_string} from './services/utils/exceptions'
+import {on_update_ready, update} from '@/services/native/native'
 import {task_manager, TaskManager} from '@/services/tasks/tasks'
 
 // Components
@@ -55,15 +55,82 @@ declare module "vue/types/vue" {
 }
 
 
+// Show update bar if one available
+self._update = () => {
+    update()
+}
+on_update_ready(() => {
+    // Remove any existing reload bar, as update restarts electron and would solve errors anyway
+    self.document.querySelector('.reload-bar')?.remove()
+    // Insert the bar
+    self.document.body.insertAdjacentHTML('afterbegin', `
+        <div class="reload-bar update">
+            An update is ready to go with improvements
+            <div>
+                <button onclick="_update()">
+                    RESTART
+                </button>
+            </div>
+        </div>
+    `)
+})
+
+
+// Visual failure util
+function show_fail_bar(){
+    // Display fail bar with button to reload app
+
+    // Don't show if a fail bar or update bar already exists
+    if (self.document.querySelector('.reload-bar') !== null){
+        return
+    }
+
+    // Insert the bar
+    self.document.body.insertAdjacentHTML('afterbegin', `
+        <div class="reload-bar fail">
+            A problem was detected
+            <div>
+                Please
+                <a href="https://gracious.tech/support/stello/">LET US KNOW</a>
+                and then
+                <button onclick="location.assign('#/');location.reload()">
+                    RELOAD
+                </button>
+            </div>
+        </div>
+    `)
+}
+
+
 // Setup Rollbar
 Vue.prototype.$rollbar = new Rollbar({
-    accessToken: process.env.VUE_APP_ROLLBAR_APP,
+    transmit: process.env.NODE_ENV === 'production',  // Call handlers but don't transmit in dev
     environment: process.env.NODE_ENV,
+    accessToken: process.env.VUE_APP_ROLLBAR_APP,
     captureUncaught: true,
     captureUnhandledRejections: true,
+    autoInstrument: false,  // SECURITY Don't track use via telemetry to protect privacy
+    uncaughtErrorLevel: 'critical',  // Default to critical (shows fail bar)
     payload: {
         // Version must be within payload prop (https://github.com/rollbar/rollbar.js/issues/842)
         code_version: 'v' + app_config.version,  // 'v' to match git tags
+    },
+    // Below are regex strings that will have global & case-insensitive flags applied
+    ignoredMessages: [
+        // ResizeObserver errors are apparently harmless
+        // https://stackoverflow.com/questions/49384120/#comment86691361_49384120
+        'ResizeObserver loop limit exceeded',
+    ],
+    onSendCallback: (isUncaught, args, payload:any) => {
+
+        // SECURITY Remove file paths in stack trace which may expose user's username
+        // NOTE Windows uses forward slashes for file URLs, same as Linux and Mac
+        // TODO debug = debug.replaceAll(/file\:\/\/\/.*\/app_dist\//g, '')
+
+        // If critical (or dev) show fail bar
+        if (payload.level === 'critical' || process.env.NODE_ENV !== 'production'){
+            show_fail_bar()
+        }
     },
 })
 
@@ -71,30 +138,17 @@ Vue.prototype.$rollbar = new Rollbar({
 // Vue config
 Vue.config.productionTip = false  // Don't show warning about running in development mode
 Vue.config.errorHandler = (error:any, vm, info) => {
-    // Vue will by default just log component errors, where as hard fail during dev is preferred
+    // Errors within Vue components do not bubble up to Window and must be addressed separately
     // WARN Despite typings, error arg may be anything and not necessarily an Error instance
     // NOTE Vue's info arg says what part of Vue the error occured in (e.g. render/hook/etc)
-    const info_string = `(Error in Vue ${info})`
-
-    // Use `error_to_string` so can ensure error is string before attaching info arg to it
-    console.error(error_to_string(error) + '\n\n' + info_string)  // tslint:disable-line:no-console
-
-    // Use `_error_to_debug` for below (as only want debug info in UI, not console)
-    const debug = self._error_to_debug(error) + '\n\n' + info_string
-    self._fail_report_preprepared(debug)
-    if (process.env.NODE_ENV !== 'production'){
-        self._fail_splash(debug)
-    }
+    console.error(error)
+    vm.$rollbar.critical(error, info)
 }
 Vue.config.warnHandler = (msg, vm, trace) => {
     // Vue will by default just log warnings, where as hard fail during dev is preferred
-    const error_string = `${msg}\n(Vue warning)\n\n${trace}`
-    console.error(error_string)  // tslint:disable-line:no-console
-    const debug = self._error_to_debug(error_string)
-    self._fail_report_preprepared(debug)
-    if (process.env.NODE_ENV !== 'production'){
-        self._fail_splash(debug)
-    }
+    const error = new Error(`VUE WARNING: ${msg}\n\n${trace}`)
+    console.error(error)
+    vm.$rollbar.error(error)  // Vue won't actually throw in production; this shows fail bar in dev
 }
 
 
@@ -150,13 +204,10 @@ const i18n = new VueI18n({
     // NOTE preserveDirectiveContent required to stop text disappearing before route animation ends
     preserveDirectiveContent: true,
     missing: (locale, path, vm) => {
-        // Consider missing an i18n string (entirely) a hard fail during development
-        const debug = self._error_to_debug(`Missing i18n path: ${path}\nLocale: ${locale}`)
-        console.error(debug)  // tslint:disable-line:no-console
-        self._fail_report_preprepared(debug)
-        if (process.env.NODE_ENV !== 'production'){
-            self._fail_splash(debug)
-        }
+        // Report missing i18n strings
+        const error = new Error(`Missing i18n path: ${path} (${locale})`)
+        console.error(error)
+        vm.$rollbar.error(error)  // Won't show fail bar as not critical
     },
 })
 

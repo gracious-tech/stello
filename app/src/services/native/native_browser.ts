@@ -3,7 +3,7 @@
 import {EmailSettings, Email, EmailError, EmailIdentity} from './types'
 
 
-export async function restart():Promise<void>{
+export async function update():Promise<void>{
     self.location.assign('#/')
     self.location.reload()
 }
@@ -26,7 +26,7 @@ export async function send_emails(settings:EmailSettings, emails:Email[], from:E
 }
 
 
-export function on_update(handler:()=>void):void{
+export function on_update_ready(handler:()=>void):void{
     // Will never receive events...
 }
 

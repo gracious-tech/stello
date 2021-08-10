@@ -13,30 +13,11 @@ html
         //- Meta data
         title= app_config.name
 
-        style
-            :sass
-
-                // BASIC STYLING
-
-
-                // All elements down to app layout element (.docked) must have height set to prevent
-                //      growing off screen and resulting in scrollable area not thinking it needs to scroll
-                html, body, #app, .v-application--wrap, .docked
-                    height: 100%
-
-                html
-                    // TODO Could manually access idb before app loads to get colors here??
-                    background-color: #303030  // Don't have access to dark setting on initial load
-                    font-family: Roboto, sans-serif
-                    // Enable momentum scroll for iOS
-                    // WARN If this isn't set and inobounce is included, whole app will not be scrollable
-                    -webkit-overflow-scrolling: touch
-
-                #app
-                    display: flex
-                    justify-content: center
-                    align-items: center
-
+        //- Just give dark bg for the split second before rest of app and CSS loads
+        style.
+            html {
+                background-color: #303030;
+            }
 
     body
         div#app

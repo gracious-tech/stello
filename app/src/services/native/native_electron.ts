@@ -15,9 +15,9 @@ declare global {
 // Functions
 
 
-export async function restart():Promise<void>{
-    // Tell electron to restart
-    self.ipcRenderer.invoke('restart')
+export async function update():Promise<void>{
+    // Tell electron to update
+    self.ipcRenderer.invoke('update')
 }
 
 
@@ -48,9 +48,9 @@ export function send_emails(settings:EmailSettings, emails:Email[], from:EmailId
 // Listeners
 
 
-export function on_update(handler:()=>void):void{
+export function on_update_ready(handler:()=>void):void{
     // Listen to update events emitted by native platform
-    self.ipcRenderer.on('update', event => {
+    self.ipcRenderer.on('update_ready', event => {
         handler()
     })
 }

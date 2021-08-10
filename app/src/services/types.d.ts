@@ -30,6 +30,7 @@ declare module 'Custom' {
             _store:Store<AppStoreState>
             _db:Database
             _toggle_dark():void
+            _update():void
         }
     }
 }
