@@ -9,7 +9,7 @@
 
 /app_config/node_modules/
 
-/electron/config.json
+/electron/src/config.json
 /electron/node_modules/
 /electron/dist/
 /electron/app_dist

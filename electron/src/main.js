@@ -24,8 +24,8 @@ const CONFIG = JSON.parse(
 // Report errors to Rollbar in production
 if (app.isPackaged){
 
-    // Define a fake root for all file paths so can hide real path for privacy
-    const fake_root = path.sep === '/' ? '/redacted' : 'C:\\redacted'
+    // Define a fake path to app dir (see below)
+    const fake_app_dir = path.sep === '/' ? '/redacted' : 'C:\\redacted'
 
     Rollbar.init({
         accessToken: CONFIG.rollbar_electron,
@@ -38,14 +38,16 @@ if (app.isPackaged){
         payload: {
             platform: 'client',  // Allows using public client token rather than server
             server: {
-                root: fake_root,  // Must be present to trigger source matching
+                root: fake_app_dir,  // Required to trigger matching to source code
                 host: 'redacted',  // SECURITY Host may identify user by real name
             },
         },
-        transform: payload => {
-            // SECURITY Replace all file paths with fake root to avoid exposing OS username etc
+        onSendCallback: (isUncaught, args, payload) => {
+            // SECURITY Replace all file paths with fake base dir to avoid exposing OS username etc
+            // NOTE `transform` callback is called earlier and doesn't apply to `notifier` prop
+            const app_dir = path.dirname(__dirname)
             for (const [key, val] of Object.entries(payload)){
-                payload[key] = JSON.parse(JSON.stringify(val).replaceAll(__dirname, fake_root))
+                payload[key] = JSON.parse(JSON.stringify(val).replaceAll(app_dir, fake_app_dir))
             }
         },
     })

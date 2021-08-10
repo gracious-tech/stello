@@ -5,7 +5,7 @@ cd ../electron
 
 
 # Set config from env (config embedded in built app)
-echo "{\"rollbar_electron\": \"$ROLLBAR_ELECTRON\"}" > config.json
+echo "{\"rollbar_electron\": \"$ROLLBAR_ELECTRON\"}" > src/config.json
 
 
 # Run builder

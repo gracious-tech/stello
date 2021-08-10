@@ -16,7 +16,7 @@ export function generate_electron_package(app_config:AppConfigOutput):string{
         },
         // Code related
         private: true,
-        main: 'index.js',
+        main: 'src/main.js',
         devDependencies: {
             'electron': '^11.0.2',
             'electron-builder': '^22.9.1',
