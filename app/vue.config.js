@@ -40,9 +40,6 @@ module.exports = {
 
     chainWebpack: config => {
 
-        // Add entry file for index script
-        config.entry('index').add('@/index/index.ts')
-
         // Default to loading svg files as strings (instead of separate files)
         config.module.rule('svg').uses.clear()
         config.module.rule('svg').use('raw-loader').loader('raw-loader')
@@ -94,7 +91,7 @@ module.exports = {
         // Customise HTML plugin
         config.plugin('html').tap(args => {
             // Load pug index template from custom location
-            args[0].template = 'src/index/index.pug'  // Relative to project root
+            args[0].template = 'src/index.pug'  // Relative to project root
             args[0].templateParameters = (compilation, assets, assetTags, options) => {
                 // Extend default vars available in template
                 // NOTE These end up with names different to what docs describe but still all there
