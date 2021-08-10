@@ -26,7 +26,6 @@ declare global {
         _failed:boolean
         _browser_supported:boolean
         _fail_splash_unsupported():void
-        _fail_report_last:number
         _fail_report_fatal:boolean
         _fail_report(msg:string):void
         _fail_visual(network?:boolean):void

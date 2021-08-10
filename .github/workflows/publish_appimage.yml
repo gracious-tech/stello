@@ -48,7 +48,8 @@ jobs:
 
             -   name: Build and publish an AppImage
                 working-directory: ./electron
-                run: ./node_modules/.bin/electron-builder --linux AppImage --publish always
+                run: .bin/build_electron --linux AppImage --publish always
                 env:
                     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
                     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                    ROLLBAR_ELECTRON: ${{ secrets.ROLLBAR_ELECTRON }}

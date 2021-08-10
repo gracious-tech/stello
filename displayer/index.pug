@@ -150,29 +150,80 @@ html
 
                 import * as app_config from './app_config.json'
                 import {error_to_string, drop} from './services/utils/exceptions'
+                import {generate_token} from './services/utils/crypt'
 
 
-                // ERROR HELPERS
+                // ERROR VALUES
 
-                self._fail_report_last = 0  // i.e. 1970
-                self._fail_report_fatal = true  // Consider fatal up till msg contents displayed
+
+                // List of keywords that if present anywhere in an error message, should ignore
+                const ignore_errors = ['@safari-extension://']
+
+
+                // Mark start time so know runtime when errors occur
+                const start_ms = new Date().getTime()
+
+
+                // Preserve date of last error report so can throttle them
+                let fail_report_last = 0  // i.e. 1970
+
+
+                // Consider errors fatal up till msg contents displayed
+                self._fail_report_fatal = true
+
+
+                // ERROR UTILS
+
+
+                self._rollbar = (message:string) => {
+                    // Send an error report to Rollbar
+                    // NOTE Not using Rollbar's own SDK as it is too large and unnecessary
+                    drop(fetch('https://api.rollbar.com/api/1/item/', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            access_token: process.env.VITE_ROLLBAR_DISPLAYER,
+                            data: {
+                                environment: process.env.NODE_ENV,
+                                platform: 'browser',
+                                language: 'javascript',
+                                level: 'error',
+                                uuid: generate_token(),
+                                timestamp: Math.round(new Date().getTime() / 1000),  // In secs
+                                code_version: 'v' + app_config.version,  // 'v' to match git tags
+                                request: {
+                                    url: self.location.origin,  // SECURITY Don't expose hash
+                                    user_ip: '$remote_ip',  // Rollbar will set from requests' IP
+                                },
+                                client: {
+                                    runtime_ms: new Date().getTime() - start_ms,
+                                    javascript: {
+                                        browser: self.navigator.userAgent,
+                                        language: self.navigator.language,
+                                    },
+                                },
+                                body: {
+                                    message: {
+                                        body: message,
+                                    },
+                                },
+                                custom: {
+                                    fatal: self._fail_report_fatal,
+                                },
+                            },
+                        }),
+                    }))
+                }
+
+
                 self._fail_report = (msg:string):void => {
-                    // Report bugs by posting to stello's contact API
+                    // Report an error
                     // NOTE Don't report if browser not supported, as not actionable
                     // NOTE Throttles reports since multiple in quick succession usually repetitive
                     const five_secs_ago = new Date().getTime() - 5 * 1000
                     if (process.env.NODE_ENV === 'production' && self._browser_supported
-                            && self._fail_report_last < five_secs_ago){
-                        self._fail_report_last = new Date().getTime()
-                        drop(fetch(app_config.author.post, {
-                            method: 'POST',
-                            body: JSON.stringify({
-                                app: app_config.codename,
-                                type: self._fail_report_fatal ? 'displayer-fatal' : 'displayer-error',
-                                version: app_config.version,  // So can silence old version errors
-                                message: msg,
-                            }),
-                        }))
+                            && fail_report_last < five_secs_ago){
+                        fail_report_last = new Date().getTime()
+                        self._rollbar(msg)
                     }
                 }
 
@@ -217,10 +268,6 @@ html
                         self._fail_splash_unsupported()
                     }
                 }
-
-
-                // List of keywords that if present anywhere in an error message, should ignore
-                const ignore_errors = ['@safari-extension://']
 
 
                 // ERROR HANDLING

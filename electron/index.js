@@ -1,5 +1,6 @@
 
 // WARN Electron overrides `fs` module with magic for asar files, which breaks `access()` test
+const asar_fs_callbacks = require('fs')
 const asar_fs = require('fs').promises
 const fs = require('original-fs').promises
 const fs_constants = require('original-fs').constants
@@ -11,7 +12,44 @@ const {app, BrowserWindow, ipcMain, shell, Menu, dialog} = require('electron')
 const {autoUpdater} = require('electron-updater')
 const context_menu = require('electron-context-menu')
 
+const Rollbar = require('rollbar')
 const nodemailer = require('nodemailer')
+
+
+// Load config file (created from env vars and embedded during packaging)
+const CONFIG = JSON.parse(
+    asar_fs_callbacks.readFileSync(path.join(__dirname, 'config.json'), {encoding: 'utf8'}))
+
+
+// Report errors to Rollbar in production
+if (app.isPackaged){
+
+    // Define a fake root for all file paths so can hide real path for privacy
+    const fake_root = path.sep === '/' ? '/redacted' : 'C:\\redacted'
+
+    Rollbar.init({
+        accessToken: CONFIG.rollbar_electron,
+        captureUncaught: true,
+        captureUnhandledRejections: true,
+        codeVersion: 'v' + app.getVersion(),  // 'v' to match git tags
+        locals: false,  // SECURITY Variable values may expose user data (e.g. username in path)
+        autoInstrument: false,  // SECURITY Don't track use via telemetry to protect privacy
+        captureIp: 'anonymize',  // SECURITY Don't store real IP to protect privacy
+        payload: {
+            platform: 'client',  // Allows using public client token rather than server
+            server: {
+                root: fake_root,  // Must be present to trigger source matching
+                host: 'redacted',  // SECURITY Host may identify user by real name
+            },
+        },
+        transform: payload => {
+            // SECURITY Replace all file paths with fake root to avoid exposing OS username etc
+            for (const [key, val] of Object.entries(payload)){
+                payload[key] = JSON.parse(JSON.stringify(val).replaceAll(__dirname, fake_root))
+            }
+        },
+    })
+}
 
 
 // Don't open if another instance of Stello is already running
@@ -101,6 +139,8 @@ app.whenReady().then(async () => {
             // Update variable when download done
             result?.downloadPromise?.then(() => {
                 update_downloaded = true
+                // Notify app
+                BrowserWindow.getAllWindows()[0]?.webContents.send('update')
             })
         })
 
@@ -318,6 +358,13 @@ function sleep(ms){
 
 
 // IPC handlers
+
+
+ipcMain.handle('restart', async event => {
+    // Restart the app
+    app.relaunch()
+    app.exit()  // Must call in addition to `relaunch` to close the original instance
+})
 
 
 ipcMain.handle('dns_mx', async (event, host) => {

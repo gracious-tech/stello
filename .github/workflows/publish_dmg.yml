@@ -49,7 +49,7 @@ jobs:
             -   name: Build and publish a dmg
                 working-directory: ./electron
                 # Electron Updater still relies on zip for updates, even if dmg used to install
-                run: ./node_modules/.bin/electron-builder --mac dmg zip --publish always
+                run: .bin/build_electron --mac dmg zip --publish always
                 env:
                     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
                     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -57,3 +57,4 @@ jobs:
                     CSC_KEY_PASSWORD: abc123
                     APPLE_ID: ${{ secrets.APPLE_ID_EMAIL }}
                     APPLE_ID_PASS: ${{ secrets.APPLE_ID_APP_PASSWORD }}
+                    ROLLBAR_ELECTRON: ${{ secrets.ROLLBAR_ELECTRON }}

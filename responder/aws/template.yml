@@ -15,10 +15,10 @@ Resources:
                     Type: HttpApi
             Environment:
                 Variables:
-                    stello_env: dev
+                    stello_env: development
                     stello_version: dev
                     stello_msgs_bucket: ''
                     stello_resp_bucket: ''
                     stello_topic_arn: ''
                     stello_region: ''
-                    stello_errors_url: ''
+                    stello_rollbar_responder: ''

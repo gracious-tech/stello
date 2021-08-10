@@ -9,10 +9,12 @@
 
 /app_config/node_modules/
 
+/electron/config.json
 /electron/node_modules/
 /electron/dist/
 /electron/app_dist
 
+/displayer/.env.development.local
 /displayer/dist/
 /displayer/node_modules/
 /displayer/public/dev/

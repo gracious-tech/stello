@@ -704,13 +704,13 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         }
         const fn_config_env = {
             Variables: {
-                stello_env: 'isolated',
+                stello_env: 'production',
                 stello_version: app_config.version,
                 stello_msgs_bucket: this.bucket,
                 stello_resp_bucket: this._bucket_resp_id,
                 stello_topic_arn: await this._get_topic_arn(),
                 stello_region: this.region,
-                stello_errors_url: app_config.author.post,
+                stello_rollbar_responder: process.env.VUE_APP_ROLLBAR_RESPONDER,
             },
         }
 

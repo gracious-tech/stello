@@ -25,6 +25,7 @@ export function generate_electron_package(app_config:AppConfigOutput):string{
         },
         dependencies: {
             'nodemailer': '^6.4.16',
+            'rollbar': '^2.24.0',
             'gmail-nodemailer-transport': '^2.0.1',
             'electron-context-menu': '^2.3.1',
             'electron-updater': '^4.3.5',

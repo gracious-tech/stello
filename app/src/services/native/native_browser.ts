@@ -3,6 +3,12 @@
 import {EmailSettings, Email, EmailError, EmailIdentity} from './types'
 
 
+export async function restart():Promise<void>{
+    self.location.assign('#/')
+    self.location.reload()
+}
+
+
 export async function dns_mx(host:string):Promise<string[]>{
     return []
 }
@@ -17,6 +23,11 @@ export async function test_email_settings(settings:EmailSettings, auth:boolean=t
 export async function send_emails(settings:EmailSettings, emails:Email[], from:EmailIdentity,
         reply_to?:EmailIdentity):Promise<EmailError>{
     return {code: 'unsupported', details: ""}
+}
+
+
+export function on_update(handler:()=>void):void{
+    // Will never receive events...
 }
 
 

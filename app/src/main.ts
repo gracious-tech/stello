@@ -6,6 +6,7 @@ import VueRouter from 'vue-router'
 import VueI18n from 'vue-i18n'
 import Vuetify from 'vuetify/lib'  // WARN Must import from /lib for tree shaking
 import VuetifyRoutable from 'vuetify/lib/mixins/routable'
+import Rollbar from 'rollbar'
 
 // Own modules
 import '@/services/register_hooks'  // WARN Must come before any components imported
@@ -47,10 +48,24 @@ import 'croppr/dist/croppr.css'
 // Declare custom props on Vue instances
 declare module "vue/types/vue" {
     interface Vue {
+        $rollbar:Rollbar
         $network_error:(error:any)=>void
         $tm:TaskManager
     }
 }
+
+
+// Setup Rollbar
+Vue.prototype.$rollbar = new Rollbar({
+    accessToken: process.env.VUE_APP_ROLLBAR_APP,
+    environment: process.env.NODE_ENV,
+    captureUncaught: true,
+    captureUnhandledRejections: true,
+    payload: {
+        // Version must be within payload prop (https://github.com/rollbar/rollbar.js/issues/842)
+        code_version: 'v' + app_config.version,  // 'v' to match git tags
+    },
+})
 
 
 // Vue config

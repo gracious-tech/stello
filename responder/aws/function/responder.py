@@ -5,10 +5,11 @@ import base64
 import string
 from time import time
 from uuid import uuid4
-from urllib import request
+from pathlib import Path
 from traceback import format_exc
 from contextlib import suppress
 
+import rollbar
 import boto3
 from botocore.config import Config
 from cryptography.hazmat.primitives.hashes import SHA256
@@ -32,14 +33,27 @@ SYM_KEY_BITS = 256
 
 
 # Config from env
-DEV = os.environ['stello_env'] == 'dev'
+ENV = os.environ['stello_env']
+DEV = ENV == 'development'
 VERSION = os.environ['stello_version']
 MSGS_BUCKET = os.environ['stello_msgs_bucket']
 RESP_BUCKET = os.environ['stello_resp_bucket']
 TOPIC_ARN = os.environ['stello_topic_arn']
 REGION = os.environ['stello_region']
-ERRORS_URL = os.environ['stello_errors_url']
 MSGS_BUCKET_ORIGIN = f'https://{MSGS_BUCKET}.s3-{REGION}.amazonaws.com'
+ROLLBAR_TOKEN = os.environ['stello_rollbar_responder']  # Client token (not server) as public
+
+
+# Setup Rollbar
+# WARN Must use blocking handler, otherwise lambda may finish before report is sent
+# NOTE Version prefixed with 'v' so that traces match github tags
+# SECURITY Don't expose local vars in report as could contain sensitive user content
+rollbar.init(ROLLBAR_TOKEN, ENV, handler='blocking', code_version='v'+VERSION,
+    locals={'enabled': False}, root=str(Path(__file__).parent))
+def _rollbar_add_context(payload, **kwargs):
+    payload['data']['platform'] = 'client'  # Allow client token rather than server, since public
+    return payload
+rollbar.events.add_payload_handler(_rollbar_add_context)
 
 
 # Access to AWS services
@@ -99,7 +113,11 @@ def _entry(api_event, context):
 
     # Handle GET requests
     if api_event['requestContext']['http']['method'] == 'GET':
-        return get_invite_image(api_event['queryStringParameters'])
+        query_params = api_event.get('queryStringParameters', {})
+        if 'image' in query_params:
+            return get_invite_image(query_params)
+        # A number of companies crawl AWS services, submitting GET requests without params
+        raise Abort()
 
     # Handle POST requests
     ip = api_event['requestContext']['http']['sourceIp']
@@ -318,31 +336,29 @@ def _general_validation(event):
 
 
 def _report_error(api_event):
-    """Send error data to errors URL (unless dev)"""
-
-    # Form message using stack trace and IP/UA if available
-    msg = format_exc()
-    try:
-        request_ip = api_event['requestContext']['http']['sourceIp']
-        request_ua = api_event['requestContext']['http']['userAgent']
-        msg += f'\n\nRequest IP: {request_ip}\nRequest UA: {request_ua}'
-    except:
-        pass
+    """Report error (unless dev)"""
 
     # Just print if in dev
     if DEV:
-        print(msg)
+        print(format_exc())
         return
 
-    # Otherwise send to errors url
-    data = {
-        'app': 'stello',
-        'type': 'responder-fatal',
-        'version': VERSION,
-        'message': msg,
+    # Add request metadata if available
+    payload_data = {}
+    try:
+        payload_data = {
+            'request': {
+                'user_ip': api_event['requestContext']['http']['sourceIp'],
+                'headers': {
+                    'User-Agent': api_event['requestContext']['http']['userAgent'],
+                },
+            },
     }
-    headers = {'Content-type': 'application/json'}
-    request.urlopen(request.Request(ERRORS_URL, json.dumps(data).encode(), headers))
+    except:
+        pass
+
+    # Send to Rollbar
+    rollbar.report_exc_info(payload_data=payload_data)
 
 
 def _put_resp(config, event, ip):

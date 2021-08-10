@@ -40,6 +40,7 @@
         "pako": "^2.0.3",
         "papaparse": "^5.3.0",
         "postal-mime": "^1.0.12",
+        "rollbar": "^2.24.0",
         "tippy.js": "^6.3.1",
         "vcard-json": "^0.5.2",
         "vue": "^2.6.12",

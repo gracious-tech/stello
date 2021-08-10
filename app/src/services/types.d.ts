@@ -24,25 +24,12 @@ declare module 'Custom' {
 
     // Apply globally (not just this virtual module)
     global {
-
         interface Window {
             // Custom
             _app:Vue
             _store:Store<AppStoreState>
             _db:Database
-            _editor:any  // No types available
-            _error_to_debug(error:any):string
-            _debug_to_mailto(debug:string):string
-            _fail_splash(debug:string):void
-            _fail_report_last:number
-            _fail_report_preprepared(debug:string, fatal?:boolean):void
-            _fail_report(error:any):string
             _toggle_dark():void
-        }
-
-        interface Selection {
-            // Missing
-            modify
         }
     }
 }

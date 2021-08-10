@@ -1,0 +1,12 @@
+#!/bin/bash
+
+cd `dirname "$0"`
+cd ../electron
+
+
+# Set config from env (config embedded in built app)
+echo "{\"rollbar_electron\": \"$ROLLBAR_ELECTRON\"}" > config.json
+
+
+# Run builder
+./node_modules/.bin/electron-builder "$@"

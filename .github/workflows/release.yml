@@ -41,6 +41,9 @@ jobs:
                 run: .bin/build electron
                 env:
                     VUE_APP_OAUTH_SECRET_GOOGLE: ${{ secrets.OAUTH_SECRET_GOOGLE }}
+                    VUE_APP_ROLLBAR_APP: ${{ secrets.ROLLBAR_APP }}
+                    VUE_APP_ROLLBAR_RESPONDER: ${{ secrets.ROLLBAR_RESPONDER }}
+                    VITE_ROLLBAR_DISPLAYER: ${{ secrets.ROLLBAR_DISPLAYER }}
                     REACTIONS_PASSWORD: ${{ secrets.REACTIONS_PASSWORD }}
 
             -   name: Upload app base for package jobs to use

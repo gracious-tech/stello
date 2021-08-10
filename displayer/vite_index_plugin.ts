@@ -19,6 +19,9 @@ interface PugFilterOptions {
 // Detect if building for production
 // NOTE NODE_ENV doesn't exist when running dev server, and can't use import.meta.env
 //      See https://github.com/vitejs/vite/issues/3105
+if (!process.env.NODE_ENV){
+    process.env.NODE_ENV = 'development'
+}
 const PROD = process.env.NODE_ENV === 'production'
 
 
@@ -70,6 +73,8 @@ export default function(template_path='index.pug'):Plugin{
                                 // WARN Defined values are inserted as code, not strings
                                 define: {
                                     'process.env.NODE_ENV': "'" + process.env.NODE_ENV + "'",
+                                    'process.env.VITE_ROLLBAR_DISPLAYER':
+                                        "'" + process.env.VITE_ROLLBAR_DISPLAYER + "'",
                                 },
                                 sourcemap: PROD ? false : 'inline',
                                 // NOTE Currently supporting es2015+ browsers

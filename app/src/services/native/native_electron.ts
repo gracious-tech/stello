@@ -15,6 +15,12 @@ declare global {
 // Functions
 
 
+export async function restart():Promise<void>{
+    // Tell electron to restart
+    self.ipcRenderer.invoke('restart')
+}
+
+
 export function dns_mx(host:string):Promise<string[]>{
     // Do a DNS request for MX records and return domains ordered by priority
     return self.ipcRenderer.invoke('dns_mx', host)
@@ -40,6 +46,14 @@ export function send_emails(settings:EmailSettings, emails:Email[], from:EmailId
 
 
 // Listeners
+
+
+export function on_update(handler:()=>void):void{
+    // Listen to update events emitted by native platform
+    self.ipcRenderer.on('update', event => {
+        handler()
+    })
+}
 
 
 export function on_oauth(handler:(url:string)=>void):void{
