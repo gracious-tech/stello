@@ -5,5 +5,6 @@ cd ../app
 
 
 # Build for production but serve locally
-./node_modules/.bin/vue-cli-service build
+# NOTE Vite may need > 2096MB (the default) old space during build (probs due to Vuetify)
+NODE_OPTIONS=--max-old-space-size=4000 ./node_modules/.bin/vite build
 ./node_modules/.bin/light-server --serve dist --port 8080 --no-reload

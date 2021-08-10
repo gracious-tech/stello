@@ -8,7 +8,7 @@ div
 
         RouteRootResendRequests
 
-        img.decor(src='_assets/decor_root.svg')
+        img.decor(src='/_assets/decor_root.svg')
 
         div(class='notes')
             div(class='notes-inner app-bg-accent-relative')

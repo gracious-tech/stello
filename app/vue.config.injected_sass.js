@@ -26,6 +26,6 @@ let inject = `
     @import 'src/styles/globals.sass'
 `
 for (const [key, value] of Object.entries(app_config.theme)){
-    inject += `\n$${key}: ${value}`
+    inject += `$${key}: ${value}\n`
 }
 module.exports = {inject}

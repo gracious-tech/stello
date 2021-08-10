@@ -38,7 +38,7 @@ v-card
 
 
         div(v-else-if='source === "mailchimp"')
-            video(src='_assets/guides/mailchimp_export_contacts.webm' autoplay loop controls)
+            video(src='/_assets/guides/mailchimp_export_contacts.webm' autoplay loop controls)
 
             h2(class='mt-6 mb-3 text-h6') Adding contacts from Mailchimp
             ol(class='ml-4 text-body-1')
@@ -52,7 +52,7 @@ v-card
 
 
         div(v-else-if='source === "email"')
-            img(src='_assets/guides/gmail_save_email.png')
+            img(src='/_assets/guides/gmail_save_email.png')
             p(class='mt-4 text-body-1') If you have been sending newsletters as regular emails with a long list of addresses in the TO/CC/BCC fields, Stello can automatically import those contacts for you. You simply need to save a copy of the last email you sent and load it into Stello.
             p(class='text-center')
                 app-file(@input='from_file' :accept='file_accept') Load email file

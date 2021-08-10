@@ -2,7 +2,7 @@
 import plugin_vue from '@vitejs/plugin-vue'
 import {defineConfig, loadEnv} from 'vite'
 
-import plugin_index from './vite_index_plugin'
+import plugin_index from '../vite_index_plugin'
 
 
 export default defineConfig(({mode}) => {
