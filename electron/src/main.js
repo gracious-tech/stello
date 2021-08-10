@@ -41,7 +41,7 @@ Rollbar.init({
         request: {
             // `captureIp` config doesn't work for Node so manually set in payload
             // See https://github.com/rollbar/rollbar.js/issues/963
-            user_ip: '$remote_ip_anonymize',  // anonymize sets last part of IP to 0 for privacy
+            user_ip: '$remote_ip',
         },
     },
     onSendCallback: (isUncaught, args, payload) => {
