@@ -3,8 +3,4 @@
 cd `dirname "$0"`
 cd ../app
 
-
-# Build for production but serve locally
-# NOTE Vite may need > 2096MB (the default) old space during build (probs due to Vuetify)
-NODE_OPTIONS=--max-old-space-size=4000 ./node_modules/.bin/vite build
-./node_modules/.bin/light-server --serve dist --port 8080 --no-reload
+./node_modules/.bin/vite preview

@@ -15,6 +15,7 @@ export default defineConfig(({mode}) => {
     Object.assign(process.env, loadEnv(mode, process.cwd()))
 
     return {
+        clearScreen: false,
         publicDir: 'static',
         plugins: [
             plugin_index(),
