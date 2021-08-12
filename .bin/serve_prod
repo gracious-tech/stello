@@ -1,6 +1,0 @@
-#!/bin/bash
-
-cd `dirname "$0"`
-cd ../app
-
-./node_modules/.bin/vite preview
