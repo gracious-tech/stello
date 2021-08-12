@@ -27,7 +27,7 @@ v-card
     v-card-text(v-if='setup === "settings"')
         div {{ email }} #[app-btn(@click='setup = "init"') Change]
         app-text(v-model='smtp_host' v-bind='$t("smtp_host")'
-            :placeholder='profile.smtp_settings.host')
+            :placeholder='profile.smtp_settings.host' persistentPlaceholder)
         app-integer(v-model='smtp_port' :buttons='false' :inherit='profile.smtp_settings.port'
             v-bind='$t("smtp_port")')
         app-switch(v-model='smtp_starttls' v-bind='$t("smtp_starttls")')
@@ -54,7 +54,7 @@ v-card
             template(v-else)
                 | Don't use your normal password (which probably won't work). Instead, ensure you have #[a(:href='url_two_step') Two-Step Verification] enabled and create a new #[a(:href='url_app_pass') "app password"].
         app-text(v-if='!profile.smtp_detected' v-model='smtp_user' v-bind='$t("smtp_user")'
-            :placeholder='profile.smtp_settings.user')
+            :placeholder='profile.smtp_settings.user' persistentPlaceholder)
 
     v-alert(v-if='error' colored-border border='left' color='error' class='ma-4 mb-0')
         h1(class='text-h6 mb-3') Could not connect

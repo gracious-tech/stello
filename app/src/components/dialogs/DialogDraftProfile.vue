@@ -6,7 +6,8 @@ v-card
 
     v-card-text
         app-select(v-model='profile' :items='profiles_ui' select v-bind='$t("profile")')
-        app-text(v-model='sender_name' v-bind='$t("sender_name")' :placeholder='sender_name_inherit')
+        app-text(v-model='sender_name' v-bind='$t("sender_name")' :placeholder='sender_name_inherit'
+            persistentPlaceholder)
 
     v-card-actions
         app-btn(@click='dismiss') Close

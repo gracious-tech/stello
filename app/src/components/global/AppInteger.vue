@@ -9,6 +9,7 @@ v-text-field(
     :color='$attrs.color || "accent"'
     inputmode='numeric'
     persistent-hint
+    persistentPlaceholder
     filled
     v-bind='$attrs'
 )
