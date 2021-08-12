@@ -8,7 +8,14 @@ declare module '*.vue' {
 }
 
 
-declare module '*.svg' {
+declare module '*?raw' {
+    // This "module" is actually just a string, so `content` is never actually accessible
+    const content: string
+    export default content
+}
+
+
+declare module '*?raw-svg' {
     // This "module" is actually just a string, so `content` is never actually accessible
     const content: string
     export default content

@@ -11,7 +11,7 @@ svg(:viewBox='viewbox' :width='width' :height='height' v-html='contents' :class=
 <script lang='ts'>
 import {Component, Prop, Vue, Watch} from 'vue-property-decorator'
 
-import svgs from '@/assets/svgs'
+import * as svgs from '@/assets/svgs'
 
 
 @Component({})
@@ -34,7 +34,7 @@ export default class extends Vue {
         }
         // Parse the SVG
         // WARN 'text/html' caused issues in iOS 10.3
-        const doc = new DOMParser().parseFromString(svgs[value], 'image/svg+xml')
+        const doc = new DOMParser().parseFromString(svgs[value].default, 'image/svg+xml')
         // Retrieve the SVG element from the resulting document
         const svg = doc.firstChild as HTMLElement
         // Extract the attribute values and also the element's inner HTML

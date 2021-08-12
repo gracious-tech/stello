@@ -7,6 +7,7 @@ import {vueI18n} from '@intlify/vite-plugin-vue-i18n'
 import ViteComponents, {VuetifyResolver} from 'vite-plugin-components'
 
 import plugin_index from '../vite_index_plugin'
+import plugin_svg from '../vite_svg_plugin'
 
 
 export default defineConfig(({mode}) => {
@@ -16,6 +17,7 @@ export default defineConfig(({mode}) => {
         publicDir: 'static',
         plugins: [
             plugin_index(),
+            plugin_svg(),
             createVuePlugin(),
             ViteComponents({customComponentResolvers: [VuetifyResolver()]}),
             // WARN Not specifying `include` causes all json files to be parsed by i18n

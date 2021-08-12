@@ -1,133 +1,115 @@
-// Module of webpack-embedded svg strings (relies on svgo-loader and raw-loader)
+// Module of svgs imported as strings
+// NOTE ?raw-svg triggers custom Vite plugin that uses SVGO and still imports as a string
+// NOTE Dynamic importing not desirable as involves importing every single icon, even the unused
 
 
-/* WARN Regarding dynamic imports such as with `require()` and `require.context()`
-
-Webpack can import dynamically, but since it (believes) it cannot know the module path until runtime
-it instead imports EVERY FILE in the dir so that they'll all be available to choose from.
-
-require(`dir/${name}.svg`) gets turned into require.context('dir', false, /^.*\.svg$/)
-
-And since it does static analysis it cannot import the following:
-    path = 'dir/name.js'; require(path)
-as it doesn't know what dir it will be in till runtime.
-
-This could be good for importing all files in a dir (if desired), but NOT for some files only.
-
-See https://webpack.js.org/guides/dependency-management
-
-*/
+// Custom images
+export * as logo                    from '@/branding/logo.svg?raw-svg'
+export * as decor_compose           from '@/assets/decor_compose.svg?raw-svg'
 
 
-export default {
-    // NOTE `require` used only because `export icon from 'icon.svg'` is not possible
-    //      Only `export {icon} from 'icon.svg'` is possible (but not suitable)
+// Custom icons
+export * as icon_google             from '@/assets/icon_google.svg?raw-svg'
+export * as icon_microsoft          from '@/assets/icon_microsoft.svg?raw-svg'
+export * as icon_mailchimp          from '@/assets/icon_mailchimp.svg?raw-svg'
+export * as icon_next_plan          from '@/assets/icon_next_plan.svg?raw-svg'
+export * as icon_import             from '@/assets/icon_import.svg?raw-svg'
+export * as icon_post_add           from '@/assets/icon_post_add.svg?raw-svg'
+export * as icon_video              from '@/assets/icon_video.svg?raw-svg'
+export * as icon_checkbox_cross     from '@/assets/icon_checkbox_cross.svg?raw-svg'
+export * as icon_privacy_tip        from '@/assets/icon_privacy_tip.svg?raw-svg'
+export * as icon_groups             from '@/assets/icon_groups.svg?raw-svg'
+export * as icon_section_merge      from '@/assets/icon_section_merge.svg?raw-svg'
+export * as icon_section_separate   from '@/assets/icon_section_separate.svg?raw-svg'
+export * as icon_mark_chat_read     from '@/assets/icon_mark_chat_read.svg?raw-svg'
+export * as icon_tag                from '@/assets/icon_tag.svg?raw-svg'
+export * as icon_highlight          from '@/assets/icon_highlight.svg?raw-svg'
+export * as icon_heading            from '@/assets/icon_heading.svg?raw-svg'
+export * as icon_subheading         from '@/assets/icon_subheading.svg?raw-svg'
 
-    // Custom
-    logo:                   require('@/branding/logo.svg').default,
-    decor_compose:          require('@/assets/decor_compose.svg').default,
-    icon_google:            require('@/assets/icon_google.svg').default,
-    icon_microsoft:         require('@/assets/icon_microsoft.svg').default,
-    icon_mailchimp:         require('@/assets/icon_mailchimp.svg').default,
-    icon_next_plan:         require('@/assets/icon_next_plan.svg').default,
-    icon_import:            require('@/assets/icon_import.svg').default,
-    icon_post_add:          require('@/assets/icon_post_add.svg').default,
-    icon_video:             require('@/assets/icon_video.svg').default,
-    icon_checkbox_cross:    require('@/assets/icon_checkbox_cross.svg').default,
-    icon_privacy_tip:       require('@/assets/icon_privacy_tip.svg').default,
-    icon_groups:            require('@/assets/icon_groups.svg').default,
-    icon_section_merge:     require('@/assets/icon_section_merge.svg').default,
-    icon_section_separate:  require('@/assets/icon_section_separate.svg').default,
-    icon_mark_chat_read:    require('@/assets/icon_mark_chat_read.svg').default,
-    icon_tag:               require('@/assets/icon_tag.svg').default,
-    icon_highlight:         require('@/assets/icon_highlight.svg').default,
-    icon_heading:           require('@/assets/icon_heading.svg').default,
-    icon_subheading:        require('@/assets/icon_subheading.svg').default,
-
-    // Material icons
-    icon_brightness_4:      require('md-icon-svgs/brightness_4.svg').default,
-    icon_chat_bubble_outline: require('md-icon-svgs/chat_bubble_outline.svg').default,
-    icon_thumb_up:          require('md-icon-svgs/thumb_up.svg').default,
-    icon_reply:             require('md-icon-svgs/reply.svg').default,
-    icon_clear:             require('md-icon-svgs/clear.svg').default,
-    icon_unfold_more:       require('md-icon-svgs/unfold_more.svg').default,
-    icon_unfold_less:       require('md-icon-svgs/unfold_less.svg').default,
-    icon_archive:           require('md-icon-svgs/archive.svg').default,
-    icon_swap_horiz:        require('md-icon-svgs/swap_horiz.svg').default,
-    icon_expand_more:       require('md-icon-svgs/expand_more.svg').default,
-    icon_compare_arrows:    require('md-icon-svgs/compare_arrows.svg').default,
-    icon_cloud_download:    require('md-icon-svgs/cloud_download.svg').default,
-    icon_settings:          require('md-icon-svgs/settings.svg').default,
-    icon_arrow_back:        require('md-icon-svgs/arrow_back.svg').default,
-    icon_arrow_forward:     require('md-icon-svgs/arrow_forward.svg').default,
-    icon_arrow_upward:      require('md-icon-svgs/arrow_upward.svg').default,
-    icon_arrow_downward:    require('md-icon-svgs/arrow_downward.svg').default,
-    icon_arrow_drop_down:   require('md-icon-svgs/arrow_drop_down.svg').default,
-    icon_more_vert:         require('md-icon-svgs/more_vert.svg').default,
-    icon_chevron_left:      require('md-icon-svgs/chevron_left.svg').default,
-    icon_chevron_right:     require('md-icon-svgs/chevron_right.svg').default,
-    icon_open_in_new:       require('md-icon-svgs/open_in_new.svg').default,
-    icon_view_list:         require('md-icon-svgs/view_list.svg').default,
-    icon_subject:           require('md-icon-svgs/subject.svg').default,
-    icon_group:             require('md-icon-svgs/group.svg').default,
-    icon_attach_money:      require('md-icon-svgs/attach_money.svg').default,
-    icon_get_app:           require('md-icon-svgs/get_app.svg').default,
-    icon_warning:           require('md-icon-svgs/warning.svg').default,
-    icon_info:              require('md-icon-svgs/info.svg').default,
-    icon_close:             require('md-icon-svgs/close.svg').default,
-    icon_share:             require('md-icon-svgs/share.svg').default,
-    icon_hearing:           require('md-icon-svgs/hearing.svg').default,
-    icon_record_voice_over: require('md-icon-svgs/record_voice_over.svg').default,
-    icon_network_check:     require('md-icon-svgs/network_check.svg').default,
-    icon_star:              require('md-icon-svgs/star.svg').default,
-    icon_star_border:       require('md-icon-svgs/star_border.svg').default,
-    icon_schedule:          require('md-icon-svgs/schedule.svg').default,
-    icon_chat:              require('md-icon-svgs/chat.svg').default,
-    icon_help:              require('md-icon-svgs/help.svg').default,
-    icon_mail:              require('md-icon-svgs/mail.svg').default,
-    icon_play_arrow:        require('md-icon-svgs/play_arrow.svg').default,
-    icon_pause:             require('md-icon-svgs/pause.svg').default,
-    icon_skip_next:         require('md-icon-svgs/skip_next.svg').default,
-    icon_error:             require('md-icon-svgs/error.svg').default,
-    icon_keyboard_tab:      require('md-icon-svgs/keyboard_tab.svg').default,
-    icon_meeting_room:      require('md-icon-svgs/meeting_room.svg').default,
-    icon_volume_off:        require('md-icon-svgs/volume_off.svg').default,
-    icon_volume_up:         require('md-icon-svgs/volume_up.svg').default,
-    icon_volume_down:       require('md-icon-svgs/volume_down.svg').default,
-    icon_subscriptions:     require('md-icon-svgs/subscriptions.svg').default,
-    icon_send:              require('md-icon-svgs/send.svg').default,
-    icon_done:              require('md-icon-svgs/done.svg').default,
-    icon_delete:            require('md-icon-svgs/delete.svg').default,
-    icon_edit:              require('md-icon-svgs/edit.svg').default,
-    icon_live_tv:           require('md-icon-svgs/live_tv.svg').default,
-    icon_fullscreen:        require('md-icon-svgs/fullscreen.svg').default,
-    icon_lock:              require('md-icon-svgs/lock.svg').default,
-    icon_color_lens:        require('md-icon-svgs/color_lens.svg').default,
-    icon_add:               require('md-icon-svgs/add.svg').default,
-    icon_remove:            require('md-icon-svgs/remove.svg').default,
-    icon_checkbox_true:     require('md-icon-svgs/check_box.svg').default,
-    icon_checkbox_false:    require('md-icon-svgs/check_box_outline_blank.svg').default,
-    icon_checkbox_null:     require('md-icon-svgs/indeterminate_check_box.svg').default,
-    icon_security:          require('md-icon-svgs/security.svg').default,
-    icon_image:             require('md-icon-svgs/image.svg').default,
-    icon_library_books:     require('md-icon-svgs/library_books.svg').default,
-    icon_fingerprint:       require('md-icon-svgs/fingerprint.svg').default,
-    icon_contact_mail:      require('md-icon-svgs/contact_mail.svg').default,
-    icon_attach_file:       require('md-icon-svgs/attach_file.svg').default,
-    icon_pie_chart:         require('md-icon-svgs/pie_chart.svg').default,
-    icon_format_bold:       require('md-icon-svgs/format_bold.svg').default,
-    icon_format_italic:     require('md-icon-svgs/format_italic.svg').default,
-    icon_link:              require('md-icon-svgs/link.svg').default,
-    icon_title:             require('md-icon-svgs/title.svg').default,
-    icon_text_fields:       require('md-icon-svgs/text_fields.svg').default,
-    icon_list_numbered:     require('md-icon-svgs/format_list_numbered.svg').default,
-    icon_list_bulleted:     require('md-icon-svgs/format_list_bulleted.svg').default,
-    icon_radio_checked:     require('md-icon-svgs/radio_button_checked.svg').default,
-    icon_radio_unchecked:   require('md-icon-svgs/radio_button_unchecked.svg').default,
-    icon_format_quote:      require('md-icon-svgs/format_quote.svg').default,
-    icon_visibility:        require('md-icon-svgs/visibility.svg').default,
-    icon_visibility_off:    require('md-icon-svgs/visibility_off.svg').default,
-    icon_cancel:            require('md-icon-svgs/cancel.svg').default,
-    icon_check_circle:      require('md-icon-svgs/check_circle.svg').default,
-    icon_sync:              require('md-icon-svgs/sync.svg').default,
-}
+// Material icons
+export * as icon_brightness_4       from 'md-icon-svgs/brightness_4.svg?raw-svg'
+export * as icon_chat_bubble_outline from 'md-icon-svgs/chat_bubble_outline.svg?raw-svg'
+export * as icon_thumb_up           from 'md-icon-svgs/thumb_up.svg?raw-svg'
+export * as icon_reply              from 'md-icon-svgs/reply.svg?raw-svg'
+export * as icon_clear              from 'md-icon-svgs/clear.svg?raw-svg'
+export * as icon_unfold_more        from 'md-icon-svgs/unfold_more.svg?raw-svg'
+export * as icon_unfold_less        from 'md-icon-svgs/unfold_less.svg?raw-svg'
+export * as icon_archive            from 'md-icon-svgs/archive.svg?raw-svg'
+export * as icon_swap_horiz         from 'md-icon-svgs/swap_horiz.svg?raw-svg'
+export * as icon_expand_more        from 'md-icon-svgs/expand_more.svg?raw-svg'
+export * as icon_compare_arrows     from 'md-icon-svgs/compare_arrows.svg?raw-svg'
+export * as icon_cloud_download     from 'md-icon-svgs/cloud_download.svg?raw-svg'
+export * as icon_settings           from 'md-icon-svgs/settings.svg?raw-svg'
+export * as icon_arrow_back         from 'md-icon-svgs/arrow_back.svg?raw-svg'
+export * as icon_arrow_forward      from 'md-icon-svgs/arrow_forward.svg?raw-svg'
+export * as icon_arrow_upward       from 'md-icon-svgs/arrow_upward.svg?raw-svg'
+export * as icon_arrow_downward     from 'md-icon-svgs/arrow_downward.svg?raw-svg'
+export * as icon_arrow_drop_down    from 'md-icon-svgs/arrow_drop_down.svg?raw-svg'
+export * as icon_more_vert          from 'md-icon-svgs/more_vert.svg?raw-svg'
+export * as icon_chevron_left       from 'md-icon-svgs/chevron_left.svg?raw-svg'
+export * as icon_chevron_right      from 'md-icon-svgs/chevron_right.svg?raw-svg'
+export * as icon_open_in_new        from 'md-icon-svgs/open_in_new.svg?raw-svg'
+export * as icon_view_list          from 'md-icon-svgs/view_list.svg?raw-svg'
+export * as icon_subject            from 'md-icon-svgs/subject.svg?raw-svg'
+export * as icon_group              from 'md-icon-svgs/group.svg?raw-svg'
+export * as icon_attach_money       from 'md-icon-svgs/attach_money.svg?raw-svg'
+export * as icon_get_app            from 'md-icon-svgs/get_app.svg?raw-svg'
+export * as icon_warning            from 'md-icon-svgs/warning.svg?raw-svg'
+export * as icon_info               from 'md-icon-svgs/info.svg?raw-svg'
+export * as icon_close              from 'md-icon-svgs/close.svg?raw-svg'
+export * as icon_share              from 'md-icon-svgs/share.svg?raw-svg'
+export * as icon_hearing            from 'md-icon-svgs/hearing.svg?raw-svg'
+export * as icon_record_voice_over  from 'md-icon-svgs/record_voice_over.svg?raw-svg'
+export * as icon_network_check      from 'md-icon-svgs/network_check.svg?raw-svg'
+export * as icon_star               from 'md-icon-svgs/star.svg?raw-svg'
+export * as icon_star_border        from 'md-icon-svgs/star_border.svg?raw-svg'
+export * as icon_schedule           from 'md-icon-svgs/schedule.svg?raw-svg'
+export * as icon_chat               from 'md-icon-svgs/chat.svg?raw-svg'
+export * as icon_help               from 'md-icon-svgs/help.svg?raw-svg'
+export * as icon_mail               from 'md-icon-svgs/mail.svg?raw-svg'
+export * as icon_play_arrow         from 'md-icon-svgs/play_arrow.svg?raw-svg'
+export * as icon_pause              from 'md-icon-svgs/pause.svg?raw-svg'
+export * as icon_skip_next          from 'md-icon-svgs/skip_next.svg?raw-svg'
+export * as icon_error              from 'md-icon-svgs/error.svg?raw-svg'
+export * as icon_keyboard_tab       from 'md-icon-svgs/keyboard_tab.svg?raw-svg'
+export * as icon_meeting_room       from 'md-icon-svgs/meeting_room.svg?raw-svg'
+export * as icon_volume_off         from 'md-icon-svgs/volume_off.svg?raw-svg'
+export * as icon_volume_up          from 'md-icon-svgs/volume_up.svg?raw-svg'
+export * as icon_volume_down        from 'md-icon-svgs/volume_down.svg?raw-svg'
+export * as icon_subscriptions      from 'md-icon-svgs/subscriptions.svg?raw-svg'
+export * as icon_send               from 'md-icon-svgs/send.svg?raw-svg'
+export * as icon_done               from 'md-icon-svgs/done.svg?raw-svg'
+export * as icon_delete             from 'md-icon-svgs/delete.svg?raw-svg'
+export * as icon_edit               from 'md-icon-svgs/edit.svg?raw-svg'
+export * as icon_live_tv            from 'md-icon-svgs/live_tv.svg?raw-svg'
+export * as icon_fullscreen         from 'md-icon-svgs/fullscreen.svg?raw-svg'
+export * as icon_lock               from 'md-icon-svgs/lock.svg?raw-svg'
+export * as icon_color_lens         from 'md-icon-svgs/color_lens.svg?raw-svg'
+export * as icon_add                from 'md-icon-svgs/add.svg?raw-svg'
+export * as icon_remove             from 'md-icon-svgs/remove.svg?raw-svg'
+export * as icon_checkbox_true      from 'md-icon-svgs/check_box.svg?raw-svg'
+export * as icon_checkbox_false     from 'md-icon-svgs/check_box_outline_blank.svg?raw-svg'
+export * as icon_checkbox_null      from 'md-icon-svgs/indeterminate_check_box.svg?raw-svg'
+export * as icon_security           from 'md-icon-svgs/security.svg?raw-svg'
+export * as icon_image              from 'md-icon-svgs/image.svg?raw-svg'
+export * as icon_library_books      from 'md-icon-svgs/library_books.svg?raw-svg'
+export * as icon_fingerprint        from 'md-icon-svgs/fingerprint.svg?raw-svg'
+export * as icon_contact_mail       from 'md-icon-svgs/contact_mail.svg?raw-svg'
+export * as icon_attach_file        from 'md-icon-svgs/attach_file.svg?raw-svg'
+export * as icon_pie_chart          from 'md-icon-svgs/pie_chart.svg?raw-svg'
+export * as icon_format_bold        from 'md-icon-svgs/format_bold.svg?raw-svg'
+export * as icon_format_italic      from 'md-icon-svgs/format_italic.svg?raw-svg'
+export * as icon_link               from 'md-icon-svgs/link.svg?raw-svg'
+export * as icon_title              from 'md-icon-svgs/title.svg?raw-svg'
+export * as icon_text_fields        from 'md-icon-svgs/text_fields.svg?raw-svg'
+export * as icon_list_numbered      from 'md-icon-svgs/format_list_numbered.svg?raw-svg'
+export * as icon_list_bulleted      from 'md-icon-svgs/format_list_bulleted.svg?raw-svg'
+export * as icon_radio_checked      from 'md-icon-svgs/radio_button_checked.svg?raw-svg'
+export * as icon_radio_unchecked    from 'md-icon-svgs/radio_button_unchecked.svg?raw-svg'
+export * as icon_format_quote       from 'md-icon-svgs/format_quote.svg?raw-svg'
+export * as icon_visibility         from 'md-icon-svgs/visibility.svg?raw-svg'
+export * as icon_visibility_off     from 'md-icon-svgs/visibility_off.svg?raw-svg'
+export * as icon_cancel             from 'md-icon-svgs/cancel.svg?raw-svg'
+export * as icon_check_circle       from 'md-icon-svgs/check_circle.svg?raw-svg'
+export * as icon_sync               from 'md-icon-svgs/sync.svg?raw-svg'
