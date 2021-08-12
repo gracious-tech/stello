@@ -8,4 +8,4 @@ PLATFORM="$1"
 ln --symbolic --force native_${PLATFORM}.ts src/services/native/native.ts
 
 # NOTE Vite may need > 2096MB (the default) old space during build (probs due to Vuetify)
-NODE_OPTIONS=--max-old-space-size=4000 ./node_modules/.bin/vite build
+NODE_OPTIONS=--max-old-space-size=6000 ./node_modules/.bin/vite build
