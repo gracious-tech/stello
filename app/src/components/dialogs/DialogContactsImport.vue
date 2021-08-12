@@ -104,13 +104,13 @@ v-card
 <script lang='ts'>
 
 import papaparse from 'papaparse'
-import vcard_json from 'vcard-json'
 import PostalMime from 'postal-mime'
 import * as zip from '@zip.js/zip.js/dist/zip'  // Avoids `import.meta` issue
 import {Component, Vue, Watch} from 'vue-property-decorator'
 
 import {drop} from '@/services/utils/exceptions'
 import {oauth_pretask_new_usage} from '@/services/tasks/oauth'
+import {extract_contacts_from_vcard} from '@/services/misc/vcard'
 
 
 @Component({})
@@ -231,11 +231,7 @@ export default class extends Vue {
 
     async parse_vcard(text:string):Promise<void>{
         // Turn given vcard data into a list of contacts
-        this.accept_contacts(vcard_json.parseVcardStringSync(text).map(contact => {
-            // Get the default address, or just the first if none default
-            const email = contact.email.find(e => e.default) || contact.email[0]
-            return {name: contact.fullname, email: email?.value}
-        }))
+        this.accept_contacts(extract_contacts_from_vcard(text))
     }
 
     async parse_csv(text:string):Promise<void>{
@@ -297,7 +293,7 @@ export default class extends Vue {
         }))
     }
 
-    accept_contacts(contacts:{name:string, email:string}[]):void{
+    accept_contacts(contacts:{name?:string, email?:string}[]):void{
         // Take contacts from parsed input, normalise values, and accept only those with some value
         this.contacts = contacts.map(contact => {
             const name = (contact.name || '').trim()

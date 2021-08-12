@@ -1,6 +1,5 @@
 
-import libmime from 'libmime'
-
+import {encode_contact, encode_subject} from './mime'
 import {string_to_utf8} from '@/services/utils/coding'
 
 
@@ -14,24 +13,17 @@ export function create_email(from:Person, to:Person, subject:string, html:string
         :ArrayBuffer{
     // Create a simple RFC 2822 compatible email and return as utf8 arraybuffer
 
-    // Encode non-address values in headers to support unicode (since headers must be ascii)
-    // NOTE Important to use encodeWord (not encodeWords) for contact names in case <>@, etc
-    const from_val = `${libmime.encodeWord(from.name)} <${from.address}>`
-    const to_val = `${libmime.encodeWord(to.name)} <${to.address}>`
-    const subject_val = libmime.encodeWords(subject)
-
     // Create the email as an array of lines
     const email = [
-        `From: ${from_val}`,
-        `To: ${to_val}`,
-        `Subject: ${subject_val}`,
+        `From: ${encode_contact(from)}`,
+        `To: ${encode_contact(to)}`,
+        `Subject: ${encode_subject(subject)}`,
         'Content-Type: text/html; charset=UTF-8',
     ]
 
     // Reply-To header is optional
     if (reply_to){
-        const reply_to_val = `${libmime.encodeWord(reply_to.name)} <${reply_to.address}>`
-        email.push(`Reply-To: ${reply_to_val}`)
+        email.push(`Reply-To: ${encode_contact(reply_to)}`)
     }
 
     // Add body
