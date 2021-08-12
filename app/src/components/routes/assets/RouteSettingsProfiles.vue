@@ -60,6 +60,8 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+@import 'src/styles/globals.sass'
+
 
 .v-list-item
     @include themed(background-color, #ddd !important, #222 !important)

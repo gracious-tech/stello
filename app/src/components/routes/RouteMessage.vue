@@ -222,6 +222,9 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+@import 'src/styles/globals.sass'
+
+
 .meta
     .inner
         max-width: $header-width

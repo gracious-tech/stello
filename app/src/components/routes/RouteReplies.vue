@@ -180,6 +180,9 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+@import 'src/styles/globals.sass'
+
+
 .download::after
     // Position tooltip to left so doesn't go off page
     top: auto !important

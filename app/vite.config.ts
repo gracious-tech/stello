@@ -45,7 +45,7 @@ export default defineConfig(({mode}) => {
             preprocessorOptions: {
                 sass: {
                     // Make node_modules & variables available in both components and regular files
-                    additionalData: require('./vue.config.injected_sass').inject,
+                    additionalData: require('./vite.config.injected_sass').inject,
                     sassOptions: {
                         includePaths: ['node_modules'],
                     },

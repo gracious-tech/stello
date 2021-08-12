@@ -375,6 +375,9 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+@import 'src/styles/globals.sass'
+
+
 .msg-title  // .title used by Vuetify
     padding: 6px
     width: 100%

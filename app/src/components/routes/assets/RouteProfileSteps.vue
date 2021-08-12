@@ -246,6 +246,9 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+@import 'src/styles/globals.sass'
+
+
 .v-stepper
     display: flex
     flex-direction: column

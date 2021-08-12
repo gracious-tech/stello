@@ -120,6 +120,9 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+@import 'src/styles/globals.sass'
+
+
 .sidebar
     display: flex
     flex-direction: column

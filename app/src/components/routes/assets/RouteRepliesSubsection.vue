@@ -143,6 +143,9 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+@import 'src/styles/globals.sass'
+
+
 .header
     height: 48px  // Match archive button so same when it isn't present
 

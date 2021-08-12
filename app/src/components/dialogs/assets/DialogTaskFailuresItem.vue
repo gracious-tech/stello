@@ -154,6 +154,9 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+@import 'src/styles/globals.sass'
+
+
 .card  // Don't use .v-card as applies to whole dialog
     @include themed(background-color, #ddd, #333)
 

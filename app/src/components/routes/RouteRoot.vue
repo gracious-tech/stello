@@ -58,6 +58,8 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+@import 'src/styles/globals.sass'
+
 
 .v-card
     margin: 48px 0

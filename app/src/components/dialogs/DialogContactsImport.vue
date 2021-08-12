@@ -344,6 +344,9 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+@import 'src/styles/globals.sass'
+
+
 .csv_controls
     margin: 12px 0
     padding: 0 24px

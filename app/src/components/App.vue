@@ -152,6 +152,9 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+@import 'src/styles/globals.sass'
+
+
 // Give app background a primary color tinge
 // NOTE Looks better (especially for dark theme) and helps toolbars etc stand out more
 

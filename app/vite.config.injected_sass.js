@@ -1,4 +1,5 @@
 // Generation of sass variables to provide to all sass files during webpack build
+// WARN Do not @import anything in here as importing in every single sass file cripples performance
 
 const app_config = require('./src/app_config.json')
 
@@ -21,10 +22,7 @@ NOTE .secondary--text & .text--secondary are different!
 
 
 // Generate string to inject into beginning of all sass files and components' sass
-let inject = `
-    @import 'src/shared/shared_mixins.sass'
-    @import 'src/styles/globals.sass'
-`
+let inject = ''
 for (const [key, value] of Object.entries(app_config.theme)){
     inject += `$${key}: ${value}\n`
 }
