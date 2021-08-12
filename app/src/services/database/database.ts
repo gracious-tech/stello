@@ -447,7 +447,7 @@ export class Database {
         const profile = await this.profiles.create()
         profile.email = 'sender@localhost'
         profile.msg_options_identity.sender_name = "Sender Name"
-        profile.host = JSON.parse(process.env.VUE_APP_DEV_HOST_SETTINGS)
+        profile.host = JSON.parse(import.meta.env.VITE_DEV_HOST_SETTINGS)
         profile.setup_step = null
         await this.profiles.set(profile)
         await this.state.set({key: 'default_profile', value: profile.id})

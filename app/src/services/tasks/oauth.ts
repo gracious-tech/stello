@@ -99,7 +99,7 @@ export const OAUTH_SUPPORTED:Record<OAuthIssuer, IssuerConfig> = {
         // SECURITY Google for some reason requires client_secret even for Desktop apps
         // They state it can't/doesn't need to be confidential, and will be in compiled app
         // See https://stackoverflow.com/questions/59416326/
-        client_secret: process.env.VUE_APP_OAUTH_SECRET_GOOGLE,
+        client_secret: import.meta.env.VITE_OAUTH_SECRET_GOOGLE,
         scopes: {
             always: [],
             email_send: ['https://www.googleapis.com/auth/gmail.send'],

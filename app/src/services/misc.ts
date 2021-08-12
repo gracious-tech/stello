@@ -39,7 +39,7 @@ export function debounce_set(ms=debounce_default_ms){
 
 export function debug(arg:any){
     // Log a debug message in console if not production (as may be frequent and bad for performance)
-    if (process.env.NODE_ENV !== 'production'){
+    if (import.meta.env.MODE !== 'production'){
         console.debug(arg)  // tslint:disable-line:no-console
     }
 }

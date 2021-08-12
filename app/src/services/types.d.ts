@@ -32,5 +32,18 @@ declare module 'Custom' {
             _toggle_dark():void
             _update():void
         }
+        interface ImportMeta {
+            // Extend with vite's env vars
+            env:{
+                MODE:string,
+                BASE_URL:string,
+                PROD:boolean,
+                DEV:boolean,
+                VITE_DEV_HOST_SETTINGS:string,
+                VITE_OAUTH_SECRET_GOOGLE:string,
+                VITE_ROLLBAR_APP:string,
+                VITE_ROLLBAR_RESPONDER:string,
+            }
+        }
     }
 }

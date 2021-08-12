@@ -79,7 +79,7 @@ export default class extends Vue {
         // Create a new draft and navigate to it
 
         // If shift click in dev, trigger hidden action for generating dummy data
-        if (process.env.NODE_ENV === 'development' && event.shiftKey){
+        if (import.meta.env.MODE === 'development' && event.shiftKey){
             // @ts-ignore adding booleans works for this
             const multiplier = event.shiftKey + event.altKey + event.ctrlKey
             this.$store.dispatch('show_snackbar', `Generating dummy data * ${multiplier}...`)

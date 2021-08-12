@@ -61,7 +61,7 @@ export function get_router(store:Store<AppStoreState>){
 
         // Redirect all non-trailing-slash URLs to trailing-slash version so ../ etc work correctly
         if (! to.path.endsWith('/')){
-            if (process.env.NODE_ENV === 'development'){
+            if (import.meta.env.MODE === 'development'){
                 // Redirection only for production (in case user modifies the URL themselves)
                 throw new Error(`Target URL does not end with a slash: ${to.path}`)
             }

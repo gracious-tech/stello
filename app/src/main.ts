@@ -104,9 +104,9 @@ function show_fail_bar(){
 
 // Setup Rollbar
 Vue.prototype.$rollbar = new Rollbar({
-    transmit: process.env.NODE_ENV === 'production',  // Call handlers but don't transmit in dev
-    environment: process.env.NODE_ENV,
-    accessToken: process.env.VUE_APP_ROLLBAR_APP,
+    transmit: import.meta.env.MODE === 'production',  // Call handlers but don't transmit in dev
+    environment: import.meta.env.MODE,
+    accessToken: import.meta.env.VITE_ROLLBAR_APP,
     captureUncaught: true,
     captureUnhandledRejections: true,
     autoInstrument: false,  // SECURITY Don't track use via telemetry to protect privacy
@@ -128,7 +128,7 @@ Vue.prototype.$rollbar = new Rollbar({
         // TODO debug = debug.replaceAll(/file\:\/\/\/.*\/app_dist\//g, '')
 
         // If critical (or dev) show fail bar
-        if (payload.level === 'critical' || process.env.NODE_ENV !== 'production'){
+        if (payload.level === 'critical' || import.meta.env.MODE !== 'production'){
             show_fail_bar()
         }
     },

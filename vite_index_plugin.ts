@@ -6,7 +6,7 @@ import {promises as fs} from 'fs'
 import pug from 'pug'
 import sass from 'sass'
 import esbuild from 'esbuild'
-import {Plugin} from 'vite'
+import {Plugin, ResolvedConfig} from 'vite'
 
 
 interface PugFilterOptions {
@@ -16,20 +16,24 @@ interface PugFilterOptions {
 }
 
 
-// Detect if building for production
-// NOTE NODE_ENV doesn't exist when running dev server, and can't use import.meta.env
-//      See https://github.com/vitejs/vite/issues/3105
-if (!process.env.NODE_ENV){
-    process.env.NODE_ENV = 'development'
-}
-const PROD = process.env.NODE_ENV === 'production'
-
-
 export default function(template_path='index.pug'):Plugin{
     // Return config for plugin
 
+    let config:ResolvedConfig
+    const define_env:Record<string, string> = {}
+
     return {
         name: 'pug-index',
+
+        configResolved(resolved_config){
+            // Provide access to config when it's available
+            config = resolved_config
+            // Expose all the same env that vite does normally
+            // WARN Defined values are inserted as code, not strings, hence `stringify()`
+            for (const [key, val] of Object.entries(config.env)){
+                define_env[`import.meta.env.${key}`] = JSON.stringify(val)
+            }
+        },
 
         transformIndexHtml: {
             // Replace default index contents with rendered pug template instead
@@ -50,9 +54,10 @@ export default function(template_path='index.pug'):Plugin{
                             return sass.renderSync({
                                 data: text,
                                 indentedSyntax: true,
-                                outputStyle: PROD ? 'compressed' : 'expanded',
+                                outputStyle: config.isProduction ? 'compressed' : 'expanded',
                                 indentWidth: 4,
-                                sourceMap: PROD ? false : 'index_sass.map',  // Can't be `true`
+                                // NOTE Below can't be `true` so give a filename
+                                sourceMap: config.isProduction ? false : 'index_sass.map',
                                 sourceMapEmbed: true,
                                 sourceMapContents: true,
                                 ...options
@@ -69,16 +74,11 @@ export default function(template_path='index.pug'):Plugin{
                                 },
                                 write: false,
                                 bundle: true,
-                                minify: PROD,
-                                // WARN Defined values are inserted as code, not strings
-                                define: {
-                                    'process.env.NODE_ENV': "'" + process.env.NODE_ENV + "'",
-                                    'process.env.VITE_ROLLBAR_DISPLAYER':
-                                        "'" + process.env.VITE_ROLLBAR_DISPLAYER + "'",
-                                },
-                                sourcemap: PROD ? false : 'inline',
+                                minify: config.isProduction,
+                                define: define_env,
+                                sourcemap: config.isProduction ? false : 'inline',
                                 // NOTE Currently supporting es2015+ browsers
-                                target: PROD ? 'es2015' : 'esnext',
+                                target: config.isProduction ? 'es2015' : 'esnext',
                                 ...options,
                             }).outputFiles[0].text
                         }

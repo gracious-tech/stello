@@ -1,7 +1,7 @@
 
 import path from 'path'
 
-import {defineConfig, loadEnv} from 'vite'
+import {defineConfig} from 'vite'
 import {createVuePlugin} from 'vite-plugin-vue2'
 import {vueI18n} from '@intlify/vite-plugin-vue-i18n'
 import ViteComponents, {VuetifyResolver} from 'vite-plugin-components'
@@ -10,9 +10,6 @@ import plugin_index from '../vite_index_plugin'
 
 
 export default defineConfig(({mode}) => {
-
-    // Make VITE_ env vars available during config/plugins rather than just src files
-    Object.assign(process.env, loadEnv(mode, process.cwd()))
 
     return {
         clearScreen: false,

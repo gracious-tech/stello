@@ -181,9 +181,9 @@ html
                     drop(fetch('https://api.rollbar.com/api/1/item/', {
                         method: 'POST',
                         body: JSON.stringify({
-                            access_token: process.env.VITE_ROLLBAR_DISPLAYER,
+                            access_token: import.meta.env.VITE_ROLLBAR_DISPLAYER,
                             data: {
-                                environment: process.env.NODE_ENV,
+                                environment: import.meta.env.MODE,
                                 platform: 'browser',
                                 language: 'javascript',
                                 level: 'error',
@@ -220,7 +220,7 @@ html
                     // NOTE Don't report if browser not supported, as not actionable
                     // NOTE Throttles reports since multiple in quick succession usually repetitive
                     const five_secs_ago = new Date().getTime() - 5 * 1000
-                    if (process.env.NODE_ENV === 'production' && self._browser_supported
+                    if (import.meta.env.MODE === 'production' && self._browser_supported
                             && fail_report_last < five_secs_ago){
                         fail_report_last = new Date().getTime()
                         self._rollbar(msg)
