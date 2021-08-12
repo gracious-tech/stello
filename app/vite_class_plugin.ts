@@ -1,6 +1,8 @@
 // Vite plugin that corrects definition of nameless classes
 // See https://github.com/underfin/vite-plugin-vue2/issues/119
 
+import path from 'path'
+
 import {Plugin} from 'vite'
 
 
@@ -15,8 +17,13 @@ export default function():Plugin{
                 return null  // Only applicable to regular vue file imports
             }
 
+            // Form class name from cleaned filename
+            let class_name = id.split(path.sep).pop()
+                .slice(0, '.vue'.length * -1)
+                .replace(/[^a-zA-Z]/g, '')
+
             return code.replace('export default class extends Vue',
-                'export default class ViteNamelessPluginClass extends Vue')
+                `export default class ${class_name} extends Vue`)
         }
     }
 }
