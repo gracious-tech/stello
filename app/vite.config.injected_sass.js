@@ -1,4 +1,4 @@
-// Generation of sass variables to provide to all sass files during webpack build
+// Generation of sass variables to provide to all sass files during build
 // WARN Do not @import anything in here as importing in every single sass file cripples performance
 
 const app_config = require('./src/app_config.json')

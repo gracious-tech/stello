@@ -1,4 +1,4 @@
-// Help Typescript understand special webpack-generated modules and also custom properties
+// Help Typescript understand special bundler-generated modules and also custom properties
 // NOTE This should be crawled by Typescript automatically
 
 
