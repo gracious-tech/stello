@@ -25,7 +25,7 @@ const Buffer = {
 
 
 // ALL THAT FOLLOWS EXTRACTED FROM NODEMAILER
-// Copyright (c) 2011-2019 Andris Reinman
+// Copyright (c) 2011-2019 Andris Reinman [MIT license]
 // It is all untouched aside from adjusting calls to external functions
 
 
