@@ -3,7 +3,6 @@ import path from 'path'
 
 import {defineConfig} from 'vite'
 import {createVuePlugin} from 'vite-plugin-vue2'
-import {vueI18n} from '@intlify/vite-plugin-vue-i18n'
 import ViteComponents, {VuetifyResolver} from 'vite-plugin-components'
 
 import plugin_class from './vite_class_plugin'
@@ -22,11 +21,6 @@ export default defineConfig(({mode}) => {
             plugin_class(),
             createVuePlugin(),
             ViteComponents({customComponentResolvers: [VuetifyResolver()]}),
-            // WARN Not specifying `include` causes all json files to be parsed by i18n
-            // See https://github.com/intlify/bundle-tools/issues/40
-            // WARN runtimeOnly works for vue-i18n@9+ but that version doesn't support vue 2...
-            vueI18n({compositionOnly: false, defaultSFCLang: 'yaml', include: 'i18n',
-                runtimeOnly: false}),
         ],
         resolve: {
             alias: [

@@ -4,21 +4,12 @@
 div(class='text-center')
     template(v-if='host.cloud')
         h1(class='text-h6 mb-2 accent--text') {{ host.bucket }}
-        //- No point identifying cloud until multiple, or can distinguish between private & GT
-        //- h2(class='text-subtitle-2') {{ $t(`host_cloud.${host.cloud}`) }}
     div.btns(v-else)
         app-btn(@click='show_dialog_new') New storage
         app-btn(@click='show_dialog_existing') Use existing storage
 
 
 </template>
-
-
-<i18n>
-en:
-    host_cloud:
-        aws: "Amazon Web Services"
-</i18n>
 
 
 <script lang='ts'>

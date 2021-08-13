@@ -75,66 +75,81 @@ div
 </template>
 
 
-<i18n>
-en:
-    # Email
-    email:
-        p1: "Stello uses your email address to send messages and receive notifications about replies."
-    # Identity
-    identity:
-        p1: "How emails and other notifications identify you prior to opening messages. Unlike messages, this information does not expire and will remain in recipients' inboxes, likely for all eternity."
-    # Replies
-    allow_replies:
-        label: "Allow comments"
-        hint: "Allow recipients to comment on message sections"
-    allow_reactions:
-        label: "Allow reactions"
-        hint: "Allow recipients to react to message sections"
-    smtp_no_reply:
-        label: "Warn against replying by email"
-    notify_mode:
-        label: "Notification frequency"
-        hint: "How often Stello should notify you about responses to your messages"
-    notify_include_contents:
-        label: "Include contents of replies in emails"
-        hint: "When Stello notifies you of a new reply it will include the actual contents of the reply in the email notification. This means the contents, while still private, is not end-to-end encrypted."
-    # Message expiry
-    msg_lifespan:
-        label: "Expire after"
-        hint: "The default number of days until messages expire"
-        suffix: "days"
-    msg_max_reads:
-        label: "Lose access after opening"
-        hint: "The default number of times each recipient can open a message before they lose access"
-        suffix: "times"
-    allow_delete:
-        label: "Allow deleting before expiry"
-        hint: "Allow recipients to delete their own copy of a message before it actually expires"
-    allow_resend_requests:
-        label: "Allow resend requests"
-        hint: "Allow recipients to request that you resend a message that has expired before they could read it. You still must approve any such requests."
-    # Auto-exclude
-    auto_exclude:
-        p1: "Automatically stop sending messages to contacts who aren't reading them."
-        p2: "Some contacts may be too polite to unsubscribe, and some may even opt to send your messages to spam instead. In which case it is best to stop sending messages to those who aren't reading them."
-        p3: "If enabled, contacts will be auto-excluded at the time of sending, even if they are still members of the group being sent to (the same as if they had unsubscribed). This will not affect contacts who are added individually as recipients though, only when part of a group."
-    auto_exclude_switch:
-        label: "Enable"
-    auto_exclude_threshold:
-        label: "Auto-exclude if haven't read"
-        prefix: "any of last"
-        suffix: "messages"
-    auto_exclude_exempt_groups:
-        label: "Don't apply to contacts in groups"
-        hint: "Auto-exclude will never apply to any contacts in these groups (e.g. groups for your family or financial supporters)"
-    # Additional security
-    social_referral_ban:
-        label: "Ban social media sharing"
-        hint: "Prevent anyone from reading messages if they are shared on social media by one of your recipients. This provides only limited protection, so you should still delete messages that have been exposed on social media."
-</i18n>
-
-
 <script lang='ts'>
+
+const i18n = {
+    // Email
+    email: {
+        p1: "Stello uses your email address to send messages and receive notifications about replies.",
+    },
+    // Identity
+    identity: {
+        p1: "How emails and other notifications identify you prior to opening messages. Unlike messages, this information does not expire and will remain in recipients' inboxes, likely for all eternity.",
+    },
+    // Replies
+    allow_replies: {
+        label: "Allow comments",
+        hint: "Allow recipients to comment on message sections",
+    },
+    allow_reactions: {
+        label: "Allow reactions",
+        hint: "Allow recipients to react to message sections",
+    },
+    smtp_no_reply: {
+        label: "Warn against replying by email",
+    },
+    notify_mode: {
+        label: "Notification frequency",
+        hint: "How often Stello should notify you about responses to your messages",
+    },
+    notify_include_contents: {
+        label: "Include contents of replies in emails",
+        hint: "When Stello notifies you of a new reply it will include the actual contents of the reply in the email notification. This means the contents, while still private, is not end-to-end encrypted.",
+    },
+    // Message expiry
+    msg_lifespan: {
+        label: "Expire after",
+        hint: "The default number of days until messages expire",
+        suffix: "days",
+    },
+    msg_max_reads: {
+        label: "Lose access after opening",
+        hint: "The default number of times each recipient can open a message before they lose access",
+        suffix: "times",
+    },
+    allow_delete: {
+        label: "Allow deleting before expiry",
+        hint: "Allow recipients to delete their own copy of a message before it actually expires",
+    },
+    allow_resend_requests: {
+        label: "Allow resend requests",
+        hint: "Allow recipients to request that you resend a message that has expired before they could read it. You still must approve any such requests.",
+    },
+    // Auto-exclude
+    auto_exclude: {
+        p1: "Automatically stop sending messages to contacts who aren't reading them.",
+        p2: "Some contacts may be too polite to unsubscribe, and some may even opt to send your messages to spam instead. In which case it is best to stop sending messages to those who aren't reading them.",
+        p3: "If enabled, contacts will be auto-excluded at the time of sending, even if they are still members of the group being sent to (the same as if they had unsubscribed). This will not affect contacts who are added individually as recipients though, only when part of a group.",
+    },
+    auto_exclude_switch: {
+        label: "Enable",
+    },
+    auto_exclude_threshold: {
+        label: "Auto-exclude if haven't read",
+        prefix: "any of last",
+        suffix: "messages",
+    },
+    auto_exclude_exempt_groups: {
+        label: "Don't apply to contacts in groups",
+        hint: "Auto-exclude will never apply to any contacts in these groups (e.g. groups for your family or financial supporters)",
+    },
+    // Additional security
+    social_referral_ban: {
+        label: "Ban social media sharing",
+        hint: "Prevent anyone from reading messages if they are shared on social media by one of your recipients. This provides only limited protection, so you should still delete messages that have been exposed on social media.",
+    },
+}
+
 
 import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
@@ -183,6 +198,7 @@ function options_to_computed_props(props:string[]){
             'auto_exclude_exempt_groups', 'smtp_no_reply', 'social_referral_ban',
         ]),
     },
+    i18n: {messages: {en: i18n}},
 })
 export default class extends Vue {
     // NOTE Code organised by database record, where as template organised by user friendliness

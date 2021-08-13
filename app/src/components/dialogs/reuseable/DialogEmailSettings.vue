@@ -88,27 +88,33 @@ v-card
 </template>
 
 
-<i18n>
-en:
-    email:
-        label: "Email address"
-    smtp_user:
-        label: "Username"
-        hint: "This is usually the same as your email address"
-    smtp_pass:
-        label: "App password"
-    smtp_host:
-        label: "Server name"
-    smtp_port:
-        label: "Port"
-        hint: "This will usually be either 465 or 587"
-    smtp_starttls:
-        label: "Use STARTTLS"
-        hint: "Usually required if using port 587 (full TLS otherwise)"
-</i18n>
-
-
 <script lang='ts'>
+
+
+const i18n = {
+    email: {
+        label: "Email address",
+    },
+    smtp_user: {
+        label: "Username",
+        hint: "This is usually the same as your email address",
+    },
+    smtp_pass: {
+        label: "App password",
+    },
+    smtp_host: {
+        label: "Server name",
+    },
+    smtp_port: {
+        label: "Port",
+        hint: "This will usually be either 465 or 587",
+    },
+    smtp_starttls: {
+        label: "Use STARTTLS",
+        hint: "Usually required if using port 587 (full TLS otherwise)",
+    },
+}
+
 
 import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
@@ -119,7 +125,9 @@ import {test_email_settings, dns_mx} from '@/services/native/native'
 import {OAuthIssuer, oauth_pretask_new_usage} from '@/services/tasks/oauth'
 
 
-@Component({})
+@Component({
+    i18n: {messages: {en: i18n}},
+})
 export default class extends Vue {
 
     @Prop() profile:Profile

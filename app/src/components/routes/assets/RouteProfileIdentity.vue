@@ -2,7 +2,8 @@
 <template lang='pug'>
 
 div
-    app-text(v-model='sender_name' v-bind='$t("sender_name")')
+    app-text(v-model='sender_name' label="Name"
+        hint="Name displayed in messages, notifications, and emails")
     h2(class='text-subtitle-2 mb-0 mt-8') Emailed invitation
     app-invite-html(v-model='invite_tmpl_email' :image='invite_image' :profile='profile'
         @change_image='change_image')
@@ -13,14 +14,6 @@ div
         app-invite-text(v-model='invite_tmpl_clipboard' :context='{sender: sender_name}')
 
 </template>
-
-
-<i18n>
-en:
-    sender_name:
-        label: "Name"
-        hint: "Name displayed in messages, notifications, and emails"
-</i18n>
 
 
 <script lang='ts'>

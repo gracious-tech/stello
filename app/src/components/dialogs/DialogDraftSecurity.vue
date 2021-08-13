@@ -16,20 +16,21 @@ v-card
 </template>
 
 
-<i18n>
-en:
-    lifespan:
-        label: "Expire after"
-        hint: "The number of days until the message expires"
-        suffix: "days"
-    max_reads:
-        label: "Lose access after opening"
-        hint: "The number of times each recipient can open the message before they lose access"
-        suffix: "times"
-</i18n>
-
-
 <script lang='ts'>
+
+const i18n = {
+    lifespan: {
+        label: "Expire after",
+        hint: "The number of days until the message expires",
+        suffix: "days",
+    },
+    max_reads: {
+        label: "Lose access after opening",
+        hint: "The number of times each recipient can open the message before they lose access",
+        suffix: "times",
+    },
+}
+
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
@@ -37,7 +38,9 @@ import {Draft} from '@/services/database/drafts'
 import {Profile} from '@/services/database/profiles'
 
 
-@Component({})
+@Component({
+    i18n: {messages: {en: i18n}},
+})
 export default class extends Vue {
 
     @Prop() draft:Draft
