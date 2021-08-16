@@ -106,7 +106,7 @@ const rollbar = new Rollbar({
     transmit: import.meta.env.MODE === 'production',  // Call handlers but don't transmit in dev
     environment: import.meta.env.MODE,
     accessToken: import.meta.env.VITE_ROLLBAR_APP,
-    captureUncaught: true,
+    captureUncaught: true,  // NOTE Rollbar does more special handling than just `.error()`
     captureUnhandledRejections: true,
     autoInstrument: false,  // SECURITY Don't track use via telemetry to protect privacy
     uncaughtErrorLevel: 'critical',  // Default to critical (shows fail bar)
