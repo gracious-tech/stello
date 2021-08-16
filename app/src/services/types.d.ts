@@ -38,6 +38,7 @@ declare module 'Custom' {
             _db:Database
             _toggle_dark():void
             _update():void
+            _report_error(error:any):string
         }
         interface ImportMeta {
             // Extend with vite's env vars

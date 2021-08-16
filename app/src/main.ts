@@ -48,7 +48,6 @@ import 'croppr/dist/croppr.css'
 // Declare custom props on Vue instances
 declare module "vue/types/vue" {
     interface Vue {
-        $rollbar:Rollbar
         $network_error:(error:any)=>void
         $tm:TaskManager
     }
@@ -103,7 +102,7 @@ function show_fail_bar(){
 
 
 // Setup Rollbar
-Vue.prototype.$rollbar = new Rollbar({
+const rollbar = new Rollbar({
     transmit: import.meta.env.MODE === 'production',  // Call handlers but don't transmit in dev
     environment: import.meta.env.MODE,
     accessToken: import.meta.env.VITE_ROLLBAR_APP,
@@ -127,12 +126,19 @@ Vue.prototype.$rollbar = new Rollbar({
         // NOTE Windows uses forward slashes for file URLs, same as Linux and Mac
         // TODO debug = debug.replaceAll(/file\:\/\/\/.*\/app_dist\//g, '')
 
-        // If critical (or dev) show fail bar
-        if (payload.level === 'critical' || import.meta.env.MODE !== 'production'){
+        // If critical (not handled by other UI like tasks etc) show fail bar
+        if (payload.level === 'critical'){
             show_fail_bar()
         }
     },
 })
+
+
+// Error reporting abstraction
+self._report_error = function(error:any):string{
+    // Report an error and return id for the report
+    return rollbar.error(error).uuid
+}
 
 
 // Vue config
@@ -142,13 +148,13 @@ Vue.config.errorHandler = (error:any, vm, info) => {
     // WARN Despite typings, error arg may be anything and not necessarily an Error instance
     // NOTE Vue's info arg says what part of Vue the error occured in (e.g. render/hook/etc)
     console.error(error)
-    vm.$rollbar.critical(error, info)
+    rollbar.critical(error, info)
 }
 Vue.config.warnHandler = (msg, vm, trace) => {
     // Vue will by default just log warnings, where as hard fail during dev is preferred
     const error = new Error(`VUE WARNING: ${msg}\n\n${trace}`)
     console.error(error)
-    vm.$rollbar.error(error)  // Vue won't actually throw in production; this shows fail bar in dev
+    rollbar.critical(error)  // Vue won't actually throw in production; just shows fail bar for dev
 }
 
 
@@ -207,7 +213,7 @@ const i18n = new VueI18n({
         // Report missing i18n strings
         const error = new Error(`Missing i18n path: ${path} (${locale})`)
         console.error(error)
-        vm.$rollbar.error(error)  // Won't show fail bar as not critical
+        self._report_error(error)
     },
 })
 

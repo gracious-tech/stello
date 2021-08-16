@@ -56,6 +56,7 @@ export class Task {
     abortable:boolean = false  // Whether task can be manually aborted (always internally abortable)
     aborted:TaskAborted|null = null  // An abort error if task has been aborted
     error:any = null  // Error value is both resolved for `done` and set as a property
+    error_report_id:string = null  // UUID for error report (if was sent)
 
     // Private
     private done_resolve:(error:any)=>void
@@ -175,6 +176,9 @@ export class Task {
     finish(error:any=null){
         // Resolve task's done promise, optionally setting and resolving done with error if any
         this.error = error
+        if (this.error_type === 'unknown'){
+            this.error_report_id = self._report_error(error)
+        }
         this.done_resolve(error)
     }
 
@@ -239,10 +243,6 @@ export class TaskManager {
                 this.data.finished = task
             } else {
                 this.data.fails.push(task)
-                // Report if an unknown error
-                if (task.error_type === 'unknown'){
-                    self._fail_report(error)
-                }
             }
         })
 

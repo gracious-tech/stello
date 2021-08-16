@@ -7,7 +7,7 @@ v-card.card
     v-card-text(class='text-body-1')
         p {{ explanation }}
     v-card-actions
-        app-btn(v-if='mailto' :href='mailto') Let us know
+        app-btn(v-if='support_url' :href='support_url') Let us know
         app-btn(@click='fix') {{ fix_text }}
 
 </template>
@@ -115,12 +115,13 @@ export default class extends Vue {
         return "Retry"
     }
 
-    get mailto():string{
-        // Generate a mailto link if the fail type is unknown
+    get support_url():string{
+        // Generate a support url if the fail type is unknown
         // SECURITY Don't include task params or label as may include personal data
         if (this.error_type === 'unknown'){
-            return self._debug_to_mailto(
-                `${self._error_to_debug(this.task.error)}\n\n(during task '${this.task.name}')`)
+            const desc = "I was trying to...\n\nBut...\n\n\n----------TECHNICAL DETAILS----------\n"
+                + `Task: ${this.task.name}\nError report: ${this.task.error_report_id}`
+            return `https://gracious.tech/support/stello/error/?desc=${encodeURIComponent(desc)}`
         }
     }
 

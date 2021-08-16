@@ -76,8 +76,8 @@ v-card
             template(v-if='error.code === "timeout"')
                 li(v-if='not_detected') Your server name or port may be incorrect (#[a(:href='smtp_settings_search') search for correct settings])
                 li Your Internet connection may be very slow
-        p(class='text-center')
-            app-btn(:href='error_mailto' small) Contact Support
+        p(class='text-center mt-3')
+            app-btn(:href='error_support_url' small) Contact Support
 
     v-card-actions
         app-btn(@click='cancel') Cancel
@@ -135,6 +135,7 @@ export default class extends Vue {
     setup:'init'|'email'|'settings'|'signin'|'password' = 'init'
     init_email:string = ''  // Address entered in initial setup phase (not auto-saved to profile)
     error:EmailError = null
+    error_report_id:string = null
     loading:boolean = false
 
     async created(){
@@ -211,9 +212,14 @@ export default class extends Vue {
         return 'https://duckduckgo.com/?q=' + encodeURIComponent(query)
     }
 
-    get error_mailto():string{
-        // Get mailto uri with debugging info for current error
-        return self._debug_to_mailto(self._error_to_debug(this.error))
+    get error_support_url():string{
+        // Get support url with debugging info for current error
+        let desc = "I was trying to...\n\nBut...\n\n\n----------TECHNICAL DETAILS----------\n"
+            + `Email error: ${this.error.code}\nDetails: ${this.error.details}`
+        if (this.error_report_id){
+            desc += `\nError report: ${this.error_report_id}`
+        }
+        return `https://gracious.tech/support/stello/error/?desc=${encodeURIComponent(desc)}`
     }
 
     // GET/SET PROFILE PROPERTIES
@@ -268,6 +274,15 @@ export default class extends Vue {
         // Ensure error and loading is cleared whenever change setup step
         this.error = null
         this.loading = false
+    }
+
+    @Watch('error') watch_error():void{
+        // If an unknown error occurs, submit a report for it
+        this.error_report_id = null  // Always reset since error has changed
+        if (this.error.code === 'unknown'){
+            this.error_report_id = self._report_error(
+                new Error(`Unknown smtp error: ${this.error.details}`))
+        }
     }
 
     // METHODS
