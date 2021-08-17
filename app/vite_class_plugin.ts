@@ -22,8 +22,15 @@ export default function():Plugin{
                 .slice(0, '.vue'.length * -1)
                 .replace(/[^a-zA-Z]/g, '')
 
-            return code.replace('export default class extends Vue',
+            // Replace anonymous export with named export
+            code = code.replace('export default class extends Vue',
                 `export default class ${class_name} extends Vue`)
+
+            // Return code and no map (since line numbers don't change, just column)
+            return {
+                code,
+                map: null,
+            }
         }
     }
 }
