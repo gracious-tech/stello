@@ -6,7 +6,7 @@ import VueRouter from 'vue-router'
 import VueI18n from 'vue-i18n'
 import Vuetify from 'vuetify/lib'  // WARN Must import from /lib for tree shaking
 import VuetifyRoutable from 'vuetify/lib/mixins/routable'
-import Rollbar from 'rollbar'
+import Rollbar from 'rollbar/src/browser/core'  // Rollbar defaults to a minified general version
 
 // Own modules
 import '@/services/register_hooks'  // WARN Must come before any components imported
@@ -102,6 +102,7 @@ function show_fail_bar(){
 
 
 // Setup Rollbar
+const fake_base_url = 'file:///redacted'
 const rollbar = new Rollbar({
     transmit: import.meta.env.MODE === 'production',  // Call handlers but don't transmit in dev
     environment: import.meta.env.MODE,
@@ -111,6 +112,9 @@ const rollbar = new Rollbar({
     autoInstrument: false,  // SECURITY Don't track use via telemetry to protect privacy
     uncaughtErrorLevel: 'critical',  // Default to critical (shows fail bar)
     payload: {
+        server: {
+            root: fake_base_url,  // So rollbar points to correct source code location
+        },
         // Version must be within payload prop (https://github.com/rollbar/rollbar.js/issues/842)
         code_version: 'v' + app_config.version,  // 'v' to match git tags
     },
@@ -122,9 +126,12 @@ const rollbar = new Rollbar({
     ],
     onSendCallback: (isUncaught, args, payload:any) => {
 
-        // SECURITY Remove file paths in stack trace which may expose user's username
-        // NOTE Windows uses forward slashes for file URLs, same as Linux and Mac
-        // TODO debug = debug.replaceAll(/file\:\/\/\/.*\/app_dist\//g, '')
+        // SECURITY Replace all file urls with fake base url to avoid exposing OS username etc
+        // NOTE `transform` callback is called earlier and doesn't apply to `notifier` prop
+        const base_url = new URL('./', self.location.href).href.slice(0, -1)
+        for (const [key, val] of Object.entries(payload)){
+            payload[key] = JSON.parse(JSON.stringify(val).replaceAll(base_url, fake_base_url))
+        }
 
         // If critical (not handled by other UI like tasks etc) show fail bar
         if (payload.level === 'critical'){
