@@ -269,8 +269,7 @@ function open_window(){
     load_index()
 
     // Ensure cannot navigate away from app and instead open all other URLs in system browser
-    // NOTE Initial load and all in-app nav shouldn't trigger any of these events
-    const handle_navigation = function(event, url){
+    const handle_navigation = function(url){
 
         // Determine current file URL
         const current_file_url = window.webContents.getURL().split('#')[0]
@@ -283,12 +282,19 @@ function open_window(){
         } else {
             shell.openExternal(url)
         }
-
-        // Always prevent default otherwise could nav to an external url or create new windows
-        event.preventDefault()
     }
-    window.webContents.on('new-window', handle_navigation)  // e.g. _blank links
-    window.webContents.on('will-navigate', handle_navigation)  // e.g. regular external links
+    window.webContents.on('will-navigate', (event, url) => {
+        // Listens for navigation requests (mainly just external links since app is single page)
+        handle_navigation(url)
+        // Prevent electron from changing the URL or creating a new window itself
+        event.preventDefault()
+    })
+    window.webContents.setWindowOpenHandler(details => {
+        // Handles requests to open a new window (e.g. _blank links)
+        handle_navigation(details.url)
+        // Prevent electron from creating a new window itself
+        return {action: 'deny'}
+    })
 
     return window
 }
