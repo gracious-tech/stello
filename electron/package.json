@@ -10,17 +10,16 @@
   "private": true,
   "main": "src/main.js",
   "dependencies": {
-    "nodemailer": "^6.4.16",
-    "rollbar": "^2.24.0",
-    "gmail-nodemailer-transport": "^2.0.1",
-    "electron-context-menu": "^2.3.1",
-    "electron-updater": "^4.3.5"
+    "electron": "^13.2.0",
+    "electron-context-menu": "^3.1.1",
+    "electron-updater": "^4.3.9",
+    "nodemailer": "^6.6.3",
+    "rollbar": "^2.24.0"
   },
   "devDependencies": {
-    "electron": "^11.0.2",
-    "electron-builder": "^22.9.1",
-    "electron-notarize": "^1.0.0",
-    "png-to-ico": "^2.1.1"
+    "electron-builder": "^22.11.7",
+    "electron-notarize": "^1.1.0",
+    "png-to-ico": "^2.1.2"
   },
   "build": {
     "appId": "tech.gracious.stello",
