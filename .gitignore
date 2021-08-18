@@ -11,6 +11,7 @@
 
 /electron/src/config.json
 /electron/node_modules/
+/electron/.chrome_ext_vue/
 /electron/dist/
 /electron/app_dist
 

@@ -8,7 +8,7 @@ const dns = require('dns').promises
 const path = require('path')
 const http = require('http')
 
-const {app, BrowserWindow, ipcMain, shell, Menu, dialog} = require('electron')
+const {app, BrowserWindow, ipcMain, shell, Menu, dialog, session} = require('electron')
 const {autoUpdater} = require('electron-updater')
 const context_menu = require('electron-context-menu')
 
@@ -126,6 +126,17 @@ let update_downloaded = false
 
 // Handle app init
 app.whenReady().then(async () => {
+
+    // Load vue dev tools extension if available (must load before page does)
+    if (!app.isPackaged){
+        const vue_ext_path = path.join(__dirname, '../.chrome_ext_vue')
+        try {
+            await fs.access(vue_ext_path)  // Throw when missing, as below just blocks with no throw
+            await session.defaultSession.loadExtension(vue_ext_path, {allowFileAccess: true})
+        } catch {
+            console.warn(`Failed to load Vue dev tools extension at: ${vue_ext_path}`)
+        }
+    }
 
     // Try to auto-update (if packaging format supports it)
     // NOTE Updates on Windows are currently handled by the Windows Store
