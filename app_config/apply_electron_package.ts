@@ -5,7 +5,7 @@ import {AppConfigOutput} from './types'
 
 export function generate_electron_package(app_config:AppConfigOutput,
             current_contents:Record<string, any>):string{
-    return JSON.stringify({
+    const new_contents = {
         // Used by electron
         name: app_config.codename,
         version: app_config.version,
@@ -52,5 +52,8 @@ export function generate_electron_package(app_config:AppConfigOutput,
                 acl: null,  // So don't have to grant CI ACL permissions
             },
         },
-    }, null, 2)
+    }
+
+    // Return contents in same style that npm uses
+    return JSON.stringify(new_contents, null, 2) + '\n'
 }
