@@ -3,7 +3,8 @@
 import {AppConfigOutput} from './types'
 
 
-export function generate_electron_package(app_config:AppConfigOutput):string{
+export function generate_electron_package(app_config:AppConfigOutput,
+            current_contents:Record<string, any>):string{
     return JSON.stringify({
         // Used by electron
         name: app_config.codename,
@@ -17,19 +18,8 @@ export function generate_electron_package(app_config:AppConfigOutput):string{
         // Code related
         private: true,
         main: 'src/main.js',
-        devDependencies: {
-            'electron': '^11.0.2',
-            'electron-builder': '^22.9.1',
-            'electron-notarize': '^1.0.0',
-            'png-to-ico': '^2.1.1',
-        },
-        dependencies: {
-            'nodemailer': '^6.4.16',
-            'rollbar': '^2.24.0',
-            'gmail-nodemailer-transport': '^2.0.1',
-            'electron-context-menu': '^2.3.1',
-            'electron-updater': '^4.3.5',
-        },
+        dependencies: current_contents.dependencies,
+        devDependencies: current_contents.devDependencies,
         build: {
             appId: `tech.gracious.${app_config.codename}`,
             productName: app_config.name,
@@ -62,5 +52,5 @@ export function generate_electron_package(app_config:AppConfigOutput):string{
                 acl: null,  // So don't have to grant CI ACL permissions
             },
         },
-    })
+    }, null, 2)
 }

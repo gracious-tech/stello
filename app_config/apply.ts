@@ -46,4 +46,6 @@ writeFileSync(resolve(__dirname, '../displayer/src/app_config.json'), JSON.strin
 
 
 // Generate electron package.json
-writeFileSync(resolve(__dirname, '../electron/package.json'), generate_electron_package(config))
+const electron_package_path = resolve(__dirname, '../electron/package.json')
+writeFileSync(electron_package_path,
+    generate_electron_package(config, JSON.parse(readFileSync(electron_package_path, 'utf-8'))))
