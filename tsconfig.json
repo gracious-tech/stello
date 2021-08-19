@@ -6,6 +6,7 @@
         "importHelpers": true,  // Avoid duplicate utils when targeting old JS
         "esModuleInterop": true,  // Make require imports work like es6 ones do
         "experimentalDecorators": true,  // Allow @decorators
+        "skipLibCheck": true,  // Mostly avoids checking node_modules (but see docs)
         // Strict checking
         "strict": true,
         "allowUnreachableCode": false,  // Must be a mistake
