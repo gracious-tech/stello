@@ -1,55 +1,53 @@
 {
-  "name": "stello",
-  "version": "0.7.8",
-  "description": "Simple secure stylish sending of newsletters for Christian ministry",
-  "homepage": "https://stello.news/",
-  "author": {
-    "name": "Gracious Tech",
-    "email": "support@gracious.tech"
-  },
-  "private": true,
-  "main": "src/main.js",
-  "dependencies": {
-    "electron": "^13.2.0",
-    "electron-context-menu": "^3.1.1",
-    "electron-updater": "^4.3.9",
-    "esbuild": "^0.12.21",
-    "nodemailer": "^6.6.3",
-    "rollbar": "^2.24.0"
-  },
-  "devDependencies": {
-    "@tsconfig/node14": "^1.0.1",
-    "electron-builder": "^22.11.7",
-    "electron-notarize": "^1.1.0",
-    "png-to-ico": "^2.1.2",
-    "typescript": "^4.3.5"
-  },
-  "build": {
-    "appId": "tech.gracious.stello",
-    "productName": "Stello",
-    "artifactName": "stello.${ext}",
-    "appx": {
-      "backgroundColor": "#455a64",
-      "displayName": "Stello by Gracious Tech",
-      "publisherDisplayName": "Gracious Tech Pty Ltd",
-      "identityName": "GraciousTechPtyLtd.StellobyGraciousTech",
-      "publisher": "CN=108FB3BA-A617-4D61-B151-371B31EF4350"
+    "name": "stello",
+    "version": "0.7.8",
+    "description": "Simple secure stylish sending of newsletters for Christian ministry",
+    "homepage": "https://stello.news/",
+    "author": {
+        "name": "Gracious Tech",
+        "email": "support@gracious.tech"
     },
-    "mac": {
-      "darkModeSupport": true,
-      "category": "public.app-category.productivity"
+    "private": true,
+    "main": "src/main.js",
+    "dependencies": {
+        "electron": "^13.2.0",
+        "electron-context-menu": "^3.1.1",
+        "electron-updater": "^4.3.9",
+        "nodemailer": "^6.6.3",
+        "rollbar": "^2.24.0"
     },
-    "dmg": {
-      "icon": null,
-      "title": "Install Stello (drag into Applications)"
+    "devDependencies": {
+        "electron-builder": "^22.11.7",
+        "electron-notarize": "^1.1.0",
+        "esbuild": "^0.12.21",
+        "png-to-ico": "^2.1.2"
     },
-    "afterSign": "./macos_notarize.js",
-    "publish": {
-      "provider": "s3",
-      "bucket": "releases-stello-news",
-      "region": "us-west-2",
-      "path": "electron_proposed/",
-      "acl": null
+    "build": {
+        "appId": "tech.gracious.stello",
+        "productName": "Stello",
+        "artifactName": "stello.${ext}",
+        "appx": {
+            "backgroundColor": "#455a64",
+            "displayName": "Stello by Gracious Tech",
+            "publisherDisplayName": "Gracious Tech Pty Ltd",
+            "identityName": "GraciousTechPtyLtd.StellobyGraciousTech",
+            "publisher": "CN=108FB3BA-A617-4D61-B151-371B31EF4350"
+        },
+        "mac": {
+            "darkModeSupport": true,
+            "category": "public.app-category.productivity"
+        },
+        "dmg": {
+            "icon": null,
+            "title": "Install Stello (drag into Applications)"
+        },
+        "afterSign": "./macos_notarize.js",
+        "publish": {
+            "provider": "s3",
+            "bucket": "releases-stello-news",
+            "region": "us-west-2",
+            "path": "electron_proposed/",
+            "acl": null
+        }
     }
-  }
 }

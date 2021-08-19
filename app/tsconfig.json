@@ -1,5 +1,4 @@
 {
-  "files": ["this-cant-be-empty-due-to-bug"],
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
@@ -28,10 +27,8 @@
   },
   "include": [
     "src/**/*.ts",
-    "src/**/*.tsx",
     "src/**/*.vue",
     "tests/**/*.ts",
-    "tests/**/*.tsx"
   ],
   "exclude": [
     "node_modules"

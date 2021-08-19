@@ -70,4 +70,4 @@ const new_contents:Metadata|PackageJsonMissing = {
 
 // Write to package.json using same style that npm uses
 const package_json_path = path.join(__dirname, 'package.json')
-writeFileSync(package_json_path, JSON.stringify(new_contents, null, 2) + '\n')
+writeFileSync(package_json_path, JSON.stringify(new_contents, null, 4) + '\n')
