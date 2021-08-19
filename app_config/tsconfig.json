@@ -1,5 +1,5 @@
 {
     "extends": "../tsconfig_node.jsonc",
-    "include": ["./**/*.ts"],
+    "include": ["**/*.ts"],
     "exclude": ["node_modules"],
 }
