@@ -12,13 +12,13 @@ export class NestedStructureChanged extends Error {
 }
 
 
-export function nested_objects_set(container:Record<string, any>, keys:[string, ...string[]],
+export function nested_objects_set(container:Record<string, any>, keys:MinOne<string>,
         value:any):void{
     // Set a value in a nested set of objects
     // NOTE Doesn't allow adding new properties (important as Vue wouldn't be able to detect)
 
     // Avoid changing keys array
-    keys = keys.slice() as [string, ...string[]]
+    keys = keys.slice() as MinOne<string>
 
     // Traverse the container until only one key remains
     while (keys.length > 1){

@@ -686,7 +686,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         return false
     }
 
-    async _setup_lambda(){
+    async _setup_lambda():Promise<void>{
         // Setup lambda for handling recipient responses
         // SECURITY Lambda code managed by admin rather than user to prevent malicious code uploads
 
@@ -727,10 +727,11 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
                     Code: {ZipFile: fn_code},
                     Tags: {stello: this.bucket},
                 })
-                return waitUntilFunctionExists(
+                await waitUntilFunctionExists(
                     {client: this.lambda, maxWaitTime: 30},
                     {FunctionName: this._lambda_id},
                 )
+                return
             }
             // An error actually occured
             throw error

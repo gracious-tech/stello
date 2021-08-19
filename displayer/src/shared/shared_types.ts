@@ -1,4 +1,11 @@
 
+// TYPE UTILS
+
+declare global {
+    type MinOne<T> = [T, ...T[]]
+}
+
+
 // PUBLISHED
 
 export interface PublishedCopyBase {

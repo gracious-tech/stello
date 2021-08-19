@@ -53,14 +53,14 @@ async function to1(transaction:VersionChangeTransaction){
 
     // Create object stores
     // NOTE If no keyPath is given then must provide a key for every transaction
-    const state = transaction.db.createObjectStore('state', {keyPath: 'key'})
-    const contacts = transaction.db.createObjectStore('contacts', {keyPath: 'id'})
-    const groups = transaction.db.createObjectStore('groups', {keyPath: 'id'})
-    const profiles = transaction.db.createObjectStore('profiles', {keyPath: 'id'})
-    const drafts = transaction.db.createObjectStore('drafts', {keyPath: 'id'})
-    const messages = transaction.db.createObjectStore('messages', {keyPath: 'id'})
+    transaction.db.createObjectStore('state', {keyPath: 'key'})
+    transaction.db.createObjectStore('contacts', {keyPath: 'id'})
+    transaction.db.createObjectStore('groups', {keyPath: 'id'})
+    transaction.db.createObjectStore('profiles', {keyPath: 'id'})
+    transaction.db.createObjectStore('drafts', {keyPath: 'id'})
+    transaction.db.createObjectStore('messages', {keyPath: 'id'})
+    transaction.db.createObjectStore('sections', {keyPath: 'id'})
     const copies = transaction.db.createObjectStore('copies', {keyPath: 'id'})
-    const sections = transaction.db.createObjectStore('sections', {keyPath: 'id'})
     const reads = transaction.db.createObjectStore('reads', {keyPath: 'id'})
     const replies = transaction.db.createObjectStore('replies', {keyPath: 'id'})
     const reactions = transaction.db.createObjectStore('reactions', {keyPath: 'id'})

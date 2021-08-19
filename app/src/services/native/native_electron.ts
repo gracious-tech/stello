@@ -1,13 +1,11 @@
 // Utilities that either rely on native features or are extended by them
 
-import {IpcRenderer} from 'electron'  // Just for type (injected via preload.js)
-
 import {EmailSettings, Email, EmailError, EmailIdentity} from './types'
 
 
 declare global {
     interface Window {
-        ipcRenderer:IpcRenderer
+        ipcRenderer:any
     }
 }
 

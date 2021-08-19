@@ -142,6 +142,7 @@ export class Sender {
             } else {
                 return "Sending account no longer exists"
             }
+            return undefined
         }
         task.fix_auth = task.fix_settings
 

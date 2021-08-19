@@ -61,7 +61,8 @@ export async function get_initial_state(db:Database):Promise<AppStoreState>{
     // NOTE Values are only written when changed, so many keys will not have values stored
     for (const item of items){
         try {
-            nested_objects_set(state, item.key.split(KEY_SEPARATOR), item.value)
+            const keys = item.key.split(KEY_SEPARATOR) as MinOne<string>
+            nested_objects_set(state, keys, item.value)
         } catch (error){
             catch_only(NestedKeyMissing, error)
             // Key is obsolete (from old app version or old room residue from mulitple tabs)

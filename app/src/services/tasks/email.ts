@@ -64,7 +64,7 @@ async function send_emails_oauth_google(oauth:OAuth, emails:Email[], from:EmailI
                 await oauth_request(oauth, url, undefined, 'POST', body)
             } catch (error){
                 if (error instanceof MustInterpret){
-                    if (error.data?.body?.error?.message?.toLowerCase() === 'invalid to header'){
+                    if (error.data?.['body']?.error?.message?.toLowerCase() === 'invalid to header'){
                         // Contact's address is probably invalid so don't hard fail
                         handle_email_submitted(email.id, false)
                         return

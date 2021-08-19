@@ -33,7 +33,7 @@ async function get_store_options(db:Database):Promise<StoreOptions<AppStoreState
 
     mutations: {
 
-        dict_set(state, [key_or_keys, value]:[string|string[], any]):void{
+        dict_set(state, [key_or_keys, value]:[string|MinOne<string>, any]):void{
             // Both set a value in the store and save it in the db
 
             // May have been given single key string, so convert to array to make simpler
@@ -41,7 +41,7 @@ async function get_store_options(db:Database):Promise<StoreOptions<AppStoreState
             const keys = Array.isArray(key_or_keys) ? key_or_keys.slice() : [key_or_keys]
 
             // Set in store
-            nested_objects_set(state, keys, value)
+            nested_objects_set(state, keys as MinOne<string>, value)
 
             // Save in db
             // NOTE Below is async but does not affect app at all so ok in mutation
@@ -72,14 +72,14 @@ async function get_store_options(db:Database):Promise<StoreOptions<AppStoreState
             commit('tmp_set', ['snackbar', typeof arg === 'string' ? {msg: arg} : arg])
         },
 
-        show_dialog({state, commit}, dialog:StateTmpDialog):Promise<any>{
+        show_dialog({state, commit}, dialog:StateTmpDialog):Promise<unknown>{
             // Show the specified dialog
 
             // If a dialog is already open, try close it
             if (state.tmp.dialog){
                 // If existing dialog is persistant and requested one isn't, assume more important
                 if (state.tmp.dialog.persistent && !dialog.persistent){
-                    return  // Ignore request to open dialog
+                    return undefined  // Ignore request to open dialog
                 } else {
                     state.tmp.dialog.resolve()
                 }

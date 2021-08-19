@@ -580,7 +580,7 @@ export class Database {
 
         // Create responses
         for (const msg of percent(messages)){
-            const msg_section_ids = cycle(msg.draft.sections.flat())
+            const msg_section_ids = cycle(msg.draft.sections.flat() as MinOne<string>)
             const msg_subsection_ids = cycle([null, section_image.content.images[0].id, null, null])
             for (const msg_copy of percent(await this.copies.list_for_msg(msg.id))){
                 if (Math.random() > 0.5){

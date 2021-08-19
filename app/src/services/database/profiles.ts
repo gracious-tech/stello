@@ -172,12 +172,12 @@ export class Profile implements RecordProfile {
         return "PLEASE DON'T REPLY VIA EMAIL (open message to reply)"
     }
 
-    get smtp_reply_to():{name:string, address:string}{
+    get smtp_reply_to():{name:string, address:string}|undefined{
         // Return name/address contact pair for use with Reply-To header
 
         // If allowing email replies, or in-message replies not enabled, no need for a Reply-To
         if (!this.options.smtp_no_reply || !this.options.allow_replies){
-            return
+            return undefined
         }
 
         /* SECURITY Not using a noreply address as it doesn't improve security

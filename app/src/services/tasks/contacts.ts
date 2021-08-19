@@ -434,10 +434,10 @@ async function contacts_sync_google_groups(task:Task, oauth:OAuth, confirmed:Rec
 }
 
 
-function google_primary<T extends GoogleListItem>(options:T[]):T{
+function google_primary<T extends GoogleListItem>(options?:T[]):T|undefined{
     // Helper for Google data structures that selects either the primary item, else the first one
     if (!options?.length){
-        return  // Arg may be undefined or an empty array if that data wasn't returned by Google
+        return undefined // options may be undefined or empty if data wasn't returned by Google
     }
     for (const item of options){
         if (item.metadata.primary){

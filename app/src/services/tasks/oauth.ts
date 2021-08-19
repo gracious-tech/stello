@@ -7,6 +7,13 @@ Which makes them ideal for handling via tasks only
 */
 
 // NOTE Using appauth src as custom fork changes TS files but not the built js
+// NOTE appauth src makes use of console.profile, causing type errors, so below just to silence them
+declare global {
+    interface Console {
+        profile:any
+        profileEnd:any
+    }
+}
 import * as appauth from '@openid/appauth/src'
 import {AuthorizationServiceConfiguration} from '@openid/appauth'
 
@@ -138,7 +145,7 @@ class CustomQueryStringUtils extends appauth.BasicQueryStringUtils {
         AppAuth defaults to parsing the hash for security (e.g. avoid server all together)
         Since Stello runs its own server it's a non-issue, and the hash is not retrievable otherwise
     */
-    parse(input:appauth.LocationLike, useHash?:boolean){
+    override parse(input:appauth.LocationLike, useHash?:boolean){
         return this.parseQueryString(input.search)
     }
 }
