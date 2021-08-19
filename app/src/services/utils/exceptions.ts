@@ -83,6 +83,7 @@ export function silence<A, R>(fn:(...args:A[])=>R, args:A[]=[]):R|undefined{
     try {
         return fn(...args)
     } catch {}
+    return undefined
 }
 
 

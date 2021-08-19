@@ -20,7 +20,7 @@ export function* range(start_or_amount:number, end?:number, step:number=1):Gener
 }
 
 
-export function* cycle<T>(options:T[]):Generator<T>{
+export function* cycle<T>(options:[T, ...T[]]):Generator<T>{
     // Generator that endlessly cycles through given options
     while (true){
         yield options[0]

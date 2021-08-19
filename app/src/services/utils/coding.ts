@@ -59,7 +59,7 @@ export function buffer_to_hex(array_buffer:ArrayBuffer):string{
 
 export function buffer_to_blob(buffer:ArrayBuffer, type?:string):Blob{
     // Converts an array buffer to a blob with given mime type
-    return new Blob([buffer], {type})
+    return new Blob([buffer], type ? {type} : undefined)
 }
 
 

@@ -3,21 +3,22 @@ import {type_of} from './exceptions'
 
 
 export class NestedKeyMissing extends Error {
-    name = 'NestedKeyMissing'
+    override name = 'NestedKeyMissing'
 }
 
 
 export class NestedStructureChanged extends Error {
-    name = 'NestedStructureChanged'
+    override name = 'NestedStructureChanged'
 }
 
 
-export function nested_objects_set(container:Record<string, any>, keys:string[], value:any):void{
+export function nested_objects_set(container:Record<string, any>, keys:[string, ...string[]],
+        value:any):void{
     // Set a value in a nested set of objects
     // NOTE Doesn't allow adding new properties (important as Vue wouldn't be able to detect)
 
     // Avoid changing keys array
-    keys = keys.slice()
+    keys = keys.slice() as [string, ...string[]]
 
     // Traverse the container until only one key remains
     while (keys.length > 1){

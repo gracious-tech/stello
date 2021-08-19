@@ -30,8 +30,7 @@ export async function resize_bitmap(bitmap:ImageBitmap, max_width:number, max_he
 
     // The args needed for resizing
     let src_args:[number, number, number, number] = [0, 0, bitmap.width, bitmap.height]
-    let output_width:number|undefined
-    let output_height:number|undefined
+    const resize_args:ImageBitmapOptions = {resizeQuality: 'high'}
 
     // If not cropping or ratio already correct, just need a simple scale down
     if (!crop || actual_ratio === desired_ratio){
@@ -39,9 +38,9 @@ export async function resize_bitmap(bitmap:ImageBitmap, max_width:number, max_he
         // Work out which aspect to set to ensure all dimensions within limits
         const hypothetical_height = max_width / actual_ratio
         if (hypothetical_height > max_height){
-            output_height = max_height
+            resize_args.resizeHeight = max_height
         } else {
-            output_width = max_width
+            resize_args.resizeWidth = max_width
         }
 
     } else {
@@ -53,23 +52,19 @@ export async function resize_bitmap(bitmap:ImageBitmap, max_width:number, max_he
             const x = (bitmap.width - pre_scale_width) / 2
             src_args = [x, 0, pre_scale_width, bitmap.height]  // x, y, w, h
             // Start with height (either original or reduced) and work out new width from there
-            output_height = Math.min(max_height, bitmap.height)
-            output_width = output_height * desired_ratio
+            resize_args.resizeHeight = Math.min(max_height, bitmap.height)
+            resize_args.resizeWidth = resize_args.resizeHeight * desired_ratio
         } else {
             // Image too high
             const pre_scale_height = bitmap.width / desired_ratio
             const y = (bitmap.height - pre_scale_height) / 2
             src_args = [0, y, bitmap.width, pre_scale_height]  // x, y, w, h
             // Start with width (either original or reduced) and work out new height from there
-            output_width = Math.min(max_width, bitmap.width)
-            output_height = output_width / desired_ratio
+            resize_args.resizeWidth = Math.min(max_width, bitmap.width)
+            resize_args.resizeHeight = resize_args.resizeWidth / desired_ratio
         }
     }
 
     // Resize
-    return createImageBitmap(bitmap, ...src_args, {
-        resizeQuality: 'high',
-        resizeWidth: output_width,
-        resizeHeight: output_height,
-    })
+    return createImageBitmap(bitmap, ...src_args, resize_args)
 }

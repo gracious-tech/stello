@@ -17,7 +17,7 @@ interface RowDisplay {
 
 // Functions
 
-export function floatify_rows(rows:SectionLike[][]):RowDisplay[]{
+export function floatify_rows(rows:([SectionLike]|[SectionLike, SectionLike])[]):RowDisplay[]{
     // Take sections/rows and return them with a display property provided for each row
     return rows.map(row => {
 

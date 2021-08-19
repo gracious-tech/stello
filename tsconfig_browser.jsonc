@@ -4,7 +4,8 @@
     "extends": "./tsconfig.json",
     "compilerOptions": {
         // Build for latest browser (use esbuild etc to target old browsers if necessary)
-        "lib": ["ESNext", "DOM", "DOM.Iterable"],
+        // NOTE WebWorker just added for sake of OffscreenCanvas and should be removed later
+        "lib": ["ESNext", "DOM", "DOM.Iterable", "WebWorker"],
         "module": "ESNext",
         "target": "ESNext",
     },

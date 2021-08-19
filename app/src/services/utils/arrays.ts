@@ -44,7 +44,7 @@ function _remove<T>(array:T[], checker:(item:T)=>any, single:boolean):T[]{
     // Remove items from array whose return from checker fn is truthy and return removed items
     const removed:T[] = []
     for (let i = array.length - 1; i >= 0; i--){
-        if (checker(array[i])){
+        if (checker(array[i]!)){
             removed.push(...array.splice(i, 1))
             if (single){
                 break
@@ -69,7 +69,7 @@ export function remove_value<T>(array:T[], value:T):number{
 }
 
 
-export function remove_match<T>(array:T[], checker:(item:T)=>any):T{
+export function remove_match<T>(array:T[], checker:(item:T)=>any):T|undefined{
     // Remove first item that matches checker fn and return it (undefined if none)
     // WARN May want to use `remove_matches` for small arrays in case duplicates
     return _remove(array, checker, true)[0]
@@ -82,7 +82,7 @@ export function remove_matches<T>(array:T[], checker:(item:T)=>any):T[]{
 }
 
 
-export function get_last<T>(array:T[]):T{
+export function get_last<T>(array:T[]):T|undefined{
     // Return the last item in the array, or undefined (useful when array name very long)
     return array[array.length-1]
 }

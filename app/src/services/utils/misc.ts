@@ -1,17 +1,6 @@
 // Utils that are too hard to categorise
 
 
-declare global {
-    interface ClipboardItem {  // Made up until implemented
-        types:string[]
-        getType:(type:string)=>Promise<Blob>
-    }
-    interface Clipboard {  // Extended until additional methods implemented
-        read():Promise<ClipboardItem[]>
-    }
-}
-
-
 export async function get_clipboard_blobs(preferred=[]):Promise<Blob[]>{
     // Return clipboard's contents as blobs
     // NOTE May be multiple clipboard items, so an array is returned
@@ -34,7 +23,7 @@ export async function get_clipboard_blobs(preferred=[]):Promise<Blob[]>{
             }
         }
         // No preferences matched so just return the first
-        return item.getType(item.types[0])
+        return item.getType(item.types[0]!)
     }))
 
     // `getType()` of some items may return null so filter them out
