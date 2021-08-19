@@ -1,4 +1,6 @@
 // NOTE vscode will warn about trailing commas in this file, but can ignore the warnings
+// NOTE Must also install typings for node, but per-component, otherwise would apply to browser too
+//      npm install --save-dev @types/node
 {
     "$schema": "https://json.schemastore.org/tsconfig",
     "extends": "./tsconfig.json",

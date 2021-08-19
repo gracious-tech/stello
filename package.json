@@ -3,7 +3,6 @@
     "dependencies": {},
     "devDependencies": {
         "@tsconfig/node14": "^1.0.1",
-        "@types/node": "^16.6.2",
         "@typescript-eslint/eslint-plugin": "^4.29.2",
         "@typescript-eslint/parser": "^4.29.2",
         "eslint": "^7.32.0",

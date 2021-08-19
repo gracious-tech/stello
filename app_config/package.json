@@ -3,5 +3,8 @@
     "dependencies": {
         "chroma-js": "^2.1.0",
         "js-yaml": "^3.13.1"
+    },
+    "devDependencies": {
+        "@types/node": "^16.6.2"
     }
 }
