@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "noEmit": true,  // Never create JS files, always bundle or pipe instead
+        "resolveJsonModule": true,  // Import JSON as objects
+        "moduleResolution": "Node",  // All should use node-like module resolution, not just node
+        "importHelpers": true,  // Avoid duplicate utils when targeting old JS
+        "esModuleInterop": true,  // Make require imports work like es6 ones do
+        "experimentalDecorators": true,  // Allow @decorators
+        // Strict checking
+        "strict": true,
+        "allowUnreachableCode": false,  // Must be a mistake
+        "allowUnusedLabels": false,  // Labels as in `continue *label*` for loops etc
+        "exactOptionalPropertyTypes": true,  // {a:undefined} !== {}
+        "noImplicitOverride": true,  // Must use `override` to make overriding parent class clear
+        "noImplicitReturns": true,  // Must return a value unless void
+        "noPropertyAccessFromIndexSignature": true,  // Must use `['a']` not `.a` if props unknown
+        "noUncheckedIndexedAccess": true,  // If {[k:any]:type} consider `.k` = type|undefined
+        "noUnusedLocals": true,  // Can't define variable and not use it
+        "noUnusedParameters": false,  // It's ok to specify listener(event) and not use event
+    },
+}

@@ -1,36 +1,10 @@
 {
-  "compilerOptions": {
-    "target": "esnext",
-    "module": "esnext",
-    "strict": false,
-    "importHelpers": true,
-    "moduleResolution": "node",
-    "experimentalDecorators": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true,
-    "sourceMap": true,
-    "baseUrl": ".",
-    "types": [
-      "vuetify",
-    ],
-    "paths": {
-      "@/*": [
-        "src/*"
-      ]
+    "extends": "../tsconfig_browser.jsonc",
+    "include": ["src/**/*.ts", "src/**/*.vue"],
+    "compilerOptions": {
+        "strict": false,
+        "paths": {
+            "@/*": ["./src/*"],
+        },
     },
-    "lib": [
-      "esnext",
-      "dom",
-      "dom.iterable"
-    ]
-  },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.vue",
-    "tests/**/*.ts",
-  ],
-  "exclude": [
-    "node_modules"
-  ]
 }

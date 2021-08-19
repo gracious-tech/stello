@@ -1,0 +1,11 @@
+// NOTE vscode will warn about trailing commas in this file, but can ignore the warnings
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        // Based on Node 14 (review when upgraded)
+        "lib": ["ES2020"],
+        "module": "CommonJS",
+        "target": "ES2020",
+    },
+}

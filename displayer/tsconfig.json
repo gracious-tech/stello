@@ -1,31 +1,9 @@
 {
+    "extends": "../tsconfig_browser.jsonc",
+    "include": ["src/**/*.ts", "src/**/*.vue"],
     "compilerOptions": {
-        "target": "esnext",
-        "module": "esnext",
-        "strict": true,
-        "importHelpers": true,
-        "moduleResolution": "node",
-        "esModuleInterop": true,
-        "allowSyntheticDefaultImports": true,
-        "resolveJsonModule": true,
-        "sourceMap": true,
-        "baseUrl": ".",
-        "types": ["./global"],
-        "lib": [
-            "esnext",
-            "dom",
-            "dom.iterable"
-        ],
         "paths": {
-            "/@/*": ["src/*"]
-        }
+            "@/*": ["./src/*"],
+        },
     },
-    "include": [
-        "index/**/*.ts",
-        "src/**/*.ts",
-        "src/**/*.vue"
-    ],
-    "exclude": [
-        "node_modules"
-    ]
 }

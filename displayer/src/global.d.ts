@@ -1,8 +1,8 @@
 
 import {App} from 'vue'
 
-import {database} from './src/services/database'
-import {store} from './src/services/store'
+import {database} from './services/database'
+import {store} from './services/store'
 
 
 declare global {

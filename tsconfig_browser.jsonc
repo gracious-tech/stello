@@ -1,0 +1,11 @@
+// NOTE vscode will warn about trailing commas in this file, but can ignore the warnings
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        // Build for latest browser (use esbuild etc to target old browsers if necessary)
+        "lib": ["ESNext", "DOM", "DOM.Iterable"],
+        "module": "ESNext",
+        "target": "ESNext",
+    },
+}

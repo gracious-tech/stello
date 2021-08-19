@@ -1,7 +1,5 @@
 {
-  "compilerOptions": {
-    "target": "ES2018",
-    "module": "commonjs",
-    "moduleResolution": "node",
-  }
+    "extends": "../tsconfig_node.jsonc",
+    "include": ["./**/*.ts"],
+    "exclude": ["node_modules"],
 }
