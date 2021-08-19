@@ -6,3 +6,7 @@ cd ../app_config
 node_modules/.bin/tsc apply.ts
 node apply.js "$@"
 rm *.js
+
+# electron/package.json relies on app_config but is static, so must also be updated
+cd ../electron
+./node_modules/.bin/esbuild --platform=node --bundle update_package_json.ts | node

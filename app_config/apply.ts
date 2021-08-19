@@ -5,7 +5,6 @@ import {resolve} from 'path'
 import {writeFileSync, readFileSync} from 'fs'
 
 import {generate_theme} from './theme_generation'
-import {generate_electron_package} from './apply_electron_package'
 
 
 // Determine branding
@@ -30,8 +29,9 @@ Object.assign(config, get_config(`app_config_${branding}`))
 generate_theme(config)
 
 
-// Write config for app
+// Write config for app and electron
 writeFileSync(resolve(__dirname, '../app/src/app_config.json'), JSON.stringify(config))
+writeFileSync(resolve(__dirname, '../electron/app_config.json'), JSON.stringify(config))
 
 
 // Displayer has only necessary properties, in case sensitive in some way
@@ -43,9 +43,3 @@ const displayer = {
     author: config.author,
 }
 writeFileSync(resolve(__dirname, '../displayer/src/app_config.json'), JSON.stringify(displayer))
-
-
-// Generate electron package.json
-const electron_package_path = resolve(__dirname, '../electron/package.json')
-writeFileSync(electron_package_path,
-    generate_electron_package(config, JSON.parse(readFileSync(electron_package_path, 'utf-8'))))
