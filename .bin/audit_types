@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Type check all components
+cd `dirname "$0"`
+cd ..
+
+node_modules/.bin/tsc --project app
+node_modules/.bin/tsc --project app_config
+node_modules/.bin/tsc --project displayer
+node_modules/.bin/tsc --project electron
+# TODO responder/node_modules/.bin/tsc --project responder
