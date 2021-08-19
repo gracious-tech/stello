@@ -1,6 +1,6 @@
 // Material colors
 
-export const colors = {
+export const colors:Record<string, Record<string, string>> = {
 
     red: {
         p50: '#ffebee',

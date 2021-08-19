@@ -4,17 +4,24 @@ const chroma = require('chroma-js')  // Couldn't get ES6 import to work
 import {colors} from './colors'
 
 
-export function generate_theme(config){
+interface AppConfig {
+    theme_codes:Record<string, [string, string]>,
+    theme:Record<string, string>
+    [k:string]:any
+}
+
+
+export function generate_theme(config:AppConfig):void{
     // Generate a theme from the given base colors
     config.theme = {}
     for (const [key, codes] of Object.entries(config.theme_codes)){
-        config.theme[key] = colors[codes[0]][codes[1]]
+        config.theme[key] = colors[codes[0]]![codes[1]]!
     }
     add_variations(config.theme)
 }
 
 
-function add_variations(theme){
+function add_variations(theme:Record<string, string>):void{
     // Generate all required theme colors from given base colors
 
     // Add darker/lighter variants
