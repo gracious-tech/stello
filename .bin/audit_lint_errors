@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Lint everything but only show errors (not warnings)
+audit_lint --quiet

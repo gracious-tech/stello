@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Lint everything
+cd `dirname "$0"`
+cd ..
+
+# TODO lint app
+node_modules/.bin/eslint --ignore-path=.gitignore --ignore-pattern="app/*" "$@" .
