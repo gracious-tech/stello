@@ -4,7 +4,7 @@
     "compilerOptions": {
         "strict": false,  // TODO rm when ready for serious typing!
         "exactOptionalPropertyTypes": false,  // TODO rm when ready for serious typing!
-        "types": ["vuetify"],  // Needed for `new Vue({vuetify})`
+        "types": ["vuetify", "lodash"],  // Needed for `new Vue({vuetify})`
         "paths": {
             "@/*": ["./src/*"],
         },

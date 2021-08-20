@@ -6,7 +6,8 @@ module.exports = {
         parser: '@typescript-eslint/parser',
         // vue-eslint-parser passes all options to @typescript-eslint/parser instead
         tsconfigRootDir: __dirname,
-        project: ['./*/tsconfig.json'],
+        // Treat all files using component tsconfig, and node for everything else
+        project: ['./*/tsconfig.json', './tsconfig_node.jsonc'],
         extraFileExtensions: ['.vue'],
     },
     plugins: [

@@ -7,6 +7,7 @@
         "esModuleInterop": true,  // Make require imports work like es6 ones do
         "experimentalDecorators": true,  // Allow @decorators
         "skipLibCheck": true,  // Mostly avoids checking node_modules (but see docs)
+        "types": [],  // Disables auto-including types modules of '@types/*' (e.g. node)
         // Strict checking
         "strict": true,
         "allowUnreachableCode": false,  // Must be a mistake
