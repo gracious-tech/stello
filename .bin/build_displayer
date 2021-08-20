@@ -5,9 +5,6 @@ set -e
 cd `dirname "$0"`
 cd ../displayer
 
-# Run type checks (vite doesn't)
-./node_modules/.bin/tsc --noEmit
-
 # Build
 ./node_modules/.bin/vite build --assetsDir 'displayer'
 
