@@ -391,7 +391,7 @@ export async function oauth_pretask_process(url:string):Promise<void>{
         // NOTE This may revoke previously held permissions but can't do anything about it
         //      If new refresh token generated then old one will already be invalidated
         oauth_instance = new OAuth({...existing, ...auth})
-        self._db.oauths.set(oauth_instance)
+        void self._db.oauths.set(oauth_instance)
     } else {
         oauth_instance = await self._db.oauths.create({
             ...auth,
@@ -577,7 +577,9 @@ export async function oauth_request(oauth:OAuth, url:string, params?:Record<stri
         // WARN Don't use `resp.json()` as if not JSON then body lost as can only read once
         error_data.body = await resp.text()
         error_data.body = JSON.parse(error_data.body)
-    } catch {}
+    } catch {
+        // Error data still useful even without body
+    }
 
     // Google uses 403 for missing-scopes errors
     // But 403 also for rate limits, so must be specific in identifying it

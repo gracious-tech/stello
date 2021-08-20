@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Lint everything but show summary rather than exact errors/locations
+audit_lint --format=summary-chart "$@"

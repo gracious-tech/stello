@@ -1,3 +1,8 @@
+// Migrations use fallthrough switch, async pattern, and change no longer existing properties
+/* eslint-disable no-fallthrough */
+/* eslint-disable @typescript-eslint/require-await */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 
 import {IDBPTransaction, StoreNames} from 'idb'
 
@@ -15,7 +20,7 @@ type VersionChangeTransaction = IDBPTransaction<
 export const DATABASE_VERSION = 11
 
 
-export function migrate(transaction:VersionChangeTransaction, old_version:number){
+export function migrate(transaction:VersionChangeTransaction, old_version:number):void{
     // Begin upgrade at whichever version is already present (no break statements)
     // WARN Ensure all versions accounted for, or none will match
     // WARN Database waits for transaction actions to finish, not for this function to finish
@@ -24,27 +29,27 @@ export function migrate(transaction:VersionChangeTransaction, old_version:number
         default:
             throw new Error("Database version unknown (should never happen)")
         case 0:  // Version number when db doesn't exist
-            to1(transaction)
+            void to1(transaction)
         case 1:
-            to2(transaction)
+            void to2(transaction)
         case 2:
-            to3(transaction)
+            void to3(transaction)
         case 3:
-            to4(transaction)
+            void to4(transaction)
         case 4:
-            to5(transaction)
+            void to5(transaction)
         case 5:
-            to6(transaction)
+            void to6(transaction)
         case 6:
-            to7(transaction)
+            void to7(transaction)
         case 7:
-            to8(transaction)
+            void to8(transaction)
         case 8:
-            to9(transaction)
+            void to9(transaction)
         case 9:
-            to10(transaction)
+            void to10(transaction)
         case 10:
-            to11(transaction)
+            void to11(transaction)
     }
 }
 
@@ -82,14 +87,13 @@ async function to2(transaction:VersionChangeTransaction){
     // Changes to profiles
     for await (const cursor of transaction.objectStore('profiles')){
         // Unintentionally saved in db in v0.0.4 and below
-        delete (cursor.value as any).smtp_providers
+        delete (cursor.value as unknown as {smtp_providers:any}).smtp_providers
         // Previously saved smtp port as string by mistake
-        // @ts-ignore since port may be string
-        cursor.value.smtp.port = parseInt(cursor.value.smtp.port, 10) || null
+        cursor.value.smtp.port = parseInt(cursor.value.smtp.port as unknown as string, 10) || null
         // New property added after v0.0.4 (previously true if port 587)
         cursor.value.smtp.starttls = cursor.value.smtp.port === 587
         // Save changes
-        cursor.update(cursor.value)
+        void cursor.update(cursor.value)
     }
 }
 
@@ -98,20 +102,19 @@ async function to3(transaction:VersionChangeTransaction){
 
     // half_width property removed from RecordSection post v0.1.1
     for await (const cursor of transaction.objectStore('sections')){
-        delete (cursor.value as any).half_width
-        cursor.update(cursor.value)
+        delete (cursor.value as unknown as {half_width:boolean}).half_width
+        void cursor.update(cursor.value)
     }
 
     // sections became nested arrays post v0.1.1
     for await (const cursor of transaction.objectStore('drafts')){
-        // @ts-ignore old structure was string[]
-        cursor.value.sections = cursor.value.sections.map(s => [s])
-        cursor.update(cursor.value)
+        cursor.value.sections = (cursor.value.sections as unknown as string[]).map(s => [s])
+        void cursor.update(cursor.value)
     }
     for await (const cursor of transaction.objectStore('messages')){
-        // @ts-ignore old structure was string[]
-        cursor.value.draft.sections = cursor.value.draft.sections.map(s => [s])
-        cursor.update(cursor.value)
+        cursor.value.draft.sections =
+            (cursor.value.draft.sections as unknown as string[]).map(s => [s])
+        void cursor.update(cursor.value)
     }
 }
 
@@ -126,12 +129,12 @@ async function to4(transaction:VersionChangeTransaction){
     for await (const cursor of transaction.objectStore('contacts')){
         cursor.value.service_account = null
         cursor.value.service_id = null
-        cursor.update(cursor.value)
+        void cursor.update(cursor.value)
     }
     for await (const cursor of transaction.objectStore('groups')){
         cursor.value.service_account = null
         cursor.value.service_id = null
-        cursor.update(cursor.value)
+        void cursor.update(cursor.value)
     }
 
     // New index for contacts and groups
@@ -143,7 +146,7 @@ async function to4(transaction:VersionChangeTransaction){
     // New property for profiles
     for await (const cursor of transaction.objectStore('profiles')){
         cursor.value.smtp.oauth = null
-        cursor.update(cursor.value)
+        void cursor.update(cursor.value)
     }
 }
 
@@ -156,7 +159,7 @@ async function to5(transaction:VersionChangeTransaction){
         profiles[cursor.value.id] = cursor.value
         if (cursor.value.setup_step !== null){  // i.e. not fully setup yet
             cursor.value.setup_step = 0
-            cursor.update(cursor.value)
+            void cursor.update(cursor.value)
         }
     }
 
@@ -173,19 +176,19 @@ async function to5(transaction:VersionChangeTransaction){
         // Add new expired property
         cursor.value.expired = false
 
-        cursor.update(cursor.value)
+        void cursor.update(cursor.value)
     }
 
     // Add new expired property to copies
     for await (const cursor of transaction.objectStore('copies')){
         cursor.value.expired = false
-        cursor.update(cursor.value)
+        void cursor.update(cursor.value)
     }
 
     // Add new respondable property to sections
     for await (const cursor of transaction.objectStore('sections')){
         cursor.value.respondable = true  // Previously always true though new default is null
-        cursor.update(cursor.value)
+        void cursor.update(cursor.value)
     }
 }
 
@@ -201,21 +204,21 @@ async function to6(transaction:VersionChangeTransaction):Promise<void>{
         cursor.value.subsection_id = null
         cursor.value.archived = cursor.value.read
         cursor.value.read = true
-        cursor.update(cursor.value)
+        void cursor.update(cursor.value)
     }
     for await (const cursor of transaction.objectStore('reactions')){
         cursor.value.subsection_id = null
         cursor.value.replied = false
         cursor.value.archived = cursor.value.read
         cursor.value.read = true
-        cursor.update(cursor.value)
+        void cursor.update(cursor.value)
     }
 
     // New option in profiles
     for await (const cursor of transaction.objectStore('profiles')){
         cursor.value.options.reaction_options =
             ['like', 'love', 'yay', 'pray', 'laugh', 'wow', 'sad'],
-        cursor.update(cursor.value)
+        void cursor.update(cursor.value)
     }
 }
 
@@ -226,7 +229,7 @@ async function to7(transaction:VersionChangeTransaction):Promise<void>{
     for await (const cursor of transaction.objectStore('sections')){
         if (cursor.value.content.type === 'video'){
             cursor.value.content.caption = ''
-            cursor.update(cursor.value)
+            void cursor.update(cursor.value)
         }
     }
 }
@@ -246,7 +249,7 @@ async function to8(transaction:VersionChangeTransaction):Promise<void>{
             .replaceAll('SENDER', '<span data-mention data-id="sender_name"></span>')
             .replaceAll('SUBJECT', '<span data-mention data-id="msg_title"></span>')
             .replaceAll('LINK', '')  // Already resolved to blank post v0.1.1
-        cursor.update(cursor.value)
+        void cursor.update(cursor.value)
     }
 }
 
@@ -259,20 +262,19 @@ async function to9(transaction:VersionChangeTransaction):Promise<void>{
             <p>Hi <span data-mention data-id='contact_hello'></span>,</p>
             <p><span data-mention data-id='sender_name'></span> has replied to you.</p>
         `
-        // @ts-ignore key no longer exists
-        delete cursor.value.host.credentials_responder
+        delete (cursor.value.host as unknown as {credentials_responder:any}).credentials_responder
         // Save changes
-        cursor.update(cursor.value)
+        void cursor.update(cursor.value)
     }
 
     // Invite image property added to drafts
     for await (const cursor of transaction.objectStore('drafts')){
         cursor.value.options_identity.invite_image = null
-        cursor.update(cursor.value)
+        void cursor.update(cursor.value)
     }
     for await (const cursor of transaction.objectStore('messages')){
         cursor.value.draft.options_identity.invite_image = null
-        cursor.update(cursor.value)
+        void cursor.update(cursor.value)
     }
 
     // New store for unsubscribes
@@ -288,11 +290,11 @@ async function to9(transaction:VersionChangeTransaction):Promise<void>{
     // New `multiple` property for contacts and copies
     for await (const cursor of transaction.objectStore('contacts')){
         cursor.value.multiple = false
-        cursor.update(cursor.value)
+        void cursor.update(cursor.value)
     }
     for await (const cursor of transaction.objectStore('copies')){
         cursor.value.contact_multiple = false
-        cursor.update(cursor.value)
+        void cursor.update(cursor.value)
     }
 
     // New index for contacts
@@ -302,13 +304,13 @@ async function to9(transaction:VersionChangeTransaction):Promise<void>{
     // WARN Only start once upgrade transaction finished, otherwise could overwrite previous changes
     // WARN App will not wait for these to complete before mounting
     const db = transaction.db
-    transaction.done.then(async () => {
+    void transaction.done.then(async () => {
 
         // `secret_sse` added to copies
         for (const copy of await db.getAll('copies')){
             copy.secret_sse = await crypto.subtle.generateKey(
                 {name: 'AES-GCM', length: 256}, true, ['encrypt'])
-            db.put('copies', copy)
+            void db.put('copies', copy)
         }
 
         // Invite image and secret added to profiles
@@ -321,7 +323,7 @@ async function to9(transaction:VersionChangeTransaction):Promise<void>{
                 profile.options.reply_invite_image = default_invite_image
                 profile.host_state.secret = await crypto.subtle.generateKey(
                     {name: 'AES-GCM', length: 256}, false, ['encrypt', 'decrypt'])
-                db.put('profiles', profile)
+                void db.put('profiles', profile)
             }
         }
     })
@@ -334,7 +336,7 @@ async function to10(transaction:VersionChangeTransaction):Promise<void>{
     for await (const cursor of transaction.objectStore('profiles')){
         cursor.value.host_state.displayer_config_uploaded = false
         cursor.value.host_state.responder_config_uploaded = false
-        cursor.update(cursor.value)
+        void cursor.update(cursor.value)
     }
 
     // Reaction ids now formed from their own properties
@@ -343,9 +345,9 @@ async function to10(transaction:VersionChangeTransaction):Promise<void>{
         if (cursor.value.copy_id){
             cursor.value.id =
                 `${cursor.value.copy_id}-${cursor.value.section_id}-${cursor.value.subsection_id}`
-            cursor.source.put(cursor.value)  // Can't use `update()` since changing id
+            void cursor.source.put(cursor.value)  // Can't use `update()` since changing id
         }
-        cursor.delete()
+        void cursor.delete()
     }
 }
 
@@ -357,7 +359,7 @@ async function to11(transaction:VersionChangeTransaction):Promise<void>{
     for await (const cursor of transaction.objectStore('oauths')){
         if (cursor.value.issuer === 'microsoft'){
             deleted_oauths.push(cursor.value.id)
-            cursor.delete()
+            void cursor.delete()
         }
     }
 
@@ -366,7 +368,7 @@ async function to11(transaction:VersionChangeTransaction):Promise<void>{
     for await (const cursor of transaction.objectStore('profiles')){
         if (deleted_oauths.includes(cursor.value.smtp.oauth)){
             cursor.value.smtp.oauth = null
-            cursor.update(cursor.value)
+            void cursor.update(cursor.value)
         }
     }
 

@@ -1,4 +1,4 @@
 #!/bin/bash
 
 # Auto-fix code mistakes where possible
-audit_lint --fix
+audit_lint --fix "$@"
