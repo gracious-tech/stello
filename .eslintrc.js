@@ -1,8 +1,10 @@
 
 module.exports = {
     root: true,
-    parser: '@typescript-eslint/parser',
+    parser: 'vue-eslint-parser',
     parserOptions: {
+        parser: '@typescript-eslint/parser',
+        // vue-eslint-parser passes all options to @typescript-eslint/parser instead
         tsconfigRootDir: __dirname,
         project: ['./*/tsconfig.json'],
         extraFileExtensions: ['.vue'],
@@ -17,6 +19,8 @@ module.exports = {
         'plugin:@typescript-eslint/recommended-requiring-type-checking',
         'plugin:import/recommended',
         'plugin:import/typescript',
+        'plugin:vue/recommended',
+        'plugin:vue/vue3-recommended',
     ],
     rules: {
         // Disable as are not problems at all

@@ -4,4 +4,4 @@
 cd `dirname "$0"`
 cd ..
 
-node_modules/.bin/eslint --ignore-path=.gitignore "$@" .
+node_modules/.bin/eslint --ext .js,.ts,.vue --ignore-path=.gitignore "$@" .
