@@ -12,28 +12,29 @@ export class NestedStructureChanged extends Error {
 }
 
 
-export function nested_objects_set(container:Record<string, any>, keys:MinOne<string>,
-        value:any):void{
+export function nested_objects_set(container:unknown, keys:MinOne<string>, value:unknown):void{
     // Set a value in a nested set of objects
     // NOTE Doesn't allow adding new properties (important as Vue wouldn't be able to detect)
+    // NOTE container:unknown due to https://github.com/microsoft/TypeScript/issues/15300
 
     // Avoid changing keys array
     keys = keys.slice() as MinOne<string>
 
-    // Traverse the container until only one key remains
-    while (keys.length > 1){
-        const key = keys.shift() 
-        container = container[key]
-        if (container === undefined){
+    // Work through the keys
+    while (keys.length > 0){
+        const key = keys.shift()!
+
+        // If container is not an object, can't set value or traverse any further
+        if (typeof container !== 'object' || container === null){
             throw new NestedKeyMissing(key)
         }
-    }
 
-    // Set value
-    if (keys[0] in container){
-        container[keys[0]] = value
-    } else {
-        throw new NestedKeyMissing(keys[0])
+        // If the last key, set the value, otherwise go deeper
+        if (keys.length === 0){
+            (container as Record<string, unknown>)[key] = value
+        } else {
+            container = (container as Record<string, unknown>)[key]
+        }
     }
 }
 

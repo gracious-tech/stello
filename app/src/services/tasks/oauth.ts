@@ -8,12 +8,13 @@ Which makes them ideal for handling via tasks only
 
 // NOTE Using appauth src as custom fork changes TS files but not the built js
 // NOTE appauth src makes use of console.profile, causing type errors, so below just to silence them
-declare global {
-    interface Console {
-        profile:any
-        profileEnd:any
-    }
-}
+// TODO Disabled while waiting on https://github.com/microsoft/TypeScript/issues/37708
+// declare global {
+//     interface Console {
+//         profile:any
+//         profileEnd:any
+//     }
+// }
 import * as appauth from '@openid/appauth/src'
 import {AuthorizationServiceConfiguration} from '@openid/appauth'
 

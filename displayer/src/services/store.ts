@@ -188,7 +188,7 @@ export class DisplayerStore {
 
         // Update fresh copy of unsubscribed array from db
         const resp_token = this._state.current_msg!.resp_token
-        const unsubscribed:string[] = await database.dict_get('unsubscribed') ?? []
+        const unsubscribed:string[] = await database.dict_get('unsubscribed') as string[] ?? []
         if (subscribed){
             remove_value(unsubscribed, resp_token)
         } else if (!unsubscribed.includes(resp_token)){

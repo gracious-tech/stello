@@ -12,7 +12,7 @@ export default defineConfig(({mode}) => {
             target: 'es2015',  // Currently supporting browsers ES2015+
             rollupOptions: {
                 output: {
-                    manualChunks: undefined,  // Don't split vendor code out
+                    manualChunks: () => 'everything.js',  // Hack to force all imports into one file
                 },
             },
         },
