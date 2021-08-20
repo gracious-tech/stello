@@ -1,12 +1,5 @@
 {
-    "extends": "../tsconfig_browser.jsonc",
-    "include": ["src/**/*.ts", "src/**/*.vue"],
-    "compilerOptions": {
-        "strict": false,  // TODO rm when ready for serious typing!
-        "exactOptionalPropertyTypes": false,  // TODO rm when ready for serious typing!
-        "types": ["vuetify", "lodash"],  // Needed for `new Vue({vuetify})`
-        "paths": {
-            "@/*": ["./src/*"],
-        },
-    },
+    "extends": "../tsconfig_node.jsonc",
+    "include": ["**/*.ts"],
+    "exclude": ["node_modules", "src"],
 }

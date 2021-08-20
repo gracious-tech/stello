@@ -9,13 +9,6 @@ import esbuild from 'esbuild'
 import {Plugin, ResolvedConfig} from 'vite'
 
 
-interface PugFilterOptions {
-    // Pug always sets one option (filename) but otherwise takes from filter's attributes
-    filename:undefined|string
-    [attr:string]:string
-}
-
-
 export default function(template_path='index.pug'):Plugin{
     // Return config for plugin
 
@@ -48,9 +41,9 @@ export default function(template_path='index.pug'):Plugin{
                 return pug.compile(template, {
                     // NOTE pretty is deprecated and can cause bugs with dev vs prod
                     filters: {
-                        sass: (text:string, options:PugFilterOptions) => {
+                        sass: (text:string, options:Record<string, unknown>) => {
                             // Render sass blocks
-                            delete options.filename  // Don't include pug-specific config
+                            delete options['filename']  // Don't include pug-specific config
                             return sass.renderSync({
                                 data: text,
                                 indentedSyntax: true,
@@ -63,9 +56,9 @@ export default function(template_path='index.pug'):Plugin{
                                 ...options
                             }).css.toString()
                         },
-                        ts: (text:string, options:PugFilterOptions) => {
+                        ts: (text:string, options:Record<string, unknown>) => {
                             // Render typescript blocks
-                            delete options.filename  // Don't include pug-specific config
+                            delete options['filename']  // Don't include pug-specific config
                             return esbuild.buildSync({
                                 stdin: {
                                     contents: text,
@@ -80,7 +73,7 @@ export default function(template_path='index.pug'):Plugin{
                                 // NOTE Currently supporting es2015+ browsers
                                 target: config.isProduction ? 'es2015' : 'esnext',
                                 ...options,
-                            }).outputFiles[0].text
+                            }).outputFiles[0]?.text
                         }
                     },
                 })()

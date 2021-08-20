@@ -7,7 +7,14 @@ module.exports = {
         // vue-eslint-parser passes all options to @typescript-eslint/parser instead
         tsconfigRootDir: __dirname,
         // Treat all files using component tsconfig, and node for everything else
-        project: ['./*/tsconfig.json', './tsconfig_node.jsonc'],
+        project: [
+            './app/tsconfig.json',
+            './app/src/tsconfig.json',
+            './app_config/tsconfig.json',
+            './displayer/tsconfig.json',
+            './displayer/src/tsconfig.json',
+            './electron/tsconfig.json',
+        ],
         extraFileExtensions: ['.vue'],
     },
     plugins: [
@@ -26,6 +33,7 @@ module.exports = {
     rules: {
         // Disable as are not problems at all
         '@typescript-eslint/no-empty-interface': 'off',  // Empty interfaces may be expanded later
+        '@typescript-eslint/no-non-null-assertion': 'off',  // trailing ! can be useful
         // Disable as already covered by other audits (such as tsc)
         'import/no-unresolved': 'off',  // Vite imports complex and already handled by tsc
         // Default to error but should be warnings

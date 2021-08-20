@@ -22,7 +22,7 @@ export default function():Plugin{
         async load(id:string){
 
             // Split path from loader query
-            const [path, loader] = id.split('?', 2)
+            const [path, loader] = id.split('?', 2) as [string, string?]
 
             // This plugin must be specifically requested via query arg
             if (loader !== 'raw-svg'){
@@ -50,7 +50,7 @@ export default function():Plugin{
             }
 
             // Skip SVGO if not in production
-            if (config.env.MODE === 'production'){
+            if (config.env['MODE'] === 'production'){
                 contents = optimize(contents, svgo_options).data
             } else {
                 // Just strip xml tag if dev to save time and still parse correctly

@@ -1,3 +1,17 @@
+/* Typescript setup
+
+ * There is one version of TS for the entire project for consistency with same rules
+ * This is the base template that is extended by the node/browser templates
+ * Top-level has no tsconfig but does have TS/linting in package.json since common to all
+    * Everything else should be per-component to allow for flexibility when upgrading a component
+ * Each component has its own tsconfig that extends a tsconfig template
+    * Components may have another tsconfig in browser code dir (since different to node)
+ * TS is used for type checking only, not compiling (esbuild used instead)
+    * So all tsconfigs do not emit JS, they just determine the rules for each dir/file
+
+*/
+
+// NOTE vscode will warn about trailing commas in this file, but can ignore the warnings
 {
     "compilerOptions": {
         "noEmit": true,  // Never create JS files, always bundle or pipe instead

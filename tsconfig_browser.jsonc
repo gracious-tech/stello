@@ -1,7 +1,7 @@
 // NOTE vscode will warn about trailing commas in this file, but can ignore the warnings
 {
     "$schema": "https://json.schemastore.org/tsconfig",
-    "extends": "./tsconfig.json",
+    "extends": "./tsconfig_base.jsonc",
     "compilerOptions": {
         // Build for latest browser (use esbuild etc to target old browsers if necessary)
         // NOTE WebWorker just added for sake of OffscreenCanvas and should be removed later

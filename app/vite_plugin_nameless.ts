@@ -18,7 +18,7 @@ export default function():Plugin{
             }
 
             // Form class name from cleaned filename
-            let class_name = id.split(path.sep).pop()
+            const class_name = id.split(path.sep).pop()!
                 .slice(0, '.vue'.length * -1)
                 .replace(/[^a-zA-Z]/g, '')
 

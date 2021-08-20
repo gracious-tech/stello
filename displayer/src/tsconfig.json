@@ -1,0 +1,10 @@
+{
+    "extends": "../../tsconfig_browser.jsonc",
+    "include": ["**/*.ts", "**/*.vue"],
+    "compilerOptions": {
+        "types": ["lodash"],
+        "paths": {
+            "@/*": ["./*"],
+        },
+    },
+}
