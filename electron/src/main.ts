@@ -1,24 +1,28 @@
 
 // WARN Electron overrides `fs` module with magic for asar files, which breaks `access()` test
-const asar_fs_callbacks = require('fs')
-const asar_fs = require('fs').promises
-const fs = require('original-fs').promises
-const fs_constants = require('original-fs').constants
-const dns = require('dns').promises
-const path = require('path')
-const http = require('http')
+import asar_fs_callbacks from 'fs'
+import asar_fs from 'fs/promises'
+import {promises as fs, constants as fs_constants} from 'original-fs'
+import dns from 'dns/promises'
+import path from 'path'
+import http from 'http'
 
-const {app, BrowserWindow, ipcMain, shell, Menu, dialog, session} = require('electron')
-const {autoUpdater} = require('electron-updater')
-const context_menu = require('electron-context-menu')
+import {app, BrowserWindow, ipcMain, shell, Menu, dialog, session} from 'electron'
+import {autoUpdater} from 'electron-updater'
+import context_menu from 'electron-context-menu'
 
-const Rollbar = require('rollbar')
-const nodemailer = require('nodemailer')
+import Rollbar from 'rollbar'
+import nodemailer from 'nodemailer'
 
 
 // Load config file (created from env vars and embedded during packaging)
-const CONFIG = JSON.parse(
-    asar_fs_callbacks.readFileSync(path.join(__dirname, 'config.json'), {encoding: 'utf8'}))
+interface ElectronConfig {
+    rollbar_electron:string
+}
+const CONFIG = JSON.parse(asar_fs_callbacks.readFileSync(
+    path.join(__dirname, 'config.json'),
+    {encoding: 'utf8'},
+)) as ElectronConfig
 
 
 // Report errors to Rollbar in production
@@ -30,7 +34,7 @@ Rollbar.init({
     captureUncaught: true,
     captureUnhandledRejections: true,
     codeVersion: 'v' + app.getVersion(),  // 'v' to match git tags
-    locals: false,  // SECURITY Variable values may expose user data (e.g. username in path)
+    locals: {enabled: false},  // SECURITY Variable values may expose user data (e.g. username in path)
     autoInstrument: false,  // SECURITY Don't track use via telemetry to protect privacy
     payload: {
         platform: 'client',  // Allows using public client token rather than server
@@ -63,9 +67,14 @@ if (!app.requestSingleInstanceLock()){
 }
 
 
+// Load oauth html
+const oauth_html_path = path.join(__dirname, 'server_response.html')
+const oauth_html = asar_fs_callbacks.readFileSync(oauth_html_path, {encoding: 'utf8'})
+
+
 // Create HTTP server for receiving oauth2 redirects
 const http_server_port = 44932
-const http_server = http.createServer(async (request, response) => {
+const http_server = http.createServer((request, response) => {
 
     const url = new URL(request.url, `http://127.0.0.1:${http_server_port}`)
 
@@ -76,9 +85,7 @@ const http_server = http.createServer(async (request, response) => {
         response.writeHead(303, {Location: '/'})  // Clear params to prevent replays
     } else {
         // Default route that simply prompts the user to close the window
-        const template_path = path.join(__dirname, 'server_response.html')
-        const template = await asar_fs.readFile(template_path, {encoding: 'utf8'})
-        response.write(template)
+        response.write(oauth_html)
     }
     response.end()
 })
@@ -125,7 +132,7 @@ context_menu({
 let update_downloaded = false
 
 // Handle app init
-app.whenReady().then(async () => {
+void app.whenReady().then(async () => {
 
     // Load vue dev tools extension if available (must load before page does)
     if (!app.isPackaged){
@@ -149,7 +156,7 @@ app.whenReady().then(async () => {
             provider: 'generic',
             url: 'https://releases.stello.news/electron/',
         })
-        autoUpdater.checkForUpdatesAndNotify().then(result => {
+        void autoUpdater.checkForUpdatesAndNotify().then(result => {
             // Update variable when download done
             result?.downloadPromise?.then(() => {
                 update_downloaded = true
@@ -160,7 +167,7 @@ app.whenReady().then(async () => {
 
         // Warn if app cannot overwrite itself (and .'. can't update)
         // NOTE If an AppImage, need to test the AppImage file rather than currently unpackaged code
-        const app_path = process.env.APPIMAGE || app.getAppPath()
+        const app_path = process.env['APPIMAGE'] || app.getAppPath()
         try {
             await fs.access(app_path, fs_constants.W_OK)
         } catch (error){
@@ -260,19 +267,19 @@ function open_window(){
     // Navigate to the app
     const load_index = () => {
         if (app.isPackaged){
-            window.loadFile(path.join(__dirname, 'app_dist/index.html'))
+            void window.loadFile(path.join(__dirname, 'app_dist/index.html'))
         } else {
             // Loading from a port in dev allows for hot module reloading
-            window.loadURL('http://127.0.0.1:3000')
+            void window.loadURL('http://127.0.0.1:3000')
         }
     }
     load_index()
 
     // Ensure cannot navigate away from app and instead open all other URLs in system browser
-    const handle_navigation = function(url){
+    const handle_navigation = function(url:string){
 
         // Determine current file URL
-        const current_file_url = window.webContents.getURL().split('#')[0]
+        const current_file_url = window.webContents.getURL().split('#')[0]!
 
         // Handle action
         if (url.startsWith(current_file_url)){
@@ -280,7 +287,7 @@ function open_window(){
             // NOTE Reload file so nav to root in case displaying current page causes the error
             load_index()
         } else {
-            shell.openExternal(url)
+            void shell.openExternal(url)
         }
     }
     window.webContents.on('will-navigate', (event, url) => {
@@ -300,7 +307,16 @@ function open_window(){
 }
 
 
-function smtp_transport(settings){
+interface SmtpSettings {
+    host:string
+    port:number
+    user:string
+    pass:string
+    starttls:boolean
+}
+
+
+function smtp_transport(settings:SmtpSettings){
     // Return an SMTP transport instance configured with provided settings
     const config = {
         host: settings.host,
@@ -323,6 +339,7 @@ function smtp_transport(settings){
         // Log during dev
         logger: !app.isPackaged,
         debug: !app.isPackaged,
+        tls: {},
     }
 
     // Send to localhost during development
@@ -368,12 +385,6 @@ function normalize_nodemailer_error(error){
     }
     // NOTE error.message already includes error.response (if it exists)
     return {code, details: `${error.code}: ${error.message}`}
-}
-
-
-function sleep(ms){
-    // Await this function to delay execution for given ms
-    return new Promise(resolve => setTimeout(resolve, ms))
 }
 
 
@@ -493,8 +504,7 @@ ipcMain.handle('send_emails', async (event, settings, emails, from, reply_to) =>
 
 // Utils
 
-
-function sleep(ms){
+function sleep(ms:number):Promise<void>{
     // Await this function to delay execution for given ms
     return new Promise(resolve => setTimeout(resolve, ms))
 }
