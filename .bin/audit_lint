@@ -4,4 +4,5 @@
 cd `dirname "$0"`
 cd ..
 
-node_modules/.bin/eslint --ext .js,.ts,.vue --ignore-path=.gitignore "$@" .
+# NOTE ironically the TS plugin has trouble parsing .eslintrc.js!
+node_modules/.bin/eslint --ext .js,.ts,.vue --ignore-path=.gitignore --ignore-pattern=".eslintrc.js" "$@" .
