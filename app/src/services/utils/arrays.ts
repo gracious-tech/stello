@@ -1,6 +1,6 @@
 
 
-export function sort(array:any[], property:string|number|null=null, ascending:boolean=true):void{
+export function sort(array:any[], property:string|number|null=null, ascending=true):void{
     /* Improved sorting of arrays
         1. Supports string/number/date comparison (builtin sort converts all to strings)
         2. Supports any-case and locale-specific sorting for strings

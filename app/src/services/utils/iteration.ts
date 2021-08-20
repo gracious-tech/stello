@@ -2,7 +2,7 @@
 export function range(amount:number):Generator<number>
 // tslint:disable-next-line:unified-signatures
 export function range(start:number, end:number, step?:number):Generator<number>
-export function* range(start_or_amount:number, end?:number, step:number=1):Generator<number>{
+export function* range(start_or_amount:number, end?:number, step=1):Generator<number>{
     // Generator of numbers
 
     // Single arg is amount, double or triple is start/end/step

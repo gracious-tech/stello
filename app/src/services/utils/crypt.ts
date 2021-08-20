@@ -21,7 +21,7 @@ export function generate_key_sym(extractable=false, modes:KeyUsage[]=['encrypt']
         :Promise<CryptoKey>{
     // Return a new key for encrypting data (optionally extractable)
     const algorithm:AesKeyGenParams = {name: 'AES-GCM', length: SYM_KEY_BITS}
-    return crypto.subtle.generateKey(algorithm, extractable, modes) as Promise<CryptoKey>
+    return crypto.subtle.generateKey(algorithm, extractable, modes) 
 }
 
 
@@ -35,7 +35,7 @@ export function generate_key_asym(extractable=false, modes:KeyUsage[]=['decrypt'
         publicExponent: ASYM_PUBLIC_EXPONENT,
         hash: 'SHA-256',  // 512 can in some cases actually be more vulnerable
     }
-    return crypto.subtle.generateKey(algorithm, extractable, modes) as Promise<CryptoKeyPair>
+    return crypto.subtle.generateKey(algorithm, extractable, modes) 
 }
 
 

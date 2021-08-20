@@ -27,12 +27,12 @@ class DisplayerConfig {
     // Displayer config represented by a class for synchronous access with defaults
 
     // In the unexpected event of not being able to download config, default to featureless+secure
-    notify_include_contents:boolean = false
-    allow_replies:boolean = false
-    allow_reactions:boolean = false
-    allow_delete:boolean = false
-    allow_resend_requests:boolean = false
-    social_referral_ban:boolean = true
+    notify_include_contents = false
+    allow_replies = false
+    allow_reactions = false
+    allow_delete = false
+    allow_resend_requests = false
+    social_referral_ban = true
     resp_key_public:CryptoKey|null = null
     // NOTE `reaction_options` didn't exist till after v0.4.1, so default needed for old configs
     reaction_options:string[] = ['like', 'love', 'yay', 'pray', 'laugh', 'wow', 'sad']
