@@ -7,8 +7,9 @@ export function sleep(ms:number):Promise<void>{
 
 
 export function setIntervalPlus(amount:number, unit:'ms'|'s'|'m'|'h', instant:boolean,
-        handler:()=>any):number{
+        handler:()=>unknown):number{
     // A wrapper around setInterval providing more features
+    /* eslint-disable no-fallthrough -- expected to match multiple cases to multiply */
     switch (unit){
         case 'h':
             amount *= 60
@@ -17,6 +18,7 @@ export function setIntervalPlus(amount:number, unit:'ms'|'s'|'m'|'h', instant:bo
         case 's':
             amount *= 1000
     }
+    /* eslint-enable no-fallthrough */
     if (instant){
         self.setTimeout(handler)  // Execute async to avoid errors affecting future setInterval
     }
@@ -24,7 +26,7 @@ export function setIntervalPlus(amount:number, unit:'ms'|'s'|'m'|'h', instant:bo
 }
 
 
-export async function concurrent(tasks:(()=>Promise<any>)[], limit=10):Promise<void>{
+export async function concurrent(tasks:(()=>Promise<unknown>)[], limit=10):Promise<void>{
     // Complete the given tasks concurrently and return promise that resolves when all done
     // NOTE Upon failure this will reject and stop starting tasks (though some may still be ongoing)
     // NOTE AWS S3 CLI concurrency limit defaults to 10
