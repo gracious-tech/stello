@@ -9,6 +9,7 @@ import plugin_iife from './vite_plugin_iife'
 import plugin_nameless from './vite_plugin_nameless'
 import plugin_index from './vite_plugin_index'
 import plugin_svg from './vite_plugin_svg'
+import inject_sass from './vite.config.injected_sass'
 
 
 export default defineConfig(({mode}) => {
@@ -43,7 +44,7 @@ export default defineConfig(({mode}) => {
             preprocessorOptions: {
                 sass: {
                     // Make node_modules & variables available in both components and regular files
-                    additionalData: require('./vite.config.injected_sass').inject,
+                    additionalData: inject_sass,
                     sassOptions: {
                         includePaths: ['node_modules'],
                     },

@@ -1,7 +1,7 @@
 // Generation of sass variables to provide to all sass files during build
 // WARN Do not @import anything in here as importing in every single sass file cripples performance
 
-const app_config = require('./src/app_config.json')
+import app_config from './src/app_config.json'
 
 
 /* Notes on Vuetify variables and styles
@@ -26,4 +26,5 @@ let inject = ''
 for (const [key, value] of Object.entries(app_config.theme)){
     inject += `$${key}: ${value}\n`
 }
-module.exports = {inject}
+
+export default inject

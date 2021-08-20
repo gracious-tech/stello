@@ -44,8 +44,9 @@ module.exports = {
         '@typescript-eslint/no-unsafe-member-access': 'warn',
         '@typescript-eslint/no-unsafe-assignment': 'warn',
         '@typescript-eslint/no-unsafe-return': 'warn',
-        '@typescript-eslint/ban-ts-comment': 'warn',
         '@typescript-eslint/no-floating-promises': 'warn',
+        '@typescript-eslint/ban-ts-comment': 'warn',
+        '@typescript-eslint/ban-types': 'warn',
         // TODO revert below to error once 'any' type cases dealt with, as also checks invalid code
         '@typescript-eslint/restrict-template-expressions': 'warn',
         // Enable

@@ -1,6 +1,6 @@
 // App config script that generates data files consumed by app
 
-const yaml = require('js-yaml')  // Couldn't get ES6 import to work
+import yaml from 'js-yaml'
 import {resolve} from 'path'
 import {writeFileSync, readFileSync} from 'fs'
 

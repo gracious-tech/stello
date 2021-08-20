@@ -1,6 +1,6 @@
 // Theme generator
 
-const chroma = require('chroma-js')  // Couldn't get ES6 import to work
+import chroma from 'chroma-js'
 import {colors} from './colors'
 
 
