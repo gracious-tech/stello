@@ -2,7 +2,7 @@
 import plugin_vue from '@vitejs/plugin-vue'
 import {defineConfig} from 'vite'
 
-import plugin_index from '../vite_index_plugin'
+import plugin_index from './vite_plugin_index'
 
 
 export default defineConfig(({mode}) => {

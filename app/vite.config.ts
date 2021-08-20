@@ -6,9 +6,9 @@ import {createVuePlugin} from 'vite-plugin-vue2'
 import ViteComponents, {VuetifyResolver} from 'vite-plugin-components'
 
 import plugin_iife from './vite_plugin_iife'
-import plugin_class from './vite_class_plugin'
-import plugin_index from '../vite_index_plugin'
-import plugin_svg from '../vite_svg_plugin'
+import plugin_nameless from './vite_plugin_nameless'
+import plugin_index from './vite_plugin_index'
+import plugin_svg from './vite_plugin_svg'
 
 
 export default defineConfig(({mode}) => {
@@ -20,7 +20,7 @@ export default defineConfig(({mode}) => {
         plugins: [
             plugin_index(),
             plugin_svg(),
-            plugin_class(),
+            plugin_nameless(),
             createVuePlugin(),
             ViteComponents({customComponentResolvers: [VuetifyResolver()]}),
             plugin_iife(),
