@@ -5,6 +5,7 @@
         "js-yaml": "^3.13.1"
     },
     "devDependencies": {
-        "@types/node": "^16.6.2"
+        "@types/node": "^16.6.2",
+        "esbuild": "^0.12.21"
     }
 }
