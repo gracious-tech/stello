@@ -22,7 +22,7 @@ export function nested_objects_set(container:Record<string, any>, keys:MinOne<st
 
     // Traverse the container until only one key remains
     while (keys.length > 1){
-        const key = keys.shift() as string
+        const key = keys.shift() 
         container = container[key]
         if (container === undefined){
             throw new NestedKeyMissing(key)

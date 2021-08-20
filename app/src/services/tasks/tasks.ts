@@ -43,7 +43,7 @@ export class Task {
 
     // Configurable
     label:string = null
-    show_count:boolean = false
+    show_count = false
     fix_settings:()=>Promise<void|string> = null  // Return error string to abort failed task
     fix_auth:()=>Promise<void|string> = null  // Return error string to abort failed task
     fix_oauth:string = null  // Don't provide actual oauth object as should get fresh when needed
@@ -53,15 +53,15 @@ export class Task {
     readonly params:any[]  // Must be serializable for storing as post-oauth actions
     readonly options:any[]  // Must be serializable for storing as post-oauth actions
     readonly done:Promise<any>  // Resolves with an error value (if any) when task done
-    abortable:boolean = false  // Whether task can be manually aborted (always internally abortable)
+    abortable = false  // Whether task can be manually aborted (always internally abortable)
     aborted:TaskAborted|null = null  // An abort error if task has been aborted
     error:any = null  // Error value is both resolved for `done` and set as a property
     error_report_id:string = null  // UUID for error report (if was sent)
 
     // Private
     private done_resolve:(error:any)=>void
-    private subtasks_done:number = 0
-    private subtasks_total:number = 0
+    private subtasks_done = 0
+    private subtasks_total = 0
 
     constructor(name:string, params:string[], options:string[]){
         this.name = name

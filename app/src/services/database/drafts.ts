@@ -125,7 +125,7 @@ export class DatabaseDrafts {
         await this._conn.put('drafts', draft)
     }
 
-    async create_object(template:boolean=false):Promise<Draft>{
+    async create_object(template=false):Promise<Draft>{
         // Return a new draft object (without saving to db)
         return new Draft({
             id: generate_token(),
@@ -156,7 +156,7 @@ export class DatabaseDrafts {
         })
     }
 
-    async create(template:boolean=false):Promise<Draft>{
+    async create(template=false):Promise<Draft>{
         // Create a new draft (and save to db)
         const draft = await this.create_object(template)
         await this._conn.add('drafts', draft)

@@ -2,7 +2,7 @@
 import {get_last} from "../utils/arrays"
 
 
-export function validate_subdomain(subdomain:string, min:number=1, max:number=63):string{
+export function validate_subdomain(subdomain:string, min=1, max=63):string{
     // Check whether given string is a valid subdomain or not, and return error string if not
     if (subdomain.length < min || subdomain.length > max)
         return `Name must be between ${min} to ${max} characters long`

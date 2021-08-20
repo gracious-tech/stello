@@ -46,8 +46,8 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         this.sts = new STS({apiVersion: '2011-06-15', credentials: aws_creds, region})
     }
 
-    async upload_file(path:string, data:Blob|ArrayBuffer, lifespan:number=Infinity,
-            max_reads:number=Infinity):Promise<void>{
+    async upload_file(path:string, data:Blob|ArrayBuffer, lifespan=Infinity, max_reads=Infinity)
+            :Promise<void>{
         // Upload a file into the storage
 
         // Determine tags
@@ -76,7 +76,7 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         await this.s3.deleteObject({Bucket: this.bucket, Key: this._prefix + path})
     }
 
-    async list_files(prefix:string=''):Promise<string[]>{
+    async list_files(prefix=''):Promise<string[]>{
         // List uploaded files (useful for deleting old messages if app lost state)
         // NOTE `_prefix` is the user name if any, while `prefix` is limiting results to a subdir
         return this._list_objects(this.bucket, prefix)
@@ -99,7 +99,7 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         })
     }
 
-    async list_responses(type:string=''):Promise<string[]>{
+    async list_responses(type=''):Promise<string[]>{
         // List responses
         // NOTE `_prefix` is the user name if any, while `prefix` is limiting results to a subdir
         return this._list_objects(this._bucket_resp_id, `responses/${type}`)
@@ -164,7 +164,7 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         return (await this.sts.getCallerIdentity({})).Account
     }
 
-    async _list_objects(bucket:string, prefix:string=''):Promise<string[]>{
+    async _list_objects(bucket:string, prefix=''):Promise<string[]>{
         // List objects in a bucket
         // WARN Application logic (such as response processing) expects in ascending order by date
         const paginator = paginateListObjectsV2({client: this.s3}, {

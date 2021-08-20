@@ -1,12 +1,12 @@
 
 export function encode_contact(contact:{address:string, name:string}):string{
     // Encode a contact to use in an email header
-    return `${_encodeAddressName(contact.name)} <${contact.address}>`
+    return `${_encodeAddressName(contact.name) as string} <${contact.address}>`
 }
 
 export function encode_subject(subject:string):string{
     // Encode message subject
-    return encodeWords(subject, 'Q', 52, true)  // Same settings as nodemailer uses
+    return encodeWords(subject, 'Q', 52, true) as string  // Same settings as nodemailer uses
 }
 
 
@@ -14,7 +14,7 @@ export function encode_subject(subject:string):string{
 
 
 // Dummy base64 module since isn't used (QP used instead)
-const base64 = {encode: data => {throw new Error("Not implemented")}}
+const base64 = {encode: (data:unknown) => {throw new Error("Not implemented")}}
 
 
 // Node's Buffer is a subclass of Uint8Array anyway
@@ -27,6 +27,7 @@ const Buffer = {
 // ALL THAT FOLLOWS EXTRACTED FROM NODEMAILER
 // Copyright (c) 2011-2019 Andris Reinman [MIT license]
 // It is all untouched aside from adjusting calls to external functions
+/* eslint-disable */
 
 
 // https://github.com/nodemailer/nodemailer/blob/3aca7be0919c6f17b2d18ba8420a6464c7c22be0/lib/mime-node/index.js#L1221

@@ -1,6 +1,5 @@
 
-import VueRouter from 'vue-router'
-import {RouteConfig} from 'vue-router'
+import VueRouter, {RouteConfig} from 'vue-router'
 import {Store} from 'vuex'
 
 import RouteRoot from '@/components/routes/RouteRoot.vue'

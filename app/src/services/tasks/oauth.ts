@@ -511,7 +511,7 @@ export async function oauth_revoke_if_obsolete(oauth:OAuth):Promise<void>{
 
 
 export async function oauth_request(oauth:OAuth, url:string, params?:Record<string,string|string[]>,
-        method:string='GET', body?:object|Blob):Promise<Record<string, any>>{
+        method='GET', body?:object|Blob):Promise<Record<string, any>>{
     // Request a resource using OAuth2
 
     // Add params to url if any

@@ -14,7 +14,7 @@ export async function dns_mx(host:string):Promise<string[]>{
 }
 
 
-export async function test_email_settings(settings:EmailSettings, auth:boolean=true)
+export async function test_email_settings(settings:EmailSettings, auth=true)
         :Promise<EmailError>{
     return {code: 'unsupported', details: ""}
 }
