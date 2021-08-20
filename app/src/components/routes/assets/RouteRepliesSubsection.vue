@@ -43,7 +43,7 @@ export default class extends Vue {
 
     section:Section = null
     section_image_vimeo:string = null
-    section_expanded:boolean = false
+    section_expanded = false
 
     async created(){
         // Get the section (if not sectionless)

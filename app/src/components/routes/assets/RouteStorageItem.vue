@@ -48,7 +48,7 @@ export default class extends Vue {
     @Prop() cloud:HostCloud
 
     storages:HostManagerStorage[] = []
-    scanning:boolean = false
+    scanning = false
 
     async created(){
         // If key set, do an initial scan for storages

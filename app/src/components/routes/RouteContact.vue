@@ -75,7 +75,7 @@ export default class extends Vue {
     profiles:Profile[] = []
     unsubscribes:Unsubscribe[] = []
     oauth:OAuth = null
-    changed:boolean = false
+    changed = false
 
     created(){
         // Load data from db

@@ -18,10 +18,10 @@ import * as svgs from '@/assets/svgs'
 export default class extends Vue {
 
     // WARN undefined values will NOT be reactive!
-    viewbox:string = ''
-    width:string = ''
-    height:string = ''
-    contents:string = ''
+    viewbox = ''
+    width = ''
+    height = ''
+    contents = ''
 
     @Prop() name:string
     @Prop({default: true, type: Boolean}) fill:boolean

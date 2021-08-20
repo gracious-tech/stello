@@ -87,7 +87,7 @@ export default class extends Vue {
     groups:Group[] = []
     contacts:Contact[] = []
     unsubscribes:Unsubscribe[] = []
-    sending:boolean = false
+    sending = false
 
     async created(){
         // Load the draft and the contents of the draft's sections

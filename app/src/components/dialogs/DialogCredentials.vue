@@ -34,8 +34,7 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 import {HostManagerStorage, HostStorageCredentials} from '@/services/hosts/types'
 import {HostCredentialsPackage} from '@/components/types_ui'
 import {encrypt_sym, generate_key_sym} from '@/services/utils/crypt'
-import {string_to_utf8} from '@/services/utils/coding'
-import {buffer_to_url64} from '@/services/utils/coding'
+import {string_to_utf8, buffer_to_url64} from '@/services/utils/coding'
 import {get_host_user} from '@/services/hosts/hosts'
 
 

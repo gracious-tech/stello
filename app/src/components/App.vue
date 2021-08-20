@@ -50,10 +50,10 @@ import {handle_email_submitted} from '@/services/tasks/email'
 })
 export default class extends Vue {
 
-    route_transition:string = 'below'
-    snackbar_visible:boolean = false
+    route_transition = 'below'
+    snackbar_visible = false
     snackbar:{msg:string, btn_label?:string, btn_color?:string, btn_handler?:()=>void} = null
-    allow_force_quit:boolean = false
+    allow_force_quit = false
 
     async mounted(){
         // Prevent window close if still doing tasks

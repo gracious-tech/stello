@@ -16,7 +16,7 @@ import {Component, Vue, Watch} from 'vue-property-decorator'
 @Component({})
 export default class extends Vue {
 
-    show:boolean = false
+    show = false
     dialog = null
     timeout = null
 

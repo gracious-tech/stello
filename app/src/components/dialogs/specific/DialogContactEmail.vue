@@ -51,11 +51,11 @@ export default class extends Vue {
     @Prop() contact:Contact
     @Prop() oauth:OAuth
 
-    loading:boolean = true
-    error:boolean = false
+    loading = true
+    error = false
     addresses:string[] = null
     chosen:string = null
-    new_address:string = ''
+    new_address = ''
 
     async created(){
         // Get addresses currently saved in the contact

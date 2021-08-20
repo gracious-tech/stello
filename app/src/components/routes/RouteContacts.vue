@@ -103,8 +103,8 @@ export default class extends Vue {
     groups:Group[] = []
     accounts:{id:string, display:string, groups:Group[], sync:()=>Promise<Task>}[] = []
 
-    filter_group_id:string = '-'  // Special value for null as empty values don't get highlighted
-    search:string = ''
+    filter_group_id = '-'  // Special value for null as empty values don't get highlighted
+    search = ''
 
     async mounted():Promise<void>{
         // Load contacts and init filters

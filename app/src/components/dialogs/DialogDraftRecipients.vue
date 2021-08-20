@@ -81,10 +81,10 @@ export default class extends Vue {
     @Prop({type: Array, required: true}) contacts:Contact[]
     @Prop({type: Array, required: true}) unsubscribes:Unsubscribe[]
 
-    tab:number = 0
-    contacts_filter:number = 0
-    contacts_search:string = ''
-    contacts_pages:number = 1
+    tab = 0
+    contacts_filter = 0
+    contacts_search = ''
+    contacts_pages = 1
 
     get final_recipients():string[]{
         // Get list of contact ids that will currently be included when all things accounted for
@@ -213,7 +213,7 @@ export default class extends Vue {
 
     @Watch('contacts_matched') watch_contacts_matched(){
         // Whenever matched contacts changes, scroll back to top and reduce to 1 page again
-        ;(this.$refs.scrollable as Element).scroll(0, 0)
+        (this.$refs.scrollable as Element).scroll(0, 0)
         this.contacts_pages = 1
     }
 

@@ -133,10 +133,10 @@ export default class extends Vue {
     @Prop() profile:Profile
 
     setup:'init'|'email'|'settings'|'signin'|'password' = 'init'
-    init_email:string = ''  // Address entered in initial setup phase (not auto-saved to profile)
+    init_email = ''  // Address entered in initial setup phase (not auto-saved to profile)
     error:EmailError = null
     error_report_id:string = null
-    loading:boolean = false
+    loading = false
 
     async created(){
         // Detect best state to put the UI in

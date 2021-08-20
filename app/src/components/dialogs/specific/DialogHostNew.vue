@@ -45,15 +45,15 @@ export default class extends Vue {
 
     @Prop() profile:Profile
 
-    email:string = ''
+    email = ''
 
-    username:string = ''
+    username = ''
     username_checking:string = null  // The last username that a check was initiated for
     username_checked:string = null  // The last username that a check was completed for
     username_checked_available:boolean = null  // Whether the checked username is available
 
     use_case:string = null
-    subscribe:boolean = false
+    subscribe = false
 
     use_cases = [
         {value: 'ministry', text: "Christian ministry"},

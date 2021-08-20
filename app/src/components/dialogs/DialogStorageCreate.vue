@@ -32,8 +32,8 @@ export default class extends Vue {
 
     @Prop() manager:HostManager
 
-    bucket:string = ''
-    bucket_dirty:boolean = false
+    bucket = ''
+    bucket_dirty = false
     bucket_available:boolean = null
     region:string = null
     regions:{value:string, text:string}[] = []
