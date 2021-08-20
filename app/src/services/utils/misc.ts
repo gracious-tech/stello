@@ -53,7 +53,7 @@ export function download_file(file:File):void{
 }
 
 
-export function download_url(url:string, filename:string=''):void{
+export function download_url(url:string, filename=''):void{
     // Trigger a download of the given url
     // NOTE If no filename given the browser will base it on the URL
     const tmp = self.document.createElement('a')
@@ -63,7 +63,7 @@ export function download_url(url:string, filename:string=''):void{
 }
 
 
-export function mailto(address:string='', subject:string='', body:string=''):string{
+export function mailto(address='', subject='', body=''):string{
     // Form a mailto link
     // NOTE Args can be empty strings and the link will still be correctly formed
 

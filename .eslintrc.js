@@ -18,4 +18,10 @@ module.exports = {
         'plugin:import/recommended',
         'plugin:import/typescript',
     ],
+    rules: {
+        // Default to error but should be warnings
+        '@typescript-eslint/no-unsafe-call': 'warn',
+        '@typescript-eslint/no-unsafe-member-access': 'warn',
+        '@typescript-eslint/no-unsafe-assignment': 'warn',
+    }
 }
