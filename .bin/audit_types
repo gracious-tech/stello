@@ -1,11 +1,18 @@
 #!/bin/bash
 
 # Type check all components
+
+
 cd `dirname "$0"`
 cd ..
 
-node_modules/.bin/tsc --project app
-node_modules/.bin/tsc --project app_config
-node_modules/.bin/tsc --project displayer
-node_modules/.bin/tsc --project electron
-# TODO responder/node_modules/.bin/tsc --project responder
+EXIT_CODE=0
+
+node_modules/.bin/tsc --project app || EXIT_CODE=1
+node_modules/.bin/tsc --project app_config || EXIT_CODE=1
+node_modules/.bin/tsc --project displayer || EXIT_CODE=1
+node_modules/.bin/tsc --project electron || EXIT_CODE=1
+# TODO responder
+
+# Ensure indicate failure if any errors (not just if last errored)
+exit $EXIT_CODE

@@ -1,8 +1,11 @@
 #!/bin/bash
 
-set -e
+set -e  # Don't release if any tests fail
 
 cd `dirname "$0"`
 cd ..
+
+audit_types
+audit_lint_errors
 
 pipenv run python .bin/release.py
