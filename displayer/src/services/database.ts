@@ -1,57 +1,8 @@
 
-import {openDB, IDBPDatabase, DBSchema} from 'idb'
+import {openDB, IDBPDatabase} from 'idb'
+
+import {DisplayerDatabaseSchema, upgrade_database, MessageRecord} from './database_assets'
 import {generate_token} from './utils/crypt'
-
-
-interface DisplayerDatabaseSchema extends DBSchema {
-
-    dict:{
-        key:string,  // The type of whatever key is used (defined during upgrade)
-        value:{
-            key:string,
-            value:any,
-        },
-    },
-
-    messages:{
-        key:string,
-        value:MessageRecord,
-    },
-
-    reactions:{
-        key:string,
-        value:{
-            id:string,  // Either subsection, or section if no subsection
-            message:string,
-            section:string,
-            subsection:string|null,
-            content:string,
-            sent:Date,
-        },
-    },
-
-    replies:{
-        key:string,
-        value:{
-            id:string,  // Unique per reply
-            message:string,
-            section:string,  // Must use '' for null as need to index
-            subsection:string,  // Must use '' for null as need to index
-            sent:Date,
-        },
-        indexes: {
-            by_subsect:[string, string, string],
-        },
-    },
-}
-
-
-export interface MessageRecord {
-    id:string
-    secret:CryptoKey
-    title:string
-    published:Date
-}
 
 
 const DATABASE_VERSION = 3
@@ -65,38 +16,8 @@ class DisplayerDatabase {
         // Init connection to the database
         // WARN May be called again if connection terminated
         this._conn = await openDB<DisplayerDatabaseSchema>('stello', DATABASE_VERSION, {
-            async upgrade(db, old_version, new_version, transaction){
-                // WARN Do not await anything except db methods, as transaction will close
-                switch (old_version){
-                    default:
-                        throw new Error("Database version unknown (should never happen)")
-                    case 0:  // Version number when db doesn't exist
-                        db.createObjectStore('dict', {keyPath: 'key'})
-                        db.createObjectStore('messages', {keyPath: 'id'})
-                    case 1:
-                        db.createObjectStore('reactions', {keyPath: 'id'})
-                        const replies = db.createObjectStore('replies', {keyPath: 'id'})
-                        replies.createIndex('by_subsect', ['message', 'section', 'subsection'])
-                    case 2:
-                        // Published values were being incorrectly stored as strings
-                        // NOTE `for await` not supported by vite when targeting older browsers
-                        await (async () => {
-                            let cursor = await transaction.objectStore('messages').openCursor()
-                            while (cursor){
-                                cursor.value.published = new Date(cursor.value.published)
-                                cursor.update(cursor.value)
-                                cursor = await cursor.continue()  // null when no more records
-                            }
-                        })()
-                        // Last read now a single id rather than object
-                        const last_read = await transaction.objectStore('dict').get('last_read')
-                        if (last_read){
-                            transaction.objectStore('dict').put({
-                                key: 'last_read',
-                                value: last_read.value.id,
-                            })
-                        }
-                }
+            upgrade(db, old_version, new_version, transaction){
+                void upgrade_database(db, old_version, transaction)
             },
             blocked(){
                 // Will soon unblock after other pages refresh...
@@ -108,38 +29,40 @@ class DisplayerDatabase {
             },
             terminated: () => {
                 // Some browsers (especially Safari) close connection after a time
-                this.connect()
+                void this.connect()
             },
         }).catch(error => {
             // Firefox doesn't support indexeddb in some cases, so return dummy connection instead
             console.error(error)
             console.error("Database unavailable")
             return {
+                /* eslint-disable @typescript-eslint/require-await -- async to mimic original */
                 get: async () => undefined,
                 getAll: async () => [],
                 getAllFromIndex: async () => [],
                 put: async () => undefined,
                 delete: async () => undefined,
+                /* eslint-enable @typescript-eslint/require-await */
             } as unknown as IDBPDatabase<DisplayerDatabaseSchema>
         })
     }
 
-    async dict_get(key:string):Promise<any>{
+    async dict_get(key:string):Promise<unknown>{
         // Get the value from dict table for given key
         const obj = await this._conn.get('dict', key)
         return obj ? obj.value : null
     }
 
-    async dict_get_all():Promise<Record<string, any>>{
+    async dict_get_all():Promise<Record<string, unknown>>{
         // Get all key/values as an object
         const items = await this._conn.getAll('dict')
         return items.reduce((obj, item) => {
             obj[item.key] = item.value
             return obj
-        }, {} as Record<string, any>)
+        }, {} as Record<string, unknown>)
     }
 
-    async dict_set(key:string, value:any):Promise<void>{
+    async dict_set(key:string, value:unknown):Promise<void>{
         // Save a key/value in dict table
         await this._conn.put('dict', {key, value})
     }
