@@ -1,5 +1,5 @@
 
-name: publish_dmg
+name: publish_electron
 
 on:
     workflow_run:
@@ -8,11 +8,18 @@ on:
     workflow_dispatch:
         inputs: {}
 
+defaults:
+    run:
+        shell: bash  # Windows doesn't default to bash
+
 jobs:
 
-    publish_dmg:
-        name: Package the app with Electron and produce a dmg
-        runs-on: macos-latest
+    publish:
+        name: Package the app with Electron and publish
+        strategy:
+            matrix:
+                os: [ubuntu-latest, macos-latest, windows-latest]
+        runs-on: ${{ matrix.os }}
         steps:
 
             -   name: Checkout same commit from same repository as this Github Action is from
@@ -21,7 +28,7 @@ jobs:
             -   name: Install and cache latest compatible version of node
                 uses: actions/setup-node@v1
                 with:
-                    node-version: '13'
+                    node-version: '14'
 
             -   name: Use cache for npm
                 uses: actions/cache@v2
@@ -40,21 +47,24 @@ jobs:
                     V=`python -c "import json; print(json.load(open('package.json'))['version'])"`
                     echo "VERSION=v$V" >> $GITHUB_ENV
 
+            -   name: Build electron source code
+                run: .bin/build_electron
+                env:
+                    ROLLBAR_ELECTRON: ${{ secrets.ROLLBAR_ELECTRON }}
+
             -   name: Download app base from release assets
-                working-directory: ./electron
+                working-directory: ./electron/dist
                 run: |
                     curl https://releases.stello.news/base/$VERSION/stello_base.tar.gz | tar --extract --gzip
-                    mv dist app_dist
+                    mv dist app
 
-            -   name: Build and publish a dmg
-                working-directory: ./electron
-                # Electron Updater still relies on zip for updates, even if dmg used to install
-                run: .bin/build_electron --mac dmg zip --publish always
+            -   name: Build and publish
+                run: .bin/build_electron_package --publish always
                 env:
                     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
                     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                    # Only mac needs the following
                     CSC_LINK: ${{ secrets.APPLE_CERT_P12_BASE64 }}
-                    CSC_KEY_PASSWORD: abc123
+                    CSC_KEY_PASSWORD: abc123  # Public since contents already secret
                     APPLE_ID: ${{ secrets.APPLE_ID_EMAIL }}
                     APPLE_ID_PASS: ${{ secrets.APPLE_ID_APP_PASSWORD }}
-                    ROLLBAR_ELECTRON: ${{ secrets.ROLLBAR_ELECTRON }}

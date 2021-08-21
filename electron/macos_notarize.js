@@ -1,8 +1,8 @@
 
-import {notarize} from 'electron-notarize'
+const notarize = require('electron-notarize')
 
 
-export default async function(context){
+exports.default = async function(context){
     // Run during electron build after signing
 
     // Don't run if not on macOS

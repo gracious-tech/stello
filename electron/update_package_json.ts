@@ -29,7 +29,7 @@ const new_contents:Metadata|PackageJsonMissing = {
 
     // Code related
     private: true,
-    main: 'src/main.js',
+    main: 'dist/main.js',
     dependencies: package_json.dependencies,
     devDependencies: package_json.devDependencies,
     build: {
@@ -37,6 +37,12 @@ const new_contents:Metadata|PackageJsonMissing = {
         productName: app_config.name,
         // NOTE Version not included so will overwrite each time (rely on S3 versioning instead)
         artifactName: app_config.codename + '.${ext}',
+        directories: {
+            output: 'packaged',  // dist used for electron JS code (built from TS)
+        },
+        linux: {
+            category: 'Office',
+        },
         appx: {
             backgroundColor: app_config.theme.primary,
             // These properties must match exactly what Microsoft expects in its store

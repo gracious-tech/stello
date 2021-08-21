@@ -8,9 +8,8 @@
         "email": "support@gracious.tech"
     },
     "private": true,
-    "main": "src/main.js",
+    "main": "dist/main.js",
     "dependencies": {
-        "electron": "^13.2.0",
         "electron-context-menu": "^3.1.1",
         "electron-updater": "^4.3.9",
         "nodemailer": "^6.6.3",
@@ -18,6 +17,7 @@
     },
     "devDependencies": {
         "@types/nodemailer": "^6.4.4",
+        "electron": "^13.2.1",
         "electron-builder": "^22.11.7",
         "electron-notarize": "^1.1.0",
         "esbuild": "^0.12.21",
@@ -27,6 +27,12 @@
         "appId": "tech.gracious.stello",
         "productName": "Stello",
         "artifactName": "stello.${ext}",
+        "directories": {
+            "output": "packaged"
+        },
+        "linux": {
+            "category": "Office"
+        },
         "appx": {
             "backgroundColor": "#455a64",
             "displayName": "Stello by Gracious Tech",

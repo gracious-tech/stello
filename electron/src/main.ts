@@ -1,9 +1,8 @@
 
 // WARN Electron overrides `fs` module with magic for asar files, which breaks `access()` test
 import asar_fs_callbacks from 'fs'
-import asar_fs from 'fs/promises'
 import {promises as fs, constants as fs_constants} from 'original-fs'
-import dns from 'dns/promises'
+import {promises as dns} from 'dns'
 import path from 'path'
 import http from 'http'
 
@@ -34,7 +33,7 @@ Rollbar.init({
     captureUncaught: true,
     captureUnhandledRejections: true,
     codeVersion: 'v' + app.getVersion(),  // 'v' to match git tags
-    locals: {enabled: false},  // SECURITY Variable values may expose user data (e.g. username in path)
+    locals: false,  // SECURITY Variable values may expose user data (e.g. username in path)
     autoInstrument: false,  // SECURITY Don't track use via telemetry to protect privacy
     payload: {
         platform: 'client',  // Allows using public client token rather than server
@@ -63,7 +62,13 @@ Rollbar.init({
 // NOTE The other instance will receive an event and focus itself instead
 if (!app.requestSingleInstanceLock()){
     app.quit()
-    return  // Avoid executing any further (as `app.quit()` is async)
+    process.exit()  // Avoid executing any further (as `app.quit()` is async)
+}
+
+
+// SECURITY Enable sandboxing of renderers (but not during dev as doesn't work in docker)
+if (app.isPackaged){
+    app.enableSandbox()
 }
 
 
@@ -242,7 +247,7 @@ function open_window(){
     const window = new BrowserWindow({
         width: 1000,
         height: 800,
-        icon: path.join(__dirname, 'app_dist/_assets/branding/icon.png'),
+        icon: path.join(__dirname, 'app/_assets/branding/icon.png'),
         backgroundColor: '#000000',  // Avoid white flash before first paint
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
@@ -267,7 +272,7 @@ function open_window(){
     // Navigate to the app
     const load_index = () => {
         if (app.isPackaged){
-            void window.loadFile(path.join(__dirname, 'app_dist/index.html'))
+            void window.loadFile(path.join(__dirname, 'app/index.html'))
         } else {
             // Loading from a port in dev allows for hot module reloading
             void window.loadURL('http://127.0.0.1:3000')

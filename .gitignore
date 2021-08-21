@@ -9,11 +9,11 @@
 
 /app_config/node_modules/
 
-/electron/src/config.json
 /electron/node_modules/
 /electron/.chrome_ext_vue/
+/electron/src/app
 /electron/dist/
-/electron/app_dist
+/electron/packaged/
 
 /displayer/.env.development.local
 /displayer/dist/

@@ -1,12 +1,23 @@
 #!/bin/bash
-
-cd `dirname "$0"`
-cd ../electron
+set -e
 
 
-# Set config from env (config embedded in built app)
-echo "{\"rollbar_electron\": \"$ROLLBAR_ELECTRON\"}" > src/config.json
+# Clear the dist dir
+# WARN cd executed inline to ensure cannot rm wrong dir
+cd `dirname "$0"` && cd ../electron && rm -r dist
 
 
-# Run builder
-./node_modules/.bin/electron-builder "$@"
+# Copy src to dist
+cp --archive src dist
+
+
+# Write config file to dist from env
+echo "{\"rollbar_electron\": \"$ROLLBAR_ELECTRON\"}" > dist/config.json
+
+
+# Build main and preload scripts
+./node_modules/.bin/esbuild dist/main.ts dist/preload.ts --platform=node --format=cjs --sourcemap --outdir=dist
+
+
+# Rm typescript files
+find dist -name "*.ts" -type f,l -delete

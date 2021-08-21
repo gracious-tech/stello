@@ -18,7 +18,7 @@ jobs:
             -   name: Install and cache latest compatible version of node
                 uses: actions/setup-node@v1
                 with:
-                    node-version: '13'
+                    node-version: '14'
 
             -   name: Use cache for npm
                 # Cached dir is saved after a successful run and copied when used (not mounted)

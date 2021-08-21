@@ -2,4 +2,6 @@
 
 cd `dirname "$0"`
 cd ../electron
-npx electron --no-sandbox --no-xshm .
+
+build_electron
+node_modules/.bin/electron --no-sandbox --no-xshm .
