@@ -13,7 +13,6 @@ import {bitmap_to_canvas, canvas_to_blob, buffer_to_url64, string_to_utf8} from 
 import {encrypt_sym, export_key} from '../utils/crypt'
 import {SECTION_IMAGE_WIDTH} from '../misc'
 import {HostUser} from '../hosts/types'
-import {send_emails} from '../native/native'
 import type {PublishedCopyBase, PublishedAsset, PublishedCopy, PublishedSection, PublishedImage,
     PublishedContentText} from '@/shared/shared_types'
 import {render_invite_html} from '../misc/invites'
@@ -338,7 +337,8 @@ export class Sender {
         if (this.profile.smtp_settings.oauth){
             await send_emails_oauth(this.profile.smtp_settings.oauth, emails, from, reply_to)
         } else if (this.profile.smtp_settings.pass){
-            const error = await send_emails(this.profile.smtp_settings, emails, from, reply_to)
+            const error = await self.app_native.send_emails(
+                this.profile.smtp_settings, emails, from, reply_to)
             // Translate email error to standard forms
             if (error){
                 if (['dns', 'starttls_required', 'tls_required', 'timeout'].includes(error.code)){

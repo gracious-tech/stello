@@ -28,6 +28,7 @@ declare module 'Custom' {
     import {Store} from 'vuex'
     import {Database} from '@/services/database/database'
     import {AppStoreState} from '@/services/store/types'
+    import {NativeInterface} from '@/services/native/types'
 
     // Apply globally (not just this virtual module)
     global {
@@ -39,6 +40,7 @@ declare module 'Custom' {
             _toggle_dark():void
             _update():void
             _report_error(error:any):string
+            app_native:NativeInterface
         }
         interface ImportMeta {
             // Extend with vite's env vars

@@ -14,7 +14,7 @@ import app_config from '@/app_config.json'
 import {Database, open_db} from '@/services/database/database'
 import {get_store} from '@/services/store/store'
 import {get_router} from '@/services/router'
-import {on_update_ready, update} from '@/services/native/native'
+import {NativeBrowser} from './services/native/native_browser'
 import {task_manager, TaskManager} from '@/services/tasks/tasks'
 
 // Components
@@ -54,11 +54,17 @@ declare module "vue/types/vue" {
 }
 
 
+// Set non-op native interface if none available
+if (!self.app_native){
+    self.app_native = new NativeBrowser()
+}
+
+
 // Show update bar if one available
 self._update = () => {
-    update()
+    self.app_native.update()
 }
-on_update_ready(() => {
+self.app_native.on_update_ready(() => {
     // Remove any existing reload bar, as update restarts electron and would solve errors anyway
     self.document.querySelector('.reload-bar')?.remove()
     // Insert the bar

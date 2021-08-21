@@ -37,7 +37,6 @@ import AppSidebar from '@/components/other/AppSidebar.vue'
 import AppDialog from '@/components/dialogs/AppDialog.vue'
 import SplashWelcome from '@/components/splash/SplashWelcome.vue'
 import SplashDisclaimer from '@/components/splash/SplashDisclaimer.vue'
-import {on_email_submitted, on_oauth} from '@/services/native/native'
 import {oauth_pretask_process} from '@/services/tasks/oauth'
 import {task_manager} from '@/services/tasks/tasks'
 import {sleep} from '@/services/utils/async'
@@ -73,8 +72,8 @@ export default class extends Vue {
         })
 
         // Handle events emitted from native platform
-        on_oauth(oauth_pretask_process)
-        on_email_submitted(handle_email_submitted)
+        self.app_native.on_oauth(oauth_pretask_process)
+        self.app_native.on_email_submitted(handle_email_submitted)
 
         // Resume tasks
         resume_tasks()

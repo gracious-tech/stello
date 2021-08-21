@@ -38,7 +38,7 @@ jobs:
                     echo "VERSION=v$V" >> $GITHUB_ENV
 
             -   name: Build the generic base of the app
-                run: .bin/build electron
+                run: .bin/build
                 env:
                     VITE_OAUTH_SECRET_GOOGLE: ${{ secrets.OAUTH_SECRET_GOOGLE }}
                     VITE_ROLLBAR_APP: ${{ secrets.ROLLBAR_APP }}

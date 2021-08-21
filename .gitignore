@@ -6,7 +6,6 @@
 /app/dist/
 /app/node_modules/
 /app/static/displayer.tar
-/app/src/services/native/native.ts
 
 /app_config/node_modules/
 

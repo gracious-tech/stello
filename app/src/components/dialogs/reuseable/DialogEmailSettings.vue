@@ -121,7 +121,6 @@ import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 import {EmailError} from '@/services/native/types'
 import {email_address_like} from '@/services/utils/misc'
 import {Profile, SMTP_PROVIDERS} from '@/services/database/profiles'
-import {test_email_settings, dns_mx} from '@/services/native/native'
 import {OAuthIssuer, oauth_pretask_new_usage} from '@/services/tasks/oauth'
 
 
@@ -314,7 +313,7 @@ export default class extends Vue {
             // Auto-detect host via DNS if not known from email's domain already
             // Especially useful for the many domains using Google email hosting
             if (!this.profile.smtp_detected){
-                const mx_domain = (await dns_mx(this.profile.email_domain))[0]
+                const mx_domain = (await self.app_native.dns_mx(this.profile.email_domain))[0]
                 if (mx_domain){
                     for (const provider of Object.values(SMTP_PROVIDERS)){
                         if ('mx_base' in provider && mx_domain.endsWith('.' + provider.mx_base)){
@@ -339,7 +338,7 @@ export default class extends Vue {
             this.setup = 'settings'
         } else {
             // Couldn't detect settings but can try guess host/port instead
-            const port_465_error = await test_email_settings({
+            const port_465_error = await self.app_native.test_email_settings({
                 ...this.profile.smtp_settings,
                 port: 465,
                 starttls: false,
@@ -352,7 +351,7 @@ export default class extends Vue {
                 this.setup = 'password'
             } else {
                 // Try 587
-                const port_587_error = await test_email_settings({
+                const port_587_error = await self.app_native.test_email_settings({
                     ...this.profile.smtp_settings,
                     port: 587,
                     starttls: true,
@@ -375,7 +374,7 @@ export default class extends Vue {
         // Check host settings and continue to password settings if work
         this.loading = true
         this.error = null
-        this.error = await test_email_settings(this.profile.smtp_settings, false)
+        this.error = await self.app_native.test_email_settings(this.profile.smtp_settings, false)
         if (!this.error){
             this.setup = 'password'
         }
@@ -409,7 +408,7 @@ export default class extends Vue {
         // Test the current email settings
         this.loading = true
         this.error = null
-        this.error = await test_email_settings(this.profile.smtp_settings)
+        this.error = await self.app_native.test_email_settings(this.profile.smtp_settings)
         if (!this.error){
             this.$emit('close')
         }

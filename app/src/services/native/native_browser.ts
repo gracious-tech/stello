@@ -1,41 +1,42 @@
-// Placeholders for browser env to prevent breaking on load (can't actually support these)
+// A non-operational implementation of native interface for browser env for use during dev
 
-import {EmailSettings, Email, EmailError, EmailIdentity} from './types'
-
-
-export async function update():Promise<void>{
-    self.location.assign('#/')
-    self.location.reload()
-}
+import {EmailSettings, Email, EmailError, EmailIdentity, NativeInterface} from './types'
 
 
-export async function dns_mx(host:string):Promise<string[]>{
-    return []
-}
+export class NativeBrowser implements NativeInterface {
+
+    update():void{
+        self.location.assign('#/')
+        self.location.reload()
+    }
+
+    async dns_mx(host:string):Promise<string[]>{
+        return []
+    }
 
 
-export async function test_email_settings(settings:EmailSettings, auth=true)
-        :Promise<EmailError>{
-    return {code: 'unsupported', details: ""}
-}
+    async test_email_settings(settings:EmailSettings, auth=true):Promise<EmailError>{
+        return {code: 'unsupported', details: ""}
+    }
 
 
-export async function send_emails(settings:EmailSettings, emails:Email[], from:EmailIdentity,
-        reply_to?:EmailIdentity):Promise<EmailError>{
-    return {code: 'unsupported', details: ""}
-}
+    async send_emails(settings:EmailSettings, emails:Email[], from:EmailIdentity,
+            reply_to?:EmailIdentity):Promise<EmailError>{
+        return {code: 'unsupported', details: ""}
+    }
 
 
-export function on_update_ready(handler:()=>void):void{
-    // Will never receive events...
-}
+    on_update_ready(handler:()=>void):void{
+        // Will never receive events...
+    }
 
 
-export function on_oauth(handler:(url:string)=>void):void{
-    // Will never receive events...
-}
+    on_oauth(handler:(url:string)=>void):void{
+        // Will never receive events...
+    }
 
 
-export function on_email_submitted(handler:(email_id:string, accepted:boolean)=>void):void{
-    // Will never receive events...
+    on_email_submitted(handler:(email_id:string, accepted:boolean)=>void):void{
+        // Will never receive events...
+    }
 }
