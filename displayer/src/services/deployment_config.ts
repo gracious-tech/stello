@@ -24,7 +24,7 @@ function _parse_config(config:DeploymentConfig):Omit<DeploymentConfig, 'url_msgs
     let {url_msgs, url_responder} = config
     // Optionally append subdomain to msgs url
     if (config.url_msgs_append_subdomain){
-        url_msgs += self.location.hostname.split('.')[0] + '/'
+        url_msgs += self.location.hostname.split('.')[0]! + '/'
     }
     return {url_msgs, url_responder}
 }

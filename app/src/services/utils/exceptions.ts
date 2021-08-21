@@ -123,7 +123,7 @@ export function error_to_string(error:any):string{
         } else if (typeof error === 'object'){
             info = JSON.stringify(error, undefined, 4)
         } else {
-            info = '' + error
+            info = `${error}`
         }
     } catch {}
 

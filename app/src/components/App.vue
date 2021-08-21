@@ -55,7 +55,7 @@ export default class extends Vue {
     snackbar:{msg:string, btn_label?:string, btn_color?:string, btn_handler?:()=>void} = null
     allow_force_quit = false
 
-    async mounted(){
+    mounted(){
         // Prevent window close if still doing tasks
         self.addEventListener('beforeunload', event => {
             if (task_manager.data.tasks.length && !this.allow_force_quit){

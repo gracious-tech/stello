@@ -103,12 +103,13 @@ export default class extends Vue {
         return this.oauth && this.oauth.display
     }
 
-    get service_url():string{
+    get service_url():string|undefined{
         // URL for service's page for editing the contact
         // NOTE If different account is the first signed into, user must change to correct account
         if (this.issuer === 'google'){
             return `https://contacts.google.com/person/${this.contact.service_id}`
         }
+        return undefined
     }
 
     get possible_groups_items(){

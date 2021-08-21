@@ -210,7 +210,7 @@ export class TaskManager {
                 return existing
             }
             // Since options are different, wait for existing to be aborted before creating new task
-            await existing.abort()
+            existing.abort()
         }
 
         // Create new task and add to list

@@ -65,7 +65,7 @@ export default class extends Vue {
         const secret = parts[3]
 
         // Try to download real credentials using given code
-        if (! /^[A-Za-z0-9\-]+$/.test(bucket)){
+        if (! /^[A-Za-z0-9-]+$/.test(bucket)){
             return "The copied text is not valid"
         }
         let resp:Response

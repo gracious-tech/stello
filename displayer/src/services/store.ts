@@ -86,7 +86,7 @@ export class DisplayerStore {
         // Process current hash and listen for changes
         // NOTE Important if user opens a message and browser reuses an already open tab
         await this.process_hash()
-        self.addEventListener('hashchange', async event => {
+        self.addEventListener('hashchange', event => {
             // Don't trigger when hash has been cleared by previous `process_hash` call
             // Also don't process if just reacting to a failure restoring the hash to the url
             if (self.location.hash !== '' && (!self._failed || self.location.hash !== self._hash)){

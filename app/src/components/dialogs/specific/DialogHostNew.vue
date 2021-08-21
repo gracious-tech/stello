@@ -72,18 +72,18 @@ export default class extends Vue {
         return validate_subdomain(this.username) === null
     }
 
-    get username_error(){
+    get username_error():string|undefined{
         // Error with username, if any
         if (!this.username){
-            return
+            return undefined
         } else if (!this.username_valid){
             return validate_subdomain(this.username)
         } else if (this.username_checking){
-            return
+            return undefined
         } else if (this.username === this.username_checked && !this.username_checked_available){
             return "Not available"
         }
-        return
+        return undefined
     }
 
     get ready():boolean{

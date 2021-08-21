@@ -36,6 +36,8 @@ module.exports = {
         '@typescript-eslint/no-extra-semi': 'off',  // Conflicts with 'semi' rule
         '@typescript-eslint/no-empty-interface': 'off',  // Empty interfaces may be expanded later
         '@typescript-eslint/no-non-null-assertion': 'off',  // trailing ! can be useful
+        '@typescript-eslint/require-await': 'off',  // Some fns async to match spec or await later
+        '@typescript-eslint/no-empty-function': 'off',  // Empty fns may be used to match a spec
         // Disable as already covered by other audits (such as tsc)
         'import/no-unresolved': 'off',  // Vite imports complex and already handled by tsc
         // Default to error but should be warnings
@@ -52,6 +54,7 @@ module.exports = {
         // Enable
         'semi': ['warn', 'never', {beforeStatementContinuationChars: 'always'}],
         // Need customisation
+        'no-constant-condition': ['error', {checkLoops: false}],  // while (true) useful at times
         'prefer-const': ['warn', {destructuring: 'all'}],  // Allows `let [a, b]` if only `a` const
         '@typescript-eslint/no-unused-vars': ['warn', {args: 'none'}],  // Unused args (eg event) ok
     },

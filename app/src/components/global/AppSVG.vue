@@ -52,13 +52,11 @@ export default class extends Vue {
                 width: '100%',
                 height: 'auto',
             }
-        } else {
-            return {
-                'min-width': `${this.width}px`,
-                'min-height': `${this.height}px`,
-            }
         }
-        return null
+        return {
+            'min-width': `${this.width}px`,
+            'min-height': `${this.height}px`,
+        }
     }
 }
 </script>

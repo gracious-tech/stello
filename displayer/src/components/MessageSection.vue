@@ -77,7 +77,6 @@ export default {
         self._fail_report_fatal = false
 
         return {
-            section: props.section,
             content: computed(() => props.section.content),
             classes,
             subsection,

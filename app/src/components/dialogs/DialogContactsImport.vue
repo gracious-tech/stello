@@ -210,23 +210,17 @@ export default class extends Vue {
         }
 
         // Detect the file's type
-        let type:string
-        let parser:(text:string)=>Promise<void>
-        if (text.trim().startsWith('BEGIN:VCARD')){
-            type = 'vcard'
-            parser = this.parse_vcard
-        } else if (extension === 'csv'){
-            type = 'csv'
-            parser = this.parse_csv
-        } else {
-            type = 'email'
-            parser = this.parse_email
-        }
-
-        // Try to parse
         // NOTE Must set type after parsing done so don't show "no contacts" message in between
-        await drop(parser(text))
-        this.type = type
+        if (text.trim().startsWith('BEGIN:VCARD')){
+            await drop(this.parse_vcard(text))
+            this.type = 'vcard'
+        } else if (extension === 'csv'){
+            await drop(this.parse_csv(text))
+            this.type = 'csv'
+        } else {
+            await drop(this.parse_email(text))
+            this.type = 'email'
+        }
     }
 
     async parse_vcard(text:string):Promise<void>{

@@ -11,7 +11,7 @@ export async function request(input:string|Request, init?:RequestInit, forbidden
     if (resp.ok){
         return resp
     }
-    throw new Error("Bad response: " + resp.status)
+    throw new Error(`Bad response: ${resp.status}`)
 }
 
 

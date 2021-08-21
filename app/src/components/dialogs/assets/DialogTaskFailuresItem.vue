@@ -115,7 +115,7 @@ export default class extends Vue {
         return "Retry"
     }
 
-    get support_url():string{
+    get support_url():string|undefined{
         // Generate a support url if the fail type is unknown
         // SECURITY Don't include task params or label as may include personal data
         if (this.error_type === 'unknown'){
@@ -123,6 +123,7 @@ export default class extends Vue {
                 + `Task: ${this.task.name}\nError report: ${this.task.error_report_id}`
             return `https://gracious.tech/support/stello/error/?desc=${encodeURIComponent(desc)}`
         }
+        return undefined
     }
 
     async fix():Promise<void>{

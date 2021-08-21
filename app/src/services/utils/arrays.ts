@@ -19,7 +19,8 @@ export function sort(array:any[], property:string|number|null=null, ascending=tr
     } else if (first_val instanceof Date){
         compare = (a:Date, b:Date):number => a.getTime() - b.getTime()
     } else {
-        compare = new Intl.Collator().compare
+        const _collator = new Intl.Collator()  // So don't construct on every call to `compare()`
+        compare = (a, b) => _collator.compare(a, b)
     }
 
     // Reverse comparison if decending order

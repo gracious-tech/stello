@@ -129,7 +129,7 @@ export default class extends Vue {
             this.filter_group_id = prev_state_contacts.filter_group_id
 
             // Wait for DOM to change after above filters applied
-            this.$nextTick(async () => {
+            this.$nextTick(async ():void => {
                 const scrollable = (this.$refs.scrollable as Vue)?.$el as HTMLDivElement
                 if (scrollable){
                     // Restore previous scroll position

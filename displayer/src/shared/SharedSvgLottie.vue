@@ -94,7 +94,7 @@ export default {
         },
     },
 
-    beforeDestroy(){  // Vue 2
+    beforeDestroy(){  // eslint-disable-line vue/no-deprecated-destroyed-lifecycle -- Vue 2
         this.destroy_lottie()
     },
 

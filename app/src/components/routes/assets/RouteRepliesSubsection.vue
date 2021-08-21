@@ -80,7 +80,7 @@ export default class extends Vue {
         return this.first.msg_title
     }
 
-    get section_image():string{
+    get section_image():string|undefined{
         // Return url for an image that represents the section (if any)
         if (this.section?.content.type === 'images'){
             const images = this.section.content.images
@@ -96,6 +96,7 @@ export default class extends Vue {
                 return this.section_image_vimeo
             }
         }
+        return undefined
     }
 
     get section_text(){

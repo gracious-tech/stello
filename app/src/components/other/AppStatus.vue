@@ -48,11 +48,11 @@ export default class extends Vue {
         return task_manager.data.tasks
     }
 
-    get failure():string{
+    get failure():string|undefined{
         // Get string describing failed task/tasks if any
         const fails = task_manager.data.fails
         if (fails.length === 0){
-            return
+            return undefined
         } else if (fails.length === 1){
             return fails[0].display
         }
