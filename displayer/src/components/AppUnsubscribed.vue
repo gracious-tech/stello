@@ -11,19 +11,19 @@ div.unsubscribed(v-if='unsubscribed' class='ui')
 
 <script lang='ts'>
 
-import {computed} from 'vue'
+import {computed, defineComponent} from 'vue'
 
 import {store} from '../services/store'
 
 
-export default {
+export default defineComponent({
     setup(){
         return {
             unsubscribed: computed(() => store.unsubscribed),
             undo: () => {store.update_subscribed(true)},
         }
     }
-}
+})
 
 </script>
 

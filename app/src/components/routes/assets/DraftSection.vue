@@ -11,10 +11,10 @@ section(@click.self='focus_editor' :class='classes')
 
         app-html(v-if='type === "text"' ref='app_html' v-model='text_html' :variables='text_variables')
 
-        shared-slideshow(v-if='type === "images"' :images='content.images' :aspect='images_aspect'
+        shared-slideshow(v-if='content.type === "images"' :images='content.images' :aspect='images_aspect'
             :crop='content.crop' editing @img_click='modify')
 
-        shared-video(v-if='type === "video"' @modify='modify' :format='content.format'
+        shared-video(v-if='content.type === "video"' @modify='modify' :format='content.format'
             :id='content.id' :caption='content.caption' :start='content.start' :end='content.end')
 
     draft-section-respond(:profile='profile' :section='section' @click.native.self='focus_editor')
@@ -97,7 +97,7 @@ export default class extends Vue {
         // If text section is clicked, focus the text area for editing
         // NOTE Normally section's padding would prevent focusing the text area
         if (this.type === 'text'){
-            ;(this.$refs.app_html as any).focus()  // Accesses private method of AppHtml
+            ;(this.$refs['app_html'] as any).focus()  // Accesses private method of AppHtml
         }
     }
 

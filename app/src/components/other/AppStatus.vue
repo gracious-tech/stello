@@ -88,7 +88,7 @@ export default class extends Vue {
 
     show_fails_dialog():void{
         // Show dialog for managing task failures
-        this.$store.dispatch('show_dialog', {component: DialogTaskFailures})
+        void this.$store.dispatch('show_dialog', {component: DialogTaskFailures})
     }
 }
 

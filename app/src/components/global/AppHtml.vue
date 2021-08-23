@@ -250,8 +250,8 @@ export default class extends Vue {
                     // @ts-ignore custom fn added so can use it within `renderHTML()`
                     tip: (id:string):string => this.variables[id].label,
                     // Use variable's value as span's text, otherwise variable's label
-                    renderLabel: ({node}) => this.variables[node.attrs.id].value
-                        || this.variables[node.attrs.id].label.toLocaleUpperCase(),
+                    renderLabel: ({node}) => this.variables[node.attrs['id']].value
+                        || this.variables[node.attrs['id']].label.toLocaleUpperCase(),
                     suggestion: {
                         char: '#',
                         items: query => {
@@ -272,7 +272,7 @@ export default class extends Vue {
                             mergeAttributes(
                                 {
                                     'data-mention': '',
-                                    'data-tip': this.options.tip(node.attrs.id),
+                                    'data-tip': this.options.tip(node.attrs['id']),
                                     'data-tip-instant': '',
                                 },
                                 this.options.HTMLAttributes,
@@ -283,7 +283,7 @@ export default class extends Vue {
                     },
                     renderText({node}){
                         // Use code when copying/pasting as text, as easier to reapply as no spaces
-                        return `${this.options.suggestion.char}${node.attrs.id}`
+                        return `${this.options.suggestion.char}${node.attrs['id']}`
                     },
                 }),
                 History,  // Required for undo/redo

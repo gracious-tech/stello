@@ -26,7 +26,7 @@ form(v-if='allow_replies' @submit.prevent='send_reply' class='ui')
 
 <script lang='ts'>
 
-import {ref, watch, computed, Ref} from 'vue'
+import {ref, watch, computed, Ref, defineComponent} from 'vue'
 
 import {displayer_config} from '../services/displayer_config'
 import {respond_reply} from '../services/responses'
@@ -34,7 +34,7 @@ import {database} from '../services/database'
 import {store} from '../services/store'
 
 
-export default {
+export default defineComponent({
 
     setup(){
 
@@ -100,7 +100,7 @@ export default {
         return {textarea, text, send_reply, waiting, success, allow_replies, replies,
             last_sent_contents}
     }
-}
+})
 
 </script>
 

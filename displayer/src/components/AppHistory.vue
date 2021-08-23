@@ -19,12 +19,12 @@ template(v-if='prev || next')
 
 <script lang='ts'>
 
-import {computed} from 'vue'
+import {computed, defineComponent} from 'vue'
 
 import {store} from '../services/store'
 
 
-export default {
+export default defineComponent({
     setup(){
 
         // Reactive access to index of current message in history
@@ -69,7 +69,7 @@ export default {
         // Expose
         return {prev, next}
     }
-}
+})
 
 </script>
 

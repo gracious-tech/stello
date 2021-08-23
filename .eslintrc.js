@@ -57,5 +57,7 @@ module.exports = {
         'no-constant-condition': ['error', {checkLoops: false}],  // while (true) useful at times
         'prefer-const': ['warn', {destructuring: 'all'}],  // Allows `let [a, b]` if only `a` const
         '@typescript-eslint/no-unused-vars': ['warn', {args: 'none'}],  // Unused args (eg event) ok
+        '@typescript-eslint/no-misused-promises': ['error', {'checksVoidReturn': false}],
+            // Trying to refactor async fns to please checksVoidReturn is more trouble than worth
     },
 }

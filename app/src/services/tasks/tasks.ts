@@ -57,11 +57,11 @@ export class Task {
     aborted:TaskAborted|null = null  // An abort error if task has been aborted
     error:any = null  // Error value is both resolved for `done` and set as a property
     error_report_id:string = null  // UUID for error report (if was sent)
+    subtasks_done = 0
+    subtasks_total = 0
 
     // Private
     private done_resolve:(error:any)=>void
-    private subtasks_done = 0
-    private subtasks_total = 0
 
     constructor(name:string, params:string[], options:string[]){
         this.name = name

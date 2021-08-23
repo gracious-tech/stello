@@ -45,7 +45,7 @@ div.respondbar(@mouseenter='have_hovered = true' class='ui')
 
 <script lang='ts'>
 
-import {ref, watch, computed, PropType, Ref, reactive} from 'vue'
+import {ref, watch, computed, PropType, Ref, reactive, defineComponent} from 'vue'
 
 import ReactionSvg from './ReactionSvg.vue'
 import SharedRespondReact from '../shared/SharedRespondReact.vue'
@@ -57,7 +57,7 @@ import {database} from '../services/database'
 import {store} from '../services/store'
 
 
-export default {
+export default defineComponent({
 
     components: {SharedRespondReact, SharedRespondReply, ReactionSvg},
 
@@ -213,7 +213,7 @@ export default {
             last_sent_contents, replies,
         }
     }
-}
+})
 
 </script>
 

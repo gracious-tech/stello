@@ -5,7 +5,7 @@
 
 v-list(dense)
     v-list-item-group(v-model='selected' color='accent')
-        v-list-item(v-for='(item, i) in items' :key='item.code' @click='execute(item)')
+        v-list-item(v-for='item of items' :key='item.code' @click='execute(item)')
             v-list-item-content
                 v-list-item-title {{ item.label }}
             v-list-item-action(v-if='item.value') {{ item.value }}

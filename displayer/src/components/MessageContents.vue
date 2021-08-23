@@ -14,7 +14,7 @@ MessageReply
 
 <script lang='ts'>
 
-import {computed, PropType} from 'vue'
+import {computed, PropType, defineComponent} from 'vue'
 
 import MessageSection from './MessageSection.vue'
 import MessageReply from './MessageReply.vue'
@@ -22,7 +22,7 @@ import {PublishedCopy} from '../shared/shared_types'
 import {floatify_rows} from '../shared/shared_functions'
 
 
-export default {
+export default defineComponent({
 
     components: {MessageSection, MessageReply},
 
@@ -42,7 +42,7 @@ export default {
             floatified_rows,
         }
     }
-}
+})
 
 </script>
 

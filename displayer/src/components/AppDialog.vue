@@ -10,12 +10,12 @@ div.overlay(v-if='dialog' @click.self='close' class='ui')
 
 <script lang='ts'>
 
-import {computed, watch} from 'vue'
+import {computed, watch, defineComponent} from 'vue'
 
 import {store} from '../services/store'
 
 
-export default {
+export default defineComponent({
     setup(){
         const dialog = computed(() => store.state.dialog)
         const close = () => {store.dialog_close()}
@@ -27,7 +27,7 @@ export default {
 
         return {dialog, close}
     }
-}
+})
 
 </script>
 

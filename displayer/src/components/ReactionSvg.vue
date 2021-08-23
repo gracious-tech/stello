@@ -12,10 +12,12 @@ SharedSvgAnimated(
 
 <script lang='ts'>
 
+import {defineComponent} from 'vue'
+
 import SharedSvgAnimated from '../shared/SharedSvgAnimated.vue'
 
 
-export default {
+export default defineComponent({
 
     components: {SharedSvgAnimated},
 
@@ -33,7 +35,7 @@ export default {
             default: true,
         },
     },
-}
+})
 
 </script>
 

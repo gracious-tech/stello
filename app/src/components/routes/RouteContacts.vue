@@ -112,8 +112,8 @@ export default class extends Vue {
 
         // Default to filtering by the group specified in route query if any
         // NOTE If viewed a contact and then `back()`, `prev_state_contacts` should override this
-        if (this.$route.query.group){
-            this.filter_group_id = this.$route.query.group as string
+        if (this.$route.query['group']){
+            this.filter_group_id = this.$route.query['group'] as string
         }
 
         // Load contacts and other data
@@ -129,8 +129,8 @@ export default class extends Vue {
             this.filter_group_id = prev_state_contacts.filter_group_id
 
             // Wait for DOM to change after above filters applied
-            this.$nextTick(async ():void => {
-                const scrollable = (this.$refs.scrollable as Vue)?.$el as HTMLDivElement
+            this.$nextTick(async ():Promise<void> => {
+                const scrollable = (this.$refs['scrollable'] as Vue)?.$el as HTMLDivElement
                 if (scrollable){
                     // Restore previous scroll position
                     scrollable.scrollTop = prev_state_contacts.scroll_top
@@ -149,7 +149,7 @@ export default class extends Vue {
         this.$store.commit('tmp_set', ['prev_state_contacts', {
             filter_group_id: this.filter_group_id,
             search: this.search,
-            scroll_top: (this.$refs.scrollable as Vue)?.$el.scrollTop || 0,
+            scroll_top: (this.$refs['scrollable'] as Vue)?.$el.scrollTop || 0,
         }])
     }
 
@@ -259,7 +259,7 @@ export default class extends Vue {
 
     @Watch('contacts_matched') watch_contacts_matched():void{
         // Whenever matched contacts changes, scroll back to top
-        ;(this.$refs.scrollable as Vue)?.$el.scroll(0, 0)
+        ;(this.$refs['scrollable'] as Vue)?.$el.scroll(0, 0)
     }
 
     @Watch('$tm.data.finished') watch_tm_finished(task:Task){

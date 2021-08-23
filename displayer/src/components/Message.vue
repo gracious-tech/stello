@@ -25,7 +25,7 @@ div
 
 <script lang='ts'>
 
-import {ref, provide} from 'vue'
+import {ref, provide, defineComponent} from 'vue'
 
 import AppFooter from './AppFooter.vue'
 import AppHistory from './AppHistory.vue'
@@ -42,7 +42,7 @@ import {respond_read} from '../services/responses'
 import {displayer_config} from '../services/displayer_config'
 
 
-export default {
+export default defineComponent({
 
 
 components: {MessageContents, AppHistory, AppFooter, AppUnsubscribed},
@@ -159,7 +159,7 @@ setup(){
 },
 
 
-}
+})
 
 </script>
 

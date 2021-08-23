@@ -43,7 +43,7 @@ import AppLogo from '@/branding/AppLogo.vue'
 })
 export default class extends Vue {
 
-    done(){
+    done():void{
         this.$store.commit('dict_set', ['show_splash_welcome', false])
     }
 }

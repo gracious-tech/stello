@@ -57,7 +57,8 @@ export default class extends Vue {
             // Convert the section ids to actual sections
             // NOTE Must filter out sections and/or rows when they haven't been loaded from db yet
             this.draft.sections.map(row => {
-                return row.map(section => this.sections[section]).filter(s => s)
+                return row.map(section => this.sections[section])
+                    .filter(s => s) as [Section]|[Section, Section]
             }).filter(row => row.length),
         )
     }

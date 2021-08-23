@@ -80,8 +80,7 @@ export default class extends Vue {
 
         // If shift click in dev, trigger hidden action for generating dummy data
         if (import.meta.env.MODE === 'development' && event.shiftKey){
-            // @ts-ignore adding booleans works for this
-            const multiplier = event.shiftKey + event.altKey + event.ctrlKey
+            const multiplier = (event.shiftKey?1:0) + (event.altKey?1:0) + (event.ctrlKey?1:0)
             this.$store.dispatch('show_snackbar', `Generating dummy data * ${multiplier}...`)
             await self._db.generate_dummy_data(multiplier)
             self.location.reload()

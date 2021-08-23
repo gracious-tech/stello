@@ -23,8 +23,8 @@ export default class extends Vue {
     get label_classes():string[]{
         // Return appropriate classes for label to make it look like a button
         const classes = [this.$vuetify.theme.dark ? 'theme--dark' : 'theme--light']
-        if (this.$attrs.color){
-            classes.push(`${this.$attrs.color}--text`)
+        if (this.$attrs['color']){
+            classes.push(`${this.$attrs['color']}--text`)
         }
         return classes
     }

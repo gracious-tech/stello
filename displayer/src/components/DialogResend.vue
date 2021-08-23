@@ -17,13 +17,13 @@ div.actions
 
 <script lang='ts'>
 
-import {computed, onMounted, ref, watch} from 'vue'
+import {computed, onMounted, ref, watch, defineComponent} from 'vue'
 
 import {store} from '../services/store'
 import {respond_resend} from '../services/responses'
 
 
-export default {
+export default defineComponent({
     setup(){
 
         // Title may be available if user already opened the message before it expired
@@ -75,7 +75,7 @@ export default {
         // Expose
         return {close, send, reason, progress, error, textarea, valid}
     }
-}
+})
 
 </script>
 

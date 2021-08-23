@@ -9,7 +9,7 @@ SharedSlideshow(:images='images' :aspect='ratio' @img_click='$emit("fullscreen")
 
 <script lang='ts'>
 
-import {ref, reactive, inject, PropType, Ref} from 'vue'
+import {ref, reactive, inject, PropType, Ref, defineComponent} from 'vue'
 
 import SharedSlideshow, {SlideshowImage} from '../shared/SharedSlideshow.vue'
 import {store} from '../services/store'
@@ -18,7 +18,7 @@ import {GetAsset} from '../services/types'
 import type {PublishedContentImages} from '../shared/shared_types'
 
 
-export default {
+export default defineComponent({
 
     components: {SharedSlideshow},
 
@@ -81,7 +81,7 @@ export default {
         // Expose template's requirements
         return {images, on_displayed_change, ratio}
     },
-}
+})
 
 </script>
 

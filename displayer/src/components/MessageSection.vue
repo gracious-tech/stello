@@ -20,7 +20,7 @@ teleport(to='.stello-displayer' :disabled='!fullscreen')
 
 <script lang='ts'>
 
-import {computed, PropType, ref, watch, onUnmounted, provide} from 'vue'
+import {computed, PropType, ref, watch, onUnmounted, provide, defineComponent} from 'vue'
 
 import Slideshow from './Slideshow.vue'
 import SharedVideo from '../shared/SharedVideo.vue'
@@ -29,7 +29,7 @@ import {PublishedSection} from '../shared/shared_types'
 import {section_classes} from '../shared/shared_functions'
 
 
-export default {
+export default defineComponent({
 
     components: {Slideshow, SharedVideo, Respond},
 
@@ -84,7 +84,7 @@ export default {
             fullscreen,
         }
     },
-}
+})
 
 </script>
 

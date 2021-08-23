@@ -23,7 +23,7 @@ div.footer(v-if='msg' class='ui')
 
 <script lang='ts'>
 
-import {computed, PropType} from 'vue'
+import {computed, PropType, defineComponent} from 'vue'
 
 import app_config from '../app_config.json'
 import DialogChangeAddress from './DialogChangeAddress.vue'
@@ -31,7 +31,7 @@ import {PublishedCopy} from '../shared/shared_types'
 import {store} from '../services/store'
 
 
-export default {
+export default defineComponent({
     props: {
         msg: {type: Object as PropType<PublishedCopy>, required: false},
     },
@@ -56,7 +56,7 @@ export default {
             change_address,
         }
     }
-}
+})
 
 </script>
 

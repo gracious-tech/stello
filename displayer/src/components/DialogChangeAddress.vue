@@ -20,14 +20,14 @@ div.actions
 
 <script lang='ts'>
 
-import {computed, ref} from 'vue'
+import {computed, ref, defineComponent} from 'vue'
 
 import {store} from '../services/store'
 import {respond_address} from '../services/responses'
 import {email_address_like} from '../services/utils/misc'
 
 
-export default {
+export default defineComponent({
     props: {
         old_address: {type: String, default: null},
         encrypted_address: {type: String, default: null},
@@ -59,7 +59,7 @@ export default {
         // Expose
         return {close, change, address, progress, error, valid}
     }
-}
+})
 
 </script>
 
