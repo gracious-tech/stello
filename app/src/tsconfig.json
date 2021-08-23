@@ -9,4 +9,8 @@
             "@/*": ["./*"],
         },
     },
+    // Needed only for Vue 2 to help Volar VSCode extension
+    "vueCompilerOptions": {
+        "experimentalCompatMode": 2,
+    },
 }

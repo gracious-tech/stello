@@ -17,6 +17,7 @@ fi
 EXIT_CODE=0
 
 # WARN Keep this list in sync with .eslintrc.js
+# WARN vue-tsc requires @vue/runtime-dom (provided by Vue3 but needed in top level node_modules)
 node_modules/.bin/tsc --project app || EXIT_CODE=1
 node_modules/.bin/vue-tsc --project app/src || EXIT_CODE=1
 node_modules/.bin/tsc --project app_config || EXIT_CODE=1
