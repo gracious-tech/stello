@@ -175,7 +175,7 @@ html
                 // ERROR UTILS
 
 
-                self._rollbar = (message:string) => {
+                self._report_error = (message:string) => {
                     // Send an error report to Rollbar
                     // NOTE Not using Rollbar's own SDK as it is too large and unnecessary
                     drop(fetch('https://api.rollbar.com/api/1/item/', {
@@ -223,7 +223,7 @@ html
                     if (import.meta.env.MODE === 'production' && self._browser_supported
                             && fail_report_last < five_secs_ago){
                         fail_report_last = new Date().getTime()
-                        self._rollbar(msg)
+                        self._report_error(msg)
                     }
                 }
 
