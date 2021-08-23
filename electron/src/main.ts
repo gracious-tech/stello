@@ -5,13 +5,16 @@ import {promises as fs, constants as fs_constants} from 'original-fs'
 import {promises as dns} from 'dns'
 import path from 'path'
 import http from 'http'
+import {URL} from 'url'  // See https://github.com/DefinitelyTyped/DefinitelyTyped/issues/34960
 
 import {app, BrowserWindow, ipcMain, shell, Menu, dialog, session} from 'electron'
 import {autoUpdater} from 'electron-updater'
 import context_menu from 'electron-context-menu'
-
 import Rollbar from 'rollbar'
-import nodemailer from 'nodemailer'
+import nodemailer, {Transporter} from 'nodemailer'
+import SMTPTransport from 'nodemailer/lib/smtp-transport'
+
+import {Email, EmailSettings, EmailIdentity, EmailError} from './native_types'
 
 
 // Load config file (created from env vars and embedded during packaging)
@@ -33,7 +36,6 @@ Rollbar.init({
     captureUncaught: true,
     captureUnhandledRejections: true,
     codeVersion: 'v' + app.getVersion(),  // 'v' to match git tags
-    locals: false,  // SECURITY Variable values may expose user data (e.g. username in path)
     autoInstrument: false,  // SECURITY Don't track use via telemetry to protect privacy
     payload: {
         platform: 'client',  // Allows using public client token rather than server
@@ -52,7 +54,8 @@ Rollbar.init({
         // NOTE `transform` callback is called earlier and doesn't apply to `notifier` prop
         const app_dir = path.dirname(__dirname)
         for (const [key, val] of Object.entries(payload)){
-            payload[key] = JSON.parse(JSON.stringify(val).replaceAll(app_dir, fake_app_dir))
+            ;(payload as Record<string, unknown>)[key] =
+                JSON.parse(JSON.stringify(val).split(app_dir).join(fake_app_dir))  // replaceAll
         }
     },
 })
@@ -81,7 +84,7 @@ const oauth_html = asar_fs_callbacks.readFileSync(oauth_html_path, {encoding: 'u
 const http_server_port = 44932
 const http_server = http.createServer((request, response) => {
 
-    const url = new URL(request.url, `http://127.0.0.1:${http_server_port}`)
+    const url = new URL(request.url ?? '', `http://127.0.0.1:${http_server_port}`)
 
     if (url.pathname === '/oauth' && app.isReady){
         // Process an oauth redirect (only possible if app is ready)
@@ -152,7 +155,7 @@ void app.whenReady().then(async () => {
 
     // Try to auto-update (if packaging format supports it)
     // NOTE Updates on Windows are currently handled by the Windows Store
-    if (app.isPackaged && (process.platform === 'darwin' || process.env.APPIMAGE)){
+    if (app.isPackaged && (process.platform === 'darwin' || process.env['APPIMAGE'])){
 
         // Check for updates
         // WARN Always do this, otherwise can end up with an unupdatable installation
@@ -360,23 +363,31 @@ function smtp_transport(settings:SmtpSettings){
 }
 
 
-function normalize_nodemailer_error(error){
+function normalize_nodemailer_error(error:unknown):EmailError{
     // Normalize a nodemailer error to a cross-platform standard that app can understand
     // NOTE May be other codes, as only those raised during initial connection were accounted for
-    let code = 'unknown'
-    if (error.code === 'EDNS'){
+
+    // Ensure error is an object
+    if (typeof error !== 'object' || error === null){
+        return {code: 'unknown', details: `${error as string}`}
+    }
+
+    // Map nodemailer codes to app codes
+    const error_obj = error as {code?:string, message?:string}
+    let code:EmailError['code'] = 'unknown'
+    if (error_obj.code === 'EDNS'){
         // Either DNS server couldn't find name, or had trouble communicating with DNS server
-        code = error.message.startsWith('getaddrinfo ENOTFOUND') ? 'dns' : 'network'
-    } else if (error.code === 'ESOCKET'){
-        if (error.message.startsWith('Client network socket disconnected before secure TLS')){
+        code = error_obj.message?.startsWith('getaddrinfo ENOTFOUND') ? 'dns' : 'network'
+    } else if (error_obj.code === 'ESOCKET'){
+        if (error_obj.message?.startsWith('Client network socket disconnected before secure TLS')){
             // Tried to use TLS on a STARTTLS port but aborted when server didn't support TLS
             code = 'starttls_required'
         } else {
             // Not connected (but cached DNS still knew ip)
             code = 'network'
         }
-    } else if (error.code === 'ETIMEDOUT'){
-        if (error.message === 'Greeting never received'){
+    } else if (error_obj.code === 'ETIMEDOUT'){
+        if (error_obj.message === 'Greeting never received'){
             // Slow connection, or tried to use STARTTLS on a TLS port
             // NOTE If slow connection, probably wouldn't have gotten this far anyway, so assume tls
             code = 'tls_required'
@@ -384,12 +395,12 @@ function normalize_nodemailer_error(error){
             // Wrong host, wrong port, or slow connection (may sometimes be a STARTTLS issue too)
             code = 'timeout'
         }
-    } else if (error.code === 'EAUTH'){
+    } else if (error_obj.code === 'EAUTH'){
         // Either username or password wrong (may need app password)
         code = 'auth'
     }
-    // NOTE error.message already includes error.response (if it exists)
-    return {code, details: `${error.code}: ${error.message}`}
+    // NOTE error_obj.message already includes error_obj.response (if it exists)
+    return {code, details: `${error_obj.code as string}: ${error_obj.message as string}`}
 }
 
 
@@ -440,12 +451,13 @@ ipcMain.handle('test_email_settings', async (event, settings, auth=true) => {
 })
 
 
-ipcMain.handle('send_emails', async (event, settings, emails, from, reply_to) => {
+ipcMain.handle('send_emails', async (event, settings:EmailSettings, emails:Email[],
+        from:EmailIdentity, reply_to:EmailIdentity|undefined) => {
     // Send emails and return null for success, else error
     // NOTE Also emits `email_submitted` event for each individual emails that don't hard fail
 
     // Helper for sending an email and reporting success
-    const send_email = async (transport, email) => {
+    const send_email = async (transport:Transporter<SMTPTransport.SentMessageInfo>, email:Email) => {
 
         // Try to send the email (will throw if a hard fail)
         const result = await transport.sendMail({
@@ -465,7 +477,7 @@ ipcMain.handle('send_emails', async (event, settings, emails, from, reply_to) =>
     // NOTE Rate limiting very common (especially for gmail), but no way to know unless first try
     // NOTE This instantly submits all emails to nodemailer which handles the parallel queuing
     let transport = smtp_transport(settings)
-    let unsent = await Promise.all(emails.map(async email => {
+    const unsent = (await Promise.all(emails.map(async email => {
         try {
             await send_email(transport, email)
         } catch {
@@ -475,8 +487,7 @@ ipcMain.handle('send_emails', async (event, settings, emails, from, reply_to) =>
             return email
         }
         return null  // Null return means email was submitted successfully
-    }))
-    unsent = unsent.filter(email => email)  // Filter out nulls (successes)
+    }))).filter(email => email) as Email[]  // Filter out nulls (successes)
 
     // If nothing in unsent array, then all done
     if (!unsent.length){
