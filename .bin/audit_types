@@ -10,10 +10,10 @@ EXIT_CODE=0
 
 # WARN Keep this list in sync with .eslintrc.js
 node_modules/.bin/tsc --project app || EXIT_CODE=1
-node_modules/.bin/tsc --project app/src || EXIT_CODE=1
+node_modules/.bin/vue-tsc --project app/src || EXIT_CODE=1
 node_modules/.bin/tsc --project app_config || EXIT_CODE=1
 node_modules/.bin/tsc --project displayer || EXIT_CODE=1
-node_modules/.bin/tsc --project displayer/src || EXIT_CODE=1
+node_modules/.bin/vue-tsc --project displayer/src || EXIT_CODE=1
 node_modules/.bin/tsc --project electron || EXIT_CODE=1
 # TODO responder
 
