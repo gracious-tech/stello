@@ -1,5 +1,5 @@
 
-export interface AppConfigInput {
+export interface AppConfig {
     version:string
     theme_codes:{
         primary:[string, string],
@@ -15,28 +15,27 @@ export interface AppConfigInput {
         name:string,
         email:string,
     }
+    theme?:AppConfigTheme  // Auto-created
 }
 
 
-export interface AppConfigOutput extends AppConfigInput {
-    theme:{
-        primary:string
-        primary_lighter:string
-        primary_darker:string
-        accent:string
-        accent_lighter:string
-        accent_darker:string
-        error:string
-        error_lighter:string
-        error_darker:string
-        on_primary:string
-        on_primary_lighter:string
-        on_primary_darker:string
-        on_accent:string
-        on_accent_lighter:string
-        on_accent_darker:string
-        on_error:string
-        on_error_lighter:string
-        on_error_darker:string
-    }
+export interface AppConfigTheme {
+    primary:string
+    primary_lighter:string
+    primary_darker:string
+    accent:string
+    accent_lighter:string
+    accent_darker:string
+    error:string
+    error_lighter:string
+    error_darker:string
+    on_primary:string
+    on_primary_lighter:string
+    on_primary_darker:string
+    on_accent:string
+    on_accent_lighter:string
+    on_accent_darker:string
+    on_error:string
+    on_error_lighter:string
+    on_error_darker:string
 }

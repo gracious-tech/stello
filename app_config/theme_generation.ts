@@ -1,23 +1,19 @@
 // Theme generator
 
 import chroma from 'chroma-js'
+
 import {colors} from './colors'
-
-
-interface AppConfig {
-    theme_codes:Record<string, [string, string]>,
-    theme:Record<string, string>
-    [k:string]:any
-}
+import {AppConfig, AppConfigTheme} from './types'
 
 
 export function generate_theme(config:AppConfig):void{
     // Generate a theme from the given base colors
-    config.theme = {}
+    const theme:Record<string, string> = {}
     for (const [key, codes] of Object.entries(config.theme_codes)){
-        config.theme[key] = colors[codes[0]]![codes[1]]!
+        theme[key] = colors[codes[0]]![codes[1]]!
     }
-    add_variations(config.theme)
+    add_variations(theme)
+    config.theme = theme as unknown as AppConfigTheme
 }
 
 

@@ -5,6 +5,7 @@ import {resolve} from 'path'
 import {writeFileSync, readFileSync} from 'fs'
 
 import {generate_theme} from './theme_generation'
+import {AppConfig} from './types'
 
 
 // Determine branding
@@ -12,8 +13,9 @@ const branding = 'stello'  // process.argv[2]
 
 
 // Helper for getting config files as objects
-function get_config(name:string):any{
-    return yaml.load(readFileSync(resolve(__dirname, `${name}.yaml`)))
+function get_config(name:string){
+    const raw_yaml = readFileSync(resolve(__dirname, `${name}.yaml`), {encoding: 'utf-8'})
+    return yaml.load(raw_yaml) as AppConfig
 }
 
 
