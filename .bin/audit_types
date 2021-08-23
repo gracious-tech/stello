@@ -6,6 +6,14 @@
 cd `dirname "$0"`
 cd ..
 
+
+# If an arg given, just check that component
+if [[ "$1" ]]; then
+    node_modules/.bin/vue-tsc --project "$1"
+    exit
+fi
+
+
 EXIT_CODE=0
 
 # WARN Keep this list in sync with .eslintrc.js
