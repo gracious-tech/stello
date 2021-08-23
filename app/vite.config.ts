@@ -19,7 +19,7 @@ export default defineConfig(({mode}) => {
         base: './',  // Important when served from file:///
         publicDir: 'static',
         plugins: [
-            plugin_index(),
+            plugin_index('src/index.pug'),
             plugin_svg(),
             plugin_nameless(),
             createVuePlugin(),

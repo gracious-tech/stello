@@ -4,17 +4,15 @@ import 'core-js/features/string/replace-all'
 
 import {createApp} from 'vue'
 
-import {store} from './services/store'
-import {database} from './services/database'
-import {error_to_string} from './services/utils/exceptions'
-// @ts-ignore For some reason TS imports below fine but says it can't when checking types
-import App from './App.vue'
-// @ts-ignore For some reason TS imports below fine but says it can't when checking types
-import AppProgress from './components/AppProgress.vue'
+import {store} from '../services/store'
+import {database} from '../services/database'
+import {error_to_string} from '../services/utils/exceptions'
+import App from '../components/App.vue'
+import AppProgress from '../components/AppProgress.vue'
 
 
 // Embed stello styles in JS (so doesn't block first render)
-import './styles.sass'
+import './init_loaded_styles.sass'
 
 
 // Init Vue app so can configure before mounting

@@ -1,4 +1,5 @@
 // A vite plugin that supports writing index in Pug and embedding Typescript and Sass
+// WARN Do not use __dirname etc in this file since it is symlinked and node resolves symlinks :/
 
 import path from 'path'
 import {promises as fs} from 'fs'
@@ -9,7 +10,7 @@ import esbuild from 'esbuild'
 import {Plugin, ResolvedConfig} from 'vite'
 
 
-export default function(template_path='index.pug'):Plugin{
+export default function(template_path:string):Plugin{
     // Return config for plugin
 
     let config:ResolvedConfig
@@ -41,6 +42,7 @@ export default function(template_path='index.pug'):Plugin{
                 return pug.compile(template, {
                     // NOTE pretty is deprecated and can cause bugs with dev vs prod
                     filters: {
+
                         sass: (text:string, options:Record<string, unknown>) => {
                             // Render sass blocks
                             delete options['filename']  // Don't include pug-specific config
@@ -56,14 +58,28 @@ export default function(template_path='index.pug'):Plugin{
                                 ...options
                             }).css.toString()
                         },
-                        ts: (text:string, options:Record<string, unknown>) => {
-                            // Render typescript blocks
-                            delete options['filename']  // Don't include pug-specific config
+
+                        ts_embed: async (ts_path:string, options:Record<string, unknown>) => {
+                            // Expects a file path as contents and embeds the Typescript found
+                            // NOTE This allows type checking the embedded code
+                            // WARN ts_path must be absolute due to Node resolving symlinks
+
+                            // Resolve paths relative to the pug template file
+                            const template_dir = path.join(template_path, '../')
+
+                            // Load the code the path points to
+                            ts_path = path.join(template_dir, ts_path.trim())
+                            const code = await fs.readFile(ts_path, {encoding: 'utf-8'})
+
+                            // Remove pug-included options so only ESBuild options remain
+                            delete options['filename']
+
+                            // Return processed js to embed in the HTML
                             return esbuild.buildSync({
                                 stdin: {
-                                    contents: text,
+                                    contents: code,
                                     loader: 'ts',
-                                    resolveDir: path.join(__dirname, 'src'),
+                                    resolveDir: path.join(ts_path, '../'),
                                 },
                                 write: false,
                                 bundle: true,
@@ -75,6 +91,7 @@ export default function(template_path='index.pug'):Plugin{
                                 ...options,
                             }).outputFiles[0]?.text
                         }
+
                     },
                 })()
             },

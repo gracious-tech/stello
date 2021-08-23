@@ -1,0 +1,154 @@
+doctype html
+html
+
+    head
+        meta(charset='utf-8')
+        meta(name='robots' content='none')
+        meta(name='viewport' content='user-scalable=no, width=device-width, initial-scale=1')
+        title Message Viewer
+        link(rel='icon' href='displayer/icon.png')
+        //- Add a light blue theme color, just to stand out from other tabs (not configurable)
+        meta(name='theme-color' content='#b3e5fc')
+        style
+            :sass
+                // BASIC STYLING
+                html
+                    background-color: #111111  // Don't have access to dark setting on initial load
+                    @media print
+                        background-color: #fff !important
+                    font-family: Roboto, sans-serif
+                    // Enable momentum scroll for iOS
+                    -webkit-overflow-scrolling: touch
+
+                body
+                    margin: 0
+                    overflow-x: hidden  // Avoid showing horizontal scrollbar during transitions
+
+
+                // LOADING SCREEN
+                @keyframes loading
+                    from
+                        transform: rotate(0deg)
+                    to
+                        transform: rotate(360deg)
+
+                #app > svg.loading
+                    // Not reusable in other parts of app
+                    position: absolute
+                    top: 46%
+                    left: 46%
+
+                svg.loading
+                    height: 50px
+                    width: 50px
+                    animation-name: loading
+                    animation-duration: 2.5s  // NOTE need to adjust steps if this changes
+                    // NOTE 60's quality close to linear, and ~1/2 CPU usage
+                    animation-timing-function: steps(60)
+                    animation-iteration-count: infinite
+
+                svg.loading circle
+                    fill: transparent
+                    stroke: #2196f3
+
+
+                // FAILURE
+                .fail-splash
+                    // Display full screen
+                    position: fixed
+                    top: 0
+                    bottom: 0
+                    left: 0
+                    right: 0
+                    // Cover all
+                    z-index: 1000
+                    // Scroll if needed
+                    overflow: auto
+                    // Style
+                    padding: 20px
+                    padding-top: 80px
+                    background-color: #303030
+                    color: #fff
+                    text-align: center
+
+                    h1
+                        margin-bottom: 20px
+                        font-size: 25px
+
+                    button
+                        margin-top: 40px
+
+                .fail-bar
+                    position: sticky  // Take up space as normal but don't scroll as normal (top: 0)
+                    top: 0
+                    z-index: 999
+                    display: flex
+                    align-items: center
+                    justify-content: center
+                    padding: 12px
+                    background-color: rgba(100%, 75%, 50%)
+
+                    div
+                        word-break: break-word
+                        margin-right: 12px
+
+                        h1
+                            font-size: 14px
+                            margin-top: 0
+                            margin-bottom: 6px
+
+                        p
+                            margin: 0
+                            font-size: 12px
+
+                .fail-splash, .fail-bar
+                    button
+                        background-color: #fff
+                        color: #000
+                        border-style: none
+                        border-radius: 6px
+                        padding: 6px 8px
+                        cursor: pointer
+                        box-shadow: 0px 2px 5px 1px rgba(0, 0, 0, 0.2)
+
+
+    body
+        div#app
+            //- Simplified low-CPU-cost Material progress circle (proportions same)
+            svg.loading(viewBox='0 0 100 100' preserveAspectRatio='xMidYMid meet')
+                //- Place in middle with radius 40 (stroke length of 250 surrounds whole circle)
+                circle(cx='50' cy='50' r='40' stroke-width='10' stroke-dasharray='190')
+
+        //- Unsupported browser handling
+        //- WARN This code is intentionally inline as must be simple and support ES4/5 etc
+        //- WARN All scripts (even inline) must come last so that DOM ready for immediate errors
+        //- NOTE Only fails if error, as even if browser unsupported, some could still work in part
+        script.
+            self._hash = self.location.hash
+            self.location.hash = ''
+            self._failed = false
+            self._browser_supported = !! (crypto && crypto.subtle && CSS && CSS.supports
+                && CSS.supports('grid-template-rows', 'none'))
+            self._fail_splash_unsupported = function(){
+                self.document.body.innerHTML = "<div class='fail-splash'>"
+                    + "<h1>Sorry, your browser is too old</h1>"
+                    + "<p>Please update your browser or use another browser to view this message.</p>"
+                    + "<p>You may need to change your device's default browser, or copy and paste the link into the address bar of a different browser.</p>"
+                    + "</div>"
+            }
+            self.addEventListener('error', function(){
+                if (!self._failed && !self._browser_supported){
+                    self._failed = true
+                    self.location.hash = self._hash
+                    self._fail_splash_unsupported()
+                }
+            })
+
+
+        script
+            :ts_embed
+                ./init/init_embedded.ts
+
+
+        //- NOTE Vite processes URLs relative to where index.html is (not index.pug)
+        script(src='/src/init/init_loaded.ts' type='module' onerror='_fail_visual(true)')

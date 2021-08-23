@@ -24,10 +24,10 @@ div(class='stello-displayer' :class='{dark}' tabindex='-1')
 
 import {computed, watch, onMounted, nextTick} from 'vue'
 
-import Message from './components/Message.vue'
-import AppDialog from './components/AppDialog.vue'
-import SharedDarkToggle from './shared/SharedDarkToggle.vue'
-import {store} from './services/store'
+import Message from './Message.vue'
+import AppDialog from './AppDialog.vue'
+import SharedDarkToggle from '../shared/SharedDarkToggle.vue'
+import {store} from '../services/store'
 
 
 export default {
