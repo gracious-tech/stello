@@ -13,17 +13,18 @@ const native_electron:NativeInterface = {
 
     update():void{
         // Tell electron to update
-        ipcRenderer.invoke('update')
+        void ipcRenderer.invoke('update')
     },
 
     dns_mx(host:string):Promise<string[]>{
         // Do a DNS request for MX records and return domains ordered by priority
-        return ipcRenderer.invoke('dns_mx', host)
+        return ipcRenderer.invoke('dns_mx', host) as Promise<string[]>
     },
 
     async test_email_settings(settings:EmailSettings, auth=true):Promise<EmailError|undefined>{
         // Tests provided settings to see if they work and returns either null or error string
-        const error = await ipcRenderer.invoke('test_email_settings', settings, auth)
+        const error =
+            await ipcRenderer.invoke('test_email_settings', settings, auth) as EmailError|undefined
         if (error){
             console.warn(error)
         }
@@ -33,7 +34,8 @@ const native_electron:NativeInterface = {
     send_emails(settings:EmailSettings, emails:Email[], from:EmailIdentity,
             reply_to?:EmailIdentity):Promise<EmailError|undefined>{
         // Send emails
-        return ipcRenderer.invoke('send_emails', settings, emails, from, reply_to)
+        return ipcRenderer.invoke('send_emails', settings, emails, from, reply_to,
+            ) as Promise<EmailError|undefined>
     },
 
 
