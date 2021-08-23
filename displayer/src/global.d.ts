@@ -18,6 +18,7 @@ declare global {
             BASE_URL:string,
             PROD:boolean,
             DEV:boolean,
+            VITE_ROLLBAR_DISPLAYER:string,
         }
     }
 
