@@ -24,6 +24,7 @@ div.root(:class='{multiple}')
 
 <script lang='ts'>
 
+import {defineComponent} from 'vue-demi'
 import type {PropType} from 'vue'  // Importing just as type should still keep compatible with Vue 2
 
 
@@ -54,7 +55,7 @@ const PLACEHOLDER = URL.createObjectURL(
 )
 
 
-export default {
+export default defineComponent({
 
     props: {
         images: {
@@ -171,7 +172,7 @@ export default {
                 for (const image of images){
                     if (image.id in this.object_urls && this.object_urls[image.id] !== PLACEHOLDER){
                         // URL already created for this image, so reuse to reduce memory usage
-                        new_object_urls[image.id] = this.object_urls[image.id]
+                        new_object_urls[image.id] = this.object_urls[image.id]!
                     } else if (image.data){
                         // Data only now available, so create URL
                         new_object_urls[image.id] = URL.createObjectURL(image.data)
@@ -188,7 +189,7 @@ export default {
             handler(){
                 // When go fullscreen, teleport causes scroll to lose position, so reposition it
                 this.$nextTick(() => {
-                    const div = this.$refs.scroller as HTMLDivElement
+                    const div = this.$refs['scroller'] as HTMLDivElement
                     div.scrollTo({
                         left: (div.scrollWidth / this.images.length) * this.current,
                     })
@@ -203,15 +204,15 @@ export default {
             // Determine which image is currently being shown whenever scroll changes
             // WARN Scroll events emitted very rapidly, so keep lightweight
             // NOTE Not debouncing since performance ok, and much smoother when no debounce
-            const target = this.$refs.scroller as HTMLDivElement
+            const target = this.$refs['scroller'] as HTMLDivElement
             const item_width = target.scrollWidth / this.images.length
             this.current = Math.round(target.scrollLeft / item_width)
         },
 
         change_current(i:number):void{
             // Change current image by scrolling to the desired one
-            if (this.$refs.scroller){  // Ensure mounted
-                const div = this.$refs.scroller as HTMLDivElement
+            if (this.$refs['scroller']){  // Ensure mounted
+                const div = this.$refs['scroller'] as HTMLDivElement
                 div.scrollTo({
                     left: (div.scrollWidth / this.images.length) * i,
                     behavior: 'smooth',
@@ -230,7 +231,7 @@ export default {
         },
     },
 
-}
+})
 
 </script>
 

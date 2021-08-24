@@ -46,8 +46,9 @@ export interface PublishedContentImages {
 
 export interface PublishedContentVideo {
     type:'video'
-    format:string
+    format:'iframe_youtube'|'iframe_vimeo'
     id:string
+    caption:string
     start:number
     end:number
 }

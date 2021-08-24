@@ -1,11 +1,10 @@
 #!/bin/bash
 
 cd `dirname "$0"`
+cd ..
 
 # Apply app config to all components
-cd ../app_config
-./node_modules/.bin/esbuild --platform=node --bundle apply.ts | node
+./node_modules/.bin/ts-node app_config/apply.ts
 
 # electron/package.json relies on app_config but is static, so must also be updated
-cd ../electron
-./node_modules/.bin/esbuild --platform=node --bundle update_package_json.ts | node
+./node_modules/.bin/ts-node electron/update_package_json.ts

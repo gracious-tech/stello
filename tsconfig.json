@@ -1,0 +1,16 @@
+/* Typescript setup
+
+ * There is one version of TS for the entire project for consistency with same rules
+ * There is a base template that is extended by the node/browser templates
+ * TS is used for type checking only, not compiling (ts-node/esbuild used instead)
+    * So all tsconfigs do not emit JS, they just determine the rules for each dir/file
+    * So "include" determines what is type checked, not bundled together...
+ * Vue projects require vue-tsc and are browser rather than node, so have different tsconfigs
+
+*/
+
+{
+    "extends": "./tsconfig_node.jsonc",
+    "include": ["**/*.ts"],
+    "exclude": ["**/node_modules", "app/src", "displayer/src"],
+}

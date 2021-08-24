@@ -1,30 +1,31 @@
 #!/bin/bash
 
-# Type check all components
+# Type check everything
+# WARN vue-tsc requires @vue/runtime-dom (provided by Vue3 but needed in top level node_modules)
+# WARN Keep this list in sync with .eslintrc.js
 
 
 cd `dirname "$0"`
 cd ..
 
 
-# If an arg given, just check that component
-if [[ "$1" ]]; then
-    node_modules/.bin/vue-tsc --project "$1"
-    exit
+EXIT_CODE=0
+
+
+if [[ "$1" == "" || "$1" == "." ]]; then
+    node_modules/.bin/tsc --project . || EXIT_CODE=1
 fi
 
 
-EXIT_CODE=0
+if [[ "$1" == "" || "$1" == "app" ]]; then
+    node_modules/.bin/vue-tsc --project app/src --pretty | node_modules/.bin/ts-node .bin/audit_types_filter.ts || EXIT_CODE=1
+fi
 
-# WARN Keep this list in sync with .eslintrc.js
-# WARN vue-tsc requires @vue/runtime-dom (provided by Vue3 but needed in top level node_modules)
-node_modules/.bin/tsc --project app || EXIT_CODE=1
-node_modules/.bin/vue-tsc --project app/src || EXIT_CODE=1
-node_modules/.bin/tsc --project app_config || EXIT_CODE=1
-node_modules/.bin/tsc --project displayer || EXIT_CODE=1
-node_modules/.bin/vue-tsc --project displayer/src || EXIT_CODE=1
-node_modules/.bin/tsc --project electron || EXIT_CODE=1
-# TODO responder
+
+if [[ "$1" == "" || "$1" == "displayer" ]]; then
+    node_modules/.bin/vue-tsc --project displayer/src || EXIT_CODE=1
+fi
+
 
 # Ensure indicate failure if any errors (not just if last errored)
 exit $EXIT_CODE

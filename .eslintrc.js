@@ -8,12 +8,9 @@ module.exports = {
         tsconfigRootDir: __dirname,
         // Treat all files using component tsconfig, and node for everything else
         project: [
-            './app/tsconfig.json',
+            './tsconfig.json',
             './app/src/tsconfig.json',
-            './app_config/tsconfig.json',
-            './displayer/tsconfig.json',
             './displayer/src/tsconfig.json',
-            './electron/tsconfig.json',
             './tsconfig_base.jsonc',  // Hack for still parsing non-matching (eg .js files)
         ],
         extraFileExtensions: ['.vue'],
