@@ -2,7 +2,7 @@
 
 <template lang='pug'>
 
-app-btn(:icon='icon' :color='color' v-on='$listeners' v-bind='$attrs')
+app-btn(v-bind='$attrs' v-on='$listeners' :icon='icon' :color='color')
 
 </template>
 
@@ -23,7 +23,7 @@ export default class extends Vue {
 
     get color():string{
         // Give color when value true/null but not false
-        const color = this.$attrs.color ?? 'accent'
+        const color = this.$attrs['color'] ?? 'accent'
         return this.value === false ? '' : color
     }
 

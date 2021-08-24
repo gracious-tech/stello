@@ -8,11 +8,13 @@ component.root(:is='comp' :url='url' :playing='playing')
 
 <script lang='ts'>
 
+import {defineComponent} from 'vue-demi'
+
 import SharedSvgCss from './SharedSvgCss.vue'
 import SharedSvgLottie from './SharedSvgLottie.vue'
 
 
-export default {
+export default defineComponent({
 
     props: {
         url: {
@@ -30,7 +32,7 @@ export default {
             return this.url.toLowerCase().endsWith('.json') ? SharedSvgLottie : SharedSvgCss
         },
     },
-}
+})
 
 </script>
 

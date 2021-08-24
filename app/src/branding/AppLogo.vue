@@ -6,6 +6,9 @@ app-svg(name='logo' responsive)
 </template>
 
 
+<script></script>
+
+
 <style lang='sass' scoped>
 
 // Make greek appear on hover

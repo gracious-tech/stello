@@ -74,7 +74,7 @@ export default defineComponent({
 
         // Reporting of currently displayed image's id
         const on_displayed_change = (index:number) => {
-            emit('displayed', images.value[index].id)
+            emit('displayed', images.value[index]!.id)
         }
 
 

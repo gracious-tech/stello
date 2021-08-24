@@ -5,7 +5,7 @@ export interface PublishedCopyBase {
     title:string
     published:string
     base_msg_id:string  // Needed for working out where assets are
-    sections:PublishedSection[][]
+    sections:([PublishedSection]|[PublishedSection, PublishedSection])[]
     assets_key:string
 }
 

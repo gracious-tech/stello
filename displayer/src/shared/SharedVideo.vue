@@ -4,7 +4,7 @@
 div
     div.aspect
         //- NOTE allow-forms required for entering a Vimeo password
-        iframe(v-if='format' :src='src' allowfullscreen
+        iframe(v-if='src' :src='src' allowfullscreen
             sandbox='allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms'
             allow='fullscreen; encrypted-media; gyroscope; accelerometer; clipboard-write; picture-in-picture')
         svg(v-else @click='$emit("modify")' width='32' height='18' viewBox='0 0 32 18')
@@ -17,7 +17,10 @@ div
 
 <script lang='ts'>
 
-export default {
+import {defineComponent} from 'vue-demi'
+
+
+export default defineComponent({
 
     props: {
         format: {
@@ -78,7 +81,7 @@ export default {
         },
 
     },
-}
+})
 
 </script>
 

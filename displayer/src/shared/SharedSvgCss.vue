@@ -8,6 +8,9 @@ div.root(v-html='html' :class='{playing}')
 
 <script lang='ts'>
 
+import {defineComponent} from 'vue-demi'
+
+
 const cache:Record<string, string> = {}
 
 
@@ -17,7 +20,7 @@ export function generate_unique_id():string{
 }
 
 
-export default {
+export default defineComponent({
 
     props: {
         url: {
@@ -59,11 +62,11 @@ export default {
                 // WARN id clashes have actual affect on display of SVGs, especially gradients
                 // NOTE SVG sources are expected to prefix all ids with generic `IDPREFIX` code
                 // WARN ids must begin with a letter or are invalid
-                this.html = cache[url].replaceAll('IDPREFIX', 'ID' + generate_unique_id())
+                this.html = cache[url]!.replaceAll('IDPREFIX', 'ID' + generate_unique_id())
             },
         },
     },
-}
+})
 
 </script>
 

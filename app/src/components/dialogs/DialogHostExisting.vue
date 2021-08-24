@@ -46,7 +46,7 @@ export default class extends Vue {
         }
     }
 
-    async paste_inner():Promise<string>{
+    async paste_inner():Promise<string|undefined>{
         // Paste credentials, returning either an error string or nothing for success
 
         // Get text from clipboard
@@ -136,6 +136,7 @@ export default class extends Vue {
 
         // Close dialog
         this.dismiss()
+        return undefined
     }
 
     dismiss(){

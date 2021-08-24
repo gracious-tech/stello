@@ -10,7 +10,7 @@ v-card
         div(class='text-center')
             template(v-if='sharing_key')
                 p(class='accent--text') Share below (copied already, expires in {{ sharing_lifespan }} days)
-                v-textarea(:value='this.sharing_key' readonly)
+                v-textarea(:value='sharing_key' readonly)
             template(v-else-if='waiting')
                 v-progress-circular(indeterminate color='accent')
             template(v-else-if='storage_credentials')

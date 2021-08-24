@@ -40,7 +40,7 @@ export default defineComponent({
             if (prev_i < 0){
                 return null  // Currently showing first message (or no history at all)
             }
-            const item = store._state.history[prev_i]
+            const item = store._state.history[prev_i]!
             return {
                 label: item.title,
                 date: item.published.toLocaleDateString(),
@@ -55,7 +55,7 @@ export default defineComponent({
             if (current.value === null || current.value >= store.state.history.length - 1){
                 return null
             }
-            const item = store._state.history[current.value + 1]
+            const item = store._state.history[current.value + 1]!
             return {
                 label: item.title,
                 date: item.published.toLocaleDateString(),

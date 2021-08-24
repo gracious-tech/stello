@@ -3,19 +3,19 @@
 <template lang='pug'>
 
 component(
+    v-bind='$attrs'
     :is='component'
     v-model='wrapped_value'
-    :color='$attrs.color || "accent"'
-    :item-color='$attrs.color || "accent"'
-    :chips='$attrs.multiple'
+    :color='$attrs["color"] || "accent"'
+    :item-color='$attrs["color"] || "accent"'
+    :chips='$attrs["multiple"]'
     :spellcheck='false'
     deletable-chips
     persistent-hint
     filled
-    v-bind='$attrs'
 )
     //- NOTE Using $scopedSlots and receiving props via `v-slot:[name]='props'` seems to have bug
-    template(v-for='(slot_array, slot_name) of $slots' v-slot:[slot_name])
+    template(v-for='slot_name of Object.keys($slots)' v-slot:[slot_name])
         slot(:name='slot_name')
 
 </template>

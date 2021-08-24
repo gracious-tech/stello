@@ -8,6 +8,7 @@ div(ref='container')
 
 <script lang='ts'>
 
+import {defineComponent} from 'vue-demi'
 // Import type (careful to avoid importing module as will do so dynamically)
 import type {AnimationItem} from 'lottie-web'
 
@@ -20,7 +21,7 @@ const lottie_promise = import('lottie-web/build/player/lottie_light')
 const lottie_cache:Record<string, string> = {}
 
 
-export default {
+export default defineComponent({
 
     props: {
         url: {
@@ -74,12 +75,12 @@ export default {
 
                 // Load the animation
                 this.lottie_instance = lottie.default.loadAnimation({
-                    container: this.$refs.container as HTMLDivElement,
+                    container: this.$refs['container'] as HTMLDivElement,
                     renderer: 'svg',
                     loop: true,
                     autoplay: this.playing,
                     // WARN Must parse per use as lottie manipulates the data & reuse -> memory leak
-                    animationData: JSON.parse(lottie_cache[url]),
+                    animationData: JSON.parse(lottie_cache[url]!),
                 })
             },
         },
@@ -101,7 +102,7 @@ export default {
     beforeUnmount(){  // Vue 3
         this.destroy_lottie()
     },
-}
+})
 
 </script>
 

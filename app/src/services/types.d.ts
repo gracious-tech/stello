@@ -34,6 +34,7 @@ declare module 'Custom' {
     global {
 
         type MinOne<T> = [T, ...T[]]
+        type OneOrTwo<T> = [T]|[T, T]
 
         interface Window {
             // Custom

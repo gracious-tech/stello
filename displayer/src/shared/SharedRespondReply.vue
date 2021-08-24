@@ -1,7 +1,7 @@
 
 <template lang='pug'>
 
-button.respond(v-bind='$attrs' v-on='$listeners || {}' class='btn-text')
+button.respond(v-bind='$attrs' v-on='listeners' class='btn-text')
     svg(viewBox='0 0 24 24' class='borderless')
         path(:d='icon')
     | Comment
@@ -11,7 +11,10 @@ button.respond(v-bind='$attrs' v-on='$listeners || {}' class='btn-text')
 
 <script lang='ts'>
 
-export default {
+import {defineComponent} from 'vue-demi'
+
+
+export default defineComponent({
 
     props: {
         replied: {
@@ -21,6 +24,10 @@ export default {
     },
 
     computed: {
+        listeners():unknown{
+            // @ts-ignore $listeners doesn't exist in Vue 3
+            return this.$listeners ?? {}
+        },
         icon(){
             if (this.replied){
                 return `M17.34,20l-3.54-3.54l1.41-1.41l2.12,2.12l4.24-4.24L23,14.34L17.34,20z M12,
@@ -31,7 +38,7 @@ export default {
                 2V4h16v12z`
         },
     },
-}
+})
 
 </script>
 

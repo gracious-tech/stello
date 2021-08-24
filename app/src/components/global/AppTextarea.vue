@@ -3,13 +3,13 @@
 <template lang='pug'>
 
 v-textarea(
+    v-bind='$attrs'
+    v-on='$listeners'
     v-model='wrapped_value'
-    :color='$attrs.color || "accent"'
+    :color='$attrs["color"] || "accent"'
     :persistent-hint='!hint_on_focus'
     :filled='!regular'
     auto-grow
-    v-bind='$attrs'
-    v-on='$listeners'
 )
 
 </template>

@@ -3,10 +3,10 @@
 <template lang='pug'>
 
 v-switch(
-    v-model='wrapped_value'
-    :color='$attrs.color || "accent"'
-    persistent-hint
     v-bind='$attrs'
+    v-model='wrapped_value'
+    :color='$attrs["color"] || "accent"'
+    persistent-hint
 )
 
 </template>
@@ -25,7 +25,7 @@ export default class extends Vue {
 
     get wrapped_value(){
         // NOTE Can optionally set what value should be when disabled, rather than actual value
-        if (this.$attrs.disabled && this.disabled_value !== null){
+        if (this.$attrs['disabled'] && this.disabled_value !== null){
             return this.disabled_value
         }
         return this.value

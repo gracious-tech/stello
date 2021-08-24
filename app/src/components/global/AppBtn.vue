@@ -4,12 +4,12 @@
 
 //- WARN Must be explicit with undefined, since many props are enabled by empty strings
 v-btn(
-    :icon='show_icon && $attrs.fab === undefined'
-    :text='$attrs.raised === undefined && $attrs.outlined === undefined && !show_icon'
-    :color='color'
-    :outlined='$attrs.outlined !== undefined && !show_icon'
     v-bind='$attrs'
     v-on='$listeners'
+    :icon='show_icon && $attrs["fab"] === undefined'
+    :text='$attrs["raised"] === undefined && $attrs["outlined"] === undefined && !show_icon'
+    :color='color'
+    :outlined='$attrs["outlined"] !== undefined && !show_icon'
 )
     app-svg(v-if='show_icon' :name='`icon_${icon}`')
     slot(v-else)
@@ -30,7 +30,7 @@ export default class extends Vue {
     get color(){
         // Use provided color, else default to accent (unless an icon)
         if ('color' in this.$attrs)
-            return this.$attrs.color
+            return this.$attrs['color']
         if (!this.show_icon || 'fab' in this.$attrs)
             return 'accent'
         return null
@@ -40,7 +40,7 @@ export default class extends Vue {
         // Whether to show icon (and possibly favour over slot contents)
         if (!this.icon)
             return false  // Can't show if no icon
-        if (!this.$slots.default)
+        if (!this.$slots['default'])
             return true  // Always show if no alternate content
         // Otherwise, if both icon and slot content, use icon for narrow screens only
         return this.$store.state.tmp.viewport_width < 600

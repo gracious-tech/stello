@@ -33,7 +33,7 @@ import {store} from '../services/store'
 
 export default defineComponent({
     props: {
-        msg: {type: Object as PropType<PublishedCopy>, required: false},
+        msg: {type: Object as PropType<PublishedCopy|undefined>, required: false},
     },
     setup(props){
 

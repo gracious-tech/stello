@@ -81,7 +81,7 @@ export default class extends Vue {
         // Can parse as an image, so set and init croppr
         this.image = blob
         this.$nextTick(() => {
-            this.croppr = new Croppr(this.$refs.chosen_img_element as HTMLImageElement, {
+            this.croppr = new Croppr(this.$refs['chosen_img_element'] as HTMLImageElement, {
                 aspectRatio: 1 / 3,
             })
         })

@@ -213,7 +213,7 @@ export default class extends Vue {
 
     @Watch('contacts_matched') watch_contacts_matched(){
         // Whenever matched contacts changes, scroll back to top and reduce to 1 page again
-        (this.$refs.scrollable as Element).scroll(0, 0)
+        (this.$refs['scrollable'] as Element).scroll(0, 0)
         this.contacts_pages = 1
     }
 

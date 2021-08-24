@@ -44,8 +44,8 @@ export default class extends Vue {
         // Return background image styles for displaying the image this component represents
         const url = URL.createObjectURL(this.item.data)
         return {
-            'background-image': `url(${url})`,
-            'background-size': this.section.content.crop ? 'cover' : 'contain',
+            backgroundImage: `url(${url})`,
+            backgroundSize: this.section.content.crop ? 'cover' : 'contain',
         }
     }
 

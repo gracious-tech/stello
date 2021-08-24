@@ -3,21 +3,21 @@
 <template lang='pug'>
 
 v-text-field(
+    v-bind='$attrs'
     v-model.trim='text_value'
     :placeholder='`${default_value}`'
     :error-messages='error'
-    :color='$attrs.color || "accent"'
+    :color='$attrs["color"] || "accent"'
     inputmode='numeric'
     persistent-hint
     persistentPlaceholder
     filled
-    v-bind='$attrs'
 )
     template(#append v-if='buttons')
-        app-btn(@click='decrease' :disabled='$attrs.disabled || is_min' icon='remove')
-        app-btn(@click='increase' :disabled='$attrs.disabled || is_max' icon='add')
-        v-btn.min(@click='set_min' :disabled='$attrs.disabled || is_min' icon) min
-        v-btn.max(@click='set_max' :disabled='$attrs.disabled || is_max' icon) max
+        app-btn(@click='decrease' :disabled='$attrs["disabled"] || is_min' icon='remove')
+        app-btn(@click='increase' :disabled='$attrs["disabled"] || is_max' icon='add')
+        v-btn.min(@click='set_min' :disabled='$attrs["disabled"] || is_min' icon) min
+        v-btn.max(@click='set_max' :disabled='$attrs["disabled"] || is_max' icon) max
 
 </template>
 

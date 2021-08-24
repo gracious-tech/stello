@@ -10,7 +10,10 @@ div(@click='toggle')
 
 <script lang='ts'>
 
-export default {
+import {defineComponent} from 'vue-demi'
+
+
+export default defineComponent({
 
     props: {
         value: {
@@ -30,7 +33,7 @@ export default {
             this.$emit('input', !this.value)
         },
     },
-}
+})
 
 </script>
 

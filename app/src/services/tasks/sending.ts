@@ -154,7 +154,8 @@ export class Sender {
 
         // Process sections and produce assets
         const sections_data = await Promise.all(this.msg.draft.sections.map(
-            async row => await Promise.all(row.map(sid => self._db.sections.get(sid)))))
+            async row => await Promise.all(row.map(sid => self._db.sections.get(sid)))
+        )) as OneOrTwo<Section>[]
         const [pub_sections, assets] = await process_sections(sections_data, this.tmpl_variables)
 
         // Encrypt and upload assets
@@ -263,7 +264,7 @@ export class Sender {
                     msg_max_reads: {value: msg_max_reads_value(max_reads)},
                 })
                 return cloned
-            })),
+            })) as OneOrTwo<PublishedSection>[],
         }
 
         // Encrypt and upload
@@ -358,19 +359,19 @@ export class Sender {
 }
 
 
-async function process_sections(sections:Section[][], tmpl_variables:TemplateVariables)
-        :Promise<[PublishedSection[][], PublishedAsset[]]>{
+async function process_sections(sections:OneOrTwo<Section>[], tmpl_variables:TemplateVariables)
+        :Promise<[OneOrTwo<PublishedSection>[], PublishedAsset[]]>{
     // Process sections and produce assets
     // WARN Avoid deep copying sections in case includes sensitive data (e.g. added in future)
     //      (also avoids duplicating blobs in memory)
-    const pub_sections:PublishedSection[][] = []
+    const pub_sections:OneOrTwo<PublishedSection>[] = []
     const pub_assets:PublishedAsset[] = []
     for (const row of sections){
-        const pub_row = []
+        const pub_row:PublishedSection[] = []
         for (const section of row){
             pub_row.push(await process_section(section, pub_assets, tmpl_variables))
         }
-        pub_sections.push(pub_row)
+        pub_sections.push(pub_row as OneOrTwo<PublishedSection>)
     }
     return [pub_sections, pub_assets]
 }

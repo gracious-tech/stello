@@ -3,13 +3,13 @@
 <template lang='pug'>
 
 v-text-field(
+    v-bind='$attrs'
+    v-on='$listeners'
     v-model='wrapped_value'
-    :color='$attrs.color || "accent"'
+    :color='$attrs["color"] || "accent"'
     :persistent-hint='!hint_on_focus'
     :spellcheck='spellcheck'
     filled
-    v-bind='$attrs'
-    v-on='$listeners'
 )
     //- WARN Doesn't support scoped slots yet (see https://stackoverflow.com/questions/50891858/)
     slot(v-for='slot in other_slots' :name='slot' :slot='slot')

@@ -9,15 +9,15 @@ interface SectionLike {
     }
 }
 
-interface RowDisplay {
+interface RowDisplay<T> {
     display:string
-    sections:SectionLike[]
+    sections:T[]
 }
 
 
 // Functions
 
-export function floatify_rows(rows:([SectionLike]|[SectionLike, SectionLike])[]):RowDisplay[]{
+export function floatify_rows<T extends SectionLike>(rows:([T]|[T, T])[]):RowDisplay<T>[]{
     // Take sections/rows and return them with a display property provided for each row
     return rows.map(row => {
 
@@ -52,7 +52,7 @@ export function floatify_rows(rows:([SectionLike]|[SectionLike, SectionLike])[])
 }
 
 
-export function section_classes(section:SectionLike):string[]{
+export function section_classes<T extends SectionLike>(section:T):string[]{
     // Return classes for given section
     const classes = []
     classes.push(`type-${section.content.type}`)
