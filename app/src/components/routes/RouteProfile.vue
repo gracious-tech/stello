@@ -31,24 +31,24 @@ div
         h2 Responses
         v-card
             v-card-text
-                app-switch(v-model='allow_replies' v-bind='$t("allow_replies")')
-                app-switch(v-model='allow_reactions' v-bind='$t("allow_reactions")')
-                app-switch(v-model='smtp_no_reply' v-bind='$t("smtp_no_reply")'
+                app-switch(v-bind='$t("allow_replies")' v-model='allow_replies')
+                app-switch(v-bind='$t("allow_reactions")' v-model='allow_reactions')
+                app-switch(v-bind='$t("smtp_no_reply")' v-model='smtp_no_reply'
                     :hint='smtp_no_reply_hint' :disabled='!allow_replies' :disabled_value='false')
-                app-select(v-model='notify_mode' :items='notify_mode_items' select
-                    v-bind='$t("notify_mode")')
-                app-switch(v-model='notify_include_contents' v-bind='$t("notify_include_contents")'
+                app-select(v-bind='$t("notify_mode")' v-model='notify_mode'
+                    :items='notify_mode_items' select)
+                app-switch(v-bind='$t("notify_include_contents")' v-model='notify_include_contents'
                     color='error' :disabled='cant_include_contents' :disabled_value='false')
 
 
         h2 Message expiry
         v-card
             v-card-text
-                app-integer(v-model='msg_lifespan' v-bind='$t("msg_lifespan")' :min='1' :max='365'
+                app-integer(v-bind='$t("msg_lifespan")' v-model='msg_lifespan'  :min='1' :max='365'
                     infinity)
-                app-integer(v-model='msg_max_reads' v-bind='$t("msg_max_reads")' :min='1' infinity)
-                //- app-switch(disabled v-model='allow_delete' v-bind='$t("allow_delete")')
-                app-switch(v-model='allow_resend_requests' v-bind='$t("allow_resend_requests")')
+                app-integer(v-bind='$t("msg_max_reads")' v-model='msg_max_reads'  :min='1' infinity)
+                //- app-switch(v-bind='$t("allow_delete")' disabled v-model='allow_delete')
+                app-switch(v-bind='$t("allow_resend_requests")' v-model='allow_resend_requests')
 
 
         //- h2 Auto-exclude recipients
@@ -161,47 +161,11 @@ import {Profile} from '@/services/database/profiles'
 import {Task, task_manager} from '@/services/tasks/tasks'
 
 
-const UPLOADED_CONFIG_OPTIONS = [
-    'notify_mode', 'notify_include_contents', 'allow_replies', 'allow_reactions', 'allow_delete',
-    'allow_resend_requests', 'social_referral_ban', 'reaction_options',
-]
-
-
-// Helper for adding getters/setters for profile options
-function options_to_computed_props(props:string[]){
-    const computed = {}
-    for (const prop of props){
-        computed[prop] = {
-            get: function(){
-                return this.profile.options[prop]
-            },
-            set: function(value){
-                this.profile.options[prop] = value
-                if (UPLOADED_CONFIG_OPTIONS.includes(prop)){
-                    this.profile.host_state.displayer_config_uploaded = false
-                    this.profile.host_state.responder_config_uploaded = false
-                }
-                this.save()
-            },
-        }
-    }
-    return computed
-}
-
-
 @Component({
     components: {RouteProfileHost, RouteProfileIdentity, RouteProfileSteps},
-    computed: {
-        ...options_to_computed_props([
-            'notify_mode', 'notify_include_contents', 'allow_replies', 'allow_reactions',
-            'allow_delete', 'allow_resend_requests', 'auto_exclude_threshold',
-            'auto_exclude_exempt_groups', 'smtp_no_reply', 'social_referral_ban',
-        ]),
-    },
     i18n: {messages: {en: i18n}},
 })
 export default class extends Vue {
-    // NOTE Code organised by database record, where as template organised by user friendliness
 
     @Prop() profile_id:string
 
@@ -251,6 +215,88 @@ export default class extends Vue {
         return ["none", "first_new_reply"].includes(this.profile.options.notify_mode)
     }
 
+    // OPTIONS
+
+    get notify_mode(){
+        return this.profile.options.notify_mode
+    }
+    set notify_mode(value){
+        this.profile.options.notify_mode = value
+        this.save(true)
+    }
+
+    get notify_include_contents(){
+        return this.profile.options.notify_include_contents
+    }
+    set notify_include_contents(value){
+        this.profile.options.notify_include_contents = value
+        this.save(true)
+    }
+
+    get allow_replies(){
+        return this.profile.options.allow_replies
+    }
+    set allow_replies(value){
+        this.profile.options.allow_replies = value
+        this.save(true)
+    }
+
+    get allow_reactions(){
+        return this.profile.options.allow_reactions
+    }
+    set allow_reactions(value){
+        this.profile.options.allow_reactions = value
+        this.save(true)
+    }
+
+    get allow_delete(){
+        return this.profile.options.allow_delete
+    }
+    set allow_delete(value){
+        this.profile.options.allow_delete = value
+        this.save(true)
+    }
+
+    get allow_resend_requests(){
+        return this.profile.options.allow_resend_requests
+    }
+    set allow_resend_requests(value){
+        this.profile.options.allow_resend_requests = value
+        this.save(true)
+    }
+
+    get auto_exclude_threshold(){
+        return this.profile.options.auto_exclude_threshold
+    }
+    set auto_exclude_threshold(value){
+        this.profile.options.auto_exclude_threshold = value
+        this.save()
+    }
+
+    get auto_exclude_exempt_groups(){
+        return this.profile.options.auto_exclude_exempt_groups
+    }
+    set auto_exclude_exempt_groups(value){
+        this.profile.options.auto_exclude_exempt_groups = value
+        this.save()
+    }
+
+    get smtp_no_reply(){
+        return this.profile.options.smtp_no_reply
+    }
+    set smtp_no_reply(value){
+        this.profile.options.smtp_no_reply = value
+        this.save()
+    }
+
+    get social_referral_ban(){
+        return this.profile.options.social_referral_ban
+    }
+    set social_referral_ban(value){
+        this.profile.options.social_referral_ban = value
+        this.save(true)
+    }
+
     get msg_lifespan(){
         return this.profile.msg_options_security.lifespan
     }
@@ -267,6 +313,8 @@ export default class extends Vue {
         this.save()
     }
 
+    // WATCH
+
     @Watch('$tm.data.finished') async watch_tm_finished(task:Task):Promise<void>{
         // Listen to task completions and adjust state as needed
         if (task.name === 'send_oauth_setup' && task.params[1] === this.profile.id){
@@ -275,8 +323,12 @@ export default class extends Vue {
         }
     }
 
-    save(){
+    save(affects_config=false){
         // Save changes to profile
+        if (affects_config){
+            this.profile.host_state.displayer_config_uploaded = false
+            this.profile.host_state.responder_config_uploaded = false
+        }
         self._db.profiles.set(this.profile)
     }
 
