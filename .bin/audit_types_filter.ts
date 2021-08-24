@@ -2,11 +2,6 @@
 // WARN Currently only expected to be run for `app/src` checking
 
 
-// Collect output so know if should return error or not (no output is success)
-// NOTE Later trimmed so that blank lines don't trigger failure
-let output = ''
-
-
 // When in keep mode, output is not silenced
 let keep = true
 
@@ -24,17 +19,13 @@ process.stdin.on('data', data => {
             keep = !plain_line.startsWith('app/src/shared/')
         }
 
-        // Log the line and append to output cache
         if (keep){
+            // Output the line
             console.log(line)
-            output += line
+            // Cause script to end with failure if line not empty
+            if (line.trim()){
+                process.exitCode = 1
+            }
         }
     }
-})
-
-
-// Exit when stdin is exhausted
-process.stdin.on('finish', () => {
-    // Fail if any output
-    process.exit(output.trim() ? 1 : 0)
 })
