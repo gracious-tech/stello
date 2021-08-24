@@ -4,5 +4,6 @@
 cd `dirname "$0"`
 cd ..
 
+# NOTE Avoid linting shared dir twice (lint via displayer since typings work better with Vue 3)
 # NOTE ironically the TS plugin has trouble parsing .eslintrc.js!
-node_modules/.bin/eslint --ext .js,.ts,.vue --ignore-path=.gitignore --ignore-pattern=".eslintrc.js" "$@" .
+node_modules/.bin/eslint --ext .js,.ts,.vue --ignore-path=.gitignore --ignore-pattern="app/src/shared/**/*" --ignore-pattern=".eslintrc.js" "$@" .

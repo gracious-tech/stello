@@ -300,8 +300,8 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
                 TagFilters: [{Key: 'stello', Values: [this.bucket]}]})
             const arn = resp.ResourceTagMappingList
                 .map(i => i.ResourceARN.split(':'))  // Get ARN parts
-                .filter(i => i[2] === 'apigateway')  // Only match API gateway
-                [0]  // Should only be one if any
+                .filter(i => i[2] === 'apigateway')[0]  // Only match API gateway
+                // Should only be one if any `[0]`
             this._gateway_id_cache = arn && arn[5].split('/')[2]  // Extract gateway id part
         }
         return this._gateway_id_cache
@@ -664,9 +664,9 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         await sleep(12000)
     }
 
-    async _setup_lambda_config_has_changed(fn_config:Record<string, any>,
+    _setup_lambda_config_has_changed(fn_config:Record<string, any>,
             fn_config_env:UpdateFunctionConfigurationCommandInput['Environment'],
-            resp:GetFunctionCommandOutput):Promise<boolean>{
+            resp:GetFunctionCommandOutput):boolean{
         // Return boolean for whether function config has changed since last updated
 
         // Compare simple config values

@@ -11,6 +11,7 @@ button.respond(v-bind='$attrs' v-on='listeners' class='btn-text')
 
 
 <script lang='ts'>
+/* eslint-disable vue/no-deprecated-dollar-listeners-api -- Needed for Vue 2 */
 
 import {defineComponent} from 'vue-demi'
 

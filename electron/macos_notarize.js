@@ -1,3 +1,6 @@
+/* eslint-disable no-undef,@typescript-eslint/no-var-requires */
+// Small file and read by electron-builder so hard to compile before execution, so no TS
+
 
 const notarize = require('electron-notarize')
 
