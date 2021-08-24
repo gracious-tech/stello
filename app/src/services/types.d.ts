@@ -32,6 +32,9 @@ declare module 'Custom' {
 
     // Apply globally (not just this virtual module)
     global {
+
+        type MinOne<T> = [T, ...T[]]
+
         interface Window {
             // Custom
             _app:Vue
@@ -42,6 +45,7 @@ declare module 'Custom' {
             _report_error(error:any):string
             app_native:NativeInterface
         }
+
         interface ImportMeta {
             // Extend with vite's env vars
             env:{

@@ -7,6 +7,8 @@ import {store} from './services/store'
 
 declare global {
 
+    type MinOne<T> = [T, ...T[]]
+
     interface String {
         replaceAll(from:string|RegExp, to:string|Function):string
     }
