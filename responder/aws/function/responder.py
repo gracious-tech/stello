@@ -49,7 +49,7 @@ ROLLBAR_TOKEN = os.environ['stello_rollbar_responder']  # Client token (not serv
 # NOTE Version prefixed with 'v' so that traces match github tags
 # SECURITY Don't expose local vars in report as could contain sensitive user content
 rollbar.init(ROLLBAR_TOKEN, ENV, handler='blocking', code_version='v'+VERSION,
-    locals={'enabled': False}, root=str(Path(__file__).parent))
+    locals={'enabled': False}, root=str(Path(__file__).parent), enabled=not DEV)
 def _rollbar_add_context(payload, **kwargs):
     payload['data']['platform'] = 'client'  # Allow client token rather than server, since public
     return payload
@@ -336,12 +336,8 @@ def _general_validation(event):
 
 
 def _report_error(api_event):
-    """Report error (unless dev)"""
-
-    # Just print if in dev
-    if DEV:
-        print(format_exc())
-        return
+    """Report error"""
+    print(format_exc())
 
     # Add request metadata if available
     payload_data = {}
@@ -353,7 +349,7 @@ def _report_error(api_event):
                     'User-Agent': api_event['requestContext']['http']['userAgent'],
                 },
             },
-    }
+        }
     except:
         pass
 
