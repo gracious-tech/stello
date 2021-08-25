@@ -2,7 +2,7 @@
 // WARN Do not use __dirname etc in this file since it is symlinked and node resolves symlinks :/
 
 import path from 'path'
-import {promises as fs} from 'fs'
+import {readFileSync} from 'fs'
 
 import pug from 'pug'
 import sass from 'sass'
@@ -38,9 +38,10 @@ export default function(template_path:string):Plugin{
             async transform(html, context){
                 // NOTE index.html is ignored as replacing entirely by index.pug
                 // NOTE context.bundle will never be available because plugin runs 'pre' others
-                const template = await fs.readFile(template_path, {encoding: 'utf-8'})
+                const template = readFileSync(template_path, {encoding: 'utf-8'})
                 return pug.compile(template, {
                     // NOTE pretty is deprecated and can cause bugs with dev vs prod
+                    // WARN Filters cannot be async
                     filters: {
 
                         sass: (text:string, options:Record<string, unknown>) => {
@@ -59,7 +60,7 @@ export default function(template_path:string):Plugin{
                             }).css.toString()
                         },
 
-                        ts_embed: async (ts_path:string, options:Record<string, unknown>) => {
+                        ts_embed: (ts_path:string, options:Record<string, unknown>) => {
                             // Expects a file path as contents and embeds the Typescript found
                             // NOTE This allows type checking the embedded code
                             // WARN ts_path must be absolute due to Node resolving symlinks
@@ -69,7 +70,7 @@ export default function(template_path:string):Plugin{
 
                             // Load the code the path points to
                             ts_path = path.join(template_dir, ts_path.trim())
-                            const code = await fs.readFile(ts_path, {encoding: 'utf-8'})
+                            const code = readFileSync(ts_path, {encoding: 'utf-8'})
 
                             // Remove pug-included options so only ESBuild options remain
                             delete options['filename']
