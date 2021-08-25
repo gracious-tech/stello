@@ -30,7 +30,7 @@ const CONFIG = JSON.parse(asar_fs_callbacks.readFileSync(
 // Report errors to Rollbar in production
 const fake_app_dir = path.sep === '/' ? '/redacted' : 'C:\\redacted'
 Rollbar.init({
-    enabled: app.isPackaged,
+    transmit: app.isPackaged,  // Call handlers but don't transmit in dev
     environment: app.isPackaged ? 'production' : 'development',
     accessToken: CONFIG.rollbar_electron,
     captureUncaught: true,
