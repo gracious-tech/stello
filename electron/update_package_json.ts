@@ -33,6 +33,16 @@ const new_contents:Metadata|PackageJsonMissing = {
     dependencies: package_json.dependencies,
     devDependencies: package_json.devDependencies,
     build: {
+        files: [
+            // Stop electron-builder from including src files (defaults to '**/*')
+            // NOTE electron-builder still includes standard ignores in addition to these
+            // NOTE test by packaging and `npx asar extract resources/app.asar app_asar`
+            'dist',
+            // Rollbar includes lots of unnecessary stuff that is quite large
+            '!node_modules/rollbar/dist',  // Just for browser, main is 'src/server/rollbar.js'
+            '!node_modules/rollbar/src/browser',
+            '!node_modules/rollbar/docs',
+        ],
         appId: `tech.gracious.${app_config.codename}`,
         productName: app_config.name,
         // NOTE Version not included so will overwrite each time (rely on S3 versioning instead)

@@ -24,6 +24,12 @@
         "png-to-ico": "^2.1.2"
     },
     "build": {
+        "files": [
+            "dist",
+            "!node_modules/rollbar/dist",
+            "!node_modules/rollbar/src/browser",
+            "!node_modules/rollbar/docs"
+        ],
         "appId": "tech.gracious.stello",
         "productName": "Stello",
         "artifactName": "stello.${ext}",
