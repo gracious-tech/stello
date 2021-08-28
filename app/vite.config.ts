@@ -55,7 +55,7 @@ export default defineConfig(({mode}) => {
             target: 'esnext',
             assetsDir: '_assets',
             cssCodeSplit: false,
-            sourcemap: true,
+            sourcemap: true,  // While very large, this becomes very small once package compressed
             minify: false,  // Electron builder minifies whole package anyway, so avoid obfuscating
             polyfillModulePreload: false,  // Chrome doesn't need polyfill
             rollupOptions: {
