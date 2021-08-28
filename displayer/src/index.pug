@@ -123,6 +123,7 @@ html
         //- WARN This code is intentionally inline as must be simple and support ES4/5 etc
         //- WARN All scripts (even inline) must come last so that DOM ready for immediate errors
         //- NOTE Only fails if error, as even if browser unsupported, some could still work in part
+        //- NOTE `_browser_supported` is false for http (except localhost) as crypto only for https
         script.
             self._hash = self.location.hash
             self.location.hash = ''
