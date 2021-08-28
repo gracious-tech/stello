@@ -56,7 +56,7 @@ export default defineConfig(({mode}) => {
             assetsDir: '_assets',
             cssCodeSplit: false,
             sourcemap: true,
-            minify: false,
+            minify: false,  // Electron builder minifies whole package anyway, so avoid obfuscating
             polyfillModulePreload: false,  // Chrome doesn't need polyfill
             rollupOptions: {
                 output: {
