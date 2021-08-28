@@ -696,7 +696,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         // Function config that can be used in a create or update request
         const fn_config = {
             FunctionName: this._lambda_id,
-            Runtime: 'python3.8',
+            Runtime: 'python3.9',
             Role: await this._get_lambda_role_arn(),
             Handler: 'responder.entry',
             Timeout: 5,
