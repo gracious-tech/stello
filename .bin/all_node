@@ -1,0 +1,15 @@
+#!/bin/bash
+# Run a command in all dirs that have node_modules
+set -e
+cd "$(dirname "$(dirname "$0")")"
+
+
+"$@"
+cd app
+"$@"
+cd ../app_config
+"$@"
+cd ../displayer
+"$@"
+cd ../electron
+"$@"
