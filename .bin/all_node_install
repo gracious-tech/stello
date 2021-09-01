@@ -1,7 +1,0 @@
-#!/bin/bash
-# Install modules for all dirs with node_modules
-set -e
-cd "$(dirname "$(dirname "$0")")"
-
-
-all_node npm ci

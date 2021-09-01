@@ -1,0 +1,10 @@
+#!/bin/bash
+# Update all dependencies to latest versions (may include breaking changes)
+set -e
+cd "$(dirname "$(dirname "$0")")"
+
+
+pipenv update  # Since all deps have version "*" they upgrade to latest possible
+path_to_ncu="$PWD/node_modules/.bin/ncu"
+all_node "$path_to_ncu" -u
+all_node npm update  # Ensure deps of own deps also updated (?)

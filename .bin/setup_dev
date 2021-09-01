@@ -6,16 +6,7 @@ cd "$(dirname "$(dirname "$0")")"
 
 # Install packages
 pipenv sync
-npm ci
-cd app
-npm ci
-cd ../app_config
-npm ci
-cd ../displayer
-npm ci
-cd ../electron
-npm ci
-cd ..
+all_node npm ci
 
 
 # Load reactions

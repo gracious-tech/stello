@@ -1,9 +1,0 @@
-#!/bin/bash
-# Update all node modules to latest versions (may include breaking changes)
-set -e
-cd "$(dirname "$(dirname "$0")")"
-
-
-path_to_ncu="$PWD/node_modules/.bin/ncu"
-all_node "$path_to_ncu" "$@"
-echo "No changes made (use -u to update package.json files)"
