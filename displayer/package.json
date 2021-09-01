@@ -6,7 +6,6 @@
         "@types/sass": "^1.16.1",
         "@vitejs/plugin-vue": "^1.2.1",
         "@vue/compiler-sfc": "^3.0.11",
-        "light-server": "^2.9.1",
         "pug": "^3.0.2",
         "sass": "^1.32.11",
         "vite": "^2.2.1"
