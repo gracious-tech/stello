@@ -37,8 +37,20 @@ jobs:
                     V=`python -c "import json; print(json.load(open('package.json'))['version'])"`
                     echo "VERSION=v$V" >> $GITHUB_ENV
 
+            -   name: Install node modules for app
+                working-directory: ./app
+                run: npm ci
+
+            -   name: Install node modules for displayer
+                working-directory: ./displayer
+                run: npm ci
+
             -   name: Build the generic base of the app
-                run: .bin/build
+                run: |
+                    .bin/reactions
+                    .bin/build_displayer
+                    # .bin/build_responder_aws (done locally and committed due to complexity)
+                    .bin/build_app
                 env:
                     VITE_OAUTH_SECRET_GOOGLE: ${{ secrets.OAUTH_SECRET_GOOGLE }}
                     VITE_ROLLBAR_APP: ${{ secrets.ROLLBAR_APP }}
