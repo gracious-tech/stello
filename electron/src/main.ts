@@ -278,7 +278,7 @@ function open_window(){
             void window.loadFile(path.join(__dirname, 'app/index.html'))
         } else {
             // Loading from a port in dev allows for hot module reloading
-            void window.loadURL('http://127.0.0.1:3000')
+            void window.loadURL('http://127.0.0.1:8000')
         }
     }
     load_index()
