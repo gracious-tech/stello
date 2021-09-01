@@ -3,4 +3,4 @@
 cd `dirname "$0"`
 cd ../app
 
-./node_modules/.bin/vite
+./node_modules/.bin/vite --port 8000

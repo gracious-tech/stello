@@ -1,0 +1,13 @@
+#!/bin/bash
+
+set -e
+cd `dirname "$0"`
+cd ../displayer
+
+PORT=8003
+
+echo
+echo "http://localhost:$PORT/#`cat dist/dev/hash.txt`"
+echo
+
+./node_modules/.bin/vite preview --port $PORT

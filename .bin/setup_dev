@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Setup project for development
+
+set -e
+cd "$(dirname "$(dirname "$0")")"
+
+
+# Install packages
+npm ci
+cd app
+npm ci
+cd ../app_config
+npm ci
+cd ../displayer
+npm ci
+cd ../electron
+npm ci
+cd ..
+
+
+# Load reactions
+.bin/reactions

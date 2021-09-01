@@ -59,6 +59,4 @@ for row in data['sections']:
                 download(f'assets/{base_msg_id}/{image["id"]}j')
 
 # Print and save URL for testing
-displayer_url = f'http://localhost:3000/#{raw_hash}'
-print(displayer_url)
-(dest_path / 'url.txt').write_text(displayer_url)
+(dest_path / 'hash.txt').write_text(raw_hash)

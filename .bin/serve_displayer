@@ -3,8 +3,10 @@
 cd `dirname "$0"`
 cd ../displayer
 
+PORT=8002
+
 echo
-cat public/dev/url.txt
+echo "http://localhost:$PORT/#`cat public/dev/hash.txt`"
 echo
 
-./node_modules/.bin/vite --clearScreen false
+./node_modules/.bin/vite --port $PORT

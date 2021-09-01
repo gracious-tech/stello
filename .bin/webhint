@@ -1,7 +1,0 @@
-#!/bin/bash
-
-cd `dirname "$0"`
-cd ..
-
-# NOTE Performance will be bad if run on development build (test on production instead)
-app/node_modules/.bin/hint --tracking=off http://localhost:8080
