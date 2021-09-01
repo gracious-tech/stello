@@ -1,0 +1,8 @@
+#!/bin/bash
+# Run tests for electron
+set -e
+cd "$(dirname "$(dirname "$0")")"
+
+
+cd electron/tests
+../../node_modules/.bin/playwright "${@:-test}"
