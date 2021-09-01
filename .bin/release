@@ -4,9 +4,5 @@ set -e
 cd "$(dirname "$(dirname "$0")")"
 
 
-audit_lint_errors
-audit_types
-audit_test_electron
-audit_test_displayer
-
+audit
 pipenv run python .bin/release.py
