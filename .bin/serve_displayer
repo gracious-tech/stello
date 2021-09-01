@@ -1,9 +1,11 @@
 #!/bin/bash
+# Serve displayer in dev mode
+set -e
+cd "$(dirname "$(dirname "$0")")"
 
-cd `dirname "$0"`
-cd ../displayer
 
 PORT=8002
+cd displayer
 
 echo
 echo "http://localhost:$PORT/#`cat public/dev/hash.txt`"

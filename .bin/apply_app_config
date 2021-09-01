@@ -1,7 +1,8 @@
 #!/bin/bash
+# Apply project config throughout all components
+set -e
+cd "$(dirname "$(dirname "$0")")"
 
-cd `dirname "$0"`
-cd ..
 
 # Apply app config to all components
 ./node_modules/.bin/ts-node app_config/apply.ts

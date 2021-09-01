@@ -1,11 +1,12 @@
 #!/bin/bash
-
-cd `dirname "$0"`
-cd ../responder/aws
+# Serve AWS responder in dev mode
+set -e
+cd "$(dirname "$(dirname "$0")")"
 
 
 # Executing lambda locally requires credentials for a user with same permissions as lambda role
 # NOTE Can't set in .dev_env.json as sam will override them if in there
+cd responder/aws
 source .dev_env_key
 
 

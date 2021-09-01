@@ -1,7 +1,9 @@
 #!/bin/bash
+# Build and run unpackaged electron
+set -e
+cd "$(dirname "$(dirname "$0")")"
 
-cd `dirname "$0"`
-cd ../electron
 
+cd electron
 build_electron
-node_modules/.bin/electron --no-sandbox --no-xshm .
+node_modules/.bin/electron .

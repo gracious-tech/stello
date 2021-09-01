@@ -1,5 +1,8 @@
 #!/bin/bash
+# Convert app's png icon to an '.ico' as required by Electron Builder
+set -e
+cd "$(dirname "$(dirname "$0")")"
+cd electron
 
-cd `dirname "$0"`
-cd ../electron
+
 ./node_modules/.bin/png-to-ico build/icon.png > build/icon.ico

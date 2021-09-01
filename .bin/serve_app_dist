@@ -1,6 +1,8 @@
 #!/bin/bash
+# Serve build of app from dist dir
+set -e
+cd "$(dirname "$(dirname "$0")")"
 
-cd `dirname "$0"`
-cd ../app
 
+cd app
 ./node_modules/.bin/vite preview --port 8001

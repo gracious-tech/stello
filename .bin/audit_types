@@ -1,13 +1,9 @@
 #!/bin/bash
-# WARN Do not `set -e` (failure is manually tracked)
-
 # Type check everything
 # WARN vue-tsc requires @vue/runtime-dom (provided by Vue3 but needed in top level node_modules)
 # WARN Keep this list in sync with .eslintrc.js
-
-
-cd `dirname "$0"`
-cd ..
+# WARN NO set -e (failure is manually tracked)
+cd "$(dirname "$(dirname "$0")")"
 
 
 # Track exit code since bash usually only sets to last command's

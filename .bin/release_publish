@@ -1,9 +1,7 @@
 #!/bin/bash
-
-# To be run after all CI tasks complete successfully
-
-
+# Move proposed CI artifacts into production
 set -e
+cd "$(dirname "$(dirname "$0")")"
 
 
 # Config

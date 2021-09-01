@@ -1,11 +1,11 @@
 #!/bin/bash
-
+# Build displayer and place tarball of result in app
 set -e
+cd "$(dirname "$(dirname "$0")")"
 
-cd `dirname "$0"`
-cd ../displayer
 
 # Build
+cd displayer
 ./node_modules/.bin/vite build --assetsDir 'displayer'
 
 # Fix issue with vite dynamic import (https://github.com/vitejs/vite/discussions/4319)

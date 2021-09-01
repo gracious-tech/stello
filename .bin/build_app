@@ -1,7 +1,9 @@
 #!/bin/bash
+# Build unpackaged app (assumes have already built displayer & responder)
+set -e
+cd "$(dirname "$(dirname "$0")")"
+cd app
 
-cd `dirname "$0"`
-cd ../app
 
 # NOTE Vite may need > 2096MB (the default) old space during build (probs due to Vuetify)
 NODE_OPTIONS=--max-old-space-size=6000 ./node_modules/.bin/vite build

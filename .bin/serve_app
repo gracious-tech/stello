@@ -1,6 +1,8 @@
 #!/bin/bash
+# Serve app in dev mode
+set -e
+cd "$(dirname "$(dirname "$0")")"
 
-cd `dirname "$0"`
-cd ../app
 
+cd app
 ./node_modules/.bin/vite --port 8000

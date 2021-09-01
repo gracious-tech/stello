@@ -1,13 +1,15 @@
 #!/bin/bash
+# Build electron source (doesn't package)
 set -e
+cd "$(dirname "$(dirname "$0")")"
 
 
 # Clear the dist dir
-# WARN cd executed inline to ensure cannot rm wrong dir
-cd `dirname "$0"` && cd ../electron && rm -r dist
+rm -r electron/dist  # WARN careful!
 
 
 # Copy src to dist
+cd electron
 cp --archive src dist
 
 

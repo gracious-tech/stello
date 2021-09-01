@@ -1,9 +1,7 @@
 #!/bin/bash
-
 # Takes a real message URL and downloads its assets for local testing
-
 set -e
+cd "$(dirname "$(dirname "$0")")"
 
-cd `dirname "$0"`
 
-pipenv run python displayer_dev_msg.py "$@"
+pipenv run python .bin/displayer_dev_msg.py "$@"

@@ -1,7 +1,7 @@
 #!/bin/bash
-
-cd `dirname "$0"`
-cd ../electron
+# Package built electron app for current OS
+set -e
+cd "$(dirname "$(dirname "$0")")"
 
 
 # Determine platform args
@@ -16,4 +16,5 @@ fi
 
 
 # Package electron app for platform
+cd electron
 ./node_modules/.bin/electron-builder $PLATFORM_ARGS "$@"

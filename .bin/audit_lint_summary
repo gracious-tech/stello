@@ -1,4 +1,7 @@
 #!/bin/bash
-
 # Lint everything but show summary rather than exact errors/locations
+set -e
+cd "$(dirname "$(dirname "$0")")"
+
+
 audit_lint --format=summary-chart "$@"

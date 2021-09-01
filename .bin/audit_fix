@@ -1,4 +1,7 @@
 #!/bin/bash
-
 # Auto-fix code mistakes where possible
+set -e
+cd "$(dirname "$(dirname "$0")")"
+
+
 audit_lint --fix "$@"

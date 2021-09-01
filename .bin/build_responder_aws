@@ -1,9 +1,11 @@
 #!/bin/bash
+# Build the responder for AWS so it can be embedded in app
+set -e
+cd "$(dirname "$(dirname "$0")")"
 
-cd `dirname "$0"`
-cd ../responder/aws
 
+cd responder/aws
 sam build
 chmod -R a+rwx .aws-sam/build/Function/
 python3 -m zipfile --create ../../app/static/responder_aws.zip .aws-sam/build/Function/*
-rm -r .aws-sam
+rm -r .aws-sam  # WARN careful!

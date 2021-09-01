@@ -45,7 +45,7 @@ def release(inv):
     inv.run('git add .')
     inv.run(f'git commit -m "Version {new_version}"')
 
-    # Tag the new version and push to trigger CI build and deploy
+    # Tag the new version
     inv.run(f'git tag --annotate -m "Version {new_version}" v{new_version}')
 
     # Notes

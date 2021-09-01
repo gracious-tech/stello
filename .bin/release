@@ -1,11 +1,12 @@
 #!/bin/bash
+# Create new release for app (updates version throughout project) if audit succeeds
+set -e
+cd "$(dirname "$(dirname "$0")")"
 
-set -e  # Don't release if any tests fail
 
-cd `dirname "$0"`
-cd ..
-
-audit_types
 audit_lint_errors
+audit_types
+audit_test_electron
+audit_test_displayer
 
 pipenv run python .bin/release.py

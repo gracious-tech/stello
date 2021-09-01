@@ -1,12 +1,11 @@
 #!/bin/bash
-
 # Setup project for development
-
 set -e
 cd "$(dirname "$(dirname "$0")")"
 
 
 # Install packages
+pipenv install
 npm ci
 cd app
 npm ci
@@ -21,3 +20,6 @@ cd ..
 
 # Load reactions
 .bin/reactions
+
+
+# TODO Create dev configs (see .gitignore)
