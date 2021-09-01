@@ -4,6 +4,21 @@ set -e
 cd "$(dirname "$(dirname "$0")")"
 
 
+# If not running in CI then prompt for fresh build so don't test on outdated files
+if [[ -z "$CI" ]]; then
+    echo -n "Do you want to do a fresh build before testing? [Y/n] "
+    read fresh_build
+    if [[ "$fresh_build" != "n" ]]; then
+        setup_dev
+        build_displayer
+        build_responder_aws
+        build_app
+        build_electron
+        build_electron_package
+    fi
+fi
+
+
 audit_lint_errors  # TODO include warnings when ready
 audit_types
 audit_test_displayer

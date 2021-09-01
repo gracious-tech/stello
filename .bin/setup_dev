@@ -1,11 +1,11 @@
 #!/bin/bash
-# Setup project for development
+# Setup project for development (should be re-run safe)
 set -e
 cd "$(dirname "$(dirname "$0")")"
 
 
 # Install packages
-pipenv install
+pipenv sync
 npm ci
 cd app
 npm ci
