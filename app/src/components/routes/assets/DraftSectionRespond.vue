@@ -1,9 +1,12 @@
 
 <template lang='pug'>
 
-div.respondbar(:class='{respondable: respondable_final}')
-    shared-respond-reply(v-if='can_reply' @click='toggle_respondable')
-    shared-respond-react(v-if='can_react' @click='toggle_respondable')
+//- WARN respondable class is inspected by parent component
+div.respondbar(v-if='can_reply || can_react' :class='{respondable: respondable_final}')
+    template(v-if='respondable_final')
+        shared-respond-reply(v-if='can_reply' @click='toggle_respondable')
+        shared-respond-react(v-if='can_react' @click='toggle_respondable')
+    app-btn.show(v-else @click='toggle_respondable' small color='') Enable responses
 
 </template>
 
@@ -54,10 +57,7 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
-.respondbar:not(.respondable)
-    color: #f33
-
-    button
-        opacity: 0.5 !important
+.show:not(:hover)
+    opacity: 0.3
 
 </style>
