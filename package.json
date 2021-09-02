@@ -6,7 +6,7 @@
         "@types/node": "^16.7.10",
         "@typescript-eslint/eslint-plugin": "^4.30.0",
         "@typescript-eslint/parser": "^4.30.0",
-        "@vue/runtime-dom": "^3.2.6",
+        "@vue/runtime-dom": "^3.2.7",
         "eslint": "^7.32.0",
         "eslint-formatter-summary-chart": "git+https://github.com/shadow-light/eslint-formatter-summary-chart.git",
         "eslint-plugin-import": "^2.24.2",
