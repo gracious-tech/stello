@@ -5,8 +5,8 @@ cd "$(dirname "$(dirname "$0")")"
 
 
 # Clear existing reactions
-rm --force displayer/public/displayer/reactions/*
-mkdir --parents displayer/public/displayer/reactions
+rm -f displayer/public/displayer/reactions/*
+mkdir -p displayer/public/displayer/reactions
 
 
 # Copy across either proprietary or free reactions
