@@ -1,0 +1,8 @@
+#!/bin/bash
+# Run tests for displayer in debug mode
+set -e
+cd "$(dirname "$(dirname "$0")")"
+
+
+cd displayer/tests
+PWDEBUG=1 ../../node_modules/.bin/playwright "${@:-test}"

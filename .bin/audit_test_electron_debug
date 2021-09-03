@@ -1,0 +1,8 @@
+#!/bin/bash
+# Run tests for electron in debug mode
+set -e
+cd "$(dirname "$(dirname "$0")")"
+
+
+cd electron/tests
+PWDEBUG=1 ../../node_modules/.bin/playwright "${@:-test}"
