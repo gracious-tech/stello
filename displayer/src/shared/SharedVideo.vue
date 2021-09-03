@@ -88,6 +88,8 @@ export default defineComponent({
 
 <style lang='sass' scoped>
 
+@use 'sass:math'
+
 .aspect
     position: relative
     width: 100%
