@@ -59,6 +59,7 @@ jobs:
         name: Package the app with Electron and test
         needs: build_app_base
         strategy:
+            fail-fast: false
             matrix:
                 os: [ubuntu-latest, macos-latest, windows-latest]
         runs-on: ${{ matrix.os }}
