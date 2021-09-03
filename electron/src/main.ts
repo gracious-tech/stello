@@ -18,7 +18,7 @@ import {Email, EmailSettings, EmailIdentity, EmailError} from './native_types'
 
 
 // Detect if running automated testing
-const TESTING = !!process.env['PLAYWRIGHT_BROWSERS_PATH']
+const TESTING = !!process.env['TEST_WORKER_INDEX']  // A var that Playwright sets when testing
 
 
 // Load config file (created from env vars and embedded during packaging)
