@@ -10,7 +10,7 @@ rm -rf electron/dist  # WARN careful!
 
 # Copy src to dist
 cd electron
-cp --archive src dist
+cp -Rp src dist
 
 
 # Write config file to dist from env
