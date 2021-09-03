@@ -6,6 +6,7 @@ cd "$(dirname "$(dirname "$0")")"
 
 # Determine platform args
 # NOTE $OSTYPE is a bash builtin var (not specific to CI and not provided manually)
+echo "$OSTYPE"
 PLATFORM_ARGS='--windows appx'
 if [[ "$OSTYPE" == "linux-gnu" ]]; then
     PLATFORM_ARGS='--linux AppImage'
