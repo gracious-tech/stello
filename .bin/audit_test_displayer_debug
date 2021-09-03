@@ -4,5 +4,6 @@ set -e
 cd "$(dirname "$(dirname "$0")")"
 
 
+echo "TIP: Run serve_displayer before running tests so doesn't recompile every test run"
 cd displayer/tests
 PWDEBUG=1 ../../node_modules/.bin/playwright "${@:-test}"
