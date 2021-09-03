@@ -19,7 +19,6 @@ if (process.platform === 'linux'){
 
 // Common config
 const test_config_common:PlaywrightTestConfig = {
-    timeout: 10000,  // Timeout quickly since a mostly offline JS app
 }
 
 
