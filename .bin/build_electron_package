@@ -9,7 +9,7 @@ cd "$(dirname "$(dirname "$0")")"
 PLATFORM_ARGS='--windows appx'
 if [[ "$OSTYPE" == "linux-gnu" ]]; then
     PLATFORM_ARGS='--linux AppImage'
-elif [[ "$OSTYPE" == "linux-gnu" ]]; then
+elif [[ "$OSTYPE" == "darwin" ]]; then
     # Electron Updater still relies on zip for updates, even if dmg used to install
     PLATFORM_ARGS='--mac dmg zip'
 fi
