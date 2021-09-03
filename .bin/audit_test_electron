@@ -5,4 +5,4 @@ cd "$(dirname "$(dirname "$0")")"
 
 
 cd electron/tests
-../../node_modules/.bin/playwright "${@:-test}"
+xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- ../../node_modules/.bin/playwright "${@:-test}"
