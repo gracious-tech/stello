@@ -5,4 +5,9 @@ cd "$(dirname "$(dirname "$0")")"
 
 
 cd electron/tests
-xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- ../../node_modules/.bin/playwright "${@:-test}"
+if [[ "$OSTYPE" == "linux-gnu" ]]; then
+    # Use xvfb to run headless (a requirement for CI)
+    xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- ../../node_modules/.bin/playwright "${@:-test}"
+else
+    ../../node_modules/.bin/playwright "${@:-test}"
+fi
