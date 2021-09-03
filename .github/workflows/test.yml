@@ -76,7 +76,11 @@ jobs:
                     cache-dependency-path: '**/package-lock.json'
 
             -   name: Install root node modules
-                run: npm ci
+                run: |
+                    npm ci
+                    npx playwright install --with-deps chromium
+                env:
+                    PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
 
             -   name: Install node modules for Electron
                 working-directory: ./electron
