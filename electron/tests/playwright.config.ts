@@ -9,9 +9,11 @@ import {PlaywrightTestConfig, test, expect, Page, Response, ElectronApplication,
 // Detect path to electron binary
 let binary_path:string
 if (process.platform === 'linux'){
-    binary_path = '../packaged/stello.AppImage'
+    // Github actions can't seem to open AppImage, so only do so in local dev
+    binary_path =
+        process.env['CI'] ? '../packaged/squashfs-root/stello' : '../packaged/stello.AppImage'
 } else if (process.platform === 'darwin'){
-    binary_path = '../packaged/mac/stello'
+    binary_path = '../packaged/mac/Stello.app/Contents/MacOS/Stello'
 } else {
     binary_path = '../packaged/win-unpacked/stello.exe'
 }
@@ -19,7 +21,6 @@ if (process.platform === 'linux'){
 
 // Common config
 const test_config_common:PlaywrightTestConfig = {
-    timeout: process.env['CI'] ? 60000 : 20000,  // CI much slower than own system
 }
 
 
@@ -57,7 +58,6 @@ const test_interface_electron = test.extend<
         const electron_app = await electron.launch({
             // WARN Testing AppImage requires fuse kernal stuff and therefore docker --privileged
             executablePath: path.join(__dirname, binary_path),
-            timeout: process.env['CI'] ? 60000 : 20000,  // Separate to test timeout
             // TODO Use xvfb-run to run headless on Linux
         })
 
