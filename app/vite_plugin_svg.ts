@@ -3,7 +3,7 @@
 import {promises as fs} from 'fs'
 
 import {Plugin, ResolvedConfig} from 'vite'
-import {optimize} from 'svgo'
+import {optimize, OptimizeOptions} from 'svgo'
 
 
 export default function():Plugin{
@@ -33,7 +33,7 @@ export default function():Plugin{
             let contents = await fs.readFile(path, 'utf-8')
 
             // Configure SVGO
-            const svgo_options = {
+            const svgo_options:OptimizeOptions = {
                 plugins: [
                     // Include default plugins
                     {name: 'preset-default'},
