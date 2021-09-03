@@ -9,9 +9,7 @@ import {PlaywrightTestConfig, test, expect, Page, Response, ElectronApplication,
 // Detect path to electron binary
 let binary_path:string
 if (process.platform === 'linux'){
-    // Github actions can't seem to open AppImage, so only do so in local dev
-    binary_path =
-        process.env['CI'] ? '../packaged/linux-unpacked/stello' : '../packaged/stello.AppImage'
+    binary_path = '../packaged/stello.AppImage'
 } else if (process.platform === 'darwin'){
     binary_path = '../packaged/mac/Stello.app/Contents/MacOS/Stello'
 } else {
