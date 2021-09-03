@@ -3,7 +3,7 @@
 import {promises as fs} from 'fs'
 
 import {Plugin, ResolvedConfig} from 'vite'
-import {optimize, extendDefaultPlugins} from 'svgo'
+import {optimize} from 'svgo'
 
 
 export default function():Plugin{
@@ -34,7 +34,9 @@ export default function():Plugin{
 
             // Configure SVGO
             const svgo_options = {
-                plugins: extendDefaultPlugins([
+                plugins: [
+                    // Include default plugins
+                    {name: 'preset-default'},
                     // Unnecessary for inline SVGs
                     {name: 'removeXMLNS'},
                     // Don't remove `viewBox` as it's needed for scaling correctly
@@ -46,7 +48,7 @@ export default function():Plugin{
                     {name: 'collapseGroups', active: false},
                     // Don't remove ids which can be used for styling
                     {name: 'cleanupIDs', active: false},
-                ]),
+                ],
             }
 
             // Skip SVGO if not in production

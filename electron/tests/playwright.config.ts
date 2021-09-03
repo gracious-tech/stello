@@ -1,8 +1,15 @@
 
 import path from 'path'
+import {URL} from 'url'
 
-import {PlaywrightTestConfig, test, expect, Page, ElectronApplication, _electron as electron,
-    } from '@playwright/test'
+import {PlaywrightTestConfig, test, expect, Page, Response, ElectronApplication,
+    _electron as electron} from '@playwright/test'
+
+
+// Common config
+const test_config_common:PlaywrightTestConfig = {
+    timeout: 10000,  // Timeout quickly since a mostly offline JS app
+}
 
 
 // Util for logging and failing on js errors
@@ -25,12 +32,15 @@ function attach_js_error_handler(page:Page){
 
 
 // Config for running tests via a packaged Electron app
-const test_config_electron:PlaywrightTestConfig = {}
-const test_interface_electron = test.extend<unknown, {electron_app:ElectronApplication}>({
+const test_config_electron:PlaywrightTestConfig = {...test_config_common}
+// NOTE Type passed to extend is <test fixtures, worker fixtures>
+const test_interface_electron = test.extend<
+        {gotohash:(path:string)=>Promise<Response|null>}, {_electron_app:ElectronApplication}>({
 
     // Worker fixture that provides access to the Electron app (set once for whole run)
+    // WARN Don't access this fixture within tests, as then can't run tests via port/dev server
     // eslint-disable-next-line no-empty-pattern -- Playwright requires destructing first arg {}
-    electron_app: [async ({}, use, worker_info) => {
+    _electron_app: [async ({}, use, worker_info) => {
 
         // Start the electron app
         const electron_app = await electron.launch({
@@ -47,9 +57,9 @@ const test_interface_electron = test.extend<unknown, {electron_app:ElectronAppli
     }, {scope: 'worker'}],
 
     // Override standard page fixture with the electron page
-    page: async ({electron_app}, run) => {
+    page: async ({_electron_app}, run) => {
         // Get the app's window (app will reopen whenever closed when testing, so always present)
-        const electron_page = await electron_app.firstWindow()
+        const electron_page = await _electron_app.firstWindow()
         // Listen for JS errors
         attach_js_error_handler(electron_page)
         // Auto click through the welcome splashes
@@ -62,11 +72,23 @@ const test_interface_electron = test.extend<unknown, {electron_app:ElectronAppli
         await electron_page.close()
     },
 
+    gotohash: async ({page}, run) => {
+        // A helper for navigating that auto-sets the base URL to whatever first loaded
+        // NOTE Setting actual base url that `page.goto` uses doesn't seem to work since static
+        const base_url = new URL(page.url())
+        base_url.hash = ''  // Clears any existing hash, but also ensures '#' appended
+        function gotohash(path:string){
+            return page.goto(`${base_url}${path}`)
+        }
+        await run(gotohash)
+    },
+
 })
 
 
 // Config for running tests via network port (serving app in development)
 const test_config_port:PlaywrightTestConfig = {
+    ...test_config_common,
     webServer: {
         command: 'serve_app',
         port: 8000,
@@ -76,7 +98,7 @@ const test_config_port:PlaywrightTestConfig = {
         {use: {browserName: 'chromium'}},  // WARN Chance chromium is diff version to Electron
     ],
 }
-const test_interface_port = test.extend({
+const test_interface_port = test.extend<{gotohash:(path:string)=>Promise<Response|null>}>({
 
     // Override standard page fixture to auto click through welcome splashes
     // NOTE Must be same as Electron setup
@@ -90,6 +112,11 @@ const test_interface_port = test.extend({
         await page.click('button:has-text("continue")')
         // Run test
         await run(page)
+    },
+
+    gotohash: async ({page}, run) => {
+        // Provide just to stay same as electron implementation
+        await run(path => page.goto(path))
     },
 
 })

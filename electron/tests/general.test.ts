@@ -22,18 +22,18 @@ test("Visit all main routes", async ({page}) => {
 })
 
 
-test("Visit dynamic routes without valid id", async ({page}) => {
+test("Visit dynamic routes without valid id", async ({page, gotohash}) => {
     // Visit dynamic routes without ids to ensure they don't break app when missing
-    await page.goto('#/drafts/invalid/')
+    await gotohash('#/drafts/invalid/')
     expect(await page.textContent('header >> nth=-1')).toBe("")
-    await page.goto('#/messages/invalid/')
+    await gotohash('#/messages/invalid/')
     expect(await page.textContent('header >> nth=-1')).toBe("")
-    await page.goto('#/contacts/invalid/')
+    await gotohash('#/contacts/invalid/')
     expect(await page.textContent('header >> nth=-1')).toBe("")
-    await page.goto('#/settings/profiles/')
+    await gotohash('#/settings/profiles/')
     expect(await page.textContent('header >> nth=-1')).toBe("Settings")
-    await page.goto('#/settings/profiles/invalid/')
+    await gotohash('#/settings/profiles/invalid/')
     expect(await page.textContent('header >> nth=-1')).toBe("")
-    await page.goto('#/invalid/')
+    await gotohash('#/invalid/')
     expect(await page.textContent('header >> nth=-1')).toBe("")
 })
