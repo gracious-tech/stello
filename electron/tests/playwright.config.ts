@@ -31,7 +31,7 @@ const extended_test = test.extend<unknown, {electron_page:Page}>({
     // Override standard page fixture with the electron page
     page: async ({electron_page}, run) => {
         // Ensure each test begins from root route
-        await electron_page.goto(electron_page.url().split('#')[0] + '#/')
+        await electron_page.goto(electron_page.url().split('#')[0]! + '#/')
         await run(electron_page)
     },
 
