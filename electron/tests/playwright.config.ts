@@ -6,6 +6,17 @@ import {PlaywrightTestConfig, test, expect, Page, Response, ElectronApplication,
     _electron as electron} from '@playwright/test'
 
 
+// Detect path to electron binary
+let binary_path:string
+if (process.platform === 'linux'){
+    binary_path = '../packaged/stello.AppImage'
+} else if (process.platform === 'darwin'){
+    binary_path = '../packaged/mac/stello'
+} else {
+    binary_path = '../packaged/win-unpacked/stello.exe'
+}
+
+
 // Common config
 const test_config_common:PlaywrightTestConfig = {
     timeout: 10000,  // Timeout quickly since a mostly offline JS app
@@ -45,9 +56,8 @@ const test_interface_electron = test.extend<
         // Start the electron app
         const electron_app = await electron.launch({
             // WARN Testing AppImage requires fuse kernal stuff and therefore docker --privileged
-            // TODO Change path depending on OS
-            executablePath: path.join(__dirname, '../packaged/stello.AppImage'),
-            // TODO Use xvfb-run to run headless
+            executablePath: path.join(__dirname, binary_path),
+            // TODO Use xvfb-run to run headless on Linux
         })
 
         // Provide access to app in tests
