@@ -24,6 +24,9 @@ jobs:
                     cache: 'npm'
                     cache-dependency-path: '**/package-lock.json'
 
+            -   name: Install root node modules
+                run: npm ci
+
             -   name: Install node modules for app
                 working-directory: ./app
                 run: npm ci
@@ -70,6 +73,9 @@ jobs:
                     node-version: '14'
                     cache: 'npm'
                     cache-dependency-path: '**/package-lock.json'
+
+            -   name: Install root node modules
+                run: npm ci
 
             -   name: Install node modules for Electron
                 working-directory: ./electron
