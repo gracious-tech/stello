@@ -57,6 +57,7 @@ const test_interface_electron = test.extend<
         const electron_app = await electron.launch({
             // WARN Testing AppImage requires fuse kernal stuff and therefore docker --privileged
             executablePath: path.join(__dirname, binary_path),
+            timeout: process.env['CI'] ? 60000 : 20000,  // Separate to test timeout
             // TODO Use xvfb-run to run headless on Linux
         })
 
