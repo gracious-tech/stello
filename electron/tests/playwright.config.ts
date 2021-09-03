@@ -5,8 +5,9 @@ import {PlaywrightTestConfig, test, ElectronApplication, _electron as electron,
     } from '@playwright/test'
 
 
-// Extend test interface to start Electron app and use it for tests
-const extended_test = test.extend<unknown, {electron_app:ElectronApplication}>({
+// Config for running tests via a packaged Electron app
+const test_config_electron:PlaywrightTestConfig = {}
+const test_interface_electron = test.extend<unknown, {electron_app:ElectronApplication}>({
 
     // Worker fixture that provides access to the Electron app (set once for whole run)
     // eslint-disable-next-line no-empty-pattern -- Playwright requires destructing first arg {}
@@ -41,7 +42,36 @@ const extended_test = test.extend<unknown, {electron_app:ElectronApplication}>({
     },
 
 })
-export {extended_test as test}
 
 
-export default {} as PlaywrightTestConfig
+// Config for running tests via network port (serving app in development)
+const test_config_port:PlaywrightTestConfig = {
+    webServer: {
+        command: 'serve_app',
+        port: 8000,
+        reuseExistingServer: !process.env['CI'],
+    },
+    projects: [
+        {use: {browserName: 'chromium'}},  // WARN Chance chromium is diff version to Electron
+    ],
+}
+const test_interface_port = test.extend({
+
+    // Override standard page fixture to auto click through welcome splashes
+    // NOTE Must be same as Electron setup
+    page: async ({page}, run) => {
+        await page.goto('http://localhost:8000')
+        await page.click('button:has-text("continue")')
+        await page.click('.v-input--checkbox')
+        await page.click('button:has-text("continue")')
+        await run(page)
+    },
+
+})
+
+
+// Test via electron app by default, but against dev server if in debug mode
+export default process.env['PWDEBUG'] === '1' ? test_config_port : test_config_electron
+const test_interface =
+    process.env['PWDEBUG'] === '1' ? test_interface_port : test_interface_electron
+export {test_interface as test}
