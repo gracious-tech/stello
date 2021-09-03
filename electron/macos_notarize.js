@@ -18,7 +18,7 @@ exports.default = async function(context){
     const productFilename = context.packager.appInfo.productFilename
 
     // Notarize
-    return await notarize({
+    return await notarize.notarize({
         appBundleId: appId,
         appPath: `${context.appOutDir}/${productFilename}.app`,
         appleId: process.env.APPLE_ID,
