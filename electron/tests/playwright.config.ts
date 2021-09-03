@@ -5,9 +5,10 @@ import {PlaywrightTestConfig, test, _electron as electron, Page} from '@playwrig
 
 
 // Extend test interface to start Electron app and use it for tests
-const extended_test = test.extend<{}, {electron_page:Page}>({
+const extended_test = test.extend<unknown, {electron_page:Page}>({
 
     // Worker fixture that provides access to the Electron app's page (set once for whole run)
+    // eslint-disable-next-line no-empty-pattern -- Playwright requires destructing first arg {}
     electron_page: [async ({}, use, worker_info) => {
 
         // Start the electron app
