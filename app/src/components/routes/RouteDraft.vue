@@ -92,12 +92,13 @@ export default class extends Vue {
     async created(){
         // Load the draft and the contents of the draft's sections
         const draft = await self._db.drafts.get(this.draft_id)
-        if (draft){
-            for (const section of await self._db.sections.get_multiple(draft.sections.flat())){
-                Vue.set(this.sections, section.id, section)
-            }
-            this.draft = draft
+        if (!draft){
+            return
         }
+        for (const section of await self._db.sections.get_multiple(draft.sections.flat())){
+            Vue.set(this.sections, section.id, section)
+        }
+        this.draft = draft
 
         // Load profiles (so know if need to create or select existing)
         void self._db.profiles.list().then(profiles => {

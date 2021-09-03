@@ -1,7 +1,7 @@
 
 import path from 'path'
 
-import {PlaywrightTestConfig, test, Page, ElectronApplication, _electron as electron,
+import {PlaywrightTestConfig, test, expect, Page, ElectronApplication, _electron as electron,
     } from '@playwright/test'
 
 
@@ -99,4 +99,4 @@ const test_interface_port = test.extend({
 export default process.env['PWDEBUG'] === '1' ? test_config_port : test_config_electron
 const test_interface =
     process.env['PWDEBUG'] === '1' ? test_interface_port : test_interface_electron
-export {test_interface as test}
+export {expect, test_interface as test}
