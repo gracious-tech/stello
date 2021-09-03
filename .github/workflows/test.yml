@@ -95,6 +95,12 @@ jobs:
 
             -   name: Package
                 run: .bin/build_electron_package
+                env:
+                    # Only mac needs the following
+                    CSC_LINK: ${{ secrets.APPLE_CERT_P12_BASE64 }}
+                    CSC_KEY_PASSWORD: abc123  # Public since contents already secret
+                    APPLE_ID: ${{ secrets.APPLE_ID_EMAIL }}
+                    APPLE_ID_PASS: ${{ secrets.APPLE_ID_APP_PASSWORD }}
 
             -   name: Test
                 run: .bin/audit_test_electron
