@@ -1,15 +1,16 @@
 
 import path from 'path'
 
-import {PlaywrightTestConfig, test, _electron as electron, Page} from '@playwright/test'
+import {PlaywrightTestConfig, test, ElectronApplication, _electron as electron,
+    } from '@playwright/test'
 
 
 // Extend test interface to start Electron app and use it for tests
-const extended_test = test.extend<unknown, {electron_page:Page}>({
+const extended_test = test.extend<unknown, {electron_app:ElectronApplication}>({
 
-    // Worker fixture that provides access to the Electron app's page (set once for whole run)
+    // Worker fixture that provides access to the Electron app (set once for whole run)
     // eslint-disable-next-line no-empty-pattern -- Playwright requires destructing first arg {}
-    electron_page: [async ({}, use, worker_info) => {
+    electron_app: [async ({}, use, worker_info) => {
 
         // Start the electron app
         const electron_app = await electron.launch({
@@ -19,20 +20,24 @@ const extended_test = test.extend<unknown, {electron_page:Page}>({
             // TODO Use xvfb-run to run headless
         })
 
-        // Provide the window/page to tests
-        // NOTE Single window used for all tests to stay close to actual app which forbids multiple
-        await use(await electron_app.firstWindow())
-
-        // Close app when done
-        await electron_app.close()
+        // Provide access to app in tests
+        await use(electron_app)
+        // NOTE Playwright will ensure app is closed when it itself ends (since is a subprocess)
 
     }, {scope: 'worker'}],
 
     // Override standard page fixture with the electron page
-    page: async ({electron_page}, run) => {
-        // Ensure each test begins from root route
-        await electron_page.goto(electron_page.url().split('#')[0]! + '#/')
+    page: async ({electron_app}, run) => {
+        // Get the app's window (app will reopen whenever closed when testing, so always present)
+        const electron_page = await electron_app.firstWindow()
+        // Auto click through the welcome splashes
+        await electron_page.click('button:has-text("continue")')
+        await electron_page.click('.v-input--checkbox')
+        await electron_page.click('button:has-text("continue")')
+        // Run the test
         await run(electron_page)
+        // Close page/window when done so that session data is reset (app will auto reopen)
+        await electron_page.close()
     },
 
 })

@@ -17,6 +17,10 @@ import SMTPTransport from 'nodemailer/lib/smtp-transport'
 import {Email, EmailSettings, EmailIdentity, EmailError} from './native_types'
 
 
+// Detect if running automated testing
+const TESTING = !!process.env['PLAYWRIGHT_BROWSERS_PATH']
+
+
 // Load config file (created from env vars and embedded during packaging)
 interface ElectronConfig {
     rollbar_electron:string
@@ -82,13 +86,13 @@ const oauth_html = asar_fs_callbacks.readFileSync(oauth_html_path, {encoding: 'u
 
 // Create HTTP server for receiving oauth2 redirects
 const http_server_port = 44932
-const http_server = http.createServer((request, response) => {
+const http_server = http.createServer(async (request, response) => {
 
     const url = new URL(request.url ?? '', `http://127.0.0.1:${http_server_port}`)
 
     if (url.pathname === '/oauth' && app.isReady){
         // Process an oauth redirect (only possible if app is ready)
-        const window = activate_app()  // Also brings window to front if not already
+        const window = await activate_app()  // Also brings window to front if not already
         window.webContents.send('oauth', url.toString())
         response.writeHead(303, {Location: '/'})  // Clear params to prevent replays
     } else {
@@ -201,24 +205,27 @@ void app.whenReady().then(async () => {
     }
 
     // Open primary window for first time
-    open_window()
+    void open_window()
 
     // Handle attempts to open another instance (e.g. via terminal etc)
     app.on('second-instance', () => {
-        activate_app()
+        void activate_app()
     })
 
     // Handle activation of app (e.g. clicking app in dock on Mac)
     app.on('activate', () => {
-        activate_app()
+        void activate_app()
     })
 })
 
 // Handle no-windows event
 app.on('window-all-closed', () => {
-    // End this process if no windows, unless Mac where it's normal to keep app in dock still
-    // NOTE If update downloaded, always do a full quit so update applied when reopened
-    if (process.platform !== 'darwin' || update_downloaded){
+    if (TESTING){
+        // Auto-reopen window when closed during testing, so have new session for each test
+        void open_window()
+    } else if (process.platform !== 'darwin' || update_downloaded){
+        // End this process if no windows, unless Mac where it's normal to keep app in dock still
+        // NOTE If update downloaded, always do a full quit so update applied when reopened
         app.quit()
     }
 })
@@ -227,7 +234,7 @@ app.on('window-all-closed', () => {
 // Helpers
 
 
-function activate_app(){
+async function activate_app(){
     // Activate the app, ensuring it is open and focused, and only ever has one window
     let window = BrowserWindow.getAllWindows()[0]
     if (window){
@@ -239,14 +246,22 @@ function activate_app(){
     } else {
         // No window yet so open one
         // NOTE Usually just for Macs where it's normal to keep app running despite window close
-        window = open_window()
+        window = await open_window()
     }
     return window
 }
 
 
-function open_window(){
+async function open_window(){
     // Create the browser window for the app
+
+    // Determine session (so when testing can wipe data after each test)
+    const window_session = TESTING ? session.fromPartition('test') : session.defaultSession
+    if (TESTING){
+        await window_session.clearStorageData()
+    }
+
+    // Open window
     const window = new BrowserWindow({
         width: 1000,
         height: 800,
@@ -255,6 +270,7 @@ function open_window(){
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             webSecurity: false,  // TODO Remove when alternative for CORS issues implemented
+            session: window_session,
         },
     })
 
