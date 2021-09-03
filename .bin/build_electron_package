@@ -13,6 +13,9 @@ if [[ "$OSTYPE" == "linux-gnu" ]]; then
     PLATFORM_ARGS='--linux AppImage'
 elif [[ "$OSTYPE" == "msys" ]]; then
     PLATFORM_ARGS='--windows appx'
+    # CI will have this var set for code signing on mac, but it will also trigger signing on windows
+    # So must unset, as Windows store handles signing, so it isn't required for appx
+    unset CSC_LINK
 fi
 
 
