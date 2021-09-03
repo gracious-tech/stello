@@ -1,7 +1,7 @@
 
 <template lang='pug'>
 
-div.sidebar(class='app-bg-primary')
+nav.sidebar(class='app-bg-primary')
 
     div(class='release-banner') BETA
 
