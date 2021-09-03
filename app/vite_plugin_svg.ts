@@ -36,18 +36,24 @@ export default function():Plugin{
             const svgo_options:OptimizeOptions = {
                 plugins: [
                     // Include default plugins
-                    {name: 'preset-default'},
-                    // Unnecessary for inline SVGs
-                    {name: 'removeXMLNS'},
-                    // Don't remove `viewBox` as it's needed for scaling correctly
-                    // NOTE Also not removing width/height as overwise svg is 100%/100%
-                    {name: 'removeViewBox', active: false},
-                    // Don't merge paths as can't then style individually via CSS
-                    {name: 'mergePaths', active: false},
-                    // Don't collapse groups as can use to group elements for styling
-                    {name: 'collapseGroups', active: false},
-                    // Don't remove ids which can be used for styling
-                    {name: 'cleanupIDs', active: false},
+                    {
+                        name: 'preset-default',
+                        params: {
+                            overrides: {
+                                // Don't remove `viewBox` as it's needed for scaling correctly
+                                // NOTE Also not removing width/height as overwise svg is 100%/100%
+                                removeViewBox: false,
+                                // Don't merge paths as can't then style individually via CSS
+                                mergePaths: false,
+                                // Don't collapse groups as can use to group elements for styling
+                                collapseGroups: false,
+                                // Don't remove ids which can be used for styling
+                                cleanupIDs: false,
+                            },
+                        },
+                    },
+                    // Extra plugins
+                    'removeXMLNS',  // Unnecessary for inline SVGs
                 ],
             }
 
