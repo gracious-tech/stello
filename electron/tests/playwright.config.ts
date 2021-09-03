@@ -19,6 +19,7 @@ if (process.platform === 'linux'){
 
 // Common config
 const test_config_common:PlaywrightTestConfig = {
+    timeout: process.env['CI'] ? 60000 : 20000,  // CI much slower than own system
 }
 
 
