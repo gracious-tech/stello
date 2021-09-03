@@ -8,8 +8,8 @@ const notarize = require('electron-notarize')
 exports.default = async function(context){
     // Run during electron build after signing
 
-    // Don't run if not on macOS
-    if (context.electronPlatformName !== 'darwin'){
+    // Don't run if not on macOS, or if credentials not provided (i.e. testing only)
+    if (context.electronPlatformName !== 'darwin' || !process.env.APPLE_ID){
         return
     }
 
