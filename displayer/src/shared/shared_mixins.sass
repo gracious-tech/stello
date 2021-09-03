@@ -6,7 +6,7 @@
 $stello_gutter: 48px
 $stello_content_width: 700px
 $stello_full_width: 700px + $stello_gutter * 2
-$stello_float_width: ($stello_content_width / 2) - ($stello_gutter / 2)
+$stello_float_width: math.div($stello_content_width, 2) - math.div($stello_gutter, 2)
 $stello_layout_width: 0px !default  // Draft editor has sidebar/scrollbar etc in addition to content
 $stello_full_plus_sidebar: $stello_full_width + $stello_layout_width
 

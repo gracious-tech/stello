@@ -92,7 +92,7 @@ export default defineComponent({
     position: relative
     width: 100%
     height: 0
-    padding-bottom: percentage(9 / 16)
+    padding-bottom: percentage(math.div(9, 16))
 
 iframe, svg
     position: absolute
