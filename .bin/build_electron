@@ -5,7 +5,7 @@ cd "$(dirname "$(dirname "$0")")"
 
 
 # Clear the dist dir
-rm -r electron/dist  # WARN careful!
+rm -rf electron/dist  # WARN careful!
 
 
 # Copy src to dist
