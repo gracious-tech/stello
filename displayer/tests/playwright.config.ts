@@ -13,6 +13,7 @@ export default {
     projects: [
         {use: {browserName: 'chromium'}},
         {use: {browserName: 'firefox'}},
+        {use: {browserName: 'webkit'}},
         // TODO Resolve webkit issues https://github.com/microsoft/playwright/issues/8578
     ],
 } as PlaywrightTestConfig

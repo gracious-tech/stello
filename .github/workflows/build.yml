@@ -61,7 +61,10 @@ jobs:
                     VITE_ROLLBAR_APP: ${{ secrets.ROLLBAR_APP }}
                     VITE_ROLLBAR_RESPONDER: ${{ secrets.ROLLBAR_RESPONDER }}
             -   if: github.event.inputs.run_tests != 'false'
-                run: .bin/audit_test_displayer
+                name: .bin/audit_test_displayer
+                run: |
+                    npx playwright install
+                    .bin/audit_test_displayer
             -   uses: actions/upload-artifact@v2
                 with:
                     name: app_base
