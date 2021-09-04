@@ -1,21 +1,18 @@
 #!/bin/bash
-# Run full audit of project (required before merging and releasing)
+# Run full audit of project
 set -e
 cd "$(dirname "$(dirname "$0")")"
 
 
-# If not running in CI then prompt for fresh build so don't test on outdated files
-if [[ -z "$CI" ]]; then
-    echo -n "Do you want to do a fresh build before testing? [Y/n] "
-    read fresh_build
-    if [[ "$fresh_build" != "n" ]]; then
-        setup_dev
-        build_displayer
-        build_responder_aws
-        build_app
-        build_electron
-        build_electron_package
-    fi
+echo -n "Do you want to do a fresh build before testing? [Y/n] "
+read fresh_build
+if [[ "$fresh_build" != "n" ]]; then
+    setup_dev
+    build_responder_aws
+    build_displayer
+    build_app
+    build_electron
+    build_electron_package
 fi
 
 
