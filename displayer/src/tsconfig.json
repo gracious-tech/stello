@@ -2,7 +2,7 @@
     "extends": "../../tsconfig_browser.jsonc",
     "include": ["**/*.ts", "**/*.vue"],
     "compilerOptions": {
-        "types": ["lodash"],
+        "types": ["lodash", "offscreencanvas"],
         "paths": {
             "@/*": ["./*"],
         },

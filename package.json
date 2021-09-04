@@ -4,6 +4,7 @@
     "devDependencies": {
         "@playwright/test": "^1.14.1",
         "@types/node": "^16.7.10",
+        "@types/offscreencanvas": "^2019.6.3",
         "@typescript-eslint/eslint-plugin": "^4.30.0",
         "@typescript-eslint/parser": "^4.30.0",
         "@vue/runtime-dom": "^3.2.8",
