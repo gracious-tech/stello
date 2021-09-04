@@ -6,6 +6,7 @@
 /app/dist/
 /app/node_modules/
 /app/static/displayer.tar
+/app/static/responder_aws.zip
 
 /app_config/node_modules/
 

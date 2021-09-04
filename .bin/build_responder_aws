@@ -4,8 +4,16 @@ set -e
 cd "$(dirname "$(dirname "$0")")"
 
 
+# Can't build responder in CI without docker container (probably due to crypto package)
+# But can't use docker container in dev env when already running docker
+build_arg=''
+if [[ "$CI" == 'true' ]]; then
+    build_arg='--use-container'
+fi
+
+
 cd responder/aws
-sam build --use-container
+sam build $build_arg
 chmod -R a+rwx .aws-sam/build/Function/
 python3 -m zipfile --create ../../app/static/responder_aws.zip .aws-sam/build/Function/*
 rm -r .aws-sam  # WARN careful!

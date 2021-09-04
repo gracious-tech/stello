@@ -22,11 +22,6 @@ def release(inv):
     if inv.run('git tag --points-at HEAD', hide='out').stdout.strip():
         sys.exit("No changes since last release")
 
-    # TODO Preferably don't do this here, but currently too complex for CI
-    inv.run('build_responder_aws')
-    inv.run('git add app/static/responder_aws.zip')
-    inv.run(f'git commit -m "Add latest build of responder for AWS (auto)"')
-
     # Load app config
     app_config_path = Path('app_config/app_config.yaml')
     app_config_data = YAML().load(app_config_path)
