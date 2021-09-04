@@ -1,10 +1,12 @@
 
+import path from 'path'
+
 import {PlaywrightTestConfig} from '@playwright/test'
 
 
 export default {
     webServer: {
-        command: 'serve_displayer_dist',
+        command: path.join(__dirname, '../../.bin/serve_displayer_dist'),
         port: 8003,
         reuseExistingServer: !process.env['CI'],
     },

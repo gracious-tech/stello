@@ -99,7 +99,7 @@ const test_interface_electron = test.extend<
 const test_config_port:PlaywrightTestConfig = {
     ...test_config_common,
     webServer: {
-        command: 'serve_app',
+        command: path.join(__dirname, '../../.bin/serve_app'),
         port: 8000,
         reuseExistingServer: !process.env['CI'],
     },
