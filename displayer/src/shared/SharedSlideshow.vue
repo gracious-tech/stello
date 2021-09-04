@@ -153,23 +153,24 @@ export default defineComponent({
     },
 
     watch: {
+        // WARN vue-tsc gets confused if handler's args used (instead access values via this.prop)
 
         current: {
             immediate: true,
-            handler(value:number){
+            handler(){
                 // Emit current index whenever it changes
-                this.$emit('displayed', value)
+                this.$emit('displayed', this.current)
             },
         },
 
         images: {
             immediate: true,
             deep: true,
-            handler(images:SlideshowImage[]){
+            handler(){
                 // Create object URLs for images whenever their data becomes available
                 // WARN Assumes image data doesn't change (aside from a null -> blob)
                 const new_object_urls:Record<string, string> = {}
-                for (const image of images){
+                for (const image of this.images){
                     if (image.id in this.object_urls && this.object_urls[image.id] !== PLACEHOLDER){
                         // URL already created for this image, so reuse to reduce memory usage
                         new_object_urls[image.id] = this.object_urls[image.id]!
@@ -227,7 +228,7 @@ export default defineComponent({
 
         next(){
             // Change to next image (loops)
-            this.change_current(this.is_last ? 0 : (this.current as number) + 1)
+            this.change_current(this.is_last ? 0 : this.current + 1)
         },
     },
 
