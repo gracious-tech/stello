@@ -1,3 +1,4 @@
+# TODO cache playwright browsers
 
 name: Build
 
@@ -63,7 +64,7 @@ jobs:
             -   if: github.event.inputs.run_tests != 'false'
                 name: .bin/audit_test_displayer
                 run: |
-                    npx playwright install
+                    npx playwright install --with-deps
                     .bin/audit_test_displayer
             -   uses: actions/upload-artifact@v2
                 with:
