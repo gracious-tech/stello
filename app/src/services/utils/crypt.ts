@@ -21,7 +21,7 @@ export function generate_key_sym(extractable=false, modes:KeyUsage[]=['encrypt']
         :Promise<CryptoKey>{
     // Return a new key for encrypting data (optionally extractable)
     const algorithm:AesKeyGenParams = {name: 'AES-GCM', length: SYM_KEY_BITS}
-    return crypto.subtle.generateKey(algorithm, extractable, modes) 
+    return crypto.subtle.generateKey(algorithm, extractable, modes)
 }
 
 
@@ -35,7 +35,7 @@ export function generate_key_asym(extractable=false, modes:KeyUsage[]=['decrypt'
         publicExponent: ASYM_PUBLIC_EXPONENT,
         hash: 'SHA-256',  // 512 can in some cases actually be more vulnerable
     }
-    return crypto.subtle.generateKey(algorithm, extractable, modes) 
+    return crypto.subtle.generateKey(algorithm, extractable, modes)
 }
 
 
@@ -74,7 +74,7 @@ export async function encrypt_sym(data:ArrayBuffer, key:CryptoKey):Promise<Array
 
     // Encrypt the provided data
     const algorithm = {name: 'AES-GCM', tagLength: SYM_TAG_BITS, iv}
-    const encrypted = await crypto.subtle.encrypt(algorithm, key, data)
+    const encrypted = await crypto.subtle.encrypt(algorithm, key, data) as ArrayBuffer
 
     // Create a new buffer with iv prepended (ArrayBuffers are fixed length so must copy)
     const iv_encrypted = new Uint8Array(SYM_IV_BYTES + encrypted.byteLength)
@@ -88,7 +88,7 @@ export async function encrypt_sym(data:ArrayBuffer, key:CryptoKey):Promise<Array
 
 export async function encrypt_asym_primitive(data:ArrayBuffer, key:CryptoKey):Promise<ArrayBuffer>{
     // Do primitive asymmetric encryption of given data (must be shorter than key size)
-    return crypto.subtle.encrypt({name: 'RSA-OAEP'}, key, data)
+    return await crypto.subtle.encrypt({name: 'RSA-OAEP'}, key, data) as ArrayBuffer
 }
 
 

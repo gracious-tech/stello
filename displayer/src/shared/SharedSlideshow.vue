@@ -227,7 +227,7 @@ export default defineComponent({
 
         next(){
             // Change to next image (loops)
-            this.change_current(this.is_last ? 0 : this.current + 1)
+            this.change_current(this.is_last ? 0 : (this.current as number) + 1)
         },
     },
 
