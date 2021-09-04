@@ -74,7 +74,7 @@ jobs:
 
     build_electron:
         name: Package the app with Electron for all OSs
-        needs: [audit_code, build_app_base]  # This task will publish when done, so ensure tests ok
+        needs: [build_app_base]
         strategy:
             fail-fast: false
             matrix:
