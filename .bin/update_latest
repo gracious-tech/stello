@@ -6,6 +6,6 @@ cd "$(dirname "$(dirname "$0")")"
 
 pipenv update  # Since all deps have version "*" they upgrade to latest possible
 path_to_ncu="$PWD/node_modules/.bin/ncu"
-all_node "$path_to_ncu" -u
-all_node npm install  # WARN `npm update` will not install new major versions set by `ncu` :/
+.bin/all_node "$path_to_ncu" -u
+.bin/all_node npm install  # WARN `npm update` will not install new major versions set by `ncu` :/
 # TODO This probably doesn't update deps of deps, research how to

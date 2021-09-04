@@ -4,6 +4,6 @@ set -e
 cd "$(dirname "$(dirname "$0")")"
 
 
+.bin/build_electron
 cd electron
-build_electron
 node_modules/.bin/electron .

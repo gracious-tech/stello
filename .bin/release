@@ -4,5 +4,5 @@ set -e
 cd "$(dirname "$(dirname "$0")")"
 
 
-audit
+.bin/audit
 pipenv run python .bin/release.py

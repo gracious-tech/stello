@@ -7,16 +7,16 @@ cd "$(dirname "$(dirname "$0")")"
 echo -n "Do you want to do a fresh build before testing? [Y/n] "
 read fresh_build
 if [[ "$fresh_build" != "n" ]]; then
-    setup_dev
-    build_responder_aws
-    build_displayer
-    build_app
-    build_electron
-    build_electron_package
+    .bin/setup_dev
+    .bin/build_responder_aws
+    .bin/build_displayer
+    .bin/build_app
+    .bin/build_electron
+    .bin/build_electron_package
 fi
 
 
-audit_lint_errors  # TODO include warnings when ready
-audit_types
-audit_test_displayer
-audit_test_electron
+.bin/audit_lint_errors  # TODO include warnings when ready
+.bin/audit_types
+.bin/audit_test_displayer
+.bin/audit_test_electron

@@ -5,4 +5,4 @@ cd "$(dirname "$(dirname "$0")")"
 
 
 # TODO pipenv setup needs to changing to allow this (currently all are version "*")
-all_node npm update
+.bin/all_node npm update
