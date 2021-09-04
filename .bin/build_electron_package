@@ -4,6 +4,14 @@ set -e
 cd "$(dirname "$(dirname "$0")")"
 
 
+# If current commit doesn't have a version tag, remove env vars that trigger code signing/notarizing
+publish='always'
+if [[ `git tag --contains` =~ ^[^v] ]]; then
+    publish='never'
+    unset CSC_LINK  # Prevents electron builder from signing and skips notarizing
+fi
+
+
 # Determine platform args
 # NOTE $OSTYPE is a bash builtin var (not specific to CI and not provided manually)
 # WARN $OSTYPE for mac often has a version attached, like "darwin19", so use mac as the default
@@ -21,4 +29,4 @@ fi
 
 # Package electron app for platform
 cd electron
-./node_modules/.bin/electron-builder $PLATFORM_ARGS "$@"
+./node_modules/.bin/electron-builder $PLATFORM_ARGS --publish=$publish
