@@ -1,0 +1,109 @@
+
+name: Build
+
+# SECURITY Third-party pull requests (thankfully) can't access secrets, so need separate workflow
+on:
+    push: {}
+    workflow_dispatch:
+        inputs:
+            run_tests:
+                description: Whether to run tests
+                required: false
+                default: 'true'
+
+defaults:
+    run:
+        shell: bash  # Windows doesn't default to bash
+
+jobs:
+
+    audit_code:
+        # This is done separately to speed up build, since ok to do in parallel
+        name: Audit types & lint
+        runs-on: ubuntu-latest
+        if: github.event.inputs.run_tests != 'false'
+        steps:
+            -   uses: actions/checkout@v2
+            -   uses: actions/setup-node@v2
+                with:
+                    node-version: '14'
+                    cache: 'npm'
+                    cache-dependency-path: '**/package-lock.json'
+            # TODO Do full linting when ready
+            -   run: |
+                .bin/all_node npm ci
+                .bin/audit_lint_errors
+                .bin/audit_types
+
+
+    build_app_base:
+        name: Build app base
+        runs-on: ubuntu-latest
+        steps:
+            -   uses: actions/checkout@v2
+            -   uses: actions/setup-node@v2
+                with:
+                    node-version: '14'
+                    cache: 'npm'
+                    cache-dependency-path: '**/package-lock.json'
+            -   run: .bin/all_node npm ci
+            -   run: .bin/reactions
+                env:
+                    REACTIONS_PASSWORD: ${{ secrets.REACTIONS_PASSWORD }}
+            -   run: |
+                    .bin/build_responder_aws
+                    .bin/build_displayer
+                    .bin/build_app
+                env:
+                    VITE_OAUTH_SECRET_GOOGLE: ${{ secrets.OAUTH_SECRET_GOOGLE }}
+                    VITE_ROLLBAR_APP: ${{ secrets.ROLLBAR_APP }}
+                    VITE_ROLLBAR_RESPONDER: ${{ secrets.ROLLBAR_RESPONDER }}
+                    VITE_ROLLBAR_DISPLAYER: ${{ secrets.ROLLBAR_DISPLAYER }}
+            -   if: github.event.inputs.run_tests != 'false'
+                run: .bin/audit_test_displayer
+            -   uses: actions/upload-artifact@v2
+                with:
+                    name: app_base
+                    path: app/dist
+
+
+    build_electron:
+        name: Package the app with Electron for all OSs
+        needs: [audit_code, build_app_base]  # This task will publish when done, so ensure tests ok
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [ubuntu-latest, macos-latest, windows-latest]
+        runs-on: ${{ matrix.os }}
+        steps:
+            -   uses: actions/checkout@v2
+            -   uses: actions/setup-node@v2
+                with:
+                    node-version: '14'
+                    cache: 'npm'
+                    cache-dependency-path: '**/package-lock.json'
+            -   run: |
+                    npm ci
+                    npx playwright install --with-deps chromium
+                env:
+                    PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+            -   run: cd electron; npm ci
+            -   run: .bin/build_electron
+                env:
+                    ROLLBAR_ELECTRON: ${{ secrets.ROLLBAR_ELECTRON }}
+            -   uses: actions/download-artifact@v2
+                with:
+                    name: app_base
+                    path: electron/dist/app
+                # WARN Electron builder will publish (to proposed) before confirming tests pass
+                #      Waiting on https://github.com/electron-userland/electron-builder/issues/4535
+            -   run: .bin/build_electron_package
+                env:
+                    AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                    AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                    # Only mac needs the following
+                    CSC_LINK: ${{ secrets.APPLE_CERT_P12_BASE64 }}
+                    CSC_KEY_PASSWORD: abc123  # Public since contents already secret
+                    APPLE_ID: ${{ secrets.APPLE_ID_EMAIL }}
+                    APPLE_ID_PASS: ${{ secrets.APPLE_ID_APP_PASSWORD }}
+            -   run: .bin/audit_test_electron
