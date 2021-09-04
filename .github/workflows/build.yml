@@ -29,10 +29,9 @@ jobs:
                     node-version: '14'
                     cache: 'npm'
                     cache-dependency-path: '**/package-lock.json'
-            # TODO Do full linting when ready
             -   run: |
                 .bin/all_node npm ci
-                .bin/audit_lint_errors
+                .bin/audit_lint_errors  # TODO Do full linting when ready
                 .bin/audit_types
 
 
