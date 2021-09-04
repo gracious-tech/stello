@@ -5,7 +5,7 @@ cd "$(dirname "$(dirname "$0")")"
 
 
 cd responder/aws
-sam build
+sam build --use-container
 chmod -R a+rwx .aws-sam/build/Function/
 python3 -m zipfile --create ../../app/static/responder_aws.zip .aws-sam/build/Function/*
 rm -r .aws-sam  # WARN careful!
