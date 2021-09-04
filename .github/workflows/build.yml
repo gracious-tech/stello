@@ -29,10 +29,9 @@ jobs:
                     node-version: '14'
                     cache: 'npm'
                     cache-dependency-path: '**/package-lock.json'
-            -   run: |
-                    .bin/all_node npm ci
-                    .bin/audit_lint_errors  # TODO Do full linting when ready
-                    .bin/audit_types
+            -   run: .bin/all_node npm ci
+            -   run: .bin/audit_lint_errors  # TODO Do full linting when ready
+            -   run: .bin/audit_types
 
 
     build_app_base:
@@ -52,15 +51,15 @@ jobs:
             -   run: .bin/reactions
                 env:
                     REACTIONS_PASSWORD: ${{ secrets.REACTIONS_PASSWORD }}
-            -   run: |
-                    .bin/build_responder_aws
-                    .bin/build_displayer
-                    .bin/build_app
+            -   run: .bin/build_responder_aws
+            -   run: .bin/build_displayer
+                env:
+                    VITE_ROLLBAR_DISPLAYER: ${{ secrets.ROLLBAR_DISPLAYER }}
+            -   run: .bin/build_app
                 env:
                     VITE_OAUTH_SECRET_GOOGLE: ${{ secrets.OAUTH_SECRET_GOOGLE }}
                     VITE_ROLLBAR_APP: ${{ secrets.ROLLBAR_APP }}
                     VITE_ROLLBAR_RESPONDER: ${{ secrets.ROLLBAR_RESPONDER }}
-                    VITE_ROLLBAR_DISPLAYER: ${{ secrets.ROLLBAR_DISPLAYER }}
             -   if: github.event.inputs.run_tests != 'false'
                 run: .bin/audit_test_displayer
             -   uses: actions/upload-artifact@v2
@@ -84,11 +83,10 @@ jobs:
                     node-version: '14'
                     cache: 'npm'
                     cache-dependency-path: '**/package-lock.json'
-            -   run: |
-                    npm ci
-                    npx playwright install --with-deps chromium
+            -   run: npm ci
                 env:
                     PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+            -   run: npx playwright install --with-deps chromium
             -   run: cd electron; npm ci
             -   run: .bin/build_electron
                 env:
