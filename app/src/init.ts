@@ -1,12 +1,14 @@
 
+// Init error reporting
+import '@/services/errors'
+
 // Third-party
-import Vue from 'vue'
+import Vue, {CreateElement} from 'vue'
 import Vuex from 'vuex'
 import VueRouter from 'vue-router'
 import VueI18n from 'vue-i18n'
 import Vuetify from 'vuetify/lib'  // WARN Must import from /lib for tree shaking
 import VuetifyRoutable from 'vuetify/lib/mixins/routable'
-import Rollbar from 'rollbar/src/browser/core'  // Rollbar defaults to a minified general version
 
 // Own modules
 import '@/services/register_hooks'  // WARN Must come before any components imported
@@ -48,7 +50,7 @@ import 'croppr/dist/croppr.css'
 // Declare custom props on Vue instances
 declare module "vue/types/vue" {
     interface Vue {
-        $network_error:(error:any)=>void
+        $network_error:(error:unknown)=>void
         $tm:TaskManager
     }
 }
@@ -81,98 +83,13 @@ self.app_native.on_update_ready(() => {
 })
 
 
-// Visual failure util
-function show_fail_bar(){
-    // Display fail bar with button to reload app
-
-    // Don't show if a fail bar or update bar already exists
-    if (self.document.querySelector('.reload-bar') !== null){
-        return
-    }
-
-    // Insert the bar
-    self.document.body.insertAdjacentHTML('afterbegin', `
-        <div class="reload-bar fail">
-            A problem was detected
-            <div>
-                Please
-                <a href="https://gracious.tech/support/stello/">LET US KNOW</a>
-                and then
-                <button onclick="location.assign('#/');location.reload()">
-                    RELOAD
-                </button>
-            </div>
-        </div>
-    `)
-}
-
-
-// Setup Rollbar
-const fake_base_url = 'file:///redacted'
-const rollbar = new Rollbar({
-    transmit: import.meta.env.MODE === 'production',  // Call handlers but don't transmit in dev
-    environment: import.meta.env.MODE,
-    accessToken: import.meta.env.VITE_ROLLBAR_APP,
-    captureUncaught: true,  // NOTE Rollbar does more special handling than just `.error()`
-    captureUnhandledRejections: true,
-    autoInstrument: false,  // SECURITY Don't track use via telemetry to protect privacy
-    uncaughtErrorLevel: 'critical',  // Default to critical (shows fail bar)
-    payload: {
-        server: {
-            root: fake_base_url,  // So rollbar points to correct source code location
-        },
-        // Version must be within payload prop (https://github.com/rollbar/rollbar.js/issues/842)
-        code_version: 'v' + app_config.version,  // 'v' to match git tags
-    },
-    // Below are regex strings that will have global & case-insensitive flags applied
-    ignoredMessages: [
-        // ResizeObserver errors are apparently harmless
-        // https://stackoverflow.com/questions/49384120/#comment86691361_49384120
-        'ResizeObserver loop limit exceeded',
-    ],
-    onSendCallback: (isUncaught, args, payload:any) => {
-
-        // SECURITY Replace all file urls with fake base url to avoid exposing OS username etc
-        // NOTE `transform` callback is called earlier and doesn't apply to `notifier` prop
-        const base_url = new URL('./', self.location.href).href.slice(0, -1)
-        for (const [key, val] of Object.entries(payload)){
-            payload[key] = JSON.parse(JSON.stringify(val).replaceAll(base_url, fake_base_url))
-        }
-
-        // If critical (not handled by other UI like tasks etc) show fail bar
-        if (payload.level === 'critical'){
-            show_fail_bar()
-        }
-    },
-})
-
-
-// Error reporting abstraction
-self._report_error = function(error:any):string{
-    // Report an error and return id for the report
-    return rollbar.error(error).uuid
-}
-
-
 // Vue config
 Vue.config.productionTip = false  // Don't show warning about running in development mode
-Vue.config.errorHandler = (error:any, vm, info) => {
-    // Errors within Vue components do not bubble up to Window and must be addressed separately
-    // WARN Despite typings, error arg may be anything and not necessarily an Error instance
-    // NOTE Vue's info arg says what part of Vue the error occured in (e.g. render/hook/etc)
-    console.error(error)
-    rollbar.critical(error, info)
-}
-Vue.config.warnHandler = (msg, vm, trace) => {
-    // Vue will by default just log warnings, where as hard fail during dev is preferred
-    const error = new Error(`VUE WARNING: ${msg}\n\n${trace}`)
-    console.error(error)
-    rollbar.critical(error)  // Vue won't actually throw in production; just shows fail bar for dev
-}
 
 
 // Add global method for handling network errors
-Vue.prototype.$network_error = function(error:any):void{
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- (3rd party issue)
+Vue.prototype.$network_error = function(error:unknown):void{
     // Handle network error at a UI level
     // TODO Also handle Google network errors etc
     if (error instanceof TypeError){
@@ -186,6 +103,7 @@ Vue.prototype.$network_error = function(error:any):void{
 
 // Default all Vuetify router links to exact matching for active class
 //      Otherwise all nav buttons to shallower routes look selected (e.g. back arrows)
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- (3rd party issue)
 VuetifyRoutable.extendOptions.props.exact.default = true
 
 
@@ -271,11 +189,12 @@ const vuetify = new Vuetify({
 
 
 // Expose task manager in components
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- (3rd party issue)
 Vue.prototype.$tm = task_manager
 
 
 // Init app (once db and store is ready)
-open_db().then(async connection => {
+void open_db().then(async connection => {
 
     // Init database
     self._db = new Database(connection)
@@ -295,7 +214,7 @@ open_db().then(async connection => {
     const router = get_router(store)
 
     // Mount app
-    const render = h => h(App)
+    const render = (ce:CreateElement) => ce(App)
     self._app = new Vue({store, router, i18n, vuetify, render}).$mount('#app')
 
     // Increment opens count
