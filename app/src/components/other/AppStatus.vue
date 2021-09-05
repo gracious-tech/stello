@@ -120,9 +120,9 @@ $statusbar_height: 40px
             padding: 0 12px
 
         .finished
-            color: $accent_lighter
+            color: var(--accent_lighter)
             &.aborted
-                color: $error_lighter
+                color: var(--error_lighter)
             svg
                 margin-left: 12px
 

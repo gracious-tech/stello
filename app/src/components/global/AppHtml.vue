@@ -373,7 +373,7 @@ export default class extends Vue {
 
     // Make dynamic content clearly visible
     [data-mention]
-        outline: 2px solid rgba($accent_darker, 50%)
+        outline: 2px solid rgba(var(--accent_darker_num), 50%)
 
     // Show href of links on hover (using existing tooltip styling)
     a::after

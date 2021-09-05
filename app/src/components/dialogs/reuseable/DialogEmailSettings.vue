@@ -459,7 +459,7 @@ export default class extends Vue {
 
 .v-alert
     padding-left: 24px
-    background-color: rgba($error, 0.1)
+    background-color: rgba(var(--error_num), 0.1)
 
     .error-msg
         opacity: 0.5

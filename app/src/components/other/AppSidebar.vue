@@ -154,8 +154,8 @@ export default class extends Vue {
     padding-top: 2px
     text-align: center
     // Style
-    color: $on_accent
-    background-color: $accent
+    color: var(--on_accent)
+    background-color: var(--accent)
     font-weight: bold
     letter-spacing: 1px
 

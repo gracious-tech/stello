@@ -160,7 +160,7 @@ export default class extends Vue {
 
 ::v-deep .v-application--wrap
     // Add to wrap so complements v-app's default background (works for both light and dark)
-    background-color: rgba($primary, 0.08)
+    background-color: rgba(var(--primary_num), 0.08)
 
 
 // Keyframes for router transition animations

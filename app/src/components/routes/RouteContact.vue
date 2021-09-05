@@ -402,7 +402,7 @@ export default class extends Vue {
 
 .saved
     opacity: 0
-    color: $accent
+    color: var(--accent)
     font-size: 12px
     text-align: center
     transition: opacity 1s

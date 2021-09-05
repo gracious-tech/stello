@@ -43,4 +43,10 @@ function add_variations(theme:Record<string, string>):void{
             }
         }
     }
+
+    // Add number versions that can be interpolated into rgba(var(--name), opacity)
+    // NOTE Will strip away any existing opacity (only mildly affects some on_ variants)
+    for (const [key, val] of Object.entries(theme)){
+        theme[`${key}_num`] = chroma(val).rgb().join(', ')
+    }
 }

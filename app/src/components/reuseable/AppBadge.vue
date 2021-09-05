@@ -42,7 +42,7 @@ export default class extends Vue {}
     right: 12px
     height: 10px
     width: 10px
-    background-color: $accent
+    background-color: var(--accent)
     border-radius: 5px
     animation-duration: 1s  // Actual animation 0.3 seconds when starts at keyframe 70%
     animation-name: badge-delayed-appearance

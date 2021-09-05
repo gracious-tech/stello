@@ -61,7 +61,7 @@ export default class extends Vue {
 
 h2
     margin-bottom: 10px
-    color: $accent_lighter
+    color: var(--accent_lighter)
 
 h3
     margin-bottom: 30px

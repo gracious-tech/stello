@@ -51,7 +51,7 @@ export default class extends Vue {
 <style lang='sass' scoped>
 
 h2
-    color: $accent_lighter
+    color: var(--accent_lighter)
 
 .compare
     display: flex

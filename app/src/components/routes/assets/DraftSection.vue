@@ -124,10 +124,10 @@ section
         cursor: text
 
     &:focus-within, &:hover
-        border-color: rgba($primary, 0.4)
+        border-color: rgba(var(--primary_num), 0.4)
 
     &:focus-within
-        border-color: rgba($accent, 0.4)
+        border-color: rgba(var(--accent_num), 0.4)
 
     &:hover
         .actions

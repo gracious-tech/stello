@@ -47,6 +47,12 @@ import '@/styles/fonts.css'
 import 'croppr/dist/croppr.css'
 
 
+// Create CSS variables for theme colors
+for (const [key, value] of Object.entries(app_config.theme)){
+    self.document.documentElement.style.setProperty(`--${key}`, value)
+}
+
+
 // Declare custom props on Vue instances
 declare module "vue/types/vue" {
     interface Vue {

@@ -64,7 +64,7 @@ hr
 ::selection
     // Make text selections match color scheme of app
     // WARN May be hard to read if selecting already accented text
-    background-color: rgba($accent, 0.5)
+    background-color: rgba(var(--accent_num), 0.5)
 
 
 body
@@ -121,7 +121,7 @@ body
         font-size: 14px
 
     a
-        color: $accent_lighter
+        color: var(--accent_lighter)
         text-decoration: none
         margin: 8px
 
@@ -137,15 +137,15 @@ body
         outline-style: none
 
     &.update
-        background-color: $accent
-        color: $on_accent
+        background-color: var(--accent)
+        color: var(--on_accent)
 
     &.fail
-        background-color: $error
-        color: $on_error
+        background-color: var(--error)
+        color: var(--on_error)
 
         a
-            color: $accent_lighter
+            color: var(--accent_lighter)
 
 
 // Vuetify fixes
@@ -170,11 +170,11 @@ html
 .v-btn.v-btn--fab  // Double for specificity
     // Fix color of text and icons for fabs
     &.primary
-        color: $on_primary
+        color: var(--on_primary)
     &.accent
-        color: $on_accent
+        color: var(--on_accent)
     &.error
-        color: $on_error
+        color: var(--on_error)
     svg
         fill: currentColor
 
@@ -257,22 +257,22 @@ html
     // NOTE Don't apply to disabled items ([aria-disabled] more reliably present than [disabled])
     &.theme--dark
         a:not(.v-btn)  // Links amongst text
-            color: $accent_lighter
+            color: var(--accent_lighter)
         .primary--text:not([aria-disabled])  // Vuetify text buttons etc
-            color: $primary_lighter !important  // Required to override Vuetify :/
+            color: var(--primary_lighter) !important  // Required to override Vuetify :/
         .accent--text:not([aria-disabled])
-            color: $accent_lighter !important
+            color: var(--accent_lighter) !important
         .error--text:not([aria-disabled])
-            color: $error_lighter !important
+            color: var(--error_lighter) !important
     &.theme--light
         a:not(.v-btn)
-            color: $accent_darker
+            color: var(--accent_darker)
         .primary--text:not([aria-disabled])
-            color: $primary_darker !important
+            color: var(--primary_darker) !important
         .accent--text:not([aria-disabled])
-            color: $accent_darker !important
+            color: var(--accent_darker) !important
         .error--text:not([aria-disabled])
-            color: $error_darker !important
+            color: var(--error_darker) !important
 
     // Stop Vuetify's color classes from overriding disabled themes (e.g. on v-list-item)
     // NOTE list items within select components don't have [disabled]
@@ -315,41 +315,41 @@ html
         color: inherit !important
 
 .app-bg-primary
-    color: $on_primary !important
-    background-color: $primary !important
+    color: var(--on_primary) !important
+    background-color: var(--primary) !important
 
 .app-bg-accent
-    color: $on_accent !important
-    background-color: $accent !important
+    color: var(--on_accent) !important
+    background-color: var(--accent) !important
 
 .app-bg-accent-darker
-    color: $on_accent_darker !important
-    background-color: $accent_darker !important
+    color: var(--on_accent_darker) !important
+    background-color: var(--accent_darker) !important
 
 .app-bg-error
-    color: $on_error !important
-    background-color: $error !important
+    color: var(--on_error) !important
+    background-color: var(--error) !important
 
 .app-bg-error-darker
-    color: $on_error_darker !important
-    background-color: $error_darker !important
+    color: var(--on_error_darker) !important
+    background-color: var(--error_darker) !important
 
 .theme--dark
     .app-bg-primary-relative
-        background-color: $primary_darker !important
-        color: $on_primary_darker !important
+        background-color: var(--primary_darker) !important
+        color: var(--on_primary_darker) !important
     .app-bg-accent-relative
-        background-color: $accent_darker !important
-        color: $on_accent_darker !important
+        background-color: var(--accent_darker) !important
+        color: var(--on_accent_darker) !important
     .app-bg-error-relative
-        background-color: $error_darker !important
-        color: $on_error_darker !important
+        background-color: var(--error_darker) !important
+        color: var(--on_error_darker) !important
     .app-fg-primary-relative
-        color: $primary_lighter !important
+        color: var(--primary_lighter) !important
     .app-fg-accent-relative
-        color: $accent_lighter !important
+        color: var(--accent_lighter) !important
     .app-fg-error-relative
-        color: $error_lighter !important
+        color: var(--error_lighter) !important
     .opacity-primary
         opacity: map-get($material-dark, 'primary-text-percent')
     .opacity-secondary
@@ -358,20 +358,20 @@ html
         opacity: map-get($material-dark, 'disabledORhints-text-percent')
 .theme--light
     .app-bg-primary-relative
-        background-color: $primary_lighter !important
-        color: $on_primary_lighter !important
+        background-color: var(--primary_lighter) !important
+        color: var(--on_primary_lighter) !important
     .app-bg-accent-relative
-        background-color: $accent_lighter !important
-        color: $on_accent_lighter !important
+        background-color: var(--accent_lighter) !important
+        color: var(--on_accent_lighter) !important
     .app-bg-error-relative
-        background-color: $error_lighter !important
-        color: $on_error_lighter !important
+        background-color: var(--error_lighter) !important
+        color: var(--on_error_lighter) !important
     .app-fg-primary-relative
-        color: $primary_darker !important
+        color: var(--primary_darker) !important
     .app-fg-accent-relative
-        color: $accent_darker !important
+        color: var(--accent_darker) !important
     .app-fg-error-relative
-        color: $error_darker !important
+        color: var(--error_darker) !important
     .opacity-primary
         opacity: map-get($material-light, 'primary-text-percent')
     .opacity-secondary
@@ -384,9 +384,9 @@ html
 .v-application.theme--light
     .app-bg-primary, .app-bg-primary-relative
         a:not(.v-btn)
-            color: $accent_lighter
+            color: var(--accent_lighter)
         .accent--text:not([aria-disabled])
-            color: $accent_lighter !important
+            color: var(--accent_lighter) !important
 
 
 // Tooltip

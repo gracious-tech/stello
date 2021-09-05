@@ -268,10 +268,10 @@ export default class extends Vue {
             .v-stepper__step--editable, .v-stepper__step--active
 
                 .v-stepper__step__step
-                    color: $on_accent !important
+                    color: var(--on_accent) !important
 
                 svg
-                    color: $on_accent
+                    color: var(--on_accent)
                     fill: currentColor
                     padding: 4px
 
@@ -310,11 +310,11 @@ export default class extends Vue {
 
 .v-list-item--active
     &.v-list-item--link:before
-        background-color: $accent_darker
+        background-color: var(--accent_darker)
 
     ::v-deep
         svg, .v-list-item__title
-            color: $accent_lighter
+            color: var(--accent_lighter)
 
 
 .decor

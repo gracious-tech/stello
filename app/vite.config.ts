@@ -9,7 +9,6 @@ import plugin_iife from './vite_plugin_iife'
 import plugin_nameless from './vite_plugin_nameless'
 import plugin_index from './vite_plugin_index'
 import plugin_svg from './vite_plugin_svg'
-import inject_sass from './vite.config.injected_sass'
 
 
 export default defineConfig(({mode}) => {
@@ -40,22 +39,13 @@ export default defineConfig(({mode}) => {
                 },
             ],
         },
-        css: {
-            preprocessorOptions: {
-                sass: {
-                    // Make node_modules & variables available in both components and regular files
-                    additionalData: inject_sass,
-                    sassOptions: {
-                        includePaths: ['node_modules'],
-                    },
-                },
-            },
-        },
         build: {
             target: 'esnext',
             assetsDir: '_assets',
             cssCodeSplit: false,
-            sourcemap: true,  // While very large, this becomes very small once package compressed
+            // NOTE Shouldn't affect dev anyway, but plugin has a bug
+            //      See https://github.com/antfu/unplugin-vue-components/issues/116
+            sourcemap: mode !== 'development',  // Large, but very small once package compressed
             minify: false,  // Electron builder minifies whole package anyway, so avoid obfuscating
             polyfillModulePreload: false,  // Chrome doesn't need polyfill
             rollupOptions: {
