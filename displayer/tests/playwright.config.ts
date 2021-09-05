@@ -14,7 +14,7 @@ export default {
         // WARN Without name, cannot identify which browser failed
         {use: {browserName: 'chromium'}, name: 'chromium'},
         {use: {browserName: 'firefox'}, name: 'firefox'},
-        {use: {browserName: 'webkit'}, name: 'wekbit'},
+        // {use: {browserName: 'webkit'}, name: 'wekbit'},
         // TODO Resolve webkit issues https://github.com/microsoft/playwright/issues/8578
     ],
 } as PlaywrightTestConfig
