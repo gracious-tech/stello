@@ -39,6 +39,11 @@ export default defineConfig(({mode}) => {
                 },
             ],
         },
+        server: {
+            fs: {
+                strict: true,
+            },
+        },
         build: {
             target: 'esnext',
             assetsDir: '_assets',

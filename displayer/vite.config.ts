@@ -11,6 +11,11 @@ export default defineConfig(({mode}) => {
     return {
         clearScreen: false,
         plugins: [plugin_index(path.join(__dirname, 'src/index.pug')), plugin_vue()],
+        server: {
+            fs: {
+                strict: true,
+            },
+        },
         build: {
             target: 'es2015',  // Currently supporting browsers ES2015+
             rollupOptions: {
