@@ -15,7 +15,6 @@ div.root
         div.actions
             app-btn(@click='reply_by_stello' icon='reply' :color='replaction.replied ? "accent" : ""')
             app-menu-more
-                app-list-item(@click='reply_by_email') Reply via email
                 app-list-item(@click='toggle_archived')
                     | {{ replaction.archived ? "Unarchive" : "Archive" }}
                 app-list-item(@click='remove' color='error') Delete
@@ -32,7 +31,6 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 import SharedSvgAnimated from '@/shared/SharedSvgAnimated.vue'
 import {Reply} from '@/services/database/replies'
 import {Reaction} from '@/services/database/reactions'
-import {mailto} from '@/services/utils/misc'
 import {escape_for_html} from '@/services/utils/strings'
 import {time_between} from '@/services/misc'
 
@@ -54,10 +52,10 @@ export default class extends Vue {
             this.replaction.read = true
             // Update in db and store (for sidebar)
             if (this.replaction.is_reply){
-                self._db.replies.set(this.replaction)
+                void self._db.replies.set(this.replaction)
                 Vue.delete(this.$store.state.tmp.unread_replies, this.replaction.id)
             } else {
-                self._db.reactions.set(this.replaction)
+                void self._db.reactions.set(this.replaction)
                 Vue.delete(this.$store.state.tmp.unread_reactions, this.replaction.id)
             }
         }
@@ -88,13 +86,13 @@ export default class extends Vue {
 
     to_contact(){
         // Navigate to the contact that sent this response
-        this.$router.push({name: 'contact', params: {contact_id: this.replaction.contact_id}})
+        void this.$router.push({name: 'contact', params: {contact_id: this.replaction.contact_id}})
     }
 
     toggle_archived(){
         // Toggle whether this response is archived
         this.replaction.archived = !this.replaction.archived
-        self._db[this.replaction.is_reply ? 'replies' : 'reactions'].set(this.replaction)
+        void self._db[this.replaction.is_reply ? 'replies' : 'reactions'].set(this.replaction)
     }
 
     async reply_by_stello(){
@@ -124,21 +122,12 @@ export default class extends Vue {
 
         // Save the draft and navigate to it
         await self._db.drafts.set(draft)
-        this.$router.push({name: 'draft', params: {draft_id: draft.id}})
+        void this.$router.push({name: 'draft', params: {draft_id: draft.id}})
     }
 
-    async reply_by_email(){
-        // Trigger a new email reply in the user's default mail client
-        const contact = await self._db.contacts.get(this.replaction.contact_id)
-        const address = contact?.address
-        const subject = `Re: ${this.replaction.msg_title}`
-        const body = `\n\n\n> ${this.replaction.content.replaceAll('\n', '\n> ')}`
-        self.location.assign(mailto(address, subject, body))
-    }
-
-    remove(){
+    remove():void{
         // Remove the replaction
-        self._db[this.replaction.is_reply ? 'replies' : 'reactions'].remove(this.replaction.id)
+        void self._db[this.replaction.is_reply ? 'replies' : 'reactions'].remove(this.replaction.id)
         this.$emit('removed', this.replaction.id)
     }
 
