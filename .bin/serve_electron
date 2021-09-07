@@ -6,4 +6,5 @@ cd "$(dirname "$(dirname "$0")")"
 
 .bin/build_electron
 cd electron
-node_modules/.bin/electron .
+# NOTE --disable-gpu set just to silence some warnings
+node_modules/.bin/electron --disable-gpu .
