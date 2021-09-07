@@ -16,7 +16,7 @@ div
                 @click='on_url_toggle' data-tip="Link")
         template(v-else)
             input.url(ref='url' v-model='bubble_url' @keydown.enter.prevent='on_url_confirmation'
-                type='url' placeholder="Enter URL...")
+                type='url' placeholder="Enter URL..." spellcheck='false')
             app-btn(:icon='bubble_url ? "done" : "close"' @click='on_url_confirmation')
 
     floating-menu.floating(v-if='editor' @click.native='focus' :editor='editor'
