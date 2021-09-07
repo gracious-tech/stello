@@ -271,6 +271,7 @@ async function open_window(){
             preload: path.join(__dirname, 'preload.js'),
             webSecurity: false,  // TODO Remove when alternative for CORS issues implemented
             session: window_session,
+            nativeWindowOpen: true,  // Will be the default in future (set to silence warning)
         },
     })
 

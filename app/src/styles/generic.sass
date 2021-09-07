@@ -394,8 +394,8 @@ html
 [data-tip]::after
     @include tooltip
     content: attr(data-tip)
-[data-tip]:hover::after
+[data-tip]:hover::after, [data-tip]:focus::after
     top: -$tooltip_height - 6
     opacity: 1 !important
-[data-tip]:not([data-tip-instant]):hover::after
+[data-tip]:not([data-tip-instant]):hover::after, [data-tip]:not([data-tip-instant]):focus::after
     transition-delay: 500ms
