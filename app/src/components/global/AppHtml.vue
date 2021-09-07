@@ -15,8 +15,8 @@ div
             app-btn(icon='link' :color='editor.isActive("link") ? "accent" : ""'
                 @click='on_url_toggle' data-tip="Link")
         template(v-else)
-            input.url(v-model='bubble_url' @keydown.enter.prevent='on_url_confirmation' type='url'
-                placeholder="Enter URL...")
+            input.url(ref='url' v-model='bubble_url' @keydown.enter.prevent='on_url_confirmation'
+                type='url' placeholder="Enter URL...")
             app-btn(:icon='bubble_url ? "done" : "close"' @click='on_url_confirmation')
 
     floating-menu.floating(v-if='editor' @click.native='focus' :editor='editor'
@@ -130,7 +130,7 @@ export default class extends Vue {
     @Prop({type: Object, default: () => {}}) variables:Record<string, {label:string, value:string}>
 
     editor:Editor = null
-    bubble_url = null
+    bubble_url:string = null
     heading_prompt = null
 
     get bubble_tippy_options():BubbleMenuInterface['tippyOptions']{
@@ -181,13 +181,20 @@ export default class extends Vue {
             this.focused_run('unsetLink')
         } else {
             this.bubble_url = ''  // When not null, field appears
+            this.$nextTick(() => {
+                ;(this.$refs['url'] as HTMLInputElement).focus()
+            })
         }
     }
 
     on_url_confirmation(){
         // When clicking the appended confirm button, create the link if there was any input
-        if (this.bubble_url){
-            this.focused_run('setLink', {href: this.bubble_url})
+        let url = this.bubble_url.trim()
+        if (url){
+            if (!url.includes(':')){  // Allows mailto, and other protocols
+                url = 'https://' + url  // SECURITY default to https
+            }
+            this.focused_run('setLink', {href: url})
         }
         this.bubble_url = null
     }
