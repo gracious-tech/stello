@@ -200,6 +200,9 @@
             list-style-type: lower-alpha  // TODO Support i18n
             ol
                 list-style-type: lower-roman
+        // Tiptap uses <p> elements within <li>s, so disable the usual margins
+        p
+            margin-bottom: 0
 
     .btn-text, .btn-icon
         border-style: none
