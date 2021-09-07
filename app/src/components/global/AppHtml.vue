@@ -339,6 +339,7 @@ export default class extends Vue {
 
 
 .bubble
+    display: flex
     border-radius: 24px
 
     .url
