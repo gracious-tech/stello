@@ -39,8 +39,8 @@ div
         app-switch(v-model='multiple' label="Messages to this contact will go to many people"
             hint="Hides unsubscribe links & always allows infinite message opens until expiry")
 
-        app-select(v-model='unsubscribes_profiles' :items='profiles_ui' multiple select
-            :disabled='multiple' label="Unsubscribed from")
+        app-select(v-if='!probably_new' v-model='unsubscribes_profiles' :items='profiles_ui'
+            multiple select :disabled='multiple' label="Unsubscribed from")
 
         div.saved(:class='{changed}') Changes saved
 
@@ -76,12 +76,18 @@ export default class extends Vue {
     unsubscribes:Unsubscribe[] = []
     oauth:OAuth = null
     changed = false
+    probably_new = true  // Doesn't change after first load
 
     created(){
         // Load data from db
-        this.load_contact_related()
-        this.load_profiles()
-        this.load_unsubscribes()
+        void this.load_contact_related().then(() => {
+            // Assess whether a new contact or not (shows unsubscribed field if not new)
+            if (this.contact?.name || this.contact?.address){
+                this.probably_new = false
+            }
+        })
+        void this.load_profiles()
+        void this.load_unsubscribes()
     }
 
     beforeDestroy(){
