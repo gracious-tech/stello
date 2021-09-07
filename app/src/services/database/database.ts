@@ -498,7 +498,7 @@ export class Database {
         })
 
         // Create a image section
-        const image_blob = await (await fetch('_assets/branding/icon.png')).blob()
+        const image_blob = await (await fetch('default_invite_image.jpg')).blob()
         const section_image = await this.sections.create({
             type: 'images',
             images: [{id: generate_token(), data: image_blob, caption: "An example image"}],

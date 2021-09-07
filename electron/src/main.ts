@@ -265,7 +265,7 @@ async function open_window(){
     const window = new BrowserWindow({
         width: 1000,
         height: 800,
-        icon: path.join(__dirname, 'app/_assets/branding/icon.png'),
+        icon: path.join(__dirname, 'icon.png'),
         backgroundColor: '#000000',  // Avoid white flash before first paint
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
