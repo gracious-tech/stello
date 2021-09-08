@@ -134,7 +134,7 @@ export class DatabaseDrafts {
             modified: new Date(),
             title: '',
             sections: [],
-            profile: self._store.state.default_profile || null,
+            profile: self.app_store.state.default_profile || null,
             options_identity: {
                 // null to inherit from profile
                 sender_name: '',

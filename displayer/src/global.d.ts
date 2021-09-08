@@ -34,6 +34,6 @@ declare global {
         _fail_visual(network?:boolean):void
         app_vue:App
         app_db:typeof database
-        _store:typeof store
+        app_store:typeof store
     }
 }

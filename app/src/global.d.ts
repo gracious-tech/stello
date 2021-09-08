@@ -39,7 +39,7 @@ declare module 'Custom' {
         interface Window {
             // Custom
             app_vue:Vue
-            _store:Store<AppStoreState>
+            app_store:Store<AppStoreState>
             app_db:Database
             app_toggle_dark():void
             app_update():void

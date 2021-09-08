@@ -66,7 +66,7 @@ async function init(){
     await database.connect()
     self.app_db = database
     await store.init()
-    self._store = store
+    self.app_store = store
 
     // Mount the app
     self.app_vue.mount('#app')

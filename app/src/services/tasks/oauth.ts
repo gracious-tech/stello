@@ -308,7 +308,7 @@ export async function oauth_pretask_new_usage(task_name:'contacts_oauth_setup'|'
     // WARN If don't check and issuer doesn't support incremental grants, could lose existing scopes
     if (!email && existing.length){
         // User's desired account may already be present so ask them if it is
-        const choice:OAuth = await self._store.dispatch('show_dialog', {
+        const choice:OAuth = await self.app_store.dispatch('show_dialog', {
             component: DialogOAuthExisting,
             props: {
                 oauths: existing,

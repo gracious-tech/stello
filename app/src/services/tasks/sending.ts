@@ -134,7 +134,7 @@ export class Sender {
         task.fix_settings = async () => {
             const fresh_profile = await self.app_db.profiles.get(this.profile.id)
             if (fresh_profile){
-                self._store.dispatch('show_dialog', {
+                self.app_store.dispatch('show_dialog', {
                     component: DialogEmailSettings, props: {profile: fresh_profile},
                 })
             } else {
@@ -285,7 +285,7 @@ export class Sender {
         self.app_db.copies.set(copy)
 
         // Update store property so components can watch it for updates
-        self._store.state.tmp.uploaded = copy
+        self.app_store.state.tmp.uploaded = copy
     }
 
     async _send_emails(copies:MessageCopy[]):Promise<void>{

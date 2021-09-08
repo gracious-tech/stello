@@ -208,7 +208,7 @@ void open_db().then(async connection => {
     // Init store
     // NOTE Can't just rely on self.app_vue as some methods (like router guards) called before ready
     const store = await get_store(self.app_db)
-    self._store = store
+    self.app_store = store
 
     // Init Vuetify dark setting based on store value
     vuetify.framework.theme.dark = store.state.dark
@@ -224,8 +224,8 @@ void open_db().then(async connection => {
     self.app_vue = new Vue({store, router, i18n, vuetify, render}).$mount('#app')
 
     // Increment opens count
-    self._store.commit('dict_set', ['usage_opens', self._store.state.usage_opens + 1])
-    if (self._store.state.usage_installed === null){
-        self._store.commit('dict_set', ['usage_installed', new Date()])
+    self.app_store.commit('dict_set', ['usage_opens', self.app_store.state.usage_opens + 1])
+    if (self.app_store.state.usage_installed === null){
+        self.app_store.commit('dict_set', ['usage_installed', new Date()])
     }
 })
