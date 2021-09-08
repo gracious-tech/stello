@@ -89,7 +89,7 @@ export class DisplayerStore {
         self.addEventListener('hashchange', event => {
             // Don't trigger when hash has been cleared by previous `process_hash` call
             // Also don't process if just reacting to a failure restoring the hash to the url
-            if (self.location.hash !== '' && (!self._failed || self.location.hash !== self.app_hash)){
+            if (self.location.hash !== '' && (!self.app_failed || self.location.hash !== self.app_hash)){
                 this.process_hash()
             }
         })
@@ -115,7 +115,7 @@ export class DisplayerStore {
         // Ensure hash cleared for security
         // NOTE Never clear if in failed state, so user can copy to different browser if needed
         // NOTE Failed state here possible if doing initial process, and not a 'hashchange' event
-        if (self.location.hash && !self._failed){
+        if (self.location.hash && !self.app_failed){
             self.location.hash = ''
         }
 

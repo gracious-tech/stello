@@ -100,10 +100,10 @@ self._fail_visual = (network=false):void => {
     // Visually display failure, either via a splash or a top bar
 
     // First error takes priority, so ignore any future failures
-    if (self._failed){
+    if (self.app_failed){
         return
     }
-    self._failed = true
+    self.app_failed = true
 
     // Restore hash to address bar so user can copy to different browser if needed
     self.location.hash = self.app_hash

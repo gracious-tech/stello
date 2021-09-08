@@ -127,7 +127,7 @@ html
         script.
             self.app_hash = self.location.hash
             self.location.hash = ''
-            self._failed = false
+            self.app_failed = false
             self.app_browser_supported = !! (crypto && crypto.subtle && CSS && CSS.supports
                 && CSS.supports('grid-template-rows', 'none'))
             self.app_splash_unsupported = function(){
@@ -138,8 +138,8 @@ html
                     + "</div>"
             }
             self.addEventListener('error', function(){
-                if (!self._failed && !self.app_browser_supported){
-                    self._failed = true
+                if (!self.app_failed && !self.app_browser_supported){
+                    self.app_failed = true
                     self.location.hash = self.app_hash
                     self.app_splash_unsupported()
                 }
