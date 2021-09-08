@@ -17,7 +17,8 @@ fi
 
 if [[ "$1" == "" || "$1" == "app" ]]; then
     # NOTE Need to force tsc to show colors when piped
-    node_modules/.bin/vue-tsc --project app/src --pretty | node_modules/.bin/ts-node .bin/audit_types_filter.ts || EXIT_CODE=1
+    # TODO Rm disabling of strict types when ready
+    node_modules/.bin/vue-tsc --project app/src --pretty --strict false --exactOptionalPropertyTypes false | node_modules/.bin/ts-node .bin/audit_types_filter.ts || EXIT_CODE=1
 fi
 
 
