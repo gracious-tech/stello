@@ -1,39 +1,104 @@
 
 
-export async function request(input:string|Request, init?:RequestInit, forbidden404=false)
-        :Promise<Response|null>{
-    // Wrapper around `fetch` which returns null for 404s and throws for other non-200s
-    // NOTE AWS S3 returns 403 for 404s when user doesn't have ListBucket permission
-    const resp = await fetch(input, init)
-    if (resp.status === 404 || (forbidden404 && resp.status === 403)){
-        return null
+export class RequestError extends Error {
+    // Thrown when a request does not go as expected
+}
+
+
+// Overloads for request
+export async function request(input:string|Request, init?:RequestInit):Promise<Response>
+
+export async function request(input:string|Request, init:RequestInit, read_body:'text',
+    bad_status_handling?:'throw'):Promise<string>
+export async function request(input:string|Request, init:RequestInit, read_body:'text',
+    bad_status_handling:'throw_null404'|'throw_null403-4'):Promise<string|null>
+
+export async function request<T>(input:string|Request, init:RequestInit, read_body:'json',
+    bad_status_handling?:'throw'):Promise<T>
+export async function request<T>(input:string|Request, init:RequestInit, read_body:'json',
+    bad_status_handling:'throw_null404'|'throw_null403-4'):Promise<T|null>
+
+export async function request(input:string|Request, init:RequestInit, read_body:'blob',
+    bad_status_handling?:'throw'):Promise<Blob>
+export async function request(input:string|Request, init:RequestInit, read_body:'blob',
+    bad_status_handling:'throw_null404'|'throw_null403-4'):Promise<Blob|null>
+
+export async function request(input:string|Request, init:RequestInit, read_body:'arrayBuffer',
+    bad_status_handling?:'throw'):Promise<ArrayBuffer>
+export async function request(input:string|Request, init:RequestInit, read_body:'arrayBuffer',
+    bad_status_handling:'throw_null404'|'throw_null403-4'):Promise<ArrayBuffer|null>
+
+export async function request(input:string|Request, init?:RequestInit,
+        read_body?:'text'|'json'|'blob'|'arrayBuffer',
+        bad_status_handling?:'throw'|'throw_null404'|'throw_null403-4'):Promise<unknown>{
+    /* Wrapper around `fetch` with the following improvements:
+        * Throws specific error (fetch just throws generic TypeError)
+        * Thrown errors have stack trace (fetch does not, making debugging very difficult)
+        * Thrown errors include the URL requested (fetch does not)
+        * Optionally throws for bad statuses
+            * throw: throws for any bad status
+            * throw_null404: throws for bad statuses but returns null for 404
+            * throw_null403-4: same as throw_null404 but also treats 403 as a 404
+                NOTE AWS S3 returns 403 for 404s when user doesn't have ListBucket permission
+    */
+
+    // Determine url, as will need when throwing errors
+    const url = typeof input === 'string' ? input : input.url
+
+    // Throw unique error for connection issues, with stack trace
+    let resp:Response
+    try {
+        resp = await fetch(input, init)
+    } catch {
+        throw new RequestError(`network ${url}`)
     }
-    if (resp.ok){
+
+    // Optionally throw for bad statuses as well
+    if (bad_status_handling && !resp.ok){
+        if (resp.status === 403 && bad_status_handling === 'throw_null403-4'){
+            return null
+        }
+        if (resp.status === 404 && (bad_status_handling === 'throw_null404'
+                || bad_status_handling === 'throw_null403-4')){
+            return null
+        }
+        throw new RequestError(`status ${resp.status} ${url}`)
+    }
+
+    // Try and read response if configured to
+    if (!read_body){
         return resp
     }
-    throw new Error(`Bad response: ${resp.status}`)
+    try {
+        return await resp[read_body]() as unknown
+    } catch {
+        throw new RequestError(`body ${url}`)
+    }
 }
 
 
-export function request_json(input:string|Request, init?:RequestInit, forbidden404=false)
-        :Promise<any>{
-    // Same as `request` but auto-parse json response
-    // NOTE Don't use `.json()` as Chrome doesn't include stack trace when it fails (hard to debug)
-    return request(input, init, forbidden404).then(async resp => {
-        return resp && JSON.parse(await resp.text())
-    })
+// SHORTCUTS
+
+
+export function request_json<T>(input:string|Request, init?:RequestInit){
+    // Request this type of response and throw if don't get it
+    return request<T>(input, init ?? {}, 'json', 'throw')
 }
 
 
-export function request_blob(input:string|Request, init?:RequestInit, forbidden404=false)
-        :Promise<Blob|null>{
-    // Same as `request` but get response's blob if any
-    return request(input, init, forbidden404).then(resp => resp && resp.blob())
+export function request_text(input:string|Request, init?:RequestInit){
+    // Request this type of response and throw if don't get it
+    return request(input, init ?? {}, 'text', 'throw')
 }
 
 
-export function request_buffer(input:string|Request, init?:RequestInit, forbidden404=false)
-        :Promise<ArrayBuffer|null>{
-    // Same as `request` but get response's body as an ArrayBuffer
-    return request(input, init, forbidden404).then(resp => resp && resp.arrayBuffer())
+export function request_blob(input:string|Request, init?:RequestInit){
+    // Request this type of response and throw if don't get it
+    return request(input, init ?? {}, 'blob', 'throw')
+}
+
+
+export function request_buffer(input:string|Request, init?:RequestInit){
+    // Request this type of response and throw if don't get it
+    return request(input, init ?? {}, 'arrayBuffer', 'throw')
 }

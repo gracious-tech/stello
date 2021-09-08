@@ -95,7 +95,7 @@ export default class extends Vue {
         }
     }
 
-    async paste(){
+    async paste():Promise<void>{
         // Get an image from clipboard
         for (let blob of await get_clipboard_blobs(['image/', 'text/'])){
 
@@ -104,7 +104,11 @@ export default class extends Vue {
                 const text = (await blob.text()).trim()
                 if (text.startsWith('http://') || text.startsWith('https://')){
                     // Replace the blob with the URL's response
-                    blob = await request_blob(text)
+                    try {
+                        blob = await request_blob(text)
+                    } catch {
+                        continue
+                    }
                 }
             }
 

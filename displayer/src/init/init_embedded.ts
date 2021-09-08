@@ -64,7 +64,7 @@ function rollbar(message:string):void{
 }
 
 
-self._fail_report = async (msg:string):Promise<void> => {
+self._fail_report = async (msg:string|Error):Promise<void> => {
     // Report an error
 
     // Don't report if browser not supported, as not actionable
@@ -85,6 +85,11 @@ self._fail_report = async (msg:string):Promise<void> => {
     const time_till_allowed = 3000 - time_since_start
     if (time_till_allowed > 0){
         await sleep(time_till_allowed)
+    }
+
+    // Convert to a string if not already
+    if (typeof msg !== 'string'){
+        msg = error_to_string(msg)
     }
 
     // Send the report

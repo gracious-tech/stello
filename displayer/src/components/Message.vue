@@ -33,7 +33,7 @@ import AppUnsubscribed from './AppUnsubscribed.vue'
 import DialogResend from './DialogResend.vue'
 import MessageContents from './MessageContents.vue'
 import {decrypt_sym, import_key_sym} from '../services/utils/crypt'
-import {request_buffer} from '../services/utils/http'
+import {request, request_buffer} from '../services/utils/http'
 import {utf8_to_string, url64_to_buffer} from '../services/utils/coding'
 import {store} from '../services/store'
 import {PublishedCopy} from '../shared/shared_types'
@@ -73,11 +73,15 @@ setup(){
         const url = `${deployment_config.url_msgs}copies/${current_msg.id}`
         let encrypted:ArrayBuffer|null
         try {
-            encrypted = await request_buffer(url, {}, true)
-        } catch {
+            encrypted = await request(url, {}, 'arrayBuffer', 'throw_null403-4')
+        } catch (thrown_error) {
             error.value = 'network'
             error_desc.value = "Download interrupted (check your internet connection)"
             fix_desc.value = "Retry"
+            if (!(thrown_error as Error).message.startsWith('network')){
+                // Could be a 500 error etc, so report, but user doesn't need to know this
+                self._fail_report(thrown_error as Error)
+            }
             return
         }
         // NOTE Vite dev server serves index.html instead of 404 for missing files
@@ -113,8 +117,8 @@ setup(){
         const assets_key = await import_key_sym(url64_to_buffer(msg_data.assets_key))
         get_asset.value = async (asset_id:string):Promise<ArrayBuffer> => {
             const url = `${deployment_config.url_msgs}assets/${msg_data.base_msg_id}/${asset_id}`
-            const encrypted = await request_buffer(url, {}, true)
-            return decrypt_sym(encrypted!, assets_key)
+            const encrypted = await request_buffer(url)  // Callers should handle failure/expired
+            return decrypt_sym(encrypted, assets_key)
         }
 
         // Expose the message data
@@ -122,13 +126,13 @@ setup(){
         msg.value = msg_data
 
         // Report that message has been read/opened
-        respond_read(current_msg.resp_token, current_msg.id, msg_data.has_max_reads)
+        void respond_read(current_msg.resp_token, current_msg.id, msg_data.has_max_reads)
 
         // Update the page title
         self.document.title = msg_data.title
 
         // Save the metadata in db
-        store.save_message_meta({
+        void store.save_message_meta({
             id: current_msg.id,
             secret: secret,
             title: msg.value.title,
@@ -141,12 +145,12 @@ setup(){
         if (error.value === 'expired'){
             store.dialog_open(DialogResend)
         } else {
-            get_message()
+            void get_message()
         }
     }
 
     // Fetch the message now and decrypt it
-    get_message()
+    void get_message()
 
     return {
         msg,

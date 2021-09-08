@@ -114,7 +114,11 @@ export default class extends Vue {
                 const text = (await blob.text()).trim()
                 if (text.startsWith('http://') || text.startsWith('https://')){
                     // Replace the blob with the URL's response
-                    blob = await request_blob(text)
+                    try {
+                        blob = await request_blob(text)
+                    } catch {
+                        return false
+                    }
                 }
             }
 

@@ -6,17 +6,30 @@ import {error_to_string} from './utils/exceptions'
 import {deployment_config} from './deployment_config'
 
 
-async function download_displayer_config(name:string):Promise<any>{
+interface DisplayConfigJson {
+    notify_include_contents:boolean
+    allow_replies:boolean
+    allow_reactions:boolean
+    allow_delete:boolean
+    allow_resend_requests:boolean
+    social_referral_ban:boolean
+    resp_key_public:string|CryptoKey  // CryptoKey so TS allows converting string -> CryptoKey
+    reaction_options:string[]
+}
+
+
+async function download_displayer_config(name:string){
     // Download and parse displayer config
     const url = `${deployment_config.url_msgs}disp_config_${name}`
-    const config = await request_json(url, undefined, true).catch(error => {
+    const config = await request_json<DisplayConfigJson>(url).catch(error => {
         self._fail_report(error_to_string(error))
         return null  // Don't cause UI to fail
     })
 
     // Convert base64 public key into a CryptoKey
     if (config?.resp_key_public){
-        config.resp_key_public = await import_key_asym(url64_to_buffer(config.resp_key_public))
+        config.resp_key_public = await import_key_asym(url64_to_buffer(
+            config.resp_key_public as string))
     }
 
     return config
