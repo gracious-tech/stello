@@ -197,7 +197,7 @@ export default class extends Vue {
                     remove_item(group.contacts, this.contact.id)
                 }
                 // Save changes
-                self._db.groups.set(group)
+                self.app_db.groups.set(group)
             }
         }
     }
@@ -223,7 +223,7 @@ export default class extends Vue {
         // Handle removal of profiles
         for (const old_id of this.unsubscribes_profiles){
             if (!new_profiles.includes(old_id)){
-                self._db.unsubscribes.remove(old_id, this.contact_id)
+                self.app_db.unsubscribes.remove(old_id, this.contact_id)
                 remove_match(this.unsubscribes, unsub => unsub.profile === old_id)
             }
         }
@@ -237,7 +237,7 @@ export default class extends Vue {
                     ip: null,
                     user_agent: null,
                 }
-                self._db.unsubscribes.set(record)
+                self.app_db.unsubscribes.set(record)
                 this.unsubscribes.push(record)
             }
         }
@@ -262,13 +262,13 @@ export default class extends Vue {
 
     async load_contact_related():Promise<void>{
         await Promise.all([
-            self._db.contacts.get(this.contact_id),
-            self._db.groups.list(),
+            self.app_db.contacts.get(this.contact_id),
+            self.app_db.groups.list(),
         ]).then(async ([contact, groups]) => {
             sort(groups, 'name')
             this.possible_groups = groups
             if (contact?.service_account){
-                this.oauth = await self._db.oauths.get_by_issuer_id(
+                this.oauth = await self.app_db.oauths.get_by_issuer_id(
                     ...partition(contact.service_account, ':'))
             } else {
                 this.oauth = null
@@ -279,17 +279,17 @@ export default class extends Vue {
 
     async load_profiles():Promise<void>{
         // Load profiles that could be unsubscribed from
-        this.profiles = (await self._db.profiles.list()).filter(p => p.setup_complete)
+        this.profiles = (await self.app_db.profiles.list()).filter(p => p.setup_complete)
     }
 
     async load_unsubscribes():Promise<void>{
         // Load unsubscribes for this contact
-        this.unsubscribes = await self._db.unsubscribes.list_for_contact(this.contact_id)
+        this.unsubscribes = await self.app_db.unsubscribes.list_for_contact(this.contact_id)
     }
 
     save():void{
         // Save changed to contact
-        self._db.contacts.set(this.contact)
+        self.app_db.contacts.set(this.contact)
 
         // Briefly toggle changed property to trigger animation
         this.changed = true
@@ -307,13 +307,13 @@ export default class extends Vue {
         // If contact has no basic info, auto delete it (mainly for leaving a newly created contact)
         // TODO May need to consider other factors
         if (this.contact && !this.synced && !this.contact.name && !this.contact.address){
-            await self._db.contacts.remove(this.contact_id)
+            await self.app_db.contacts.remove(this.contact_id)
         }
     }
 
     async new_group(){
         // Create new group and add the contact to it
-        const group = await self._db.groups.create('', [this.contact_id])
+        const group = await self.app_db.groups.create('', [this.contact_id])
         this.possible_groups.push(group)
         this.$store.dispatch('show_dialog', {component: DialogGroupName, props: {group}})
     }
@@ -383,7 +383,7 @@ export default class extends Vue {
             }
             task_manager.start_contacts_remove(this.oauth.id, this.contact_id)
         } else {
-            await self._db.contacts.remove(this.contact_id)
+            await self.app_db.contacts.remove(this.contact_id)
         }
         this.$router.push('../')
     }

@@ -101,7 +101,7 @@ export default class extends Vue {
     }
 
     save(){
-        self._db.profiles.set(this.profile)
+        self.app_db.profiles.set(this.profile)
     }
 }
 

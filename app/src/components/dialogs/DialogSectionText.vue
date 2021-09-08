@@ -43,7 +43,7 @@ export default class extends Vue {
 
     set standout(value){
         this.section.content.standout = value === 'null' ? null : value
-        self._db.sections.set(this.section)
+        self.app_db.sections.set(this.section)
     }
 
     dismiss(){

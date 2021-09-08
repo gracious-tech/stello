@@ -157,7 +157,7 @@ export default class extends Vue {
     async load(){
         // Get items from db
         const [replies, reactions] =
-            await Promise.all([self._db.replies.list(), self._db.reactions.list()])
+            await Promise.all([self.app_db.replies.list(), self.app_db.reactions.list()])
 
         // Merge into one array and sort by date
         this.replactions = [...replies, ...reactions]

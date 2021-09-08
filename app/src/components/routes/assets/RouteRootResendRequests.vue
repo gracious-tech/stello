@@ -48,16 +48,16 @@ export default class extends Vue {
     async load(){
         // Load requests and generate UI objects
         const requests:RequestUI[] = []
-        for (const record of await self._db._conn.getAll('request_resend')){
+        for (const record of await self.app_db._conn.getAll('request_resend')){
 
             // Get the contact and message
-            const contact = await self._db.contacts.get(record.contact)
-            const message = await self._db.messages.get(record.message)
+            const contact = await self.app_db.contacts.get(record.contact)
+            const message = await self.app_db.messages.get(record.message)
 
             // Helper for removing this record
             const ui_obj_id = record.contact + record.message
             const remove_request = async () => {
-                await self._db._conn.delete('request_resend', [record.contact, record.message])
+                await self.app_db._conn.delete('request_resend', [record.contact, record.message])
                 remove_match(requests, item => item.id === ui_obj_id)
             }
 
@@ -76,7 +76,7 @@ export default class extends Vue {
                     to_be_copied.recipients.include_groups = []
                     to_be_copied.recipients.exclude_contacts = []
                     to_be_copied.recipients.exclude_groups = []
-                    const new_draft = await self._db.draft_copy(to_be_copied)
+                    const new_draft = await self.app_db.draft_copy(to_be_copied)
 
                     // Delete request
                     await remove_request()

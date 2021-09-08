@@ -278,7 +278,7 @@ export default class extends Vue {
     }
 
     save(){
-        self._db.drafts.set(this.draft)
+        self.app_db.drafts.set(this.draft)
     }
 
     dismiss(){

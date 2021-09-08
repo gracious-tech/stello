@@ -76,16 +76,16 @@ export default class extends Vue {
 
     async created(){
         // Get message and copies from db
-        this.message = await self._db.messages.get(this.msg_id)
+        this.message = await self.app_db.messages.get(this.msg_id)
         if (!this.message){
             return
         }
-        const copies = await self._db.copies.list_for_msg(this.msg_id)
+        const copies = await self.app_db.copies.list_for_msg(this.msg_id)
         sort(copies, 'display')
         this.copies = copies
 
         // Access to profile is required to retract messages
-        this.profile = await self._db.profiles.get(this.message.draft.profile)
+        this.profile = await self.app_db.profiles.get(this.message.draft.profile)
 
         // Do initial load of reads
         this.load_reads()
@@ -163,7 +163,7 @@ export default class extends Vue {
 
     async load_reads(){
         // Load reads data
-        this.reads = await self._db.reads.list_for_msg(this.msg_id)
+        this.reads = await self.app_db.reads.list_for_msg(this.msg_id)
     }
 
     async send_all(){

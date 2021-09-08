@@ -33,7 +33,7 @@ declare global {
         app_report_error(error:unknown):void
         _fail_visual(network?:boolean):void
         _app:App
-        _db:typeof database
+        app_db:typeof database
         _store:typeof store
     }
 }

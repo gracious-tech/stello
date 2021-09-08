@@ -28,7 +28,7 @@ export async function responses_receive(task:Task):Promise<void>{
     let deferred_throw:any
 
     // Get all active profiles
-    const profiles = (await self._db.profiles.list()).filter(profile => profile.setup_complete)
+    const profiles = (await self.app_db.profiles.list()).filter(profile => profile.setup_complete)
 
     // Form list of processing functions for all responses in all profiles
     const resp_fns_sync:(()=>Promise<void>)[] = []
@@ -170,7 +170,7 @@ async function process_data(profile:Profile, data:ResponseData, sent:Date):Promi
 
     if (data.event.type === 'reaction' || data.event.type === 'reply'){
         const method = data.event.type === 'reply' ? 'reply_create' : 'reaction_create'
-        await self._db[method](
+        await self.app_db[method](
             data.event.content ? String(data.event.content) : null,
             sent,
             resp_token,
@@ -182,24 +182,24 @@ async function process_data(profile:Profile, data:ResponseData, sent:Date):Promi
         )
 
     } else if (data.event.type === 'read'){
-        await self._db.read_create(sent, resp_token, ip, user_agent)
+        await self.app_db.read_create(sent, resp_token, ip, user_agent)
 
     } else if (data.event.type === 'subscription'){
         // NOTE Possible that no address available (if didn't use invite's URL) and copy deleted
         //      But so unlikely (as a timing issue) it is not worth worrying about
 
         // Determine if adding or removing an unsubscribe record
-        let apply:(c:string)=>Promise<void> = c => self._db.unsubscribes.set(
+        let apply:(c:string)=>Promise<void> = c => self.app_db.unsubscribes.set(
             {profile: profile.id, contact: c, sent, ip, user_agent})
         if (data.event.subscribed){
-            apply = c => self._db.unsubscribes.remove(profile.id, c)
+            apply = c => self.app_db.unsubscribes.remove(profile.id, c)
         }
 
         // Create unsubscribed records for all contacts that match address (if given)
         // SECURITY Don't need resp_token since address' encryption provides authenticity
         const address = String(data.event.sym_encrypted?.address.trim() ?? '')
         if (address){
-            for (const contact of await self._db.contacts.list_for_address(address)){
+            for (const contact of await self.app_db.contacts.list_for_address(address)){
                 if (!contact.multiple){  // Multi-person contacts can't alter subscription
                     await apply(contact.id)
                 }
@@ -207,9 +207,9 @@ async function process_data(profile:Profile, data:ResponseData, sent:Date):Promi
         }
 
         // If copy still exists, also create record for its contact (harmless if already done)
-        const copy = await self._db.copies.get_by_resp_token(resp_token)
+        const copy = await self.app_db.copies.get_by_resp_token(resp_token)
         if (copy){
-            const contact = await self._db.contacts.get(copy.contact_id)
+            const contact = await self.app_db.contacts.get(copy.contact_id)
             if (contact && !contact.multiple){  // Multi-person contacts can't alter subscription
                 await apply(contact.id)
             }
@@ -230,7 +230,7 @@ async function process_data(profile:Profile, data:ResponseData, sent:Date):Promi
         // Helper for creating request records
         const create_record = async (contact:string, old_address:string) => {
             if (old_address !== new_address){
-                await self._db._conn.put('request_address',
+                await self.app_db._conn.put('request_address',
                     {sent, ip, user_agent, contact, old_address, new_address})
             }
         }
@@ -239,7 +239,7 @@ async function process_data(profile:Profile, data:ResponseData, sent:Date):Promi
         // SECURITY Don't need resp_token since address' encryption provides authenticity
         const old = String(data.event.sym_encrypted?.address.trim() ?? '')
         if (old){
-            for (const contact of await self._db.contacts.list_for_address(old)){
+            for (const contact of await self.app_db.contacts.list_for_address(old)){
                 if (!contact.multiple){  // Multi-person contacts can't alter address
                     await create_record(contact.id, contact.address)
                 }
@@ -247,9 +247,9 @@ async function process_data(profile:Profile, data:ResponseData, sent:Date):Promi
         }
 
         // If copy still exists, also create record for its contact (harmless if already done)
-        const copy = await self._db.copies.get_by_resp_token(resp_token)
+        const copy = await self.app_db.copies.get_by_resp_token(resp_token)
         if (copy){
-            const contact = await self._db.contacts.get(copy.contact_id)
+            const contact = await self.app_db.contacts.get(copy.contact_id)
             if (contact && !contact.multiple){  // Multi-person contacts can't alter subscription
                 await create_record(copy.contact_id, copy.contact_address)
             }
@@ -261,7 +261,7 @@ async function process_data(profile:Profile, data:ResponseData, sent:Date):Promi
         const reason = String(data.event.content)
 
         // Get copy by resp_token
-        const copy = await self._db.copies.get_by_resp_token(resp_token)
+        const copy = await self.app_db.copies.get_by_resp_token(resp_token)
 
         // If copy still exists good, otherwise generate fake id so db can still index record
         // NOTE Same secenario if user deletes the message/contact after saving this record anyway
@@ -277,7 +277,7 @@ async function process_data(profile:Profile, data:ResponseData, sent:Date):Promi
         }
 
         // Create request record
-        await self._db._conn.put('request_resend', {sent, ip, user_agent, contact, message, reason})
+        await self.app_db._conn.put('request_resend', {sent, ip, user_agent, contact, message, reason})
 
     } else {
         throw new Error("Invalid type")

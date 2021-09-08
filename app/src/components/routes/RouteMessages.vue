@@ -33,8 +33,8 @@ export default class extends Vue {
 
     async created(){
         // Get messages from db
-        const messages = await self._db.messages.list()
-        const descriptor = self._db.draft_recipients_descriptor()
+        const messages = await self.app_db.messages.list()
+        const descriptor = self.app_db.draft_recipients_descriptor()
         for (const msg of messages){
             Vue.set(this.recipients, msg.id, '')
             descriptor(msg.draft).then(desc => {

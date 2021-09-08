@@ -52,10 +52,10 @@ export default class extends Vue {
             this.replaction.read = true
             // Update in db and store (for sidebar)
             if (this.replaction.is_reply){
-                void self._db.replies.set(this.replaction)
+                void self.app_db.replies.set(this.replaction)
                 Vue.delete(this.$store.state.tmp.unread_replies, this.replaction.id)
             } else {
-                void self._db.reactions.set(this.replaction)
+                void self.app_db.reactions.set(this.replaction)
                 Vue.delete(this.$store.state.tmp.unread_reactions, this.replaction.id)
             }
         }
@@ -92,14 +92,14 @@ export default class extends Vue {
     toggle_archived(){
         // Toggle whether this response is archived
         this.replaction.archived = !this.replaction.archived
-        void self._db[this.replaction.is_reply ? 'replies' : 'reactions'].set(this.replaction)
+        void self.app_db[this.replaction.is_reply ? 'replies' : 'reactions'].set(this.replaction)
     }
 
     async reply_by_stello(){
         // Create a new draft as a reply to this response
 
         // Create a new draft
-        const draft = await self._db.drafts.create_object()
+        const draft = await self.app_db.drafts.create_object()
         draft.reply_to = this.replaction.id
         draft.title = this.replaction.msg_title
         if (!draft.title.startsWith('Re: ')){
@@ -108,12 +108,12 @@ export default class extends Vue {
         draft.recipients.include_contacts.push(this.replaction.contact_id)
 
         // Need to get the original message to know the profile used
-        const msg = await self._db.messages.get(this.replaction.msg_id)
+        const msg = await self.app_db.messages.get(this.replaction.msg_id)
         draft.profile = msg?.draft.profile ?? this.$store.state.default_profile
 
         // Create a new section with the response quoted
         const quote = escape_for_html(this.replaction.content)
-        const section = await self._db.sections.create({
+        const section = await self.app_db.sections.create({
             type: 'text',
             html: `<p>&nbsp;</p><p>&nbsp;</p><blockquote>${quote}</blockquote>`,
             standout: null,
@@ -121,13 +121,13 @@ export default class extends Vue {
         draft.sections.push([section.id])
 
         // Save the draft and navigate to it
-        await self._db.drafts.set(draft)
+        await self.app_db.drafts.set(draft)
         void this.$router.push({name: 'draft', params: {draft_id: draft.id}})
     }
 
     remove():void{
         // Remove the replaction
-        void self._db[this.replaction.is_reply ? 'replies' : 'reactions'].remove(this.replaction.id)
+        void self.app_db[this.replaction.is_reply ? 'replies' : 'reactions'].remove(this.replaction.id)
         this.$emit('removed', this.replaction.id)
     }
 

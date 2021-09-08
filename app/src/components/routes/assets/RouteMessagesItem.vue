@@ -68,13 +68,13 @@ export default class extends Vue {
     }
 
     async copy(){
-        const copy = await self._db.draft_copy(new Draft(this.msg.draft), false)
+        const copy = await self.app_db.draft_copy(new Draft(this.msg.draft), false)
         this.$router.push({name: 'draft', params: {draft_id: copy.id}})
     }
 
     async can_access_profile():Promise<boolean>{
         // Return whether can access profile (and therefore retract/delete message)
-        return !! await self._db.profiles.get(this.msg.draft.profile)
+        return !! await self.app_db.profiles.get(this.msg.draft.profile)
     }
 
     async retract(){
@@ -139,7 +139,7 @@ export default class extends Vue {
             // NOTE Parent component responsible for detecting task completion
             this.$tm.start('retract_message', [this.msg.id], [true])
         } else {
-            self._db.messages.remove(this.msg.id)
+            self.app_db.messages.remove(this.msg.id)
             this.$emit('remove', this.msg.id)
         }
     }

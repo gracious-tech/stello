@@ -298,7 +298,7 @@ export async function oauth_pretask_new_usage(task_name:'contacts_oauth_setup'|'
     const final_scope_sets = [scope_set]
 
     // Get existing auths for this issuer
-    let existing = (await self._db.oauths.list()).filter(oauth => oauth.issuer === issuer)
+    let existing = (await self.app_db.oauths.list()).filter(oauth => oauth.issuer === issuer)
     if (task_name === 'contacts_oauth_setup'){
         // Cannot have multiple syncs for one oauth (unlike multiple profiles for same email)
         existing = existing.filter(o => !o.contacts_sync)
@@ -363,7 +363,7 @@ export async function oauth_pretask_reauth(task:TaskStartArgs, oauth:OAuth):Prom
         scope_sets.push('contacts')
     }
     if (!scope_sets.includes('email_send')){
-        for (const profile of await self._db.profiles.list()){
+        for (const profile of await self.app_db.profiles.list()){
             if (profile.smtp.oauth === oauth.id){
                 scope_sets.push('email_send')
                 break
@@ -384,7 +384,7 @@ export async function oauth_pretask_process(url:string):Promise<void>{
     const {auth, meta} = await oauth_authorize_complete(url) as AuthCompletion<PretaskMeta>
 
     // See if existing auth exists for the auth'd account
-    const existing = await self._db.oauths.get_by_issuer_id(auth.issuer, auth.issuer_id)
+    const existing = await self.app_db.oauths.get_by_issuer_id(auth.issuer, auth.issuer_id)
 
     // Either update existing auth, or create new one
     let oauth_instance:OAuth
@@ -392,9 +392,9 @@ export async function oauth_pretask_process(url:string):Promise<void>{
         // NOTE This may revoke previously held permissions but can't do anything about it
         //      If new refresh token generated then old one will already be invalidated
         oauth_instance = new OAuth({...existing, ...auth})
-        void self._db.oauths.set(oauth_instance)
+        void self.app_db.oauths.set(oauth_instance)
     } else {
-        oauth_instance = await self._db.oauths.create({
+        oauth_instance = await self.app_db.oauths.create({
             ...auth,
             contacts_sync: false,  // Will set true later if task is `contacts_oauth_setup`
             contacts_sync_last: null,
@@ -459,7 +459,7 @@ export async function oauth_refresh(oauth:OAuth):Promise<void>{
     }
     oauth.token_access = token_resp.accessToken
     oauth.token_access_expires = new Date((token_resp.issuedAt + token_resp.expiresIn) * 1000)
-    self._db.oauths.set(oauth)
+    self.app_db.oauths.set(oauth)
 }
 
 
@@ -498,7 +498,7 @@ export async function oauth_revoke_if_obsolete(oauth:OAuth):Promise<void>{
     }
 
     // If used for email sending, keep
-    const profiles = await self._db.profiles.list()
+    const profiles = await self.app_db.profiles.list()
     if (profiles.some(profile => profile.smtp_settings.oauth === oauth.id)){
         return
     }
@@ -507,7 +507,7 @@ export async function oauth_revoke_if_obsolete(oauth:OAuth):Promise<void>{
     drop(oauth_revoke(oauth))
 
     // Remove from db
-    await self._db.oauths.remove(oauth.id)
+    await self.app_db.oauths.remove(oauth.id)
 }
 
 

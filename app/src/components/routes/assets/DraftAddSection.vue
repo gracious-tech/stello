@@ -30,7 +30,7 @@ export default class extends Vue {
     @Prop({type: Boolean, default: false}) visible:boolean  // Show buttons even without hover
 
     add(type:string){
-        self._db.draft_section_create(this.draft, type, this.position)
+        self.app_db.draft_section_create(this.draft, type, this.position)
     }
 
     add_text(){

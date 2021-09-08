@@ -47,7 +47,7 @@ export default class extends Vue {
     toggle_respondable():void{
         // Toggle, resolving null to opposite of whatever is current final (can't go back to null)
         this.section.respondable = !this.respondable_final
-        self._db.sections.set(this.section)
+        self.app_db.sections.set(this.section)
     }
 
 }

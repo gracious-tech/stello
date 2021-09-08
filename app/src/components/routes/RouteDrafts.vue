@@ -57,14 +57,14 @@ export default class extends Vue {
     }
 
     async load_drafts(){
-        const drafts = await self._db.drafts.list()
+        const drafts = await self.app_db.drafts.list()
         sort(drafts, 'modified', false)
         this.drafts = drafts
     }
 
     async new_draft(template:boolean){
         // Create a new draft and navigate to it
-        const draft = await self._db.drafts.create(template)
+        const draft = await self.app_db.drafts.create(template)
         this.$router.push({name: 'draft', params: {draft_id: draft.id}})
     }
 

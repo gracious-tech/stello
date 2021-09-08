@@ -48,7 +48,7 @@ export default class extends Vue {
     async created(){
         // Get the section (if not sectionless)
         if (this.first.section_id){
-            this.section = await self._db.sections.get(this.first.section_id)
+            this.section = await self.app_db.sections.get(this.first.section_id)
 
             // If a vimeo section then need to do an API request to get the placeholder image
             if (this.section?.content.type === 'video'
@@ -127,7 +127,7 @@ export default class extends Vue {
         for (const replaction of this.replactions){
             if (!replaction.archived){
                 replaction.archived = true
-                self._db[replaction.is_reply ? 'replies' : 'reactions'].set(replaction)
+                self.app_db[replaction.is_reply ? 'replies' : 'reactions'].set(replaction)
             }
         }
     }

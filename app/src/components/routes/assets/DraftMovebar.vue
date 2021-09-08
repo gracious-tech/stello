@@ -66,14 +66,14 @@ export default class extends Vue {
         // Move row up in order
         const prev_row = this.draft.sections[this.row_i - 1]
         this.draft.sections.splice(this.row_i - 1, 2, this.row, prev_row)
-        self._db.drafts.set(this.draft)
+        self.app_db.drafts.set(this.draft)
     }
 
     move_down(){
         // Move row down in order
         const next_section_id = this.draft.sections[this.row_i + 1]
         this.draft.sections.splice(this.row_i, 2, next_section_id, this.row)
-        self._db.drafts.set(this.draft)
+        self.app_db.drafts.set(this.draft)
     }
 
     toggle_merge(){
@@ -85,13 +85,13 @@ export default class extends Vue {
             const prev_row = this.draft.sections[prev_row_i]
             this.draft.sections.splice(this.row_i-1, 2, [prev_row[0], this.row[0]])
         }
-        self._db.drafts.set(this.draft)
+        self.app_db.drafts.set(this.draft)
     }
 
     swap(){
         // Swap sections that have been merged
         this.row.splice(0, 2, this.row[1], this.row[0])
-        self._db.drafts.set(this.draft)
+        self.app_db.drafts.set(this.draft)
     }
 
 }

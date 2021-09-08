@@ -114,8 +114,8 @@ export async function get_text_invite_for_copy(copy:MessageCopy):Promise<string>
     // Get text invite for copy (regardless if normally send a HTML invite)
 
     // Get objects needed
-    const msg = await self._db.messages.get(copy.msg_id)
-    const profile = await self._db.profiles.get(msg.draft.profile)
+    const msg = await self.app_db.messages.get(copy.msg_id)
+    const profile = await self.app_db.profiles.get(msg.draft.profile)
 
     // Account for inheritance
     const template = profile.msg_options_identity.invite_tmpl_clipboard

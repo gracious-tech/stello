@@ -10,7 +10,7 @@ export async function configs_update(task:Task){
 
     // Get profile from params
     const [profile_id] = task.params
-    let profile = await self._db.profiles.get(profile_id)
+    let profile = await self.app_db.profiles.get(profile_id)
     if (!profile){
         throw task.abort("Sending account no longer exists")
     }
@@ -65,8 +65,8 @@ export async function configs_update(task:Task){
 
     // Update profile state
     // WARN Get fresh profile data in case changed while tasks were completing
-    profile = await self._db.profiles.get(profile.id)
+    profile = await self.app_db.profiles.get(profile.id)
     profile.host_state.displayer_config_uploaded = true
     profile.host_state.responder_config_uploaded = true
-    await self._db.profiles.set(profile)
+    await self.app_db.profiles.set(profile)
 }

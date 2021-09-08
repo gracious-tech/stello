@@ -91,17 +91,17 @@ export default class extends Vue {
 
     async created(){
         // Load the draft and the contents of the draft's sections
-        const draft = await self._db.drafts.get(this.draft_id)
+        const draft = await self.app_db.drafts.get(this.draft_id)
         if (!draft){
             return
         }
-        for (const section of await self._db.sections.get_multiple(draft.sections.flat())){
+        for (const section of await self.app_db.sections.get_multiple(draft.sections.flat())){
             Vue.set(this.sections, section.id, section)
         }
         this.draft = draft
 
         // Load profiles (so know if need to create or select existing)
-        void self._db.profiles.list().then(profiles => {
+        void self.app_db.profiles.list().then(profiles => {
             this.profiles = profiles
             // Auto assign default if no account selected yet
             if (!this.profile && this.$store.state.default_profile){
@@ -130,7 +130,7 @@ export default class extends Vue {
             }
 
             // Get the section's data and add to `this.sections`
-            const section_data = await self._db.sections.get(section_id)
+            const section_data = await self.app_db.sections.get(section_id)
             Vue.set(this.sections, section_id, section_data)
 
             // If just created a new section, open modify dialog straight away (unless text)
@@ -200,7 +200,7 @@ export default class extends Vue {
     set title(value){
         // Set draft's title
         this.draft.title = value
-        self._db.drafts.set(this.draft)
+        self.app_db.drafts.set(this.draft)
     }
 
     get dark_message(){
@@ -269,7 +269,7 @@ export default class extends Vue {
     async create_profile(){
         // Create new profile (or resume setting up an in progress one)
         const profile_in_progress = this.profiles.find(p => !p.setup_complete)
-        const profile = profile_in_progress ?? await self._db.profiles.create()
+        const profile = profile_in_progress ?? await self.app_db.profiles.create()
         this.$router.push({
             name: 'profile',
             params: {profile_id: profile.id},
@@ -278,11 +278,11 @@ export default class extends Vue {
 
     load_contacts(){
         // Load contacts related
-        self._db.groups.list().then(groups => {
+        self.app_db.groups.list().then(groups => {
             sort(groups, 'name')
             this.groups = groups
         })
-        self._db.contacts.list().then(contacts => {
+        self.app_db.contacts.list().then(contacts => {
             sort(contacts, 'name')
             this.contacts = contacts
         })
@@ -292,7 +292,7 @@ export default class extends Vue {
         // Load unsubscribes for profile (if known)
         this.unsubscribes = []  // Clear previous
         if (this.draft.profile){
-            this.unsubscribes = await self._db.unsubscribes.list_for_profile(this.draft.profile)
+            this.unsubscribes = await self.app_db.unsubscribes.list_for_profile(this.draft.profile)
         }
     }
 
@@ -341,7 +341,7 @@ export default class extends Vue {
         this.sending = true
 
         // Convert to message
-        const msg = await self._db.draft_to_message(this.draft_id)
+        const msg = await self.app_db.draft_to_message(this.draft_id)
 
         // Increase send counter
         this.$store.commit('dict_set', ['usage_sends', this.$store.state.usage_sends as number + 1])
@@ -355,13 +355,13 @@ export default class extends Vue {
 
     async copy_to_draft(){
         // Copy template to a new draft and navigate to it
-        const draft = await self._db.draft_copy(this.draft, false)
+        const draft = await self.app_db.draft_copy(this.draft, false)
         this.$router.push({name: 'draft', params: {draft_id: draft.id}})
     }
 
     delete_draft(){
         // Delete this draft
-        self._db.drafts.remove(this.draft_id)
+        self.app_db.drafts.remove(this.draft_id)
         // If this was the default template, clear it
         if (this.draft_id === this.$store.state.default_template){
             this.$store.commit('dict_set', ['default_template', null])

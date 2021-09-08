@@ -40,7 +40,7 @@ declare module 'Custom' {
             // Custom
             _app:Vue
             _store:Store<AppStoreState>
-            _db:Database
+            app_db:Database
             app_toggle_dark():void
             app_update():void
             app_report_error(error:unknown):string

@@ -277,9 +277,9 @@ export default class extends Vue {
     async load_contacts():Promise<void>{
         // Load all contacts and groups from db
         const [contacts, groups, oauths] = await Promise.all([
-            self._db.contacts.list(),
-            self._db.groups.list(),
-            self._db.oauths.list(),
+            self.app_db.contacts.list(),
+            self.app_db.groups.list(),
+            self.app_db.oauths.list(),
         ])
 
         // Only consider oauths that have contact syncing enabled
@@ -315,18 +315,18 @@ export default class extends Vue {
 
     async new_contact():Promise<void>{
         // Create a new contact and navigate to it
-        const contact = await self._db.contacts.create()
+        const contact = await self.app_db.contacts.create()
         if (this.filter_group && !this.filter_group.service_id){
             // Auto-add contact to currently selected group (but NOT a service account group)
             this.filter_group.contacts.push(contact.id)
-            await self._db.groups.set(this.filter_group)
+            await self.app_db.groups.set(this.filter_group)
         }
         this.$router.push({name: 'contact', params: {contact_id: contact.id}})
     }
 
     async new_group():Promise<void>{
         // Create a new group
-        const group = await self._db.groups.create()
+        const group = await self.app_db.groups.create()
 
         // Add group to array, prompt for name, then resort when done
         this.groups.push(group)
@@ -395,7 +395,7 @@ export default class extends Vue {
     do_selected_delete():void{
         // Delete selected contacts (but only those not part of a service account)
         for (const item of this.contacts_selected_internal){
-            self._db.contacts.remove(item.contact.id)
+            self.app_db.contacts.remove(item.contact.id)
         }
 
         // Notify how many deleted/skipped
@@ -428,7 +428,7 @@ export default class extends Vue {
     async do_selected_new_group():Promise<void>{
         // Create a new group with currently selected contacts in it
         const contact_ids = this.contacts_selected.map(c => c.contact.id)
-        const group = await self._db.groups.create('', contact_ids)
+        const group = await self.app_db.groups.create('', contact_ids)
 
         // Add new group to array, prompt for name, then re-sort all
         this.groups.push(group)
@@ -453,7 +453,7 @@ export default class extends Vue {
             // Add contacts to the group and remove any duplicates
             group.contacts.push(...this.contacts_selected.map(item => item.contact.id))
             group.contacts = uniq(group.contacts)
-            self._db.groups.set(group)
+            self.app_db.groups.set(group)
             // Select the group so user can see the changes have happened
             this.filter_group_id = group.id
             this.search = ''
@@ -468,7 +468,7 @@ export default class extends Vue {
             for (const item of this.contacts_selected){
                 remove_item(this.filter_group.contacts, item.contact.id)
             }
-            self._db.groups.set(this.filter_group)
+            self.app_db.groups.set(this.filter_group)
             // Clear selection so user doesn't get confused
             this.clear_selected()
         }
@@ -477,9 +477,9 @@ export default class extends Vue {
     async do_selected_new_draft():Promise<void>{
         // Create a new draft and add selected contacts as recipients
         // NOTE Does NOT use the default template if any
-        const draft = await self._db.drafts.create_object()
+        const draft = await self.app_db.drafts.create_object()
         draft.recipients.include_contacts = this.contacts_selected.map(item => item.contact.id)
-        await self._db.drafts.set(draft)
+        await self.app_db.drafts.set(draft)
         this.$router.push({name: 'draft', params: {draft_id: draft.id}})
     }
 

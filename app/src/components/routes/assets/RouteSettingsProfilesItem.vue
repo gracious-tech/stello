@@ -45,7 +45,7 @@ export default class extends Vue {
 
     remove(){
         // Remove from db
-        self._db.profiles.remove(this.profile.id)
+        self.app_db.profiles.remove(this.profile.id)
         // Clear the default if this was it, so another can take it
         if (this.is_default){
             this.$store.commit('dict_set', ['default_profile', null])

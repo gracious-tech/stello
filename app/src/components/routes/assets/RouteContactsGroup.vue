@@ -35,7 +35,7 @@ export default class extends Vue {
 
     remove(){
         // Remove the group from db and notify parent component
-        self._db.groups.remove(this.group.id)
+        self.app_db.groups.remove(this.group.id)
         this.$emit('removed', this.group)
     }
 

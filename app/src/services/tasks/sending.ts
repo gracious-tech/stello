@@ -28,11 +28,11 @@ export async function send_oauth_setup(task:Task):Promise<void>{
     // Setup oauth for email sending for given profile
     // NOTE Doesn't validate whether have correct scopes as can fix later if a send task fails
     const [oauth_id, profile_id] = task.params
-    const oauth = await self._db.oauths.get(oauth_id)
+    const oauth = await self.app_db.oauths.get(oauth_id)
     if (!oauth){
         throw task.abort("Credentials missing")
     }
-    const profile = await self._db.profiles.get(profile_id)
+    const profile = await self.app_db.profiles.get(profile_id)
     if (!profile){
         throw task.abort("Sending account no longer exists")
     }
@@ -64,7 +64,7 @@ export async function send_oauth_setup(task:Task):Promise<void>{
     }
 
     // Save changes
-    await self._db.profiles.set(profile)
+    await self.app_db.profiles.set(profile)
 }
 
 
@@ -110,7 +110,7 @@ export class Sender {
 
         // Get the msg data
         this.msg_id = task.params[0]
-        this.msg = await self._db.messages.get(this.msg_id)
+        this.msg = await self.app_db.messages.get(this.msg_id)
         if (!this.msg){
             throw task.abort("Message no longer exists")
         }
@@ -124,7 +124,7 @@ export class Sender {
         await configs_update(new Task('configs_update', [this.msg.draft.profile], []))
 
         // Get the profile
-        this.profile = await self._db.profiles.get(this.msg.draft.profile)
+        this.profile = await self.app_db.profiles.get(this.msg.draft.profile)
         if (!this.profile){
             throw task.abort("Sending account no longer exists")
         }
@@ -132,7 +132,7 @@ export class Sender {
         // Provide fix options (will detect appropriate one to use in failure dialog)
         task.fix_oauth = this.profile.smtp_settings.oauth  // May be null which is fine
         task.fix_settings = async () => {
-            const fresh_profile = await self._db.profiles.get(this.profile.id)
+            const fresh_profile = await self.app_db.profiles.get(this.profile.id)
             if (fresh_profile){
                 self._store.dispatch('show_dialog', {
                     component: DialogEmailSettings, props: {profile: fresh_profile},
@@ -154,7 +154,7 @@ export class Sender {
 
         // Process sections and produce assets
         const sections_data = await Promise.all(this.msg.draft.sections.map(
-            async row => await Promise.all(row.map(sid => self._db.sections.get(sid)))
+            async row => await Promise.all(row.map(sid => self.app_db.sections.get(sid)))
         )) as OneOrTwo<Section>[]
         const [pub_sections, assets] = await process_sections(sections_data, this.tmpl_variables)
 
@@ -207,12 +207,12 @@ export class Sender {
 
         // Mark as uploaded
         this.msg.assets_uploaded[asset.id] = true
-        self._db.messages.set(this.msg)
+        self.app_db.messages.set(this.msg)
     }
 
     async _get_copies():Promise<MessageCopy[]>{
         // Get copies, filter out already sent/expired, and refresh their contact data
-        let copies = await self._db.copies.list_for_msg(this.msg_id)
+        let copies = await self.app_db.copies.list_for_msg(this.msg_id)
 
         // Nothing to do if expired OR already uploaded+sent
         copies = copies.filter(copy => !copy.expired && (!copy.uploaded_latest || !copy.invited))
@@ -221,13 +221,13 @@ export class Sender {
         // NOTE Important when fixing an incorrect email address
         // NOTE Contact may no longer exist
         for (const copy of copies){
-            const contact = await self._db.contacts.get(copy.contact_id)
+            const contact = await self.app_db.contacts.get(copy.contact_id)
             if (contact){
                 copy.contact_name = contact.name
                 copy.contact_hello = contact.name_hello_result
                 copy.contact_address = contact.address
                 copy.contact_multiple = contact.multiple
-                self._db.copies.set(copy)
+                self.app_db.copies.set(copy)
             }
         }
 
@@ -282,7 +282,7 @@ export class Sender {
         // Mark as uploaded
         copy.uploaded = true
         copy.uploaded_latest = true
-        self._db.copies.set(copy)
+        self.app_db.copies.set(copy)
 
         // Update store property so components can watch it for updates
         self._store.state.tmp.uploaded = copy

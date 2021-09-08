@@ -80,7 +80,7 @@ export default class extends Vue {
     }
     set text_html(html){
         ;(this.content as ContentText).html = html
-        self._db.sections.set(this.section)
+        self.app_db.sections.set(this.section)
     }
 
     modify(){
@@ -90,7 +90,7 @@ export default class extends Vue {
 
     remove(){
         // Remove this section (and cause this component to be destroyed)
-        self._db.draft_section_remove(this.draft, this.section)
+        self.app_db.draft_section_remove(this.draft, this.section)
     }
 
     focus_editor(){

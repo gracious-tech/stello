@@ -33,14 +33,14 @@ export default class extends Vue {
 
     async created(){
         // Get all profiles and generate sorted list of relevant info
-        const profiles = await self._db.profiles.list()
+        const profiles = await self.app_db.profiles.list()
         sort(profiles, 'display')
         this.profiles = profiles
     }
 
     async create(){
         // Create a new profile and go to it
-        const profile = await self._db.profiles.create()
+        const profile = await self.app_db.profiles.create()
         this.profiles.push(profile)
         this.$router.push({
             name: 'profile',

@@ -49,18 +49,18 @@ export default class extends Vue {
         if (confirmed){
             // Remove all related contacts and groups
             await Promise.all([
-                self._db.contacts.list_for_account(this.oauth.issuer, this.oauth.issuer_id)
+                self.app_db.contacts.list_for_account(this.oauth.issuer, this.oauth.issuer_id)
                     .then(contacts => Promise.all(
-                        contacts.map(c => self._db.contacts.remove(c.id)),
+                        contacts.map(c => self.app_db.contacts.remove(c.id)),
                     )),
-                self._db.groups.list_for_account(this.oauth.issuer, this.oauth.issuer_id)
+                self.app_db.groups.list_for_account(this.oauth.issuer, this.oauth.issuer_id)
                     .then(groups => Promise.all(
-                        groups.map(g => self._db.groups.remove(g.id)),
+                        groups.map(g => self.app_db.groups.remove(g.id)),
                     )),
             ])
             // Now safe to disable the oauth and revoke if needed
             this.oauth.contacts_sync = false
-            await self._db.oauths.set(this.oauth)
+            await self.app_db.oauths.set(this.oauth)
             oauth_revoke_if_obsolete(this.oauth)
             this.$emit('removed', this.oauth.id)
         }

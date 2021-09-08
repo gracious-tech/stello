@@ -55,7 +55,7 @@ export default class extends Vue {
     }
     set crop(value){
         this.content.crop = value
-        self._db.sections.set(this.section)
+        self.app_db.sections.set(this.section)
     }
 
     async handle_blob(blob:Blob){
@@ -86,7 +86,7 @@ export default class extends Vue {
             data: blob,
             caption: '',
         })
-        self._db.sections.set(this.section)
+        self.app_db.sections.set(this.section)
 
         return true
     }

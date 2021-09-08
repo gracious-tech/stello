@@ -203,11 +203,11 @@ Vue.prototype.$tm = task_manager
 void open_db().then(async connection => {
 
     // Init database
-    self._db = new Database(connection)
+    self.app_db = new Database(connection)
 
     // Init store
     // NOTE Can't just rely on self._app as some methods (like router guards) called before ready
-    const store = await get_store(self._db)
+    const store = await get_store(self.app_db)
     self._store = store
 
     // Init Vuetify dark setting based on store value

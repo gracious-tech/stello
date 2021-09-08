@@ -44,14 +44,14 @@ export default class extends Vue {
     async load(){
         // Load requests and generate UI objects
         const requests:RequestUI[] = []
-        for (const record of await self._db._conn.getAll('request_address')){
+        for (const record of await self.app_db._conn.getAll('request_address')){
 
             // Get the contact
-            const contact = await self._db.contacts.get(record.contact)
+            const contact = await self.app_db.contacts.get(record.contact)
 
             // If contact no longer exists, or has changed address already, discard request
             if (!contact || contact.address !== record.old_address){
-                await self._db._conn.delete('request_address', record.contact)
+                await self.app_db._conn.delete('request_address', record.contact)
                 continue
             }
 
@@ -64,9 +64,9 @@ export default class extends Vue {
                 fn: async accept => {
                     if (accept){
                         contact.address = record.new_address
-                        await self._db.contacts.set(contact)
+                        await self.app_db.contacts.set(contact)
                     }
-                    await self._db._conn.delete('request_address', record.contact)
+                    await self.app_db._conn.delete('request_address', record.contact)
                     remove_match(requests, item => item.id === contact.id)
                 },
             })

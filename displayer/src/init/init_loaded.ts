@@ -64,7 +64,7 @@ async function init(){
     // Wait for dependencies to be ready
     // NOTE Exposed globally so can debug
     await database.connect()
-    self._db = database
+    self.app_db = database
     await store.init()
     self._store = store
 

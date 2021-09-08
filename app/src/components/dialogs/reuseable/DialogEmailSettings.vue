@@ -288,7 +288,7 @@ export default class extends Vue {
 
     save(){
         // Save changes to profile
-        self._db.profiles.set(this.profile)
+        self.app_db.profiles.set(this.profile)
     }
 
     async change_email(){

@@ -9,28 +9,28 @@ export async function retract_message(task:Task):Promise<void>{
     // Unpack task params
     const [msg_id] = task.params as [string]
     const [remove] = task.options as [boolean]
-    let msg = await self._db.messages.get(msg_id)
+    let msg = await self.app_db.messages.get(msg_id)
     if (!msg){
         throw task.abort("Message no longer exists")
     }
     task.label = `${remove ? "Deleting" : "Retracting"} message "${msg.draft.title}"`
 
     // Get access to storage
-    const profile = await self._db.profiles.get(msg.draft.profile)
+    const profile = await self.app_db.profiles.get(msg.draft.profile)
     if (!profile){
         throw task.abort("Sending account no longer exists")
     }
     const storage = profile.new_host_user()
 
     // Delete copies
-    const copies = await self._db.copies.list_for_msg(msg_id)
+    const copies = await self.app_db.copies.list_for_msg(msg_id)
     task.upcoming(copies.length)
     await concurrent(copies.map(copy => {
         return async () => {
             await storage.delete_file(`copies/${copy.id}`)
             await storage.delete_file(`invite_images/${copy.id}`)
             copy.expired = true
-            await task.expected(self._db.copies.set(copy))
+            await task.expected(self.app_db.copies.set(copy))
         }
     }))
 
@@ -44,13 +44,13 @@ export async function retract_message(task:Task):Promise<void>{
 
     // Either delete or update message's expired property
     if (remove){
-        await self._db.messages.remove(msg.id)
+        await self.app_db.messages.remove(msg.id)
     } else {
         // WARN Always get fresh copy of objects from db after async stuff (could have been deleted)
-        msg = await self._db.messages.get(msg_id)
+        msg = await self.app_db.messages.get(msg_id)
         if (msg && !msg.expired){
             msg.expired = true
-            await self._db.messages.set(msg)
+            await self.app_db.messages.set(msg)
         }
     }
 }

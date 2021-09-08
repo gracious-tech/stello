@@ -80,11 +80,11 @@ export default class extends Vue {
         // Both copy invite and mark as sent
 
         // Update current instance of copy before save (in case changes)
-        Object.assign(this.copy, await self._db.copies.get(this.copy.id))
+        Object.assign(this.copy, await self.app_db.copies.get(this.copy.id))
 
         // Update invited prop
         this.copy.invited = true
-        self._db.copies.set(this.copy)
+        self.app_db.copies.set(this.copy)
 
         // Copy invite
         this.copy_invite()
@@ -101,11 +101,11 @@ export default class extends Vue {
         await this.profile.new_host_user().delete_file(`invite_images/${this.copy.id}`)
 
         // Update current instance of copy before save (in case changes)
-        Object.assign(this.copy, await self._db.copies.get(this.copy.id))
+        Object.assign(this.copy, await self.app_db.copies.get(this.copy.id))
 
         // Update expired and save to db
         this.copy.expired = true
-        self._db.copies.set(this.copy)
+        self.app_db.copies.set(this.copy)
     }
 }
 

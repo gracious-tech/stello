@@ -42,7 +42,7 @@ export default class extends Vue {
 
     async copy(template?:boolean){
         // Duplicate the draft or template
-        const copy = await self._db.draft_copy(this.draft.id, template)
+        const copy = await self.app_db.draft_copy(this.draft.id, template)
         this.$emit('copied', copy)
     }
 
@@ -59,7 +59,7 @@ export default class extends Vue {
     make_template(){
         // Make this draft a template
         this.draft.template = !this.draft.template
-        self._db.drafts.set(this.draft)
+        self.app_db.drafts.set(this.draft)
 
         // Make default template if none yet
         if (!this.$store.state.default_template){
@@ -73,7 +73,7 @@ export default class extends Vue {
     }
 
     remove(){
-        self._db.drafts.remove(this.draft.id)
+        self.app_db.drafts.remove(this.draft.id)
         // If this was the default template, clear it
         if (this.draft.id === this.$store.state.default_template){
             this.$store.commit('dict_set', ['default_template', null])

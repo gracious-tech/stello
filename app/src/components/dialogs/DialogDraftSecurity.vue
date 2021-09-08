@@ -51,7 +51,7 @@ export default class extends Vue {
     }
     set lifespan(value){
         this.draft.options_security.lifespan = value
-        self._db.drafts.set(this.draft)
+        self.app_db.drafts.set(this.draft)
     }
 
     get max_reads(){
@@ -59,7 +59,7 @@ export default class extends Vue {
     }
     set max_reads(value){
         this.draft.options_security.max_reads = value
-        self._db.drafts.set(this.draft)
+        self.app_db.drafts.set(this.draft)
     }
 
     get inherit_lifespan(){

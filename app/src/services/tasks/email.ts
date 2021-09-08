@@ -22,9 +22,9 @@ interface MicrosoftBatchResponse {
 
 export async function handle_email_submitted(email_id:string, accepted:boolean):Promise<void>{
     // Handle email submitted events by setting `invited` property on copy
-    const copy = await self._db.copies.get(email_id)
+    const copy = await self.app_db.copies.get(email_id)
     copy.invited = accepted
-    self._db.copies.set(copy)
+    self.app_db.copies.set(copy)
     // NOTE A little hacky, but currently emitting email sent events via watching a store prop
     self._store.state.tmp.invited = copy
 }
@@ -33,7 +33,7 @@ export async function handle_email_submitted(email_id:string, accepted:boolean):
 export async function send_emails_oauth(oauth_id:string, emails:Email[], from:EmailIdentity,
         reply_to?:EmailIdentity):Promise<void>{
     // Send given emails using oauth issuer's API (rather than SMTP)
-    const oauth = await self._db.oauths.get(oauth_id)
+    const oauth = await self.app_db.oauths.get(oauth_id)
     if (oauth.issuer === 'google'){
         await send_emails_oauth_google(oauth, emails, from, reply_to)
     } else if (oauth.issuer === 'microsoft'){

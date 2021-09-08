@@ -124,7 +124,7 @@ export default class extends Vue {
     set caption(value){
         // Change the caption of this video
         this.content.caption = value
-        self._db.sections.set(this.section)
+        self.app_db.sections.set(this.section)
     }
 
     parse_url(input:string):{format:'iframe_youtube'|'iframe_vimeo', id:string}{
@@ -208,7 +208,7 @@ export default class extends Vue {
 
     save(){
         // Save changes to db
-        self._db.sections.set(this.section)
+        self.app_db.sections.set(this.section)
     }
 
     dismiss(){

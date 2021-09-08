@@ -181,8 +181,8 @@ export default class extends Vue {
     async created(){
         // Get the profile for the given id, and groups (needed for auto_exclude_exempt_groups)
         const [profile, groups] = await Promise.all([
-            self._db.profiles.get(this.profile_id),
-            self._db.groups.list(),
+            self.app_db.profiles.get(this.profile_id),
+            self.app_db.groups.list(),
         ])
         this.groups_ui = groups.map(g => {
             return {text: g.display, value: g.id}
@@ -319,7 +319,7 @@ export default class extends Vue {
         // Listen to task completions and adjust state as needed
         if (task.name === 'send_oauth_setup' && task.params[1] === this.profile.id){
             // Reload profile to get latest email related settings
-            this.profile = await self._db.profiles.get(this.profile.id)
+            this.profile = await self.app_db.profiles.get(this.profile.id)
         }
     }
 
@@ -329,7 +329,7 @@ export default class extends Vue {
             this.profile.host_state.displayer_config_uploaded = false
             this.profile.host_state.responder_config_uploaded = false
         }
-        self._db.profiles.set(this.profile)
+        self.app_db.profiles.set(this.profile)
     }
 
     show_email_dialog(){

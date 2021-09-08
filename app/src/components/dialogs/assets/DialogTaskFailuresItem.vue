@@ -33,7 +33,7 @@ export default class extends Vue {
     async created(){
         // If task refers to an oauth, get fresh copy of it
         if (this.task.fix_oauth){
-            this.oauth = await self._db.oauths.get(this.task.fix_oauth)
+            this.oauth = await self.app_db.oauths.get(this.task.fix_oauth)
         }
     }
 

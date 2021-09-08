@@ -310,13 +310,13 @@ export default class extends Vue {
 
         // Create all contacts and collect their data
         const contacts = await Promise.all(this.selected.map(contact => {
-            return self._db.contacts.create(contact.name, contact.email)
+            return self.app_db.contacts.create(contact.name, contact.email)
         }))
 
         // Create a new group for all the contacts
         const date = new Date()
         const group_name = `Imported ${date.toLocaleString()}`
-        const group = await self._db.groups.create(group_name, contacts.map(c => c.id))
+        const group = await self.app_db.groups.create(group_name, contacts.map(c => c.id))
 
         // Let caller know the id of the new group
         this.$emit('close', group.id)

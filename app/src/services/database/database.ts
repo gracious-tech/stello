@@ -391,7 +391,7 @@ export class Database {
                 replaction.section_num = msg.draft.sections.flat().indexOf(section_id)
 
                 // Get section object so can know the type
-                const section = await self._db.sections.get(section_id)
+                const section = await self.app_db.sections.get(section_id)
                 if (section){
                     replaction.section_type = section.content.type
                 }

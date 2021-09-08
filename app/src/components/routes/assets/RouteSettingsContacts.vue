@@ -34,7 +34,7 @@ export default class extends Vue {
 
     async created():Promise<void>{
         // Get all oauths with contact syncing enabled
-        const oauths = (await self._db.oauths.list()).filter(oauth => oauth.contacts_sync)
+        const oauths = (await self.app_db.oauths.list()).filter(oauth => oauth.contacts_sync)
         sort(oauths, 'display')
         this.oauths = oauths
     }

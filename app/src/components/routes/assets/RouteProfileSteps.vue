@@ -177,25 +177,25 @@ export default class extends Vue {
                 this.profile.options.reply_invite_tmpl_email += paragraph
             }
         }
-        self._db.profiles.set(this.profile)
+        self.app_db.profiles.set(this.profile)
     }
 
     prev_step(){
         // Go to prev step
         this.profile.setup_step -= 1
-        self._db.profiles.set(this.profile)
+        self.app_db.profiles.set(this.profile)
     }
 
     next_step(){
         // Go to next step (assumes current one already completed)
         this.profile.setup_step += 1
-        self._db.profiles.set(this.profile)
+        self.app_db.profiles.set(this.profile)
     }
 
     change_step(step:number){
         // Handle changes of step triggered by the stepper component tabs etc
         this.profile.setup_step = step
-        self._db.profiles.set(this.profile)
+        self.app_db.profiles.set(this.profile)
     }
 
     show_email_dialog(){
@@ -211,7 +211,7 @@ export default class extends Vue {
     async done(){
         // Complete steps (reveals normal profile settings UI)
         this.profile.setup_step = null
-        self._db.profiles.set(this.profile)
+        self.app_db.profiles.set(this.profile)
 
         // Make this the default profile if none yet
         if (!this.$store.state.default_profile){
@@ -219,10 +219,10 @@ export default class extends Vue {
         }
 
         // Assign any profileless drafts to this profile
-        for (const draft of await self._db.drafts.list()){
+        for (const draft of await self.app_db.drafts.list()){
             if (!draft.profile){
                 draft.profile = this.profile.id
-                await self._db.drafts.set(draft)
+                await self.app_db.drafts.set(draft)
             }
         }
     }

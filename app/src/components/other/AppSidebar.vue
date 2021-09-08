@@ -82,17 +82,17 @@ export default class extends Vue {
         if (import.meta.env.MODE === 'development' && event.shiftKey){
             const multiplier = (event.shiftKey?1:0) + (event.altKey?1:0) + (event.ctrlKey?1:0)
             this.$store.dispatch('show_snackbar', `Generating dummy data * ${multiplier}...`)
-            await self._db.generate_dummy_data(multiplier)
+            await self.app_db.generate_dummy_data(multiplier)
             self.location.reload()
             return
         }
 
         let draft:Draft
         // NOTE Also double check default template id not just set, but actual template exists still
-        if (this.default_template && await self._db.drafts.get(this.default_template)){
-            draft = await self._db.draft_copy(this.default_template, false)
+        if (this.default_template && await self.app_db.drafts.get(this.default_template)){
+            draft = await self.app_db.draft_copy(this.default_template, false)
         } else {
-            draft = await self._db.drafts.create()
+            draft = await self.app_db.drafts.create()
         }
         this.$router.push({name: 'draft', params: {draft_id: draft.id}})
     }
@@ -100,12 +100,12 @@ export default class extends Vue {
     async load_unread():Promise<void>{
         // Update unread responses tracking
         // TODO Indexing `read` and using `count` much quicker, but booleans not indexable
-        for (const reply of await self._db.replies.list()){
+        for (const reply of await self.app_db.replies.list()){
             if (!reply.read){
                 Vue.set(this.$store.state.tmp.unread_replies, reply.id, true)
             }
         }
-        for (const reaction of await self._db.reactions.list()){
+        for (const reaction of await self.app_db.reactions.list()){
             if (!reaction.read){
                 Vue.set(this.$store.state.tmp.unread_reactions, reaction.id, true)
             }

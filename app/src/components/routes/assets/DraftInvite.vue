@@ -115,7 +115,7 @@ export default class extends Vue {
 
     save(){
         // Save changes to db
-        self._db.drafts.set(this.draft)
+        self.app_db.drafts.set(this.draft)
     }
 
 }

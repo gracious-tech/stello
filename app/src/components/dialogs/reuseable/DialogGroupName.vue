@@ -30,7 +30,7 @@ export default class extends Vue {
     }
     set name(value:string){
         this.group.name = value
-        self._db.groups.set(this.group)
+        self.app_db.groups.set(this.group)
     }
 
     done(){

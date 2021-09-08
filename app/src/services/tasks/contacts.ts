@@ -34,12 +34,12 @@ export async function contacts_oauth_setup(task:Task):Promise<void>{
     // Set syncing property in db
     // NOTE This isn't done when first receiving new auth, especially when using an existing one
     const [oauth_id] = task.params
-    const oauth = await self._db.oauths.get(oauth_id)
+    const oauth = await self.app_db.oauths.get(oauth_id)
     if (!oauth){
         throw task.abort("No longer have access to contacts account")
     }
     oauth.contacts_sync = true
-    await self._db.oauths.set(oauth)
+    await self.app_db.oauths.set(oauth)
 
     // Turn this task into a sync
     await task.evolve(contacts_sync)
@@ -51,7 +51,7 @@ export async function contacts_sync(task:Task):Promise<void>{
 
     // Extract args from task object and get oauth record
     const [oauth_id] = task.params
-    let oauth = await self._db.oauths.get(oauth_id)
+    let oauth = await self.app_db.oauths.get(oauth_id)
     if (!oauth){
         throw task.abort("No longer have access to contacts account")
     }
@@ -66,9 +66,9 @@ export async function contacts_sync(task:Task):Promise<void>{
 
     // Update last synced time
     // NOTE Get fresh copy of oauth in case changed during the sync
-    oauth = await self._db.oauths.get(oauth_id)
+    oauth = await self.app_db.oauths.get(oauth_id)
     oauth.contacts_sync_last = new Date()
-    await self._db.oauths.set(oauth)
+    await self.app_db.oauths.set(oauth)
 }
 
 
@@ -78,13 +78,13 @@ export async function contacts_change_property(task:Task):Promise<void>{
     // Extract args from task object and get oauth record
     const [oauth_id, contact_id, property] = task.params
     const [value] = task.options
-    const oauth = await self._db.oauths.get(oauth_id)
+    const oauth = await self.app_db.oauths.get(oauth_id)
     if (!oauth){
         throw task.abort("No longer have access to contacts account")
     }
 
     // Get the contact's record
-    const contact = await self._db.contacts.get(contact_id)
+    const contact = await self.app_db.contacts.get(contact_id)
     if (!contact){
         throw task.abort("Contact no longer exists")
     }
@@ -98,7 +98,7 @@ export async function contacts_change_property(task:Task):Promise<void>{
 
     // If all went well, update value in own database
     contact[property] = value
-    await self._db.contacts.set(contact)
+    await self.app_db.contacts.set(contact)
 }
 
 
@@ -108,13 +108,13 @@ export async function contacts_change_email(task:Task):Promise<void>{
     // Extract args from task object and get oauth record
     const [oauth_id, contact_id] = task.params
     const [addresses, chosen] = task.options
-    const oauth = await self._db.oauths.get(oauth_id)
+    const oauth = await self.app_db.oauths.get(oauth_id)
     if (!oauth){
         throw task.abort("No longer have access to contacts account")
     }
 
     // Get the contact's record
-    const contact = await self._db.contacts.get(contact_id)
+    const contact = await self.app_db.contacts.get(contact_id)
     if (!contact){
         throw task.abort("Contact no longer exists")
     }
@@ -128,7 +128,7 @@ export async function contacts_change_email(task:Task):Promise<void>{
 
     // If all went well, update value in own database
     contact.address = chosen
-    await self._db.contacts.set(contact)
+    await self.app_db.contacts.set(contact)
 }
 
 
@@ -137,13 +137,13 @@ export async function contacts_remove(task:Task):Promise<void>{
 
     // Extract args from task object and get oauth record
     const [oauth_id, contact_id] = task.params
-    const oauth = await self._db.oauths.get(oauth_id)
+    const oauth = await self.app_db.oauths.get(oauth_id)
     if (!oauth){
         throw task.abort("No longer have access to contacts account")
     }
 
     // Get the contact's record
-    const contact = await self._db.contacts.get(contact_id)
+    const contact = await self.app_db.contacts.get(contact_id)
     if (!contact){
         throw task.abort("Contact no longer exists")
     }
@@ -156,7 +156,7 @@ export async function contacts_remove(task:Task):Promise<void>{
     await HANDLERS[oauth.issuer].remove(oauth, contact.service_id)
 
     // If all went well, remove contact in own database
-    await self._db.contacts.remove(contact.id)
+    await self.app_db.contacts.remove(contact.id)
 }
 
 
@@ -247,7 +247,7 @@ async function contacts_sync_google_full(task:Task, oauth:OAuth):Promise<Record<
     task.upcoming(1)
 
     // Get list of previously synced contacts for account and map by service's ids
-    const existing_contacts = await self._db.contacts.list_for_account('google', oauth.issuer_id)
+    const existing_contacts = await self.app_db.contacts.list_for_account('google', oauth.issuer_id)
     const existing_by_id = Object.fromEntries(existing_contacts.map(c => [c.service_id, c]))
 
     // Keep track of final confirmed contacts with mapping from service's id to Stello id
@@ -298,18 +298,18 @@ async function contacts_sync_google_full(task:Task, oauth:OAuth):Promise<Record<
                     existing.name = name
                     existing.address = address_gone ? primary_email : existing.address
                     existing.notes = notes
-                    self._db.contacts.set(existing)
+                    self.app_db.contacts.set(existing)
                 }
                 delete existing_by_id[service_id]  // Prevent deletion during final step
                 confirmed[existing.service_id] = existing.id
             } else {
-                const created = self._db.contacts.create_object()
+                const created = self.app_db.contacts.create_object()
                 created.name = name
                 created.address = primary_email
                 created.notes = notes
                 created.service_account = `google:${oauth.issuer_id}`
                 created.service_id = service_id
-                self._db.contacts.set(created)
+                self.app_db.contacts.set(created)
                 confirmed[created.service_id] = created.id
             }
         }
@@ -318,7 +318,7 @@ async function contacts_sync_google_full(task:Task, oauth:OAuth):Promise<Record<
         if (resp_data.nextSyncToken){
             // A sync token was returned, so this is the last page
             oauth.contacts_sync_token = resp_data.nextSyncToken
-            self._db.oauths.set(oauth)
+            self.app_db.oauths.set(oauth)
             break
         }
 
@@ -333,7 +333,7 @@ async function contacts_sync_google_full(task:Task, oauth:OAuth):Promise<Record<
 
     // Remove any remaining existing contacts since are no longer present in the service
     for (const existing of Object.values(existing_by_id)){
-        self._db.contacts.remove(existing.id)
+        self.app_db.contacts.remove(existing.id)
     }
 
     // Return confirmed ids
@@ -379,7 +379,7 @@ async function contacts_sync_google_groups(task:Task, oauth:OAuth, confirmed:Rec
     task.upcoming(batches.length)
 
     // Get existing groups from db
-    const existing_groups = await self._db.groups.list_for_account(oauth.issuer, oauth.issuer_id)
+    const existing_groups = await self.app_db.groups.list_for_account(oauth.issuer, oauth.issuer_id)
     const existing_by_id = Object.fromEntries(existing_groups.map(g => [g.service_id, g]))
 
     // Make batch get requests, as members data isn't returned for list requests
@@ -419,17 +419,17 @@ async function contacts_sync_google_groups(task:Task, oauth:OAuth, confirmed:Rec
                 const existing = existing_by_id[service_id]
                 existing.name = name
                 existing.contacts = contacts
-                self._db.groups.set(existing)
+                self.app_db.groups.set(existing)
                 delete existing_by_id[service_id]  // Prevent deletion during final step
             } else {
-                self._db.groups.create(name, contacts, `google:${oauth.issuer_id}`, service_id)
+                self.app_db.groups.create(name, contacts, `google:${oauth.issuer_id}`, service_id)
             }
         }
     }
 
     // Remove any remaining existing groups since are no longer present in the service
     for (const existing of Object.values(existing_by_id)){
-        self._db.groups.remove(existing.id)
+        self.app_db.groups.remove(existing.id)
     }
 }
 
