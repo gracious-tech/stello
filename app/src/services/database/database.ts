@@ -23,6 +23,7 @@ import {cycle, percent, range} from '../utils/iteration'
 import {remove_item} from '../utils/arrays'
 import {escape_for_html} from '../utils/strings'
 import {migrate, DATABASE_VERSION} from './migrations'
+import {request_blob} from '../utils/http'
 
 
 export function open_db():Promise<AppDatabaseConnection>{
@@ -105,15 +106,15 @@ export class Database {
         const section_records = await this.sections.get_multiple(original.sections.flat())
         copy.sections = original.sections.map(row => {
             return row.map(old_section_id => {
-                const section = section_records.shift()  // Take next section out of array
+                const section = section_records.shift()!  // Take next section out of array
                 section.id = generate_token()  // Change id of the section
-                this.sections.set(section)  // Save to db under the new id
+                void this.sections.set(section)  // Save to db under the new id
                 return section.id  // Replace old id in the sections nested array
             })
         }) as ([string]|[string, string])[]
 
         // Save the copy to the database and return
-        this.drafts.set(copy)
+        void this.drafts.set(copy)
         return copy
     }
 
@@ -200,7 +201,7 @@ export class Database {
         const copies = await Promise.all(recipients.map(async contact_id => {
 
             // Get the contact's data
-            const contact = contacts.find(c => c.id === contact_id)
+            const contact = contacts.find(c => c.id === contact_id)!
 
             // Generate secret and derive response token from it
             // NOTE Response token is derived from secret in case message has expired
@@ -498,7 +499,7 @@ export class Database {
         })
 
         // Create a image section
-        const image_blob = await (await fetch('default_invite_image.jpg')).blob()
+        const image_blob = await request_blob('default_invite_image.jpg')
         const section_image = await this.sections.create({
             type: 'images',
             images: [{id: generate_token(), data: image_blob, caption: "An example image"}],

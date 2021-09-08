@@ -32,6 +32,7 @@ import RouteRepliesReplaction from '@/components/routes/assets/RouteRepliesRepla
 import {Reply} from '@/services/database/replies'
 import {Reaction} from '@/services/database/reactions'
 import {Section} from '@/services/database/sections'
+import {request_json} from '@/services/utils/http'
 
 
 @Component({
@@ -39,10 +40,10 @@ import {Section} from '@/services/database/sections'
 })
 export default class extends Vue {
 
-    @Prop() replactions:(Reply|Reaction)[]
+    @Prop() replactions!:(Reply|Reaction)[]
 
-    section:Section = null
-    section_image_vimeo:string = null
+    section:Section|null = null
+    section_image_vimeo:string|null = null
     section_expanded = false
 
     async created(){
@@ -56,10 +57,10 @@ export default class extends Vue {
                 const video_id = this.section.content.id
                 const url = `https://vimeo.com/api/oembed.json?url=https://vimeo.com/${video_id}`
                 try {
-                    const oembed_resp = JSON.parse(await (await fetch(url)).text())
+                    const oembed_resp:{thumbnail_url:string} = await request_json(url)
                     this.section_image_vimeo = oembed_resp.thumbnail_url
                 } catch {
-                    self.app_report_error(new Error(`Failed to get vimeo thumbnail: ${url}`))
+                    // Can't do anything about Vimeo issues... video probably deleted
                 }
             }
         }
@@ -67,7 +68,7 @@ export default class extends Vue {
 
     get first(){
         // The first replaction which is used to get basic info about the subsection
-        return this.replactions[0]
+        return this.replactions[0]!
     }
 
     get sectionless(){
@@ -80,7 +81,7 @@ export default class extends Vue {
         return this.first.msg_title
     }
 
-    get section_image():string|undefined{
+    get section_image():string|null{
         // Return url for an image that represents the section (if any)
         if (this.section?.content.type === 'images'){
             const images = this.section.content.images
@@ -96,7 +97,7 @@ export default class extends Vue {
                 return this.section_image_vimeo
             }
         }
-        return undefined
+        return null
     }
 
     get section_text(){
@@ -119,7 +120,7 @@ export default class extends Vue {
 
     go_to_msg(){
         // Navigate to the message of the replactions
-        this.$router.push({name: 'message', params: {msg_id: this.first.msg_id}})
+        void this.$router.push({name: 'message', params: {msg_id: this.first.msg_id}})
     }
 
     archive_all(){
@@ -127,7 +128,7 @@ export default class extends Vue {
         for (const replaction of this.replactions){
             if (!replaction.archived){
                 replaction.archived = true
-                self.app_db[replaction.is_reply ? 'replies' : 'reactions'].set(replaction)
+                void self.app_db[replaction.is_reply ? 'replies' : 'reactions'].set(replaction)
             }
         }
     }
