@@ -6,5 +6,6 @@ cd "$(dirname "$(dirname "$0")")"
 
 .bin/build_electron
 cd electron
+# TODO re-enable security warnings once done: https://github.com/electron/electron/issues/30880
 # NOTE --disable-gpu set just to silence some warnings
-node_modules/.bin/electron --disable-gpu .
+ELECTRON_DISABLE_SECURITY_WARNINGS=true node_modules/.bin/electron --disable-gpu .
