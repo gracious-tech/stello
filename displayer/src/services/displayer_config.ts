@@ -1,8 +1,7 @@
 
 import {url64_to_buffer} from './utils/coding'
 import {import_key_asym} from './utils/crypt'
-import {request_json} from './utils/http'
-import {error_to_string} from './utils/exceptions'
+import {report_http_failure, request_json} from './utils/http'
 import {deployment_config} from './deployment_config'
 
 
@@ -21,13 +20,16 @@ interface DisplayConfigJson {
 async function download_displayer_config(name:string){
     // Download and parse displayer config
     const url = `${deployment_config.url_msgs}disp_config_${name}`
-    const config = await request_json<DisplayConfigJson>(url).catch(error => {
-        self.app_report_error(error_to_string(error))
+    let config:DisplayConfigJson
+    try {
+        config = await request_json<DisplayConfigJson>(url)
+    } catch (error){
+        report_http_failure(error)
         return null  // Don't cause UI to fail
-    })
+    }
 
     // Convert base64 public key into a CryptoKey
-    if (config?.resp_key_public){
+    if (config.resp_key_public){
         config.resp_key_public = await import_key_asym(url64_to_buffer(
             config.resp_key_public as string))
     }
