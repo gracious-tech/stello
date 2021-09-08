@@ -31,7 +31,7 @@ declare global {
         app_splash_unsupported():void
         app_report_error_critical:boolean
         app_report_error(error:unknown):void
-        _fail_visual(network?:boolean):void
+        app_fail_visual(network?:boolean):void
         app_vue:App
         app_db:typeof database
         app_store:typeof store

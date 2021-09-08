@@ -96,7 +96,7 @@ self.app_report_error = async (error:unknown):Promise<void> => {
     rollbar(error as string)
 }
 
-self._fail_visual = (network=false):void => {
+self.app_fail_visual = (network=false):void => {
     // Visually display failure, either via a splash or a top bar
 
     // First error takes priority, so ignore any future failures
@@ -153,7 +153,7 @@ self.addEventListener('error', (event:ErrorEvent):void => {
     }
     console.error(error)
     self.app_report_error(msg)
-    self._fail_visual()
+    self.app_fail_visual()
 })
 
 
@@ -166,5 +166,5 @@ self.addEventListener('unhandledrejection', event => {
         }
     }
     self.app_report_error(msg)
-    self._fail_visual()
+    self.app_fail_visual()
 })

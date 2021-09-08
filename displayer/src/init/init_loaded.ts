@@ -28,7 +28,7 @@ self.app_vue.config.errorHandler = (error, vm, info) => {
     // Log and report
     console.error(details)  // tslint:disable-line:no-console
     self.app_report_error(details)
-    self._fail_visual()
+    self.app_fail_visual()
 }
 self.app_vue.config.warnHandler = (msg, vm, trace) => {
     // Vue will by default just log warnings, where as visible fail during dev is preferred
@@ -49,7 +49,7 @@ self.app_vue.config.warnHandler = (msg, vm, trace) => {
 
     // Visible fail only in dev mode, as just warnings, not errors
     if (import.meta.env.MODE !== 'production'){
-        self._fail_visual()
+        self.app_fail_visual()
     }
 }
 
