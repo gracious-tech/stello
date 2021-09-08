@@ -62,7 +62,7 @@ export async function responses_receive(task:Task):Promise<void>{
                     // Should never have an unknown type unless responder higher version than app
                     // User can't do anything about this issue, so silently report
                     // NOTE Not deleting response as may be able to process when updated
-                    self._report_error(new Error(`Invalid response type: ${type}`))
+                    self.app_report_error(new Error(`Invalid response type: ${type}`))
                 }
             }
         } catch (error){

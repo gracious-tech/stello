@@ -177,7 +177,7 @@ export class Task {
         // Resolve task's done promise, optionally setting and resolving done with error if any
         this.error = error
         if (this.error_type === 'unknown'){
-            this.error_report_id = self._report_error(error)
+            this.error_report_id = self.app_report_error(error)
         }
         this.done_resolve(error)
     }

@@ -150,7 +150,7 @@ const i18n = new VueI18n({
         // Report missing i18n strings
         const error = new Error(`Missing i18n path: ${path} (${locale})`)
         console.error(error)
-        self._report_error(error)
+        self.app_report_error(error)
     },
 })
 

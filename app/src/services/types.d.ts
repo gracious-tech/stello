@@ -43,7 +43,7 @@ declare module 'Custom' {
             _db:Database
             _toggle_dark():void
             _update():void
-            _report_error(error:any):string
+            app_report_error(error:unknown):string
             app_native:NativeInterface
         }
 

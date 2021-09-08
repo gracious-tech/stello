@@ -72,7 +72,7 @@ const rollbar = new Rollbar({
 
 
 // Error reporting abstraction
-self._report_error = function(error:Error):string{
+self.app_report_error = function(error:Error):string{
     // Report an error and return id for the report
     // NOTE Uses 'error' level so that a UI fail bar is NOT shown
     console.error(error)

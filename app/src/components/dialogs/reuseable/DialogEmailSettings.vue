@@ -279,7 +279,7 @@ export default class extends Vue {
         // If an unknown error occurs, submit a report for it
         this.error_report_id = null  // Always reset since error has changed
         if (this.error.code === 'unknown'){
-            this.error_report_id = self._report_error(
+            this.error_report_id = self.app_report_error(
                 new Error(`Unknown smtp error: ${this.error.details}`))
         }
     }

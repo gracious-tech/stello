@@ -137,7 +137,7 @@ export default class extends Vue {
             this.$store.dispatch('show_snackbar', "Failed to submit request (please retry)")
             if (resp){
                 // Not a network issue, so report
-                self._report_error(`Request for storage failed: ${resp.status} ${resp.statusText}`)
+                self.app_report_error(`Request for storage failed: ${resp.status} ${resp.statusText}`)
             }
         }
     }
