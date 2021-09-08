@@ -32,7 +32,7 @@ declare global {
         app_report_error_critical:boolean
         app_report_error(error:unknown):void
         _fail_visual(network?:boolean):void
-        _app:App
+        app_vue:App
         app_db:typeof database
         _store:typeof store
     }

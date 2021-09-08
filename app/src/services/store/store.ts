@@ -107,7 +107,7 @@ async function get_store_options(db:Database):Promise<StoreOptions<AppStoreState
         set_dark({commit}, value:boolean):void{
             // Change the value of dark and tell Vuetify about it
             commit('dict_set', ['dark', value])
-            self._app.$vuetify.theme.dark = value
+            self.app_vue.$vuetify.theme.dark = value
         },
     },
 }}

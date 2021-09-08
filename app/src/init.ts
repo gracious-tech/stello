@@ -206,7 +206,7 @@ void open_db().then(async connection => {
     self.app_db = new Database(connection)
 
     // Init store
-    // NOTE Can't just rely on self._app as some methods (like router guards) called before ready
+    // NOTE Can't just rely on self.app_vue as some methods (like router guards) called before ready
     const store = await get_store(self.app_db)
     self._store = store
 
@@ -221,7 +221,7 @@ void open_db().then(async connection => {
 
     // Mount app
     const render = (ce:CreateElement) => ce(App)
-    self._app = new Vue({store, router, i18n, vuetify, render}).$mount('#app')
+    self.app_vue = new Vue({store, router, i18n, vuetify, render}).$mount('#app')
 
     // Increment opens count
     self._store.commit('dict_set', ['usage_opens', self._store.state.usage_opens + 1])

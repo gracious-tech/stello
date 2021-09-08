@@ -16,11 +16,11 @@ import './init_loaded_styles.sass'
 
 
 // Init Vue app so can configure before mounting
-self._app = createApp(App)
+self.app_vue = createApp(App)
 
 
 // Handle Vue errors
-self._app.config.errorHandler = (error, vm, info) => {
+self.app_vue.config.errorHandler = (error, vm, info) => {
     // Vue will by default just log component errors, but many can actually be critical to UI
     // NOTE Vue's info arg says what part of Vue the error occured in (e.g. render/hook/etc)
     const details = `${error_to_string(error)}\n\n(Error in Vue ${info})`
@@ -30,7 +30,7 @@ self._app.config.errorHandler = (error, vm, info) => {
     self.app_report_error(details)
     self._fail_visual()
 }
-self._app.config.warnHandler = (msg, vm, trace) => {
+self.app_vue.config.warnHandler = (msg, vm, trace) => {
     // Vue will by default just log warnings, where as visible fail during dev is preferred
     const details = `${msg}\n(Vue warning)\n\n${trace}`
 
@@ -55,7 +55,7 @@ self._app.config.warnHandler = (msg, vm, trace) => {
 
 
 // Register global components
-self._app.component('AppProgress', AppProgress)
+self.app_vue.component('AppProgress', AppProgress)
 
 
 // Do init within an async function so can use await
@@ -69,6 +69,6 @@ async function init(){
     self._store = store
 
     // Mount the app
-    self._app.mount('#app')
+    self.app_vue.mount('#app')
 }
-init()
+void init()
