@@ -21,7 +21,7 @@ let fail_report_last = 0  // i.e. 1970
 
 
 // Consider errors critical up till msg contents displayed
-self._fail_report_critical = true
+self.app_report_error_critical = true
 
 
 // ERROR UTILS
@@ -38,7 +38,7 @@ function rollbar(message:string):void{
                 environment: import.meta.env.MODE,
                 platform: 'browser',
                 language: 'javascript',
-                level: self._fail_report_critical ? 'critical' : 'error',
+                level: self.app_report_error_critical ? 'critical' : 'error',
                 uuid: generate_token(),
                 timestamp: Math.round(new Date().getTime() / 1000),  // In secs
                 code_version: 'v' + app_config.version,  // 'v' to match git tags
@@ -64,7 +64,7 @@ function rollbar(message:string):void{
 }
 
 
-self._fail_report = async (msg:string|Error):Promise<void> => {
+self.app_report_error = async (error:unknown):Promise<void> => {
     // Report an error
 
     // Don't report if browser not supported, as not actionable
@@ -80,7 +80,7 @@ self._fail_report = async (msg:string|Error):Promise<void> => {
     fail_report_last = new Date().getTime()
 
     // If JS only just loaded, delay the report to see if message will load anyway or not
-    // Gives self._fail_report_critical a chance to be changed before submitting the report
+    // Gives self.app_report_error_critical a chance to be changed before submitting the report
     const time_since_start = fail_report_last - start_ms
     const time_till_allowed = 3000 - time_since_start
     if (time_till_allowed > 0){
@@ -88,12 +88,12 @@ self._fail_report = async (msg:string|Error):Promise<void> => {
     }
 
     // Convert to a string if not already
-    if (typeof msg !== 'string'){
-        msg = error_to_string(msg)
+    if (typeof error !== 'string'){
+        error = error_to_string(error)
     }
 
     // Send the report
-    rollbar(msg)
+    rollbar(error as string)
 }
 
 self._fail_visual = (network=false):void => {
@@ -144,7 +144,7 @@ self._fail_visual = (network=false):void => {
 
 self.addEventListener('error', (event:ErrorEvent):void => {
     // Handle uncaught errors
-    const error = event.error ?? event.message ?? 'unknown'
+    const error:unknown = event.error ?? event.message ?? 'unknown'
     const msg = error_to_string(error)
     for (const code of ignore_errors){
         if (msg.includes(code)){
@@ -152,7 +152,7 @@ self.addEventListener('error', (event:ErrorEvent):void => {
         }
     }
     console.error(error)
-    self._fail_report(msg)
+    self.app_report_error(msg)
     self._fail_visual()
 })
 
@@ -165,6 +165,6 @@ self.addEventListener('unhandledrejection', event => {
             return
         }
     }
-    self._fail_report(msg)
+    self.app_report_error(msg)
     self._fail_visual()
 })

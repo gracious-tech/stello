@@ -29,8 +29,8 @@ declare global {
         _failed:boolean
         _browser_supported:boolean
         _fail_splash_unsupported():void
-        _fail_report_critical:boolean
-        _fail_report(msg:string|Error):void
+        app_report_error_critical:boolean
+        app_report_error(error:unknown):void
         _fail_visual(network?:boolean):void
         _app:App
         _db:typeof database

@@ -74,7 +74,7 @@ export default defineComponent({
         })
 
         // Message contents will now be displayed, so any errors no longer "critical"
-        self._fail_report_critical = false
+        self.app_report_error_critical = false
 
         return {
             content: computed(() => props.section.content),

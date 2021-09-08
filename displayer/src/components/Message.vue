@@ -80,7 +80,7 @@ setup(){
             fix_desc.value = "Retry"
             if (!(thrown_error as Error).message.startsWith('network')){
                 // Could be a 500 error etc, so report, but user doesn't need to know this
-                self._fail_report(thrown_error as Error)
+                self.app_report_error(thrown_error)
             }
             return
         }

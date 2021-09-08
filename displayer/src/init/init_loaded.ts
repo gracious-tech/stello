@@ -27,7 +27,7 @@ self._app.config.errorHandler = (error, vm, info) => {
 
     // Log and report
     console.error(details)  // tslint:disable-line:no-console
-    self._fail_report(details)
+    self.app_report_error(details)
     self._fail_visual()
 }
 self._app.config.warnHandler = (msg, vm, trace) => {
@@ -45,7 +45,7 @@ self._app.config.warnHandler = (msg, vm, trace) => {
 
     // Log and report
     console.error(details)  // tslint:disable-line:no-console
-    self._fail_report(details)
+    self.app_report_error(details)
 
     // Visible fail only in dev mode, as just warnings, not errors
     if (import.meta.env.MODE !== 'production'){

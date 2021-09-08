@@ -22,7 +22,7 @@ async function download_displayer_config(name:string){
     // Download and parse displayer config
     const url = `${deployment_config.url_msgs}disp_config_${name}`
     const config = await request_json<DisplayConfigJson>(url).catch(error => {
-        self._fail_report(error_to_string(error))
+        self.app_report_error(error_to_string(error))
         return null  // Don't cause UI to fail
     })
 
