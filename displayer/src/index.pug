@@ -125,7 +125,7 @@ html
         //- NOTE Only fails if error, as even if browser unsupported, some could still work in part
         //- NOTE `app_browser_supported` is false for http (except localhost) as crypto only for https
         script.
-            self._hash = self.location.hash
+            self.app_hash = self.location.hash
             self.location.hash = ''
             self._failed = false
             self.app_browser_supported = !! (crypto && crypto.subtle && CSS && CSS.supports
@@ -140,7 +140,7 @@ html
             self.addEventListener('error', function(){
                 if (!self._failed && !self.app_browser_supported){
                     self._failed = true
-                    self.location.hash = self._hash
+                    self.location.hash = self.app_hash
                     self._fail_splash_unsupported()
                 }
             })

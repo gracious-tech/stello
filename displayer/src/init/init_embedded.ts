@@ -106,7 +106,7 @@ self._fail_visual = (network=false):void => {
     self._failed = true
 
     // Restore hash to address bar so user can copy to different browser if needed
-    self.location.hash = self._hash
+    self.location.hash = self.app_hash
 
     // Add HTML for message
     if (network){

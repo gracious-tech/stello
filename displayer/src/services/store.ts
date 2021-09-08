@@ -89,7 +89,7 @@ export class DisplayerStore {
         self.addEventListener('hashchange', event => {
             // Don't trigger when hash has been cleared by previous `process_hash` call
             // Also don't process if just reacting to a failure restoring the hash to the url
-            if (self.location.hash !== '' && (!self._failed || self.location.hash !== self._hash)){
+            if (self.location.hash !== '' && (!self._failed || self.location.hash !== self.app_hash)){
                 this.process_hash()
             }
         })
@@ -110,7 +110,7 @@ export class DisplayerStore {
         // NOTE On first load the index JS will have put the hash in a custom variable
 
         // Decode the hash
-        const hash = await decode_hash(self.location.hash || self._hash)
+        const hash = await decode_hash(self.location.hash || self.app_hash)
 
         // Ensure hash cleared for security
         // NOTE Never clear if in failed state, so user can copy to different browser if needed
