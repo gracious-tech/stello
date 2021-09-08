@@ -68,7 +68,7 @@ self.app_report_error = async (error:unknown):Promise<void> => {
     // Report an error
 
     // Don't report if browser not supported, as not actionable
-    if (import.meta.env.MODE !== 'production' || !self._browser_supported){
+    if (import.meta.env.MODE !== 'production' || !self.app_browser_supported){
         return
     }
 
@@ -118,7 +118,7 @@ self._fail_visual = (network=false):void => {
                 <button onclick="location.reload(true)">RETRY</button>
             </div>
         `
-    } else if (self._browser_supported){
+    } else if (self.app_browser_supported){
         // Message quite likely already visible, so just show a top bar
         // NOTE Since only showing a bar, ensure loading animation no longer exists
         self.document.querySelector('#app > svg.loading')?.remove()

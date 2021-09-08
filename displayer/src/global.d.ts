@@ -27,7 +27,7 @@ declare global {
     interface Window {
         _hash:string
         _failed:boolean
-        _browser_supported:boolean
+        app_browser_supported:boolean
         _fail_splash_unsupported():void
         app_report_error_critical:boolean
         app_report_error(error:unknown):void
