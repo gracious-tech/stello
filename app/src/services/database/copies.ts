@@ -4,20 +4,20 @@ import {AppDatabaseConnection, RecordMessageCopy} from './types'
 
 export class MessageCopy implements RecordMessageCopy {
 
-    id:string
-    msg_id:string
-    secret:CryptoKey
-    secret_sse:CryptoKey
-    resp_token:string
-    uploaded:boolean
-    uploaded_latest:boolean
-    invited:boolean
-    expired:boolean
-    contact_id:string
-    contact_name:string
-    contact_hello:string
-    contact_address:string
-    contact_multiple:boolean
+    id!:string
+    msg_id!:string
+    secret!:CryptoKey
+    secret_sse!:CryptoKey
+    resp_token!:string
+    uploaded!:boolean
+    uploaded_latest!:boolean
+    invited!:boolean
+    expired!:boolean
+    contact_id!:string
+    contact_name!:string
+    contact_hello!:string
+    contact_address!:string
+    contact_multiple!:boolean
 
     constructor(db_object:RecordMessageCopy){
         Object.assign(this, db_object)

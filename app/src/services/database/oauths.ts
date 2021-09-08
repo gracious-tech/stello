@@ -6,19 +6,19 @@ import {capitalize} from 'lodash'
 
 export class OAuth implements RecordOAuth {
 
-    id:string
-    issuer:'google'|'microsoft'
-    issuer_id:string
-    issuer_config:Record<string, any>
-    email:string
-    name:string
-    scope_sets:('email_send'|'contacts')[]
-    token_refresh:string
-    token_access:string
-    token_access_expires:Date
-    contacts_sync:boolean
-    contacts_sync_last:Date
-    contacts_sync_token:string
+    id!:string
+    issuer!:'google'|'microsoft'
+    issuer_id!:string
+    issuer_config!:Record<string, any>
+    email!:string
+    name!:string
+    scope_sets!:('email_send'|'contacts')[]
+    token_refresh!:string
+    token_access!:string
+    token_access_expires!:Date
+    contacts_sync!:boolean
+    contacts_sync_last!:Date
+    contacts_sync_token!:string
 
     constructor(db_object:RecordOAuth){
         Object.assign(this, db_object)

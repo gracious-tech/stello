@@ -7,15 +7,15 @@ import {partition} from '../utils/strings'
 export class Contact implements RecordContact {
 
     // Stello owned
-    id:string
-    created:Date
-    name:string
-    name_hello:string
-    address:string
-    notes:string
-    service_account:string
-    service_id:string
-    multiple:boolean
+    id!:string
+    created!:Date
+    name!:string
+    name_hello!:string
+    address!:string
+    notes!:string
+    service_account!:string|null
+    service_id!:string|null
+    multiple!:boolean
 
     constructor(db_object:RecordContact){
         Object.assign(this, db_object)

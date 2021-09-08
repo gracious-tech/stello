@@ -4,23 +4,23 @@ import {AppDatabaseConnection, RecordReaction} from './types'
 
 export class Reaction implements RecordReaction {
 
-    id:string
-    sent:Date
-    ip:string
-    user_agent:string
-    copy_id:string
-    msg_id:string
-    msg_title:string
-    contact_id:string
-    contact_name:string
-    section_id:string|null
-    section_num:number
-    section_type:string
-    subsection_id:string|null
-    content:string
-    read:boolean
-    replied:boolean
-    archived:boolean
+    id!:string
+    sent!:Date
+    ip!:string
+    user_agent!:string
+    copy_id!:string
+    msg_id!:string
+    msg_title!:string
+    contact_id!:string
+    contact_name!:string
+    section_id!:string|null
+    section_num!:number
+    section_type!:string
+    subsection_id!:string|null
+    content!:string
+    read!:boolean
+    replied!:boolean
+    archived!:boolean
 
     constructor(db_object:RecordReaction){
         Object.assign(this, db_object)

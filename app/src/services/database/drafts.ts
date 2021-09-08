@@ -12,16 +12,16 @@ import {remove_value} from '@/services/utils/arrays'
 
 export class Draft implements RecordDraft {
 
-    id:string
-    template:boolean
-    reply_to:string
-    modified:Date
-    title:string
-    sections:([string]|[string, string])[]
-    profile:string
-    options_identity:MessageOptionsIdentity
-    options_security:MessageOptionsSecurity
-    recipients:RecordDraftRecipients
+    id!:string
+    template!:boolean
+    reply_to!:string
+    modified!:Date
+    title!:string
+    sections!:([string]|[string, string])[]
+    profile!:string
+    options_identity!:MessageOptionsIdentity
+    options_security!:MessageOptionsSecurity
+    recipients!:RecordDraftRecipients
 
     constructor(db_object:RecordDraft){
         Object.assign(this, db_object)

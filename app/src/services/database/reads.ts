@@ -4,12 +4,12 @@ import {AppDatabaseConnection, RecordRead} from './types'
 
 export class Read implements RecordRead {
 
-    id:string
-    sent:Date
-    ip:string
-    user_agent:string
-    copy_id:string
-    msg_id:string
+    id!:string
+    sent!:Date
+    ip!:string
+    user_agent!:string
+    copy_id!:string
+    msg_id!:string
 
     constructor(db_object:RecordRead){
         Object.assign(this, db_object)

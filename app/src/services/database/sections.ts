@@ -6,9 +6,9 @@ import {generate_token} from '@/services/utils/crypt'
 export class Section<TContent extends RecordSectionContent=RecordSectionContent>
         implements RecordSection<TContent> {
 
-    id:string
-    respondable:boolean
-    content:TContent
+    id!:string
+    respondable!:boolean
+    content!:TContent
 
     constructor(db_object:RecordSection){
         Object.assign(this, db_object)

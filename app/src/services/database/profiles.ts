@@ -85,15 +85,15 @@ export const SMTP_PROVIDERS:{[provider:string]:SmtpProvider} = {
 
 export class Profile implements RecordProfile {
 
-    id:string
-    setup_step:number
-    host:RecordProfileHost
-    host_state:RecordProfileHostState
-    email:string
-    smtp:RecordProfileSmtp
-    options:RecordProfileOptions
-    msg_options_identity:MessageOptionsIdentity
-    msg_options_security:MessageOptionsSecurity
+    id!:string
+    setup_step!:number
+    host!:RecordProfileHost
+    host_state!:RecordProfileHostState
+    email!:string
+    smtp!:RecordProfileSmtp
+    options!:RecordProfileOptions
+    msg_options_identity!:MessageOptionsIdentity
+    msg_options_security!:MessageOptionsSecurity
 
     constructor(db_object:RecordProfile){
         Object.assign(this, db_object)

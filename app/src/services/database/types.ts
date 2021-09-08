@@ -19,8 +19,8 @@ export interface RecordContact {
     name_hello:string
     address:string  // An email address (previously planned to allow links, but never implemented)
     notes:string
-    service_account:string  // issuer:issuer_id
-    service_id:string  // The id for this contact in the service account
+    service_account:string|null  // issuer:issuer_id
+    service_id:string|null  // The id for this contact in the service account
     multiple:boolean  // Whether the contact represents multiple people rather than an individual
 }
 
@@ -31,8 +31,8 @@ export interface RecordGroup {
     id:string
     name:string
     contacts:string[]
-    service_account:string  // issuer:issuer_id
-    service_id:string
+    service_account:string|null  // issuer:issuer_id
+    service_id:string|null
 }
 
 
@@ -96,7 +96,7 @@ export interface RecordProfileSmtp {
     user:string
     pass:string
     host:string
-    port:number
+    port:number|null
     starttls:boolean
 }
 

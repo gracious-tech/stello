@@ -7,14 +7,14 @@ import {AppDatabaseConnection, RecordMessage, RecordDraft} from './types'
 
 export class Message implements RecordMessage {
 
-    id:string
-    published:Date
-    expired:boolean
-    draft:RecordDraft
-    assets_key:CryptoKey
-    assets_uploaded:{[id:string]:boolean}
-    lifespan:number
-    max_reads:number
+    id!:string
+    published!:Date
+    expired!:boolean
+    draft!:RecordDraft
+    assets_key!:CryptoKey
+    assets_uploaded!:{[id:string]:boolean}
+    lifespan!:number
+    max_reads!:number
 
     constructor(db_object:RecordMessage){
         Object.assign(this, db_object)

@@ -5,11 +5,11 @@ import {generate_token} from '@/services/utils/crypt'
 
 export class Group implements RecordGroup {
 
-    id:string
-    name:string
-    contacts:string[]
-    service_account:string
-    service_id:string
+    id!:string
+    name!:string
+    contacts!:string[]
+    service_account!:string|null
+    service_id!:string|null
 
     constructor(db_object:RecordGroup){
         Object.assign(this, db_object)

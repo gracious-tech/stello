@@ -7,6 +7,7 @@
 import {IDBPTransaction, StoreNames} from 'idb'
 
 // WARN Careful importing/using anything external (embed instead so that migrations stay consistent)
+import {request_blob} from '../utils/http'
 import {AppDatabaseSchema, RecordProfile} from './types'
 
 
@@ -102,7 +103,7 @@ async function to3(transaction:VersionChangeTransaction){
 
     // half_width property removed from RecordSection post v0.1.1
     for await (const cursor of transaction.objectStore('sections')){
-        delete (cursor.value as unknown as {half_width:boolean}).half_width
+        delete (cursor.value as unknown as {half_width?:boolean}).half_width
         void cursor.update(cursor.value)
     }
 
@@ -316,8 +317,7 @@ async function to9(transaction:VersionChangeTransaction):Promise<void>{
         // Invite image and secret added to profiles
         const profiles = await db.getAll('profiles')
         if (profiles.length){
-            const default_invite_image =
-                await (await fetch('migrations/default_invite_image.jpg')).blob()
+            const default_invite_image = await request_blob('migrations/default_invite_image.jpg')
             for (const profile of profiles){
                 profile.msg_options_identity.invite_image = default_invite_image
                 profile.options.reply_invite_image = default_invite_image
