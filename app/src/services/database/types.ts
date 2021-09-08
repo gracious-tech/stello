@@ -92,7 +92,7 @@ export interface HostCredentials {
 }
 
 export interface RecordProfileSmtp {
-    oauth:string
+    oauth:string|null
     user:string
     pass:string
     host:string
@@ -289,7 +289,7 @@ export interface RecordRequestResend extends RecordResponseCore {
 
 export interface MessageOptionsIdentity {
     sender_name:string
-    invite_image:Blob
+    invite_image:Blob|null
     invite_tmpl_email:string
     invite_tmpl_clipboard:string  // Not currently used in drafts (always uses profile's value)
 }

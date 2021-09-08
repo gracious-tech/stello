@@ -366,7 +366,7 @@ async function to11(transaction:VersionChangeTransaction):Promise<void>{
     // Remove affected oauths from profiles, forcing them to prompt for new email settings
     // NOTE Microsoft oauths up-till-now only used for email, not contacts
     for await (const cursor of transaction.objectStore('profiles')){
-        if (deleted_oauths.includes(cursor.value.smtp.oauth)){
+        if (deleted_oauths.includes(cursor.value.smtp.oauth ?? 'null')){
             cursor.value.smtp.oauth = null
             void cursor.update(cursor.value)
         }
