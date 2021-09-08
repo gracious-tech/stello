@@ -53,20 +53,22 @@ export default defineComponent({
             const image_id = image_meta.id ?? image_meta.asset_webp
 
             // Create reactive image object in structure slideshow expects
-            const image = reactive({
+            const image = reactive<SlideshowImage>({
                 id: image_id,
                 data: null,
                 caption: image_meta.caption,
-            } as SlideshowImage)
+            })
 
             // Add object now so order is kept, while waiting for asset download
             images.value.push(image)
 
             // Get the asset's data
             const asset_id = image_id + (asset_type === 'jpeg' ? 'j' : '')
-            get_asset.value(asset_id).then(decrypted => {
-                image.data = buffer_to_blob(decrypted, `image/${asset_type}`)
-            }).catch(() => {})  // Will show placeholder if getting asset fails
+            void get_asset.value(asset_id).then(decrypted => {
+                if (decrypted){
+                    image.data = buffer_to_blob(decrypted, `image/${asset_type}`)
+                }
+            })
         }
 
         // Get aspect ratio from content metadata

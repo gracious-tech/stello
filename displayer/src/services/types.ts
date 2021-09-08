@@ -1,2 +1,2 @@
 
-export type GetAsset = (asset_id:string)=>Promise<ArrayBuffer>
+export type GetAsset = (asset_id:string)=>Promise<ArrayBuffer|null>

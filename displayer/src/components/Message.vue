@@ -33,13 +33,14 @@ import AppUnsubscribed from './AppUnsubscribed.vue'
 import DialogResend from './DialogResend.vue'
 import MessageContents from './MessageContents.vue'
 import {decrypt_sym, import_key_sym} from '../services/utils/crypt'
-import {request, request_buffer, report_http_failure} from '../services/utils/http'
+import {request, report_http_failure} from '../services/utils/http'
 import {utf8_to_string, url64_to_buffer} from '../services/utils/coding'
 import {store} from '../services/store'
 import {PublishedCopy} from '../shared/shared_types'
 import {deployment_config} from '../services/deployment_config'
 import {respond_read} from '../services/responses'
 import {displayer_config} from '../services/displayer_config'
+import {GetAsset} from '@/services/types'
 
 
 export default defineComponent({
@@ -55,7 +56,7 @@ setup(){
     const error = ref<'network'|'expired'|'corrupted'|null>(null)
     const error_desc = ref<string|null>(null)
     const fix_desc = ref<string|null>(null)
-    const get_asset = ref<(asset_id:string) => Promise<ArrayBuffer>>()
+    const get_asset = ref<GetAsset>()
 
     // Access to secret that ignores fact is readonly due to store (doesn't matter but TS complains)
     const secret = current_msg.secret as CryptoKey
@@ -112,10 +113,16 @@ setup(){
 
         // Import the assets key and make a method for downloading and decrypting assets
         const assets_key = await import_key_sym(url64_to_buffer(msg_data.assets_key))
-        get_asset.value = async (asset_id:string):Promise<ArrayBuffer> => {
+        get_asset.value = async (asset_id:string):Promise<ArrayBuffer|null> => {
             const url = `${deployment_config.url_msgs}assets/${msg_data.base_msg_id}/${asset_id}`
-            const encrypted = await request_buffer(url)  // Callers should handle failure/expired
-            return decrypt_sym(encrypted, assets_key)
+            let encrypted:ArrayBuffer|null = null
+            try {
+                encrypted = await request(url, {}, 'arrayBuffer', 'throw_null403-4')
+            } catch (error){
+                // Either network issue or server fault, either way, callers should show placeholder
+                report_http_failure(error)
+            }
+            return encrypted ? decrypt_sym(encrypted, assets_key) : null
         }
 
         // Expose the message data
