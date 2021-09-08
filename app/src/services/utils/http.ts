@@ -102,3 +102,20 @@ export function request_buffer(input:string|Request, init?:RequestInit){
     // Request this type of response and throw if don't get it
     return request(input, init ?? {}, 'arrayBuffer', 'throw')
 }
+
+
+// Convenience
+
+
+export function report_http_failure(error:unknown):void{  // Keep error:unknown to avoid type issues
+    /* Report HTTP failure if it isn't just due to connection issue
+        From a UI perspective, it should just be presented as a network issue, as user can't fix
+        But from dev persective it needs either fixing or silencing if benign
+
+    NOTE This is here for convenience, as not strictly a pure fn, & assumes global report fn exists
+    NOTE error should have `unknown` type so don't have to import RequestError when calling it
+    */
+   if (!(error as RequestError).message.startsWith('network ')){
+       self.app_report_error(error)
+   }
+}

@@ -33,7 +33,7 @@ import AppUnsubscribed from './AppUnsubscribed.vue'
 import DialogResend from './DialogResend.vue'
 import MessageContents from './MessageContents.vue'
 import {decrypt_sym, import_key_sym} from '../services/utils/crypt'
-import {request, request_buffer} from '../services/utils/http'
+import {request, request_buffer, report_http_failure} from '../services/utils/http'
 import {utf8_to_string, url64_to_buffer} from '../services/utils/coding'
 import {store} from '../services/store'
 import {PublishedCopy} from '../shared/shared_types'
@@ -78,10 +78,7 @@ setup(){
             error.value = 'network'
             error_desc.value = "Download interrupted (check your internet connection)"
             fix_desc.value = "Retry"
-            if (!(thrown_error as Error).message.startsWith('network')){
-                // Could be a 500 error etc, so report, but user doesn't need to know this
-                self.app_report_error(thrown_error)
-            }
+            report_http_failure(thrown_error)
             return
         }
         // NOTE Vite dev server serves index.html instead of 404 for missing files
