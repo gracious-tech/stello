@@ -29,14 +29,16 @@ import {utf8_to_string, url64_to_buffer} from '@/services/utils/coding'
 import {Profile} from '@/services/database/profiles'
 import {RecordProfileHost} from '@/services/database/types'
 import {HostCredentialsPackage} from '../types_ui'
+import {report_http_failure, request} from '@/services/utils/http'
+import {ensure_string} from '@/services/utils/exceptions'
 
 
 @Component({})
 export default class extends Vue {
 
-    @Prop() profile:Profile
+    @Prop({required: true}) profile!:Profile
 
-    error = null
+    error:string|null = null
 
     async paste(){
         // Paste and parse credentials
@@ -50,7 +52,7 @@ export default class extends Vue {
         // Paste credentials, returning either an error string or nothing for success
 
         // Get text from clipboard
-        const clipboard = (await get_clipboard_text()).trim()
+        const clipboard = (await get_clipboard_text() ?? '').trim()
         if (!clipboard){
             return "Nothing copied yet"
         }
@@ -65,43 +67,33 @@ export default class extends Vue {
         const secret = parts[3]
 
         // Try to download real credentials using given code
-        if (! /^[A-Za-z0-9-]+$/.test(bucket)){
+        if (!bucket || ! /^[A-Za-z0-9-]+$/.test(bucket)){
             return "The copied text is not valid"
         }
-        let resp:Response
+        let encrypted:ArrayBuffer|null
         try {
             if (cloud === 'aws'){
-                resp = await fetch(`https://${bucket}.s3.amazonaws.com/credentials`)
+                const url = `https://${bucket}.s3.amazonaws.com/credentials`
+                encrypted = await request(url, {}, 'arrayBuffer', 'throw_null403-4')
             } else {
                 return "Cloud provider not supported"
             }
-        } catch {
+        } catch (error){
+            report_http_failure(error)
             return "Unable to retrieve the credentials (check your Internet connection)"
         }
-        if (!resp.ok){
+        if (!encrypted){
             return "Credentials are missing (they may have expired)"
         }
 
         // Decrypt the response to an object
         let data:HostCredentialsPackage
         try {
-            const key = await import_key_sym(url64_to_buffer(secret))
-            const decrypted = await decrypt_sym(await resp.arrayBuffer(), key)
-            data = JSON.parse(utf8_to_string(decrypted))
+            const key = await import_key_sym(url64_to_buffer(secret ?? ''))
+            const decrypted = await decrypt_sym(encrypted, key)
+            data = JSON.parse(utf8_to_string(decrypted)) as HostCredentialsPackage
         } catch {
             return "Could not decrypt the credentials (did you miss any characters?)"
-        }
-
-        // Helper for validating strings
-        // SECURITY Threat is more likely to be tricking someone into using a malicious bucket
-        //      But this at least prevents random objects/types being stored when should be strings
-        const ensure_string = (value, nullable=false) => {
-            if (value === null && nullable){
-                return null
-            } else if (typeof value !== 'string' || !value){
-                throw Error("Invalid value")
-            }
-            return value
         }
 
         // Extract the data
@@ -114,13 +106,10 @@ export default class extends Vue {
                 bucket: bucket,
                 region: ensure_string(data.region),
                 user: ensure_string(data.user, true),
-                credentials: null,
-            }
-            if (cloud === 'aws'){
-                host.credentials = {
+                credentials: {
                     key_id: ensure_string(data.credentials.key_id),
                     key_secret: ensure_string(data.credentials.key_secret),
-                }
+                },
             }
         } catch {
             return "There is something wrong with the credentials"
@@ -128,7 +117,7 @@ export default class extends Vue {
 
         // All good so save
         this.profile.host = host
-        self.app_db.profiles.set(this.profile)
+        void self.app_db.profiles.set(this.profile)
 
         // Delete the credentials from the bucket
         const storage = this.profile.new_host_user()

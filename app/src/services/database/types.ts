@@ -74,7 +74,7 @@ export interface RecordProfileHost {
     cloud:'aws'
     bucket:string
     region:string
-    user:string  // Absence of user indicates self-hosted (one user per bucket)
+    user:string|null  // Absence of user indicates self-hosted (one user per bucket)
     credentials:HostCredentials  // May be a JSON string for Google Cloud
 }
 
