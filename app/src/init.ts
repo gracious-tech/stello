@@ -69,7 +69,7 @@ if (!self.app_native){
 
 
 // Show update bar if one available
-self._update = () => {
+self.app_update = () => {
     self.app_native.update()
 }
 self.app_native.on_update_ready(() => {
@@ -80,7 +80,7 @@ self.app_native.on_update_ready(() => {
         <div class="reload-bar update">
             An update is ready to go with improvements
             <div>
-                <button onclick="_update()">
+                <button onclick="app_update()">
                     RESTART
                 </button>
             </div>

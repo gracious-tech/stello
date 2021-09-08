@@ -42,7 +42,7 @@ declare module 'Custom' {
             _store:Store<AppStoreState>
             _db:Database
             _toggle_dark():void
-            _update():void
+            app_update():void
             app_report_error(error:unknown):string
             app_native:NativeInterface
         }
