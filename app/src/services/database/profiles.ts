@@ -10,6 +10,7 @@ import {OAUTH_SUPPORTED} from '@/services/tasks/oauth'
 import {email_address_like} from '../utils/misc'
 import {partition} from '../utils/strings'
 import {get_host_user} from '../hosts/hosts'
+import {request_blob} from '../utils/http'
 
 
 export interface SmtpProvider {
@@ -124,11 +125,11 @@ export class Profile implements RecordProfile {
         return null
     }
 
-    get smtp_detected():string{
+    get smtp_detected():string|null{
         // Auto-detect provider based on domain name or host (if given)
         if (!this.email?.includes('@'))
             return null
-        const domain = this.email.split('@').pop().toLowerCase()
+        const domain = this.email.split('@').pop()!.toLowerCase()
         for (const [provider, config] of Object.entries(SMTP_PROVIDERS)){
             if (config.domains.includes(domain) || config.host === this.smtp.host){
                 return provider
@@ -202,7 +203,7 @@ export class Profile implements RecordProfile {
 
     view_url(copy_id:string, secret:ArrayBuffer, action?:string){
         // Return URL for viewing the given copy
-        let domain:string
+        let domain!:string
         if (this.host.cloud === 'aws'){
             // NOTE Not using website mode since actually makes URL longer
             // NOTE Including region as faster than being redirected from generic subdomain
@@ -238,7 +239,7 @@ export class DatabaseProfiles {
         return (await this._conn.getAll('profiles')).map(profile => new Profile(profile))
     }
 
-    async get(id:string):Promise<Profile>{
+    async get(id:string):Promise<Profile|undefined>{
         // Get single profile by id
         const profile = await this._conn.get('profiles', id)
         return profile && new Profile(profile)
@@ -252,7 +253,7 @@ export class DatabaseProfiles {
     async create():Promise<Profile>{
         // Create a new profile
         // NOTE Defaults are for 'very_high' security category
-        const default_invite_image = await (await fetch('default_invite_image.jpg')).blob()
+        const default_invite_image = await request_blob('default_invite_image.jpg')
         const profile = new Profile({
             id: generate_token(),
             setup_step: 0,
@@ -328,13 +329,13 @@ export class DatabaseProfiles {
         const store_drafts = transaction.objectStore('drafts')
 
         // Remove the actual profile
-        store_profiles.delete(id)
+        void store_profiles.delete(id)
 
         // Remove the profile from drafts
         for (const draft of await store_drafts.getAll()){
             if (draft.profile === id){
                 draft.profile = null
-                store_drafts.put(draft)
+                void store_drafts.put(draft)
             }
         }
 

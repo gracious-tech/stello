@@ -71,11 +71,11 @@ export interface RecordProfile {
 }
 
 export interface RecordProfileHost {
-    cloud:'aws'
-    bucket:string
-    region:string
+    cloud:'aws'|null
+    bucket:string|null
+    region:string|null
     user:string|null  // Absence of user indicates self-hosted (one user per bucket)
-    credentials:HostCredentials  // May be a JSON string for Google Cloud
+    credentials:HostCredentials|null  // May be a JSON string for Google Cloud
 }
 
 export interface RecordProfileHostState {
@@ -107,7 +107,7 @@ export interface RecordProfileOptions {
     allow_reactions:boolean
     allow_delete:boolean
     allow_resend_requests:boolean
-    auto_exclude_threshold:number
+    auto_exclude_threshold:number|null
     auto_exclude_exempt_groups:string[]
     smtp_no_reply:boolean
     social_referral_ban:boolean
@@ -126,7 +126,7 @@ export interface RecordDraft {
     modified:Date
     title:string
     sections:([string]|[string, string])[]
-    profile:string
+    profile:string|null
     options_identity:MessageOptionsIdentity
     options_security:MessageOptionsSecurity
     recipients:RecordDraftRecipients
