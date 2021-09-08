@@ -17,7 +17,7 @@ const start_ms = new Date().getTime()
 
 
 // Preserve date of last error report so can throttle them
-let fail_report_last = 0  // i.e. 1970
+let last_error_report = 0  // i.e. 1970
 
 
 // Consider errors critical up till msg contents displayed
@@ -73,15 +73,15 @@ self.app_report_error = async (error:unknown):Promise<void> => {
     }
 
     // Throttle reports since multiple in quick succession usually repetitive
-    const time_since_last_report = new Date().getTime() - fail_report_last
+    const time_since_last_report = new Date().getTime() - last_error_report
     if (time_since_last_report < 3000){
         return
     }
-    fail_report_last = new Date().getTime()
+    last_error_report = new Date().getTime()
 
     // If JS only just loaded, delay the report to see if message will load anyway or not
     // Gives self.app_report_error_critical a chance to be changed before submitting the report
-    const time_since_start = fail_report_last - start_ms
+    const time_since_start = last_error_report - start_ms
     const time_till_allowed = 3000 - time_since_start
     if (time_till_allowed > 0){
         await sleep(time_till_allowed)
