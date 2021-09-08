@@ -130,7 +130,7 @@ html
             self._failed = false
             self.app_browser_supported = !! (crypto && crypto.subtle && CSS && CSS.supports
                 && CSS.supports('grid-template-rows', 'none'))
-            self._fail_splash_unsupported = function(){
+            self.app_splash_unsupported = function(){
                 self.document.body.innerHTML = "<div class='fail-splash'>"
                     + "<h1>Sorry, your browser is too old</h1>"
                     + "<p>Please update your browser or use another browser to view this message.</p>"
@@ -141,7 +141,7 @@ html
                 if (!self._failed && !self.app_browser_supported){
                     self._failed = true
                     self.location.hash = self.app_hash
-                    self._fail_splash_unsupported()
+                    self.app_splash_unsupported()
                 }
             })
 

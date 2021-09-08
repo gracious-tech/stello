@@ -134,7 +134,7 @@ self._fail_visual = (network=false):void => {
     } else {
         // Unsupported browser, so show full page splash
         // NOTE This is especially needed for errors Vue catches
-        self._fail_splash_unsupported()
+        self.app_splash_unsupported()
     }
 }
 

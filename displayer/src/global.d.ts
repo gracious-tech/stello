@@ -28,7 +28,7 @@ declare global {
         app_hash:string
         _failed:boolean
         app_browser_supported:boolean
-        _fail_splash_unsupported():void
+        app_splash_unsupported():void
         app_report_error_critical:boolean
         app_report_error(error:unknown):void
         _fail_visual(network?:boolean):void
