@@ -214,7 +214,7 @@ void open_db().then(async connection => {
     vuetify.framework.theme.dark = store.state.dark
 
     // Debug helper for toggling theme (for manual calling in browser console)
-    self._toggle_dark = () => store.dispatch('set_dark', !store.state.dark)
+    self.app_toggle_dark = () => store.dispatch('set_dark', !store.state.dark)
 
     // Init router
     const router = get_router(store)

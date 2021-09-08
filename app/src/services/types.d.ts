@@ -41,7 +41,7 @@ declare module 'Custom' {
             _app:Vue
             _store:Store<AppStoreState>
             _db:Database
-            _toggle_dark():void
+            app_toggle_dark():void
             app_update():void
             app_report_error(error:unknown):string
             app_native:NativeInterface
