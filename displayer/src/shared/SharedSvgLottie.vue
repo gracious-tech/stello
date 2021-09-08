@@ -11,6 +11,7 @@ div(ref='container')
 import {defineComponent} from 'vue-demi'
 // Import type (careful to avoid importing module as will do so dynamically)
 import type {AnimationItem} from 'lottie-web'
+import {report_http_failure, request_text} from '@/services/utils/http'
 
 
 // Dynamically load lottie module so it is not included in the main app bundle
@@ -40,21 +41,11 @@ export default defineComponent({
         }
     },
 
-    methods: {
-        destroy_lottie(){
-            // Destory lottie instance (if any)
-            // WARN Otherwise don't get garbage collected (exponential memory usage)
-            if (this.lottie_instance){
-                this.lottie_instance.destroy()
-            }
-        },
-    },
-
     watch: {
 
         url: {
             immediate: true,
-            async handler(url){
+            async handler(){
                 // Recreate lottie instance whenever url changes
                 // NOTE Errors not caught as Vue will catch and report them without UI failure
 
@@ -62,12 +53,13 @@ export default defineComponent({
                 this.destroy_lottie()
 
                 // Store response in cache
-                if (! (url in lottie_cache)){
-                    const resp = await fetch(url).catch(() => null)
-                    if (!resp?.ok){
-                        throw new Error(`${resp?.status} ${resp?.statusText}`)
+                if (! (this.url in lottie_cache)){
+                    try {
+                        lottie_cache[this.url] = await request_text(this.url)
+                    } catch (error){
+                        report_http_failure(error)
+                        return
                     }
-                    lottie_cache[url] = await resp.text()
                 }
 
                 // Wait for lottie module if it hasn't loaded yet
@@ -80,7 +72,7 @@ export default defineComponent({
                     loop: true,
                     autoplay: this.playing,
                     // WARN Must parse per use as lottie manipulates the data & reuse -> memory leak
-                    animationData: JSON.parse(lottie_cache[url]!),
+                    animationData: JSON.parse(lottie_cache[this.url]!) as unknown,
                 })
             },
         },
@@ -101,6 +93,16 @@ export default defineComponent({
 
     beforeUnmount(){  // Vue 3
         this.destroy_lottie()
+    },
+
+    methods: {
+        destroy_lottie(){
+            // Destory lottie instance (if any)
+            // WARN Otherwise don't get garbage collected (exponential memory usage)
+            if (this.lottie_instance){
+                this.lottie_instance.destroy()
+            }
+        },
     },
 })
 

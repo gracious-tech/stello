@@ -3,6 +3,7 @@ import {deployment_config} from './deployment_config'
 import {displayer_config} from './displayer_config'
 import {string_to_utf8} from './utils/coding'
 import {encrypt_asym} from './utils/crypt'
+import {report_http_failure, request} from './utils/http'
 
 
 async function respond(data:any):Promise<boolean>{
@@ -19,17 +20,17 @@ async function respond(data:any):Promise<boolean>{
 
     // Submit data
     try {
-        const resp = await fetch(deployment_config.url_responder, {
+        await request(deployment_config.url_responder, {
             mode: 'cors',
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(data),
-        })
-        return resp.status === 200
+        }, undefined, 'throw')
     } catch (error){
-        console.error(error)
+        report_http_failure(error)
         return false
     }
+    return true
 }
 
 

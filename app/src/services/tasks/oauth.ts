@@ -23,6 +23,7 @@ import {OAuth} from '../database/oauths'
 import {task_manager, TaskStartArgs} from './tasks'
 import {drop, MustInterpret, MustReauthenticate, MustReconnect, MustRecover,
     } from '../utils/exceptions'
+import {request} from '../utils/http'
 
 
 // TYPES
@@ -153,7 +154,7 @@ class CustomQueryStringUtils extends appauth.BasicQueryStringUtils {
 
 
 async function oauth_authorize_init(issuer:OAuthIssuer, scope_sets:string[],
-        meta:Record<string, any>={}, email?:string):Promise<void>{
+        meta:Record<string, unknown>={}, email?:string):Promise<void>{
     // Authenticate with given issuer using OAuth2
 
     // Get issuer config
@@ -504,7 +505,7 @@ export async function oauth_revoke_if_obsolete(oauth:OAuth):Promise<void>{
     }
 
     // Revoke auth, but ignore failure as too complicated to resolve, and deleting tokens anyway
-    drop(oauth_revoke(oauth))
+    void drop(oauth_revoke(oauth))
 
     // Remove from db
     await self.app_db.oauths.remove(oauth.id)
@@ -512,7 +513,7 @@ export async function oauth_revoke_if_obsolete(oauth:OAuth):Promise<void>{
 
 
 export async function oauth_request(oauth:OAuth, url:string, params?:Record<string,string|string[]>,
-        method='GET', body?:object|Blob):Promise<Record<string, any>>{
+        method='GET', body?:unknown):Promise<unknown>{
     // Request a resource using OAuth2
 
     // Add params to url if any
@@ -525,7 +526,7 @@ export async function oauth_request(oauth:OAuth, url:string, params?:Record<stri
             }
             params_array.push(...v.map(i => [k, i] as [string, string]))
         }
-        url = `${url}?${new URLSearchParams(params_array)}`
+        url = `${url}?${new URLSearchParams(params_array).toString()}`
     }
 
     // Refresh access token if it has/will expire
@@ -541,7 +542,7 @@ export async function oauth_request(oauth:OAuth, url:string, params?:Record<stri
     // Send the request
     let resp:Response
     try {
-        resp = await fetch(url, {
+        resp = await request(url, {
             method,
             headers: {
                 Authorization: `Bearer ${oauth.token_access}`,
@@ -550,15 +551,16 @@ export async function oauth_request(oauth:OAuth, url:string, params?:Record<stri
             body: body as Blob,
         })
     } catch (error){
-        if (error instanceof TypeError){
-            throw new MustReconnect()
-        }
-        throw error
+        throw new MustReconnect()  // Not throwing on bad statuses, so must be network
     }
 
     // Return just the data
     if (resp.ok){
-        return JSON.parse(await resp.text())
+        try {
+            return await resp.json() as unknown
+        } catch {
+            throw new Error("Can't parse oauth response")
+        }
     }
 
     // Handle errors
@@ -572,7 +574,7 @@ export async function oauth_request(oauth:OAuth, url:string, params?:Record<stri
     const error_data = {
         status_code: resp.status,
         status_text: resp.statusText,
-        body: null,
+        body: null as unknown,
     }
     try {
         // WARN Don't use `resp.json()` as if not JSON then body lost as can only read once

@@ -10,6 +10,8 @@ div.root(v-html='html' :class='{playing}')
 
 import {defineComponent} from 'vue-demi'
 
+import {report_http_failure, request_text} from '@/services/utils/http'
+
 
 const cache:Record<string, string> = {}
 
@@ -42,27 +44,28 @@ export default defineComponent({
     watch: {
         url: {
             immediate: true,
-            async handler(url){
+            async handler(){
                 // Re-request contents when url changes
                 // NOTE Errors not caught as Vue will catch and report them without UI failure
 
                 // Remove previous value if any (must happen even if below fails)
                 this.html = ''
 
-                if (! (url in cache)){
+                if (! (this.url in cache)){
                     // Cache the contents so don't make same request multiple times
-                    const resp = await fetch(url).catch(() => null)
-                    if (!resp?.ok){
-                        throw new Error(`${resp?.status} ${resp?.statusText}`)
+                    try {
+                        cache[this.url] = await request_text(this.url)
+                    } catch (error){
+                        report_http_failure(error)
+                        return
                     }
-                    cache[url] = await resp.text()
                 }
 
                 // Replace ids with a random prefix for every use to avoid `id` clashes in DOM
                 // WARN id clashes have actual affect on display of SVGs, especially gradients
                 // NOTE SVG sources are expected to prefix all ids with generic `IDPREFIX` code
                 // WARN ids must begin with a letter or are invalid
-                this.html = cache[url]!.replaceAll('IDPREFIX', 'ID' + generate_unique_id())
+                this.html = cache[this.url]!.replaceAll('IDPREFIX', 'ID' + generate_unique_id())
             },
         },
     },

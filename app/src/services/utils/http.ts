@@ -8,6 +8,11 @@ export class RequestError extends Error {
 // Overloads for request
 export async function request(input:string|Request, init?:RequestInit):Promise<Response>
 
+export async function request(input:string|Request, init:RequestInit, read_body:undefined,
+    bad_status_handling?:'throw'):Promise<Response>
+export async function request(input:string|Request, init:RequestInit, read_body:undefined,
+    bad_status_handling:'throw_null404'|'throw_null403-4'):Promise<Response|null>
+
 export async function request(input:string|Request, init:RequestInit, read_body:'text',
     bad_status_handling?:'throw'):Promise<string>
 export async function request(input:string|Request, init:RequestInit, read_body:'text',
