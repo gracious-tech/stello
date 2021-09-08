@@ -129,3 +129,16 @@ export function error_to_string(error:any):string{
 
     return `Error type: ${type}\n${info}`
 }
+
+
+export function ensure_string(value:unknown, null_if_empty?:false):string
+export function ensure_string(value:unknown, null_if_empty:true):string|null
+export function ensure_string(value:unknown, null_if_empty=false){
+    // Ensure a value is a string and throw if not (optionally use null for empty value)
+    if (!value){
+        return null_if_empty ? null : ''
+    } else if (typeof value !== 'string'){
+        throw Error("Value is not a string")
+    }
+    return value
+}
