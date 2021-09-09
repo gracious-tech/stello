@@ -1,6 +1,6 @@
 #!/bin/bash
 # Run full audit of project
-set -e
+set -ex
 cd "$(dirname "$(dirname "$0")")"
 
 
