@@ -8,7 +8,7 @@ import {DatabaseState} from './state'
 import {DatabaseContacts} from './contacts'
 import {DatabaseGroups} from './groups'
 import {DatabaseOAuths} from './oauths'
-import {DatabaseProfiles} from './profiles'
+import {DatabaseProfiles, Profile} from './profiles'
 import {DatabaseUnsubscribes} from './unsubscribes'
 import {DatabaseDrafts, Draft} from './drafts'
 import {DatabaseMessages, Message} from './messages'
@@ -24,6 +24,7 @@ import {remove_item} from '../utils/arrays'
 import {escape_for_html} from '../utils/strings'
 import {migrate, DATABASE_VERSION} from './migrations'
 import {request_blob} from '../utils/http'
+import {get_final_recipients} from '../misc/recipients'
 
 
 export function open_db():Promise<AppDatabaseConnection>{
@@ -175,8 +176,8 @@ export class Database {
         // Publish a draft, converting it to a Message
 
         // Get the draft and profile
-        const draft = await this.drafts.get(draft_id)
-        const profile = await this.profiles.get(draft.profile)
+        const draft = await this.drafts.get(draft_id) as Draft
+        const profile = await this.profiles.get(draft.profile) as Profile
 
         // Determine expiration values, accounting for inheritance
         const lifespan = draft.options_security.lifespan ?? profile.msg_options_security.lifespan
@@ -197,7 +198,7 @@ export class Database {
         // Create copy objects for the recipients
         const contacts = await this.contacts.list()
         const unsubs = await this.unsubscribes.list_for_profile(draft.profile)
-        const recipients = draft.get_final_recipients(contacts, await this.groups.list(), unsubs)
+        const recipients = get_final_recipients(draft, contacts, await this.groups.list(), unsubs)
         const copies = await Promise.all(recipients.map(async contact_id => {
 
             // Get the contact's data

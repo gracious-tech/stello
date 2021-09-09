@@ -4,11 +4,11 @@ import {AppDatabaseConnection, RecordUnsubscribe} from './types'
 
 export class Unsubscribe implements RecordUnsubscribe {
 
-    profile:string
-    contact:string
-    sent:Date
-    ip:string
-    user_agent:string
+    profile!:string
+    contact!:string
+    sent!:Date
+    ip!:string
+    user_agent!:string
 
     constructor(db_object:RecordUnsubscribe){
         Object.assign(this, db_object)

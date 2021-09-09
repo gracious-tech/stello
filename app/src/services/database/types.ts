@@ -66,8 +66,16 @@ export interface RecordProfile {
     email:string  // Address used for both sending and receiving notifications
     smtp:RecordProfileSmtp
     options:RecordProfileOptions
-    msg_options_identity:MessageOptionsIdentity  // Defaults
-    msg_options_security:MessageOptionsSecurity  // Defaults
+    msg_options_identity:{  // Defaults
+        sender_name:string
+        invite_image:Blob
+        invite_tmpl_email:string
+        invite_tmpl_clipboard:string
+    }
+    msg_options_security:{  // Defaults
+        lifespan:number  // NOTE may be Infinity
+        max_reads:number  // NOTE may be Infinity
+    }
 }
 
 export interface RecordProfileHost {
@@ -122,13 +130,20 @@ export interface RecordProfileOptions {
 export interface RecordDraft {
     id:string
     template:boolean
-    reply_to:string
+    reply_to:string|null
     modified:Date
     title:string
     sections:([string]|[string, string])[]
     profile:string|null
-    options_identity:MessageOptionsIdentity
-    options_security:MessageOptionsSecurity
+    options_identity:{
+        sender_name:string  // No null as empty string triggers inheritance
+        invite_image:Blob|null
+        invite_tmpl_email:string|null
+    }
+    options_security:{
+        lifespan:number|null  // NOTE may be Infinity (null used for inheritance)
+        max_reads:number|null  // NOTE may be Infinity (null used for inheritance)
+    }
     recipients:RecordDraftRecipients
 }
 
@@ -282,21 +297,6 @@ export interface RecordRequestResend extends RecordResponseCore {
     contact:string  // id[0]
     message:string  // id[1]
     reason:string
-}
-
-
-// Generic
-
-export interface MessageOptionsIdentity {
-    sender_name:string
-    invite_image:Blob|null
-    invite_tmpl_email:string
-    invite_tmpl_clipboard:string  // Not currently used in drafts (always uses profile's value)
-}
-
-export interface MessageOptionsSecurity {
-    lifespan:number|null  // NOTE may be Infinity (null used for inheritance)
-    max_reads:number|null  // NOTE may be Infinity (null used for inheritance)
 }
 
 

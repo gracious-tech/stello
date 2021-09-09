@@ -1,8 +1,6 @@
 
-import {
-    AppDatabaseConnection, RecordProfile, RecordProfileHost, RecordProfileSmtp,
-    RecordProfileOptions, MessageOptionsIdentity, MessageOptionsSecurity, RecordProfileHostState,
-} from './types'
+import {AppDatabaseConnection, RecordProfile, RecordProfileHost, RecordProfileSmtp,
+    RecordProfileOptions, RecordProfileHostState} from './types'
 import {generate_token, generate_key_asym, generate_key_sym} from '@/services/utils/crypt'
 import {buffer_to_url64} from '@/services/utils/coding'
 import {HostUser} from '@/services/hosts/types'
@@ -93,8 +91,16 @@ export class Profile implements RecordProfile {
     email!:string
     smtp!:RecordProfileSmtp
     options!:RecordProfileOptions
-    msg_options_identity!:MessageOptionsIdentity
-    msg_options_security!:MessageOptionsSecurity
+    msg_options_identity!:{
+        sender_name:string
+        invite_image:Blob
+        invite_tmpl_email:string
+        invite_tmpl_clipboard:string
+    }
+    msg_options_security!:{
+        lifespan:number
+        max_reads:number
+    }
 
     constructor(db_object:RecordProfile){
         Object.assign(this, db_object)

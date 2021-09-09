@@ -71,24 +71,25 @@ import {Draft} from '@/services/database/drafts'
 import {Group} from '@/services/database/groups'
 import {Contact} from '@/services/database/contacts'
 import {Unsubscribe} from '@/services/database/unsubscribes'
+import {get_final_recipients} from '@/services/misc/recipients'
 
 
 @Component({})
 export default class extends Vue {
 
-    @Prop({type: Draft, required: true}) draft:Draft
-    @Prop({type: Array, required: true}) groups:Group[]
-    @Prop({type: Array, required: true}) contacts:Contact[]
-    @Prop({type: Array, required: true}) unsubscribes:Unsubscribe[]
+    @Prop({type: Draft, required: true}) draft!:Draft
+    @Prop({type: Array, required: true}) groups!:Group[]
+    @Prop({type: Array, required: true}) contacts!:Contact[]
+    @Prop({type: Array, required: true}) unsubscribes!:Unsubscribe[]
 
     tab = 0
-    contacts_filter = 0
+    contacts_filter:number|null = 0
     contacts_search = ''
     contacts_pages = 1
 
     get final_recipients():string[]{
         // Get list of contact ids that will currently be included when all things accounted for
-        return this.draft.get_final_recipients(this.contacts, this.groups, this.unsubscribes)
+        return get_final_recipients(this.draft, this.contacts, this.groups, this.unsubscribes)
     }
 
     get contact_ids():string[]{
@@ -131,7 +132,7 @@ export default class extends Vue {
             id: 'all',
             display: "All contacts",
             size: this.contacts.length,
-            icon: `icon_checkbox_${all_included}`,
+            icon: `icon_checkbox_${all_included ? 'true' : 'false'}`,
             color: all_included ? 'accent' : '',
             click: () => {
                 // NOTE Can't exclude all, like with other groups
@@ -245,7 +246,7 @@ export default class extends Vue {
         }
     }
 
-    toggle_group(group_id){
+    toggle_group(group_id:string){
         // A three state toggle for groups: include -> exclude -> undefined
         if (this.draft.recipients.include_groups.includes(group_id)){
             // Was included, so now exclude
@@ -261,7 +262,7 @@ export default class extends Vue {
         this.save()
     }
 
-    toggle_contact(contact_id){
+    toggle_contact(contact_id:string){
         // A three state toggle for contacts: include -> exclude -> undefined
         if (this.draft.recipients.include_contacts.includes(contact_id)){
             // Was included, so now exclude
@@ -278,7 +279,7 @@ export default class extends Vue {
     }
 
     save(){
-        self.app_db.drafts.set(this.draft)
+        void self.app_db.drafts.set(this.draft)
     }
 
     dismiss(){

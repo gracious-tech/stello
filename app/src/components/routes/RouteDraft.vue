@@ -71,6 +71,7 @@ import {Contact} from '@/services/database/contacts'
 import {Unsubscribe} from '@/services/database/unsubscribes'
 import {sort} from '@/services/utils/arrays'
 import {Task} from '@/services/tasks/tasks'
+import {get_final_recipients} from '@/services/misc/recipients'
 
 
 @Component({
@@ -78,9 +79,9 @@ import {Task} from '@/services/tasks/tasks'
 })
 export default class extends Vue {
 
-    @Prop({type: String, required: true}) draft_id:string
+    @Prop({type: String, required: true}) draft_id!:string
 
-    draft:Draft = null
+    draft:Draft|null = null
     sections:Record<string, Section> = {}  // Content of sections loaded separately from the draft
     sections_inited = false
     profiles:Profile[] = []
@@ -105,12 +106,12 @@ export default class extends Vue {
             this.profiles = profiles
             // Auto assign default if no account selected yet
             if (!this.profile && this.$store.state.default_profile){
-                this.draft.profile = this.$store.state.default_profile
+                this.draft!.profile = this.$store.state.default_profile
             }
         })
 
         this.load_contacts()
-        this.load_unsubscribes()
+        void this.load_unsubscribes()
     }
 
     @Watch('draft.sections') watch_sections(){
@@ -121,7 +122,7 @@ export default class extends Vue {
         this.sections_inited = true
 
         // Process each section id
-        this.draft.sections.flat().forEach(async section_id => {
+        this.draft!.sections.flat().forEach(async section_id => {
 
             // Ignore section if data already obtained as only interested in creation events
             // NOTE Changes to sections are made to section objects directly, not refetched from db
@@ -145,7 +146,7 @@ export default class extends Vue {
 
     @Watch('draft.profile') watch_profile(){
         // Unsubscribes are specific to profile
-        this.load_unsubscribes()
+        void this.load_unsubscribes()
     }
 
     @Watch('$tm.data.finished') watch_finished(task:Task){
@@ -153,29 +154,29 @@ export default class extends Vue {
         if (task.name.startsWith('contacts_')){
             this.load_contacts()
         } else if (task.name === 'responses_receive'){
-            this.load_unsubscribes()
+            void this.load_unsubscribes()
         }
     }
 
-    get profile():Profile{
+    get profile():Profile|undefined{
         // Get profile record for draft (if it exists)
-        return this.profiles.find(p => p.id === this.draft.profile)
+        return this.profiles.find(p => p.id === this.draft!.profile)
     }
 
     get final_recipients(){
         // Return final recipients of message
-        return this.draft.get_final_recipients(this.contacts, this.groups, this.unsubscribes)
+        return get_final_recipients(this.draft!, this.contacts, this.groups, this.unsubscribes)
     }
 
     get sending_barrier(){
         // Return explanation of any barrier to sending, else null
-        if (this.draft.template)
+        if (this.draft!.template)
             return "This is a template and cannot be sent (copy instead)"
         if (!this.title)
             return "Give message a subject"
-        if (!this.draft.sections.length)
+        if (!this.draft!.sections.length)
             return "Give message some contents"
-        for (const section_id of this.draft.sections.flat()){
+        for (const section_id of this.draft!.sections.flat()){
             const section = this.sections[section_id]  // WARN May not exist if fetching from db
             if (section && section.content.type === 'images' && !section.content.images.length){
                 return "Add an image to the section you created"
@@ -195,12 +196,12 @@ export default class extends Vue {
 
     get title(){
         // Get draft's title
-        return this.draft.title
+        return this.draft!.title
     }
     set title(value){
         // Set draft's title
-        this.draft.title = value
-        self.app_db.drafts.set(this.draft)
+        this.draft!.title = value
+        void self.app_db.drafts.set(this.draft!)
     }
 
     get dark_message(){
@@ -213,13 +214,13 @@ export default class extends Vue {
 
     get sender_name(){
         // Get sender name, accounting for inheritance
-        return this.draft.options_identity.sender_name
+        return this.draft!.options_identity.sender_name
             || this.profile.msg_options_identity.sender_name
     }
 
     get contacts_included_desc(){
         // Get list of included contacts as a string
-        return this.draft.recipients.include_contacts
+        return this.draft!.recipients.include_contacts
             .map(id => this.contacts.find(c => c.id === id)?.display)
             .filter(i => i)
             .join(', ')
@@ -227,7 +228,7 @@ export default class extends Vue {
 
     get contacts_excluded_desc(){
         // Get list of excluded contacts as a string
-        return this.draft.recipients.exclude_contacts
+        return this.draft!.recipients.exclude_contacts
             .map(id => this.contacts.find(c => c.id === id)?.display)
             .filter(i => i)
             .join(', ')
@@ -235,10 +236,10 @@ export default class extends Vue {
 
     get groups_included_desc(){
         // Get list of included groups as a string
-        if (this.draft.recipients.include_groups.includes('all')){
+        if (this.draft!.recipients.include_groups.includes('all')){
             return "All contacts"
         }
-        return this.draft.recipients.include_groups
+        return this.draft!.recipients.include_groups
             .map(id => this.groups.find(c => c.id === id)?.display)
             .filter(i => i)
             .join(', ')
@@ -246,7 +247,7 @@ export default class extends Vue {
 
     get groups_excluded_desc(){
         // Get list of excluded groups as a string
-        return this.draft.recipients.exclude_groups
+        return this.draft!.recipients.exclude_groups
             .map(id => this.groups.find(c => c.id === id)?.display)
             .filter(i => i)
             .join(', ')
@@ -254,14 +255,14 @@ export default class extends Vue {
 
     get lifespan_desc():string{
         // Get desc of lifespan, accounting for inheritance
-        const lifespan = this.draft.options_security.lifespan
+        const lifespan = this.draft!.options_security.lifespan
             ?? this.profile.msg_options_security.lifespan
         return lifespan === Infinity ? "No expiry" : `${lifespan} days`
     }
 
     get max_reads_desc():string{
         // Get desc of max reads, accounting for inheritance
-        const max_reads = this.draft.options_security.max_reads
+        const max_reads = this.draft!.options_security.max_reads
             ?? this.profile.msg_options_security.max_reads
         return max_reads === Infinity ? "" : `${max_reads} opens`
     }
@@ -270,7 +271,7 @@ export default class extends Vue {
         // Create new profile (or resume setting up an in progress one)
         const profile_in_progress = this.profiles.find(p => !p.setup_complete)
         const profile = profile_in_progress ?? await self.app_db.profiles.create()
-        this.$router.push({
+        void this.$router.push({
             name: 'profile',
             params: {profile_id: profile.id},
         })
@@ -291,8 +292,8 @@ export default class extends Vue {
     async load_unsubscribes(){
         // Load unsubscribes for profile (if known)
         this.unsubscribes = []  // Clear previous
-        if (this.draft.profile){
-            this.unsubscribes = await self.app_db.unsubscribes.list_for_profile(this.draft.profile)
+        if (this.draft!.profile){
+            this.unsubscribes = await self.app_db.unsubscribes.list_for_profile(this.draft!.profile)
         }
     }
 
@@ -347,26 +348,26 @@ export default class extends Vue {
         this.$store.commit('dict_set', ['usage_sends', this.$store.state.usage_sends as number + 1])
 
         // Go to sent message now, so user knows things are happening
-        this.$router.push({name: 'message', params: {msg_id: msg.id}})
+        void this.$router.push({name: 'message', params: {msg_id: msg.id}})
 
         // Start sending task
-        this.$tm.start_send_message(msg.id)
+        void this.$tm.start_send_message(msg.id)
     }
 
     async copy_to_draft(){
         // Copy template to a new draft and navigate to it
-        const draft = await self.app_db.draft_copy(this.draft, false)
-        this.$router.push({name: 'draft', params: {draft_id: draft.id}})
+        const draft = await self.app_db.draft_copy(this.draft!, false)
+        void this.$router.push({name: 'draft', params: {draft_id: draft.id}})
     }
 
     delete_draft(){
         // Delete this draft
-        self.app_db.drafts.remove(this.draft_id)
+        void self.app_db.drafts.remove(this.draft_id)
         // If this was the default template, clear it
         if (this.draft_id === this.$store.state.default_template){
             this.$store.commit('dict_set', ['default_template', null])
         }
-        this.$router.push('../')
+        void this.$router.push('../')
     }
 
 }
