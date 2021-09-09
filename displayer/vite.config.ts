@@ -11,6 +11,14 @@ export default defineConfig(({mode}) => {
     return {
         clearScreen: false,
         plugins: [plugin_index(path.join(__dirname, 'src/index.pug')), plugin_vue()],
+        resolve: {
+            alias: [
+                {
+                    find: '@',
+                    replacement: path.resolve(__dirname, 'src'),
+                },
+            ],
+        },
         server: {
             fs: {
                 strict: true,
