@@ -57,6 +57,10 @@ const PLACEHOLDER = URL.createObjectURL(
 
 export default defineComponent({
 
+    inject: {
+        fullscreen: {default: null},  // Not used in editor
+    },
+
     props: {
         images: {
             type: Array as PropType<SlideshowImage[]>,
@@ -64,6 +68,7 @@ export default defineComponent({
         },
         aspect: {
             type: Array as unknown as PropType<[number, number]>|null,
+            default: null,
         },
         crop: {
             type: Boolean,
@@ -75,9 +80,7 @@ export default defineComponent({
         },
     },
 
-    inject: {
-        fullscreen: {default: null},  // Not used in editor
-    },
+    emits: ['displayed', 'img_click'],
 
     data(){
         return {
@@ -105,7 +108,7 @@ export default defineComponent({
                 }]
             }
             return this.images.map(image => {
-                const url = this.object_urls[image.id]
+                const url = this.object_urls[image.id]!
                 return {
                     'background-image': `url(${url})`,
                     'background-size': this.crop || url === PLACEHOLDER ? 'cover' : 'contain',
@@ -137,7 +140,7 @@ export default defineComponent({
             return this.images.map((image, i) => {
                 return {
                     id: image.id,
-                    style: {'background-image': `url(${this.object_urls[image.id]})`},
+                    style: {'background-image': `url(${this.object_urls[image.id]!})`},
                     activate: () => {this.change_current(i)},
                 }
             })
@@ -189,7 +192,7 @@ export default defineComponent({
         'fullscreen.value': {  // NOTE Not used in editor (a Vue 3 ref)
             handler(){
                 // When go fullscreen, teleport causes scroll to lose position, so reposition it
-                this.$nextTick(() => {
+                void this.$nextTick(() => {
                     const div = this.$refs['scroller'] as HTMLDivElement
                     div.scrollTo({
                         left: (div.scrollWidth / this.images.length) * this.current,
