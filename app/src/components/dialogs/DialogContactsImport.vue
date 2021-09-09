@@ -118,13 +118,13 @@ export default class extends Vue {
 
     readonly file_accept = 'text/*,application/zip,.vcf,.vcard,.csv,.eml,.zip'
 
-    source = null  // The source of the contacts the user chooses (for UI display only)
-    type = null  // The detected file type of the latest upload attempt
-    csv_items:{[col:string]:string}[] = []
-    csv_columns = []
-    csv_column_name = null
-    csv_column_name2 = null
-    csv_column_email = null
+    source:'mailchimp'|'email'|'other'|null = null
+    type:'vcard'|'csv'|'email'|null = null  // The detected file type of the latest upload attempt
+    csv_items:Record<string, string>[] = []
+    csv_columns:string[] = []
+    csv_column_name:string|null = null
+    csv_column_name2:string|null = null
+    csv_column_email:string|null = null
     contacts:{name:string, email:string, include:boolean}[] = []
     limit_visible = true  // So don't make UI laggy if user won't check them all anyway
 
@@ -175,12 +175,12 @@ export default class extends Vue {
 
     oauth_google(){
         this.dismiss()
-        oauth_pretask_new_usage('contacts_oauth_setup', [], 'google')
+        void oauth_pretask_new_usage('contacts_oauth_setup', [], 'google')
     }
 
     oauth_microsoft(){
         this.dismiss()
-        oauth_pretask_new_usage('contacts_oauth_setup', [], 'microsoft')
+        void oauth_pretask_new_usage('contacts_oauth_setup', [], 'microsoft')
     }
 
     async from_file(file:File){
@@ -190,10 +190,11 @@ export default class extends Vue {
         this.type = null
 
         // Helper for getting normalised file extension
-        const get_ext = (filename:string):string => filename.split('.').pop().toLowerCase()
+        const get_ext =
+            (filename:string):string|undefined => filename.split('.').pop()?.toLowerCase()
 
         // Init vars
-        let extension:string = get_ext(file.name)
+        let extension:string|undefined = get_ext(file.name)
         let text:string
 
         // If a zip file is given, assume it contains a single contacts file and use it instead
@@ -230,7 +231,7 @@ export default class extends Vue {
 
     async parse_csv(text:string):Promise<void>{
         // Turn given csv data into a list of contacts
-        this.csv_items = (await papaparse.parse(text, {header: true})).data
+        this.csv_items = (await papaparse.parse<Record<string, string>>(text, {header: true})).data
 
         // Can't detect columns if no items
         if (!this.csv_items.length){
@@ -239,13 +240,13 @@ export default class extends Vue {
         }
 
         // Get column names from first item
-        this.csv_columns = Object.keys(this.csv_items[0])
+        this.csv_columns = Object.keys(this.csv_items[0]!)
 
         // Auto-detect name columns
-        this.csv_column_name = this.csv_columns.find(c => /^(full )?name$/i.test(c))
+        this.csv_column_name = this.csv_columns.find(c => /^(full )?name$/i.test(c)) ?? null
         if (!this.csv_column_name){
             this.csv_column_name = this.csv_columns.find(c => /(first|given) name/i.test(c))
-                ?? this.csv_columns[0]
+                ?? this.csv_columns[0]!
             this.csv_column_name2 = this.csv_columns.find(c => /(last|family) name/i.test(c))
                 ?? null
         }
@@ -254,12 +255,13 @@ export default class extends Vue {
         // NOTE First rows might not have an email address, so searches multiple rows
         // NOTE Favour search for '@' as column names can be "Email Type [home/work]" etc
         for (const row of this.csv_items){
-            this.csv_column_email = Object.entries(row).find(([k, v]) => v.includes('@'))?.[0]
+            this.csv_column_email =
+                Object.entries(row).find(([k, v]) => v.includes('@'))?.[0] ?? null
             if (this.csv_column_email)
                 break
         }
         if (!this.csv_column_email)
-            this.csv_column_email = this.csv_columns[0]
+            this.csv_column_email = this.csv_columns[0]!
 
         // Do initial conversion to contacts (user may change selected columns after this)
         this.apply_csv_columns()
@@ -268,11 +270,11 @@ export default class extends Vue {
     apply_csv_columns():void{
         // Reconvert CSV data to contacts based on current column selections
         this.accept_contacts(this.csv_items.map(item => {
-            let name = item[this.csv_column_name]
+            let name = item[this.csv_column_name!] ?? ''
             if (this.csv_column_name2){
-                name += ' ' + item[this.csv_column_name2]
+                name += ' ' + (item[this.csv_column_name2] ?? '')
             }
-            return {name, email: item[this.csv_column_email]}
+            return {name, email: item[this.csv_column_email!] ?? ''}
         }))
     }
 

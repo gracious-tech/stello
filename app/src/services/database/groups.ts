@@ -43,7 +43,7 @@ export class DatabaseGroups {
         return groups.map(group => new Group(group))
     }
 
-    async get(id:string):Promise<Group>{
+    async get(id:string):Promise<Group|undefined>{
         // Get single group by id
         const group = await this._conn.get('groups', id)
         return group && new Group(group)
@@ -54,7 +54,8 @@ export class DatabaseGroups {
         await this._conn.put('groups', group)
     }
 
-    async create(name='', contacts=[], service_account=null, service_id=null):Promise<Group>{
+    async create(name='', contacts:string[]=[], service_account:string|null=null,
+            service_id:string|null=null):Promise<Group>{
         // Create a new group
         const group = new Group({
             id: generate_token(),
@@ -76,7 +77,7 @@ export class DatabaseGroups {
         const store_drafts = transaction.objectStore('drafts')
 
         // Remove the actual group
-        store_groups.delete(id)
+        void store_groups.delete(id)
 
         // Remove the group from drafts
         // WARN Not removing from drafts within sent messages as could be heaps and so inefficient
@@ -88,7 +89,7 @@ export class DatabaseGroups {
                     filtered_exclude.length !== draft.recipients.exclude_groups.length){
                 draft.recipients.include_groups = filtered_include
                 draft.recipients.exclude_groups = filtered_exclude
-                store_drafts.put(draft)
+                void store_drafts.put(draft)
             }
         }
 
