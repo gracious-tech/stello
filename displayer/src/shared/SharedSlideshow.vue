@@ -209,6 +209,9 @@ export default defineComponent({
             // WARN Scroll events emitted very rapidly, so keep lightweight
             // NOTE Not debouncing since performance ok, and much smoother when no debounce
             const target = this.$refs['scroller'] as HTMLDivElement
+            if (!target){
+                return  // Component probably being destroyed (avoid triggering error report)
+            }
             const item_width = target.scrollWidth / this.images.length
             this.current = Math.round(target.scrollLeft / item_width)
         },
