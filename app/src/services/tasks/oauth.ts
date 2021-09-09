@@ -88,7 +88,7 @@ interface AuthCompletion<Meta=Record<string, any>> {
         scope_sets:ScopeSet[]
         token_refresh:string,
         token_access:string,
-        token_access_expires:Date,
+        token_access_expires:Date|null,  // null means doesn't expire
     }
     meta:Meta
 }
@@ -276,7 +276,8 @@ async function oauth_authorize_complete(url:string):Promise<AuthCompletion>{
             scope_sets: granted_scope_sets,
             token_refresh: token_resp.refreshToken,
             token_access: token_resp.accessToken,
-            token_access_expires: new Date((token_resp.issuedAt + token_resp.expiresIn) * 1000),
+            token_access_expires: token_resp.expiresIn === undefined ? null :
+                new Date((token_resp.issuedAt + token_resp.expiresIn) * 1000),
         },
         meta: internal.meta as unknown as Record<string, any>,
     }
@@ -459,8 +460,9 @@ export async function oauth_refresh(oauth:OAuth):Promise<void>{
         throw error
     }
     oauth.token_access = token_resp.accessToken
-    oauth.token_access_expires = new Date((token_resp.issuedAt + token_resp.expiresIn) * 1000)
-    self.app_db.oauths.set(oauth)
+    oauth.token_access_expires = token_resp.expiresIn === undefined ? null :
+        new Date((token_resp.issuedAt + token_resp.expiresIn) * 1000)
+    await self.app_db.oauths.set(oauth)
 }
 
 
@@ -530,7 +532,9 @@ export async function oauth_request(oauth:OAuth, url:string, params?:Record<stri
     }
 
     // Refresh access token if it has/will expire
-    if (oauth.token_access_expires <= new Date()){
+    const buffer = 1000 * 60 * 3  // Refresh 3 mins before will expire to avoid timing issues
+    if (oauth.token_access_expires &&
+            oauth.token_access_expires.getTime() - buffer <= new Date().getTime()){
         await oauth_refresh(oauth)
     }
 
