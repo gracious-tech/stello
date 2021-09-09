@@ -1,13 +1,13 @@
 
 <template lang='pug'>
 
-v-stepper(:value='profile.setup_step' @change='change_step')
+v-stepper(:value='setup_step' @change='change_step')
     v-stepper-header(class='app-bg-primary-relative')
-        v-stepper-step(:step='1' :complete='profile.setup_step > 1' :editable='profile.setup_step > 1'
+        v-stepper-step(:step='1' :complete='setup_step > 1' :editable='setup_step > 1'
             edit-icon='$complete' color='accent') Email
-        v-stepper-step(:step='2' :complete='profile.setup_step > 2' :editable='profile.setup_step > 2'
+        v-stepper-step(:step='2' :complete='setup_step > 2' :editable='setup_step > 2'
             edit-icon='$complete' color='accent') Storage
-        v-stepper-step(:step='3' :complete='profile.setup_step > 3' :editable='profile.setup_step > 3'
+        v-stepper-step(:step='3' :complete='setup_step > 3' :editable='setup_step > 3'
             edit-icon='$complete' color='accent') Security
         v-stepper-step(:step='4' color='accent') Identity
 
@@ -97,9 +97,9 @@ import {Profile} from '@/services/database/profiles'
 })
 export default class extends Vue {
 
-    @Prop() profile:Profile
+    @Prop() profile!:Profile
 
-    security_choice = null
+    security_choice:number|null = null
     security_options = [
         {
             code: 'standard',
@@ -157,15 +157,28 @@ export default class extends Vue {
         },
     ]
 
+    get setup_step():number{
+        // Access to setup_step that correctly excludes null as a possibility (this comp won't show)
+        return this.profile.setup_step as number
+    }
+    set setup_step(value:number){
+        this.profile.setup_step = value
+        void self.app_db.profiles.set(this.profile)
+    }
+
     @Watch('security_choice') watch_security_choice(){
         // Apply security choice whenever it changes
-        const settings = this.security_options[this.security_choice].settings
-        for (const [prop, value] of Object.entries(settings.options)){
-            this.profile.options[prop] = value
-        }
-        for (const [prop, value] of Object.entries(settings.msg_options_security)){
-            this.profile.msg_options_security[prop] = value
-        }
+        // NOTE While value is initially null, watch will only ever receive a number
+
+        // Update profile settings
+        const settings = this.security_options[this.security_choice!]!.settings
+        this.profile.options.notify_include_contents = settings.options.notify_include_contents
+        this.profile.options.allow_delete = settings.options.allow_delete
+        this.profile.options.smtp_no_reply = settings.options.smtp_no_reply
+        this.profile.options.social_referral_ban = settings.options.social_referral_ban
+        this.profile.msg_options_security.lifespan = settings.msg_options_security.lifespan
+        this.profile.msg_options_security.max_reads = settings.msg_options_security.max_reads
+
         // Add an extra line to invite tmpls if message will expire
         if (this.profile.msg_options_security.lifespan !== Infinity){
             const paragraph =
@@ -177,25 +190,22 @@ export default class extends Vue {
                 this.profile.options.reply_invite_tmpl_email += paragraph
             }
         }
-        self.app_db.profiles.set(this.profile)
+        void self.app_db.profiles.set(this.profile)
     }
 
     prev_step(){
         // Go to prev step
-        this.profile.setup_step -= 1
-        self.app_db.profiles.set(this.profile)
+        this.setup_step -= 1
     }
 
     next_step(){
         // Go to next step (assumes current one already completed)
-        this.profile.setup_step += 1
-        self.app_db.profiles.set(this.profile)
+        this.setup_step += 1
     }
 
     change_step(step:number){
         // Handle changes of step triggered by the stepper component tabs etc
-        this.profile.setup_step = step
-        self.app_db.profiles.set(this.profile)
+        this.setup_step = step
     }
 
     show_email_dialog(){
@@ -211,7 +221,7 @@ export default class extends Vue {
     async done(){
         // Complete steps (reveals normal profile settings UI)
         this.profile.setup_step = null
-        self.app_db.profiles.set(this.profile)
+        void self.app_db.profiles.set(this.profile)
 
         // Make this the default profile if none yet
         if (!this.$store.state.default_profile){
@@ -232,9 +242,9 @@ export default class extends Vue {
         await this.done()  // Need to wait for draft to be assigned this profile before nav
         const prev_route = this.$store.state.tmp.prev_route as Route
         if (prev_route.name === 'draft'){
-            this.$router.push({name: 'draft', params: prev_route.params})
+            void this.$router.push({name: 'draft', params: prev_route.params})
         } else {
-            this.$router.push('/')
+            void this.$router.push('/')
         }
         this.$store.dispatch('show_snackbar', "Account created")
     }
