@@ -18,5 +18,6 @@ fi
 
 .bin/audit_lint_errors  # TODO include warnings when ready
 .bin/audit_types
-.bin/audit_test_displayer
-.bin/audit_test_electron
+.bin/audit_test
+.bin/audit_e2e_displayer
+.bin/audit_e2e_electron

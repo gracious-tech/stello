@@ -1,0 +1,8 @@
+#!/bin/bash
+# Run unit tests for whole project
+set -e
+cd "$(dirname "$(dirname "$0")")"
+
+
+cd app/src
+../../node_modules/.bin/playwright "${@:-test}"

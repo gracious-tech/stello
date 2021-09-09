@@ -33,6 +33,7 @@ jobs:
             -   run: .bin/all_node npm ci
             -   run: .bin/audit_lint_errors  # TODO Do full linting when ready
             -   run: .bin/audit_types
+            -   run: .bin/audit_test
 
 
     build_app_base:
@@ -62,10 +63,10 @@ jobs:
                     VITE_ROLLBAR_APP: ${{ secrets.ROLLBAR_APP }}
                     VITE_ROLLBAR_RESPONDER: ${{ secrets.ROLLBAR_RESPONDER }}
             -   if: github.event.inputs.run_tests != 'false'
-                name: .bin/audit_test_displayer
+                name: .bin/audit_e2e_displayer
                 run: |
                     npx playwright install --with-deps
-                    .bin/audit_test_displayer
+                    .bin/audit_e2e_displayer
             -   uses: actions/upload-artifact@v2
                 with:
                     name: app_base
@@ -111,4 +112,4 @@ jobs:
                     APPLE_ID: ${{ secrets.APPLE_ID_EMAIL }}
                     APPLE_ID_PASS: ${{ secrets.APPLE_ID_APP_PASSWORD }}
             -   if: github.event.inputs.run_tests != 'false'
-                run: .bin/audit_test_electron
+                run: .bin/audit_e2e_electron
