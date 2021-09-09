@@ -87,7 +87,7 @@ export const SMTP_PROVIDERS:{[provider:string]:SmtpProvider} = {
 export class Profile implements RecordProfile {
 
     id!:string
-    setup_step!:number
+    setup_step!:number|null
     host!:RecordProfileHost
     host_state!:RecordProfileHostState
     email!:string
@@ -114,10 +114,10 @@ export class Profile implements RecordProfile {
         // Return string for displaying host bucket/user
         if (!this.setup_complete)
             return "New Account"
-        return this.host.user ?? this.host.bucket
+        return this.host.user ?? this.host.bucket!
     }
 
-    get email_domain():string{
+    get email_domain():string|null{
         // Extract domain part of email address (if any)
         if (email_address_like(this.email)){
             return partition(this.email, '@')[1]
@@ -138,9 +138,9 @@ export class Profile implements RecordProfile {
         return null
     }
 
-    get smtp_detected_config():SmtpProvider{
+    get smtp_detected_config():SmtpProvider|null{
         // Return defaults for smtp provider (if detected)
-        return this.smtp_detected && SMTP_PROVIDERS[this.smtp_detected]
+        return (this.smtp_detected && SMTP_PROVIDERS[this.smtp_detected]) || null
     }
 
     get smtp_settings():RecordProfileSmtp{
@@ -207,7 +207,7 @@ export class Profile implements RecordProfile {
         if (this.host.cloud === 'aws'){
             // NOTE Not using website mode since actually makes URL longer
             // NOTE Including region as faster than being redirected from generic subdomain
-            domain = `${this.host.bucket}.s3-${this.host.region}.amazonaws.com`
+            domain = `${this.host.bucket!}.s3-${this.host.region!}.amazonaws.com`
         }
         const secret64 = buffer_to_url64(secret)
         let url = `https://${domain}/_#${this.host_state.disp_config_name},${copy_id},${secret64}`
