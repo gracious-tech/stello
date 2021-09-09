@@ -44,7 +44,7 @@ export interface RecordOAuth {
     issuer_id:string  // The issuer's id for the user
     issuer_config:Record<string, any>
     email:string
-    name:string  // May be null if not required
+    name:string|null  // May be null if not required
     scope_sets:('email_send'|'contacts')[]
     token_refresh:string
     token_access:string
@@ -60,7 +60,7 @@ export interface RecordOAuth {
 
 export interface RecordProfile {
     id:string
-    setup_step:number  // null if setup complete
+    setup_step:number|null  // null if setup complete
     host:RecordProfileHost
     host_state:RecordProfileHostState
     email:string  // Address used for both sending and receiving notifications
@@ -144,7 +144,7 @@ export interface RecordDraftRecipients {
 
 export interface RecordSection<TContent extends RecordSectionContent=RecordSectionContent> {
     id:string
-    respondable:boolean  // null for auto decide
+    respondable:boolean|null  // null for auto decide
     content:TContent
 }
 
@@ -295,8 +295,8 @@ export interface MessageOptionsIdentity {
 }
 
 export interface MessageOptionsSecurity {
-    lifespan:number  // NOTE may be Infinity (null used for inheritance)
-    max_reads:number  // NOTE may be Infinity (null used for inheritance)
+    lifespan:number|null  // NOTE may be Infinity (null used for inheritance)
+    max_reads:number|null  // NOTE may be Infinity (null used for inheritance)
 }
 
 
