@@ -21,13 +21,6 @@ div
                         | {{ profile.smtp_ready ? "Change" : "Connect email account" }}
 
 
-        h2 Identity
-        v-card
-            v-card-text
-                p(class='body-2 text--secondary' v-t='"identity.p1"')
-                route-profile-identity(:profile='profile')
-
-
         h2 Responses
         v-card
             v-card-text
@@ -70,6 +63,14 @@ div
         //- v-card
         //-     v-card-text
         //-         app-switch(disabled v-model='social_referral_ban' v-bind='$t("social_referral_ban")')
+
+
+        //- NOTE Identity section at end since takes up the most room
+        h2 Identity
+        v-card
+            v-card-text
+                p(class='body-2 text--secondary' v-t='"identity.p1"')
+                route-profile-identity(:profile='profile')
 
 
 </template>
