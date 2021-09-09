@@ -366,13 +366,13 @@ async function contacts_sync_google_groups(task:Task, oauth:OAuth, confirmed:Rec
             b. Current batch has a group and adding next would put it over the total members limit
         */
         const batch_size = batches[0].length
-        if (batch_size >= 40 || (batch_size && total_members + group.memberCount > 1000)){
+        if (batch_size >= 40 || (batch_size && total_members + group.memberCount! > 1000)){
             total_members = 0
             batches.unshift([group])
         } else {
             batches[0].push(group)
         }
-        total_members += group.memberCount
+        total_members += group.memberCount!
     }
 
     // Update subtasks count since know how many batches there'll be

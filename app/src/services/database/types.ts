@@ -48,7 +48,7 @@ export interface RecordOAuth {
     scope_sets:('email_send'|'contacts')[]
     token_refresh:string
     token_access:string
-    token_access_expires:Date  // When access token will expire and need refreshing
+    token_access_expires:Date|null  // When access token will expire (null = doesn't expire)
     // Contact syncing
     contacts_sync:boolean  // Whether to read contacts of this account if possible
     contacts_sync_last:Date

@@ -129,12 +129,12 @@ import {OAuthIssuer, oauth_pretask_new_usage} from '@/services/tasks/oauth'
 })
 export default class extends Vue {
 
-    @Prop() profile:Profile
+    @Prop() profile!:Profile
 
     setup:'init'|'email'|'settings'|'signin'|'password' = 'init'
     init_email = ''  // Address entered in initial setup phase (not auto-saved to profile)
-    error:EmailError = null
-    error_report_id:string = null
+    error:EmailError|null = null
+    error_report_id:string|null = null
     loading = false
 
     async created(){
@@ -192,7 +192,7 @@ export default class extends Vue {
 
     get oauth_signin_icon(){
         // Return icon representing provider of oauth that has been detected already
-        return 'icon_' + this.profile.smtp_detected
+        return 'icon_' + this.profile.smtp_detected!
     }
 
     get next_disabled(){
@@ -423,11 +423,11 @@ export default class extends Vue {
     next(){
         // Go to next setup step
         if (this.setup === 'email'){
-            this.change_email()
+            void this.change_email()
         } else if (this.setup === 'settings'){
-            this.confirm_host()
+            void this.confirm_host()
         } else if (this.setup === 'password'){
-            this.test()
+            void this.test()
         }
     }
 }

@@ -15,7 +15,7 @@ export class OAuth implements RecordOAuth {
     scope_sets!:('email_send'|'contacts')[]
     token_refresh!:string
     token_access!:string
-    token_access_expires!:Date
+    token_access_expires!:Date|null
     contacts_sync!:boolean
     contacts_sync_last!:Date
     contacts_sync_token!:string
@@ -52,13 +52,13 @@ export class DatabaseOAuths {
         return (await this._conn.getAll('oauths')).map(oauth => new OAuth(oauth))
     }
 
-    async get(id:string):Promise<OAuth>{
+    async get(id:string):Promise<OAuth|undefined>{
         // Get single oauth by id
         const oauth = await this._conn.get('oauths', id)
         return oauth && new OAuth(oauth)
     }
 
-    async get_by_issuer_id(issuer:string, issuer_id:string):Promise<OAuth>{
+    async get_by_issuer_id(issuer:string, issuer_id:string):Promise<OAuth|undefined>{
         // Get single oauth record by issuer id
         const oauth = await this._conn.getFromIndex('oauths', 'by_issuer_id', [issuer, issuer_id])
         return oauth && new OAuth(oauth)
