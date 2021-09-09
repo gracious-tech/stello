@@ -1,11 +1,14 @@
 #!/bin/bash
 # Run full audit of project
-set -ex
+set -e
 cd "$(dirname "$(dirname "$0")")"
 
 
 echo -n "Do you want to do a fresh build before testing? [Y/n] "
 read fresh_build
+
+set -x  # Echo commands so know where up to
+
 if [[ "$fresh_build" != "n" ]]; then
     .bin/setup_dev
     .bin/build_responder_aws
