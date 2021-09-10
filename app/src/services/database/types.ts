@@ -6,7 +6,7 @@ import {IDBPDatabase, DBSchema} from 'idb'
 
 export interface RecordState {
     key:string
-    value:any
+    value:unknown
 }
 
 
@@ -42,7 +42,7 @@ export interface RecordOAuth {
     id:string  // Random internal id
     issuer:'google'|'microsoft'
     issuer_id:string  // The issuer's id for the user
-    issuer_config:Record<string, any>
+    issuer_config:Record<string, unknown>
     email:string
     name:string|null  // May be null if not required
     scope_sets:('email_send'|'contacts')[]
@@ -139,6 +139,7 @@ export interface RecordDraft {
         sender_name:string  // No null as empty string triggers inheritance
         invite_image:Blob|null
         invite_tmpl_email:string|null
+        invite_tmpl_clipboard:null  // TODO remove, not used
     }
     options_security:{
         lifespan:number|null  // NOTE may be Infinity (null used for inheritance)
@@ -194,11 +195,11 @@ export interface ContentArticle {
 
 export interface ContentVideo {
     type:'video'
-    format:'iframe_youtube'|'iframe_vimeo'
-    id:string
+    format:'iframe_youtube'|'iframe_vimeo'|null
+    id:string|null
     caption:string
-    start:number
-    end:number
+    start:number|null
+    end:number|null
 }
 
 export interface ContentFile {
@@ -211,11 +212,16 @@ export interface ContentFile {
 
 // Message
 
+export interface RecordDraftPublished extends RecordDraft {
+    profile:string  // Cannot be null
+    template:false
+}
+
 export interface RecordMessage {
     id:string
     published:Date
     expired:boolean  // True if all copies and assets gone from server, false if unknown
-    draft:RecordDraft  // Entire object preserved for records and to make "edit as new" easier
+    draft:RecordDraftPublished  // Entire object preserved to make "edit as new" easier
     assets_key:CryptoKey
     assets_uploaded:{[id:string]:boolean}  // Key exists = uploaded, and boolean whether latest
     // Must preserve expiration values as determined when message first published
@@ -258,19 +264,19 @@ export interface RecordResponseCore {
 export interface RecordResponseCommon extends RecordResponseCore {
     // Properties present in common responses like reads/reactions/replies
     id:string
-    copy_id:string
-    msg_id:string  // So don't have to retrieve copy every time want to know msg_id
+    copy_id:string|null
+    msg_id:string|null  // So don't have to retrieve copy every time want to know msg_id
 }
 
 export interface RecordRead extends RecordResponseCommon {}
 
 export interface RecordReplaction extends RecordResponseCommon {
-    msg_title:string  // In case message object later deleted
-    contact_id:string  // So don't have to retrieve copy every time want to know contact
-    contact_name:string  // So can still know contact name even if contact object deleted
+    msg_title:string|null  // In case message object later deleted
+    contact_id:string|null  // So don't have to retrieve copy every time want to know contact
+    contact_name:string|null  // So can still know contact name even if contact object deleted
     section_id:string|null  // May be null if a general reply to whole message
-    section_num:number  // So can at least know order of sections if later delete them
-    section_type:string  // So can at least know the type of section if later deleted
+    section_num:number|null  // So can at least know order of sections if later delete them
+    section_type:string|null  // So can at least know the type of section if later deleted
     subsection_id:string|null  // Some section types have subsections (e.g. image in slideshow)
     content:string
     read:boolean

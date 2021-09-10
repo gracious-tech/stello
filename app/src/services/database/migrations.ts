@@ -343,8 +343,8 @@ async function to10(transaction:VersionChangeTransaction):Promise<void>{
     for await (const cursor of transaction.objectStore('reactions')){
         // Recreate all reactions that have a copy_id with a new form of key
         if (cursor.value.copy_id){
-            cursor.value.id =
-                `${cursor.value.copy_id}-${cursor.value.section_id}-${cursor.value.subsection_id}`
+            const val = cursor.value
+            val.id = `${val.copy_id}-${val.section_id ?? 'null'}-${val.subsection_id ?? 'null'}`
             void cursor.source.put(cursor.value)  // Can't use `update()` since changing id
         }
         void cursor.delete()

@@ -2,7 +2,7 @@
 import {get_last} from "../utils/arrays"
 
 
-export function validate_subdomain(subdomain:string, min=1, max=63):string{
+export function validate_subdomain(subdomain:string, min=1, max=63):string|null{
     // Check whether given string is a valid subdomain or not, and return error string if not
     if (subdomain.length < min || subdomain.length > max)
         return `Name must be between ${min} to ${max} characters long`
@@ -16,7 +16,7 @@ export function validate_subdomain(subdomain:string, min=1, max=63):string{
 
 export function displayer_asset_type(path:string):string{
     // Return the mime type of a displayer asset based on its path
-    const ext = get_last(path.split('.')).toLowerCase()
+    const ext = get_last(path.split('.'))!.toLowerCase()
     switch (ext){
         case 'html':
             return 'text/html'

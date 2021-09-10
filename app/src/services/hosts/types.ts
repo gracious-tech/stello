@@ -88,7 +88,7 @@ export declare class HostUser {
     credentials:HostCredentials
     bucket:string
     region:string
-    user:string
+    user:string|null
 
     constructor(credentials:HostCredentials, bucket:string, region:string, user:string)
 
@@ -112,7 +112,7 @@ export declare class HostUser {
     list_responses(type?:string):Promise<string[]>
 
     // Upload config for responder function
-    upload_responder_config(config:Record<string, any>):Promise<void>
+    upload_responder_config(config:Record<string, unknown>):Promise<void>
 
     // Download deployment config
     download_deployment_config():Promise<DeploymentConfig>

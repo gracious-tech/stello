@@ -46,7 +46,7 @@ export class DatabaseSections {
         this._conn = connection
     }
 
-    async get(id:string):Promise<Section>{
+    async get(id:string):Promise<Section|undefined>{
         // Get single section by id
         const section = await this._conn.get('sections', id)
         return section && new Section(section)
@@ -55,7 +55,7 @@ export class DatabaseSections {
     async get_multiple(ids:string[]):Promise<Section[]>{
         // Return array of sections
         return Promise.all(
-            ids.map(async s => new Section(await this._conn.get('sections', s))),
+            ids.map(async s => new Section((await this._conn.get('sections', s))!)),
         )
     }
 
@@ -77,7 +77,7 @@ export class DatabaseSections {
     async create(content:RecordSectionContent):Promise<Section>{
         // Create new section and save to db
         const section = await this.create_object(content)
-        this._conn.put('sections', section)
+        void this._conn.put('sections', section)
         return section
     }
 

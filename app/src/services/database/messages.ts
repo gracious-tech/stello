@@ -2,7 +2,7 @@
 import {addDays, differenceInDays} from 'date-fns'
 
 import {enforce_range} from '../utils/numbers'
-import {AppDatabaseConnection, RecordMessage, RecordDraft} from './types'
+import {AppDatabaseConnection, RecordMessage, RecordDraftPublished} from './types'
 
 
 export class Message implements RecordMessage {
@@ -10,7 +10,7 @@ export class Message implements RecordMessage {
     id!:string
     published!:Date
     expired!:boolean
-    draft!:RecordDraft
+    draft!:RecordDraftPublished
     assets_key!:CryptoKey
     assets_uploaded!:{[id:string]:boolean}
     lifespan!:number
@@ -45,7 +45,7 @@ export class Message implements RecordMessage {
         return Math.max(1, this.safe_lifespan - differenceInDays(new Date(), this.published))
     }
 
-    get expires():Date{
+    get expires():Date|null{
         // Get approximate date of expiry (as server may not delete within same minutes/hours)
         return this.safe_lifespan === Infinity ? null : addDays(this.published, this.safe_lifespan)
     }
@@ -76,7 +76,7 @@ export class DatabaseMessages {
         return (await this._conn.getAll('messages')).map(message => new Message(message))
     }
 
-    async get(id:string):Promise<Message>{
+    async get(id:string):Promise<Message|undefined>{
         // Get single message by id
         const message = await this._conn.get('messages', id)
         return message && new Message(message)
@@ -100,22 +100,22 @@ export class DatabaseMessages {
 
         // Remove message's reads
         for (const read_id of await store_reads.index('by_msg').getAllKeys(id)){
-            store_reads.delete(read_id)
+            void store_reads.delete(read_id)
         }
 
         // Remove message's copies
         for (const copy_id of await store_copies.index('by_msg').getAllKeys(id)){
-            store_copies.delete(copy_id)
+            void store_copies.delete(copy_id)
         }
 
         // Get the message's sections and remove them
-        const section_ids = (await store_messages.get(id)).draft.sections.flat()
+        const section_ids = (await store_messages.get(id))?.draft.sections.flat() ?? []
         for (const section_id of section_ids){
-            store_sections.delete(section_id)
+            void store_sections.delete(section_id)
         }
 
         // Remove the message
-        store_messages.delete(id)
+        void store_messages.delete(id)
 
         // Task done when transaction completes
         await transaction.done

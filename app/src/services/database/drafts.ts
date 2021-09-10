@@ -16,6 +16,7 @@ export class Draft implements RecordDraft {
         sender_name:string
         invite_image:Blob|null
         invite_tmpl_email:string|null
+        invite_tmpl_clipboard:null  // TODO rm, not used
     }
     options_security!:{
         lifespan:number|null

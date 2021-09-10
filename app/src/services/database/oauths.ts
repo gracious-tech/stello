@@ -9,7 +9,7 @@ export class OAuth implements RecordOAuth {
     id!:string
     issuer!:'google'|'microsoft'
     issuer_id!:string
-    issuer_config!:Record<string, any>
+    issuer_config!:Record<string, unknown>
     email!:string
     name!:string
     scope_sets!:('email_send'|'contacts')[]

@@ -7,8 +7,8 @@ import {WaiterConfiguration, WaiterResult, WaiterState, checkExceptions, createW
 
 export class StorageBaseAws {
 
-    bucket:string
-    region:string
+    bucket!:string
+    region!:string
 
     get _bucket_id():string{
         return this.bucket

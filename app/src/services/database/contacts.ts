@@ -66,7 +66,7 @@ export class DatabaseContacts {
         return contacts.map(contact => new Contact(contact))
     }
 
-    async get(id:string):Promise<Contact>{
+    async get(id:string):Promise<Contact|undefined>{
         // Get single contact by id
         const contact = await this._conn.get('contacts', id)
         return contact && new Contact(contact)
@@ -114,7 +114,7 @@ export class DatabaseContacts {
         const store_drafts = transaction.objectStore('drafts')
 
         // Remove the actual contact
-        store_contacts.delete(id)
+        void store_contacts.delete(id)
 
         // Remove the contact from groups
         for (const group of await store_groups.getAll()){
@@ -122,7 +122,7 @@ export class DatabaseContacts {
             const filtered_contacts = group.contacts.filter(val => val !== id)
             if (filtered_contacts.length !== group.contacts.length){
                 group.contacts = filtered_contacts
-                store_groups.put(group)
+                void store_groups.put(group)
             }
         }
 
@@ -135,7 +135,7 @@ export class DatabaseContacts {
                     filtered_exclude.length !== draft.recipients.exclude_contacts.length){
                 draft.recipients.include_contacts = filtered_include
                 draft.recipients.exclude_contacts = filtered_exclude
-                store_drafts.put(draft)
+                void store_drafts.put(draft)
             }
         }
 

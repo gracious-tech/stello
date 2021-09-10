@@ -17,7 +17,7 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
 
     cloud:HostCloud = 'aws'
     credentials:HostCredentials
-    user:string
+    user:string|null
 
     _prefix:string
 
@@ -26,7 +26,7 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
     iam:IAM
     sts:STS
 
-    constructor(credentials:HostCredentials, bucket:string, region:string, user:string){
+    constructor(credentials:HostCredentials, bucket:string, region:string, user:string|null){
         super()
 
         // Store args
@@ -46,19 +46,18 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         this.sts = new STS({apiVersion: '2011-06-15', credentials: aws_creds, region})
     }
 
-    async upload_file(path:string, data:Blob|ArrayBuffer, lifespan=Infinity, max_reads=Infinity)
-            :Promise<void>{
+    async upload_file(path:string, data:Blob|ArrayBuffer, lifespan=Infinity, max_reads=Infinity,
+            ):Promise<void>{
         // Upload a file into the storage
 
         // Determine tags
-        let tagging:string
+        const tagging:string[] = []
         if (lifespan !== Infinity){
             lifespan = enforce_range(lifespan, 1, 365)  // Should have checked already, but do again
-            tagging = `stello-lifespan=${lifespan}`
+            tagging.push(`stello-lifespan=${lifespan}`)
         }
         if (max_reads !== Infinity){
-            tagging = tagging ? `${tagging}&` : ''
-            tagging += `stello-reads=0&stello-max-reads=${max_reads}`
+            tagging.push(`stello-reads=0`, `stello-max-reads=${max_reads}`)
         }
 
         await this.s3.putObject({
@@ -67,7 +66,7 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
             Body: data instanceof Blob ? data : new Uint8Array(data),
             ContentType: (data instanceof Blob ? data.type : null) || 'application/octet-stream',
             CacheControl: 'no-store',
-            Tagging: tagging,
+            Tagging: tagging.join('&'),
         })
     }
 
@@ -105,7 +104,7 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         return this._list_objects(this._bucket_resp_id, `responses/${type}`)
     }
 
-    async upload_responder_config(config:{email:string, [k:string]:any}):Promise<void>{
+    async upload_responder_config(config:{email:string, [k:string]:unknown}):Promise<void>{
         // Upload config for the responder function
         await this.s3.putObject({
             Bucket: this._bucket_resp_id,
@@ -126,13 +125,13 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         const list_resp = await this.sns.listSubscriptionsByTopic({
             TopicArn: topic_arn,
         })
-        for (const sub of list_resp.Subscriptions){
+        for (const sub of list_resp.Subscriptions ?? []){
             // NOTE Expecting only one subscription in this loop at most
             if (sub.Endpoint === config.email){
                 // Already subscribed so just finish
                 return
             }
-            if (!sub.SubscriptionArn.startsWith('arn:')){
+            if (!sub.SubscriptionArn?.startsWith('arn:')){
                 // ARN value is "PendingConfirmation" when haven't confirmed yet
                 continue  // Can't unsubscribe if haven't confirmed it yet
             }
@@ -154,14 +153,14 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
             Bucket: this.bucket,
             Key: 'deployment.json',
         })
-        return new Response(resp.Body as ReadableStream).json()
+        return await new Response(resp.Body as ReadableStream).json() as DeploymentConfig
     }
 
     // PRIVATE
 
     async _get_account_id():Promise<string>{
         // Some requests strictly require the account id to be specified
-        return (await this.sts.getCallerIdentity({})).Account
+        return (await this.sts.getCallerIdentity({})).Account!
     }
 
     async _list_objects(bucket:string, prefix=''):Promise<string[]>{
@@ -176,8 +175,8 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
             // NOTE Keys returned have any user-prefix already removed (but not prefix arg)
             objects.push(...(resp.Contents ?? []).map(obj => {
                 return {
-                    key: obj.Key.slice(this._prefix.length),
-                    date: obj.LastModified,
+                    key: obj.Key!.slice(this._prefix.length),
+                    date: obj.LastModified!,
                 }
             }))
         }

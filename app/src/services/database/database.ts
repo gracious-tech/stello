@@ -3,7 +3,7 @@ import {sample} from 'lodash'
 import {openDB} from 'idb/with-async-ittr.js'
 
 import {AppDatabaseSchema, AppDatabaseConnection, RecordReplaction, RecordSectionContent,
-    RecordDraft, ContentImages} from './types'
+    RecordDraft, ContentImages, RecordDraftPublished, RecordProfileHost} from './types'
 import {DatabaseState} from './state'
 import {DatabaseContacts} from './contacts'
 import {DatabaseGroups} from './groups'
@@ -85,18 +85,19 @@ export class Database {
         if (draft_or_id instanceof Draft){
             original = draft_or_id
         } else {
-            original = await this.drafts.get(draft_or_id)
+            original = await this.drafts.get(draft_or_id) as Draft
         }
 
         // Generate the copy initally as a new draft
         const copy = await this.drafts.create_object()
 
         // Only copy fields known to be safe to copy
-        const safe_fields = ['reply_to', 'title', 'profile', 'options_identity', 'options_security',
-            'recipients']
-        for (const key of safe_fields){
-            copy[key] = original[key]
-        }
+        copy.reply_to = original.reply_to
+        copy.title = original.title
+        copy.profile = original.profile
+        copy.options_identity = original.options_identity
+        copy.options_security = original.options_security
+        copy.recipients = original.recipients
 
         // Override template property, else use existing
         copy.template = template ?? original.template
@@ -188,7 +189,7 @@ export class Database {
             id: generate_token(),
             published: new Date(),
             expired: false,
-            draft: draft,
+            draft: draft as RecordDraftPublished,
             assets_key: await generate_key_sym(true),
             assets_uploaded: {},
             lifespan,
@@ -242,7 +243,7 @@ export class Database {
                 || await this.reactions.get(draft.reply_to)
             if (replaction && !replaction.replied){
                 replaction.replied = true
-                this[replaction.is_reply ? 'replies' : 'reactions'].set(replaction)
+                void this[replaction.is_reply ? 'replies' : 'reactions'].set(replaction)
             }
         }
 
@@ -253,13 +254,13 @@ export class Database {
         const store_copies = transaction.objectStore('copies')
 
         // Add the new objects
-        store_messages.add(message)
+        void store_messages.add(message)
         for (const copy of copies){
-            store_copies.add(copy)
+            void store_copies.add(copy)
         }
 
         // Delete the original draft
-        store_drafts.delete(draft.id)
+        void store_drafts.delete(draft.id)
 
         // Wait till done and then return message
         await transaction.done
@@ -270,10 +271,10 @@ export class Database {
         // Returns a fn for getting as useful a desc of recipients as possible
         // NOTE Caches group and contact names so can reuse for multiple drafts more efficiently
 
-        const group_names = {}
-        const contact_names = {}
+        const group_names:Record<string, string|null> = {}
+        const contact_names:Record<string, string|null> = {}
 
-        return async (draft:Draft):Promise<string> => {
+        return async (draft:RecordDraft):Promise<string> => {
             // Unpack recipient arrays
             const {include_groups, exclude_groups, include_contacts, exclude_contacts} =
                 draft.recipients
@@ -326,7 +327,7 @@ export class Database {
         }
     }
 
-    async read_create(sent:Date, resp_token:string, ip:string, user_agent:string):Promise<Read>{
+    async read_create(sent:Date, resp_token:string, ip:string, user_agent:string):Promise<Read|null>{
         // Create a new read
 
         // Try to get msg copy identified by resp_token (if valid and copy not deleted yet)
@@ -348,13 +349,13 @@ export class Database {
         return read
     }
 
-    async _gen_replaction(content:string, sent:Date, resp_token:string, section_id:string,
+    async _gen_replaction(content:string, sent:Date, resp_token:string, section_id:string|null,
             subsection_id:string|null, ip:string, user_agent:string):Promise<RecordReplaction>{
         // Generate a replaction object that can be used for a reply or reaction
 
         // Construct new object with data already known
         const replaction:RecordReplaction = {
-            id: null,  // Set later by calling methods
+            id: '',  // Set later by calling methods
             sent: sent,
             ip: ip,
             user_agent: user_agent,
@@ -384,7 +385,7 @@ export class Database {
             replaction.contact_name = msg_copy.contact_name
 
             // Get msg so can know title
-            const msg = await this.messages.get(msg_copy.msg_id)
+            const msg = (await this.messages.get(msg_copy.msg_id))!
             replaction.msg_title = msg.draft.title
 
             // If section id given then can determine its position and type
@@ -406,7 +407,8 @@ export class Database {
     async reaction_create(content:string|null, sent:Date, resp_token:string, section_id:string,
             subsection_id:string|null, ip:string, user_agent:string):Promise<Reaction|null>{
         // Create a new reaction
-        const reaction = new Reaction(await this._gen_replaction(content, sent, resp_token,
+        // NOTE content may be null when passed to _gen_replaction but will delete later anyway
+        const reaction = new Reaction(await this._gen_replaction(content!, sent, resp_token,
             section_id, subsection_id, ip, user_agent))
 
         // Reactions are useless without knowing who from (and can't give unique id either)
@@ -427,7 +429,7 @@ export class Database {
         return reaction
     }
 
-    async reply_create(content:string, sent:Date, resp_token:string, section_id:string,
+    async reply_create(content:string, sent:Date, resp_token:string, section_id:string|null,
             subsection_id:string|null, ip:string, user_agent:string):Promise<Reply>{
         // Create a new reply
         const reply = new Reply(await this._gen_replaction(content, sent, resp_token, section_id,
@@ -449,7 +451,7 @@ export class Database {
         const profile = await this.profiles.create()
         profile.email = 'sender@localhost'
         profile.msg_options_identity.sender_name = "Sender Name"
-        profile.host = JSON.parse(import.meta.env.VITE_DEV_HOST_SETTINGS)
+        profile.host = JSON.parse(import.meta.env.VITE_DEV_HOST_SETTINGS) as RecordProfileHost
         profile.setup_step = null
         await this.profiles.set(profile)
         await this.state.set({key: 'default_profile', value: profile.id})
@@ -461,7 +463,7 @@ export class Database {
             'Goods', 'Harvard']
         const contacts = await Promise.all([...range(100 * multiplier)].map(async i => {
             const contact = await this.contacts.create(
-                `${sample(first_names)} ${sample(last_names)}`,
+                `${sample(first_names)!} ${sample(last_names)!}`,
                 Math.random() > 0.8 ? '' : `blackhole+stello${i}@gracious.tech`,
             )
             // Sometimes unsubscribe them
@@ -539,7 +541,7 @@ export class Database {
         await this.drafts.set(draft)
 
         // Create sent messages
-        const titles = cycle([
+        const titles = cycle<string>([
             "How to write a newsletter",
             "November News",
             "Stello is cool!",
@@ -553,7 +555,7 @@ export class Database {
             // Sometimes create resend requests
             if (Math.random() > 0.9){
                 await this._conn.put('request_resend', {
-                    contact: draft.recipients.include_contacts[0],
+                    contact: draft.recipients.include_contacts[0]!,
                     message: msg.id,
                     reason: "I'd like another copy of this message please. "
                         .repeat(Math.random() * 10 + 1),
@@ -583,7 +585,8 @@ export class Database {
         // Create responses
         for (const msg of percent(messages)){
             const msg_section_ids = cycle(msg.draft.sections.flat() as MinOne<string>)
-            const msg_subsection_ids = cycle([null, section_image.content.images[0].id, null, null])
+            const msg_subsection_ids =
+                cycle([null, section_image.content.images[0]!.id, null, null])
             for (const msg_copy of percent(await this.copies.list_for_msg(msg.id))){
                 if (Math.random() > 0.5){
                     await this.reply_create(random_reply(), random_date(), msg_copy.resp_token,

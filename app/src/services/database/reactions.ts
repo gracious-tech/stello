@@ -38,7 +38,7 @@ export class Reaction implements RecordReaction {
         // Get the reaction's id from its properties (actual `id` property is this value when saved)
         // NOTE Reactions always have a copy_id and are deleted if don't
         // NOTE section_id/subsection_id may be "null" which will never clash with an actual id
-        return `${this.copy_id}-${this.section_id}-${this.subsection_id}`
+        return `${this.copy_id}-${this.section_id ?? 'null'}-${this.subsection_id ?? 'null'}`
     }
 }
 
@@ -56,7 +56,7 @@ export class DatabaseReactions {
         return (await this._conn.getAll('reactions')).map(r => new Reaction(r))
     }
 
-    async get(id:string):Promise<Reaction>{
+    async get(id:string):Promise<Reaction|undefined>{
         // Get single reaction by id
         const reaction = await this._conn.get('reactions', id)
         return reaction && new Reaction(reaction)

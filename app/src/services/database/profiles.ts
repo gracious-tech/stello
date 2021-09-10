@@ -153,10 +153,10 @@ export class Profile implements RecordProfile {
         // Return final smtp settings after accounting for defaults
         // NOTE Address and password are always provided directly by user
         const settings = Object.assign({}, this.smtp)
-        settings.host ||= `smtp.${this.email_domain}`
+        settings.host ||= this.email_domain ? `smtp.${this.email_domain}` : ''
         settings.port ||= 465
         settings.user ||= this.email
-        if (this.smtp_detected){
+        if (this.smtp_detected_config){
             settings.host = this.smtp_detected_config.host
             settings.port = this.smtp_detected_config.port
             settings.starttls = this.smtp_detected_config.starttls
@@ -225,8 +225,8 @@ export class Profile implements RecordProfile {
 
     new_host_user():HostUser{
         // Return new instance of correct host class with profile's host settings
-        const host_user_class = get_host_user(this.host.cloud)
-        return new host_user_class(this.host.credentials, this.host.bucket, this.host.region,
+        const host_user_class = get_host_user(this.host.cloud!)
+        return new host_user_class(this.host.credentials!, this.host.bucket!, this.host.region!,
             this.host.user)
     }
 }

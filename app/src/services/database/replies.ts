@@ -13,9 +13,9 @@ export class Reply implements RecordReply {
     msg_title!:string
     contact_id!:string
     contact_name!:string
-    section_id!:string
-    section_num!:number
-    section_type!:string
+    section_id!:string|null
+    section_num!:number|null
+    section_type!:string|null
     subsection_id!:string|null
     content!:string
     read!:boolean
@@ -49,7 +49,7 @@ export class DatabaseReplies {
         return (await this._conn.getAll('replies')).map(r => new Reply(r))
     }
 
-    async get(id:string):Promise<Reply>{
+    async get(id:string):Promise<Reply|undefined>{
         // Get single reply by id
         const reply = await this._conn.get('replies', id)
         return reply && new Reply(reply)

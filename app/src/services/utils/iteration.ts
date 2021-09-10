@@ -20,8 +20,9 @@ export function* range(start_or_amount:number, end?:number, step=1):Generator<nu
 }
 
 
-export function* cycle<T>(options:[T, ...T[]]):Generator<T>{
+export function* cycle<T>(options:[T, ...T[]]):Generator<T, T>{  // .value is :yield|return
     // Generator that endlessly cycles through given options
+    // NOTE Despite never returning, typing return as same as yield prevents .value being confused
     while (true){
         yield options[0]
         options.push(options.shift()!)

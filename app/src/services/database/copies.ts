@@ -63,13 +63,13 @@ export class DatabaseCopies {
         return copies.map(copy => new MessageCopy(copy))
     }
 
-    async get(id:string):Promise<MessageCopy>{
+    async get(id:string):Promise<MessageCopy|undefined>{
         // Get single copy by id
         const copy = await this._conn.get('copies', id)
         return copy && new MessageCopy(copy)
     }
 
-    async get_by_resp_token(resp_token:string):Promise<MessageCopy>{
+    async get_by_resp_token(resp_token:string):Promise<MessageCopy|undefined>{
         // Get single copy by resp_token
         const copy = await this._conn.getFromIndex('copies', 'by_resp_token', resp_token)
         return copy && new MessageCopy(copy)
