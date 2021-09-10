@@ -5,7 +5,7 @@ div
     v-toolbar
         v-toolbar-title Drafts
         v-spacer
-        app-btn.new(@click='new_regular_draft' icon='add' fab)
+        app-btn.new(@click='new_regular_draft' icon='add' fab data-tip="New empty message")
 
     app-content(class='px-5 py-10')
 
@@ -13,7 +13,8 @@ div
             v-subheader Drafts
             route-drafts-item(v-for='draft of regular_drafts' :key='draft.id' :draft='draft'
                 @removed='removed' @copied='copied')
-            p(v-if='!regular_drafts.length' class='text-center text--secondary text-body-2') No drafts
+            p(v-if='!regular_drafts.length' class='text-center text--secondary text-body-2')
+                | No drafts
 
             v-divider(class='my-10')
 

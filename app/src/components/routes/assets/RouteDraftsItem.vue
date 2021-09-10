@@ -88,5 +88,8 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+.v-chip
+    pointer-events: none
+
 
 </style>
