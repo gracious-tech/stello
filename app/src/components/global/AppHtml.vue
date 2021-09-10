@@ -50,26 +50,26 @@ import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import {Editor, EditorContent, BubbleMenu, FloatingMenu, VueRenderer, BubbleMenuInterface,
     mergeAttributes} from '@tiptap/vue-2'
-import Mention from '@tiptap/extension-mention'
+import {Mention} from '@tiptap/extension-mention'
 import {SuggestionOptions} from '@tiptap/suggestion'
-import Document from '@tiptap/extension-document'
-import Text from '@tiptap/extension-text'
-import Link from '@tiptap/extension-link'
-import Paragraph from '@tiptap/extension-paragraph'
-import Placeholder from '@tiptap/extension-placeholder'
-import Blockquote from '@tiptap/extension-blockquote'
-import HardBreak from '@tiptap/extension-hard-break'
-import Bold from '@tiptap/extension-bold'
-import Italic from '@tiptap/extension-italic'
-import Heading from '@tiptap/extension-heading'
-import ListItem from '@tiptap/extension-list-item'
-import BulletList from '@tiptap/extension-bullet-list'
-import OrderedList from '@tiptap/extension-ordered-list'
-import Typography from '@tiptap/extension-typography'
-import History from '@tiptap/extension-history'
-import Dropcursor from '@tiptap/extension-dropcursor'
-import HorizontalRule from '@tiptap/extension-horizontal-rule'
-import Highlight from '@tiptap/extension-highlight'
+import {Document} from '@tiptap/extension-document'
+import {Text} from '@tiptap/extension-text'
+import {Link} from '@tiptap/extension-link'
+import {Paragraph} from '@tiptap/extension-paragraph'
+import {Placeholder} from '@tiptap/extension-placeholder'
+import {Blockquote} from '@tiptap/extension-blockquote'
+import {HardBreak} from '@tiptap/extension-hard-break'
+import {Bold} from '@tiptap/extension-bold'
+import {Italic} from '@tiptap/extension-italic'
+import {Heading} from '@tiptap/extension-heading'
+import {ListItem} from '@tiptap/extension-list-item'
+import {BulletList} from '@tiptap/extension-bullet-list'
+import {OrderedList} from '@tiptap/extension-ordered-list'
+import {Typography} from '@tiptap/extension-typography'
+import {History} from '@tiptap/extension-history'
+import {Dropcursor} from '@tiptap/extension-dropcursor'
+import {HorizontalRule} from '@tiptap/extension-horizontal-rule'
+import {Highlight} from '@tiptap/extension-highlight'
 
 import AppHtmlVariables from './assets/AppHtmlVariables.vue'
 
@@ -126,11 +126,11 @@ function mention_renderer():ReturnType<SuggestionOptions['render']>{
 })
 export default class extends Vue {
 
-    @Prop({type: String, default: ''}) value:string
-    @Prop({type: Object, default: () => {}}) variables:Record<string, {label:string, value:string}>
+    @Prop({type: String, default: ''}) value!:string
+    @Prop({type: Object, default: () => {}}) variables!:Record<string, {label:string, value:string}>
 
-    editor:Editor = null
-    bubble_url:string = null
+    editor:Editor|null = null
+    bubble_url:string|null = null
     heading_prompt = null
 
     get bubble_tippy_options():BubbleMenuInterface['tippyOptions']{
@@ -154,8 +154,8 @@ export default class extends Vue {
     focus(){
         // Focus the editor
         // NOTE Used by parent components
-        if (!this.editor.isFocused){
-            this.editor.commands.focus()
+        if (!this.editor!.isFocused){
+            this.editor!.commands.focus()
         }
     }
 
@@ -166,9 +166,9 @@ export default class extends Vue {
 
     reevaluate_heading_prompt(){
         // Re-evaluate whether inside a heading or subheading
-        if (this.editor.isActive('heading', {level: 1})){
+        if (this.editor!.isActive('heading', {level: 1})){
             this.heading_prompt = "Heading..."
-        } else if (this.editor.isActive('heading', {level: 2})){
+        } else if (this.editor!.isActive('heading', {level: 2})){
             this.heading_prompt = "Subheading..."
         } else {
             this.heading_prompt = null
@@ -177,7 +177,7 @@ export default class extends Vue {
 
     on_url_toggle(){
         // When clicking the link format button, either clear an existing link or show input field
-        if (this.editor.isActive("link")){
+        if (this.editor!.isActive("link")){
             this.focused_run('unsetLink')
         } else {
             this.bubble_url = ''  // When not null, field appears
@@ -205,7 +205,7 @@ export default class extends Vue {
             content: this.value,
             onUpdate: () => {
                 // Emit html whenever content changes
-                this.$emit('input', this.editor.getHTML())
+                this.$emit('input', this.editor!.getHTML())
                 // Whenever content changes, may/may not be inside a heading any more
                 this.reevaluate_heading_prompt()
             },
@@ -235,7 +235,7 @@ export default class extends Vue {
                             }
                             if ($anchor.pos === 1 || !$anchor.parent.textContent.length){
                                 // Cursor is at beginning of line, so remove the heading node
-                                return this.editor.commands.clearNodes()
+                                return this.editor!.commands.clearNodes()
                             }
                             return false
                         },
@@ -301,7 +301,9 @@ export default class extends Vue {
 
     beforeDestroy(){
         // Ensure editor instance destroyed to avoid memory leaks
-        this.editor.destroy()
+        if (this.editor){
+            this.editor.destroy()
+        }
     }
 
 

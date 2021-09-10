@@ -246,10 +246,10 @@ async function to8(transaction:VersionChangeTransaction):Promise<void>{
         // Template variables changed
         cursor.value.msg_options_identity.invite_tmpl_email =
             cursor.value.msg_options_identity.invite_tmpl_email
-            .replaceAll('CONTACT', '<span data-mention data-id="contact_hello"></span>')
-            .replaceAll('SENDER', '<span data-mention data-id="sender_name"></span>')
-            .replaceAll('SUBJECT', '<span data-mention data-id="msg_title"></span>')
-            .replaceAll('LINK', '')  // Already resolved to blank post v0.1.1
+                .replaceAll('CONTACT', '<span data-mention data-id="contact_hello"></span>')
+                .replaceAll('SENDER', '<span data-mention data-id="sender_name"></span>')
+                .replaceAll('SUBJECT', '<span data-mention data-id="msg_title"></span>')
+                .replaceAll('LINK', '')  // Already resolved to blank post v0.1.1
         void cursor.update(cursor.value)
     }
 }
@@ -344,7 +344,7 @@ async function to10(transaction:VersionChangeTransaction):Promise<void>{
         // Recreate all reactions that have a copy_id with a new form of key
         if (cursor.value.copy_id){
             const val = cursor.value
-            val.id = `${val.copy_id}-${val.section_id ?? 'null'}-${val.subsection_id ?? 'null'}`
+            val.id = `${val.copy_id!}-${val.section_id ?? 'null'}-${val.subsection_id ?? 'null'}`
             void cursor.source.put(cursor.value)  // Can't use `update()` since changing id
         }
         void cursor.delete()

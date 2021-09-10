@@ -4,7 +4,8 @@
 div.root(:style='container_styles')
     div.header(data-tip="Change invitation image" data-tip-instant)
         img(:src='image_src' height='0' :style='image_styles' @click='$emit("change_image")')
-    app-html.input(ref='editor' :value='value' :variables='variables' @input='$emit("input", $event)')
+    app-html.input(ref='editor' :value='value' :variables='variables'
+        @input='$emit("input", $event)')
     div.security(class='d-flex align-items-center justify-end')
         app-svg(name='icon_error')
         span(class='ml-1') Invitation text never expires
@@ -27,11 +28,11 @@ import {Draft} from '@/services/database/drafts'
 @Component({})
 export default class extends Vue {
 
-    @Prop(String) value:string
-    @Prop({type: Blob}) image:Blob
-    @Prop({type: Profile, required: true}) profile:Profile
-    @Prop({type: Draft, default: null}) draft:Draft
-    @Prop({type: Boolean, default: false}) reply:boolean
+    @Prop(String) value!:string
+    @Prop({type: Blob}) image!:Blob
+    @Prop({type: Profile, required: true}) profile!:Profile
+    @Prop({type: Draft, default: null}) draft!:Draft
+    @Prop({type: Boolean, default: false}) reply!:boolean
 
     container_styles = INVITE_HTML_CONTAINER_STYLES
     image_styles = INVITE_HTML_IMAGE_STYLES
