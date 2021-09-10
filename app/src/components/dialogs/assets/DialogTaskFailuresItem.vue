@@ -18,8 +18,8 @@ v-card.card
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
 import {Task, TaskStartArgs, TaskErrorType} from '@/services/tasks/tasks'
-import {OauthUseless, oauth_pretask_reauth, ScopeSet, scope_set_for_task,
-    } from '@/services/tasks/oauth'
+import {OauthUseless, oauth_pretask_reauth, ScopeSet, scope_set_for_task}
+    from '@/services/tasks/oauth'
 import {OAuth} from '@/services/database/oauths'
 
 

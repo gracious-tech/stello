@@ -42,10 +42,10 @@ function attach_js_error_handler(page:Page){
 
 
 // Config for running tests via a packaged Electron app
+type ElectronTestFixtures = {gotohash:(path:string)=>Promise<Response|null>}
+type ElectronWorkerFixtures = {_electron_app:ElectronApplication}
 const test_config_electron:PlaywrightTestConfig = {...test_config_common}
-// NOTE Type passed to extend is <test fixtures, worker fixtures>
-const test_interface_electron = test.extend<
-        {gotohash:(path:string)=>Promise<Response|null>}, {_electron_app:ElectronApplication}>({
+const test_interface_electron = test.extend<ElectronTestFixtures, ElectronWorkerFixtures>({
 
     // Worker fixture that provides access to the Electron app (set once for whole run)
     // WARN Don't access this fixture within tests, as then can't run tests via port/dev server
@@ -87,7 +87,7 @@ const test_interface_electron = test.extend<
         const base_url = new URL(page.url())
         base_url.hash = ''  // Clears any existing hash, but also ensures '#' appended
         function gotohash(path:string){
-            return page.goto(`${base_url}${path}`)
+            return page.goto(`${base_url.toString()}${path}`)
         }
         await run(gotohash)
     },
