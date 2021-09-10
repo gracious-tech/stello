@@ -21,8 +21,8 @@ import {AuthorizationServiceConfiguration} from '@openid/appauth'
 import DialogOAuthExisting from '@/components/dialogs/specific/DialogOAuthExisting.vue'
 import {OAuth} from '../database/oauths'
 import {task_manager, TaskStartArgs} from './tasks'
-import {drop, MustInterpret, MustReauthenticate, MustReconnect, MustRecover,
-    } from '../utils/exceptions'
+import {drop, MustInterpret, MustReauthenticate, MustReconnect, MustRecover, MustWait}
+    from '../utils/exceptions'
 import {request} from '../utils/http'
 
 
@@ -120,7 +120,7 @@ export const OAUTH_SUPPORTED:Record<OAuthIssuer, IssuerConfig> = {
             // Instead Stello remembers itself which scopes have prev been granted and rerequests
             // But leaving this in case Google does enable in future
             include_granted_scopes: 'true',
-    },
+        },
     },
     microsoft: {
         // https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow
@@ -568,10 +568,15 @@ export async function oauth_request(oauth:OAuth, url:string, params?:Record<stri
     }
 
     // Handle errors
+    // WARN Do not handle 403 yet as Gmail uses for rate limiting too, so must check body first
     if (resp.status === 401){
         throw new MustReauthenticate()
     } else if (resp.status === 410){  // Gone
         throw new MustRecover()  // e.g. Google sync token expired
+    } else if (resp.status === 429){
+        throw new MustWait()  // Have been rate limited
+    } else if (resp.status >= 500 && resp.status < 600){
+        throw new MustWait()  // Third-party issue that will probably resolve over time
     }
 
     // Try to parse JSON data if possible, but otherwise at least include status of resp
@@ -583,24 +588,55 @@ export async function oauth_request(oauth:OAuth, url:string, params?:Record<stri
     try {
         // WARN Don't use `resp.json()` as if not JSON then body lost as can only read once
         error_data.body = await resp.text()
-        error_data.body = JSON.parse(error_data.body)
+        error_data.body = JSON.parse(error_data.body as string)
     } catch {
-        // Error data still useful even without body
+        // Error data still useful even without body or with only a string body
     }
 
-    // Google uses 403 for missing-scopes errors
-    // But 403 also for rate limits, so must be specific in identifying it
-    if (oauth.issuer === 'google' && resp.status === 403 &&
-            error_data.body.error?.errors?.[0]?.reason === 'insufficientPermissions'){
+    // If body is not an object, can't analyse it any further
+    if (error_data.body === null || typeof error_data.body !== 'object'){
+        throw new MustInterpret(error_data)
+    }
+    const error_body = error_data.body as Record<string, unknown>
+
+    // Interpret issuer-specific errors
+    if (oauth.issuer === 'google'){
+        // https://developers.google.com/gmail/api/guides/handle-errors
+
+        // Extract useful fields
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const google_status = String(error_body['error']?.['status'])
+        const google_reason = String(error_body['error']?.['errors']?.[0]?.['reason'])
+
+        if (resp.status === 400){
+            if (google_status === 'FAILED_PRECONDITION'){
+                throw new OauthUseless()  // Not a gmail account (e.g. signin only)
+            }
+        }
+
+        if (resp.status === 403){
+            if (google_reason === 'domainPolicy'){
+                throw new OauthUseless()  // Google workspace disabled app access (to e.g. gmail)
+            }
+            if (google_reason.includes('LimitExceeded')){
+                // Includes: dailyLimitExceeded, userRateLimitExceeded, rateLimitExceeded
+                throw new MustWait()  // Gmail usually seems to respond with 429 but 403 in docs too
+            }
+        }
+
+    } else if (oauth.issuer === 'microsoft'){
+        // https://docs.microsoft.com/en-us/graph/errors
+
+        // Extract useful fields
+        const microsoft_code = String(error_body['error']?.['code'])
+    }
+
+    // If didn't handle a 403 yet then probably safe to assume it's an auth issue
+    if (resp.status === 403){
         throw new MustReauthenticate()
     }
 
-    // Account for specific, but important, cases where oauth allowed but not able to do something
-    if (oauth.issuer === 'google' && resp.status === 400
-            && error_data.body.error?.status === 'FAILED_PRECONDITION'){
-        throw new OauthUseless()
-    }
-
+    // Needs reporting
     throw new MustInterpret(error_data)
 }
 

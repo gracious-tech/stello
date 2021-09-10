@@ -39,6 +39,11 @@ export class MustReconfigure extends Error {
 }
 
 
+export class MustWait extends Error {
+    // Use for errors that can be resolved by trying again later (throttled etc)
+}
+
+
 export class MustRecover extends Error {
     // Use for missing resource errors that can be resolved by recreating or giving up
 }

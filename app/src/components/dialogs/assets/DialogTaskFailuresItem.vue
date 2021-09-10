@@ -44,7 +44,7 @@ export default class extends Vue {
 
     get error_type():TaskErrorType|'oauth_access'|'oauth_scopes'|'oauth_useless'{
         // Expand on task error types with more specific oauth ones
-        const type = this.task.error_type
+        const type = this.task.error_type!
         if (type === 'auth' && this.task.fix_oauth){
             // Since have access to oauth object, can be more specific
             if (this.oauth?.scope_sets.includes(this.required_scope_set)){
@@ -65,8 +65,9 @@ export default class extends Vue {
             auth: "Wrong password",
             oauth_access: "Not signed in",
             oauth_scopes: "Do not have permission",
-            oauth_useless: "Account not valid",
+            oauth_useless: `Account not valid (${this.oauth?.email})`,
             settings: "Incorrect settings",
+            throttled: "Limit exceeded",
             unknown: "Unexpected error",
         }[this.error_type]
     }
@@ -94,6 +95,11 @@ export default class extends Vue {
                 change your settings.`
         } else if (this.error_type === 'settings'){
             return "The settings currently in use don't seem to be working."
+        } else if (this.error_type === 'throttled'){
+            return `You've exceeded a limit for your account and must wait a moment before retrying.
+                This is a limit set by your connected account, not by Stello.
+                You may find you can retry within minutes, hours, or at worst a day.
+                `
         }
         return "Something has gone wrong. Let us know so we can prevent it from happening again."
     }
@@ -141,7 +147,7 @@ export default class extends Vue {
             abort_msg = await this.task.fix_settings()
         } else {
             // Only other thing to do is simply retry...
-            this.$tm.start(...task_args)
+            void this.$tm.start(...task_args)
         }
 
         // If fix returned an abort message, abort task

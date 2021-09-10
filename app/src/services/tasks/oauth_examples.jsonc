@@ -1,0 +1,39 @@
+[
+    // GOOGLE
+    {
+        "error": {
+            "code": 429,
+            "message": "Resource has been exhausted (e.g. check quota).",
+            "errors": [
+                {
+                    "message": "Resource has been exhausted (e.g. check quota).",
+                    "domain": "global",
+                    "reason": "rateLimitExceeded"
+                }
+            ],
+            "status": "RESOURCE_EXHAUSTED"
+        }
+    },
+    {
+        "error": {
+            "code": 403,
+            "message": "Request had insufficient authentication scopes.",
+            "status": "PERMISSION_DENIED"
+        }
+    },
+    {
+        "error": {
+            "code": 400,
+            "message": "Precondition check failed.",
+            "errors": [
+                {
+                    "message": "Precondition check failed.",
+                    "domain": "global",
+                    "reason": "failedPrecondition"
+                }
+            ],
+            "status": "FAILED_PRECONDITION"
+        }
+    }
+    // MICROSOFT
+]

@@ -9,7 +9,7 @@ import {responses_receive} from './responses'
 import {contacts_oauth_setup, contacts_sync, contacts_change_property, contacts_change_email,
     contacts_remove} from './contacts'
 import {send_oauth_setup, send_message} from './sending'
-import {MustReauthenticate, MustReconfigure, MustReconnect} from '../utils/exceptions'
+import {MustReauthenticate, MustReconfigure, MustReconnect, MustWait} from '../utils/exceptions'
 import {hosts_storage_setup, hosts_storage_delete} from './hosts'
 import {retract_message} from './management'
 
@@ -17,7 +17,7 @@ import {retract_message} from './management'
 export type TaskStartArgs = [string, any[]?, any[]?]
 // Task functions return a promise which may resolve to single/array of other subtask promises
 export type TaskReturn = Promise<Promise<any>|Promise<any>[]|void>
-export type TaskErrorType = 'network'|'auth'|'settings'|'unknown'
+export type TaskErrorType = 'network'|'auth'|'settings'|'throttled'|'unknown'
 export type TaskFunction = (task:Task)=>TaskReturn
 
 
@@ -42,11 +42,11 @@ export class Task {
     // Represents a task for tracking its progress
 
     // Configurable
-    label:string = null
+    label:string|null = null
     show_count = false
-    fix_settings:()=>Promise<void|string> = null  // Return error string to abort failed task
-    fix_auth:()=>Promise<void|string> = null  // Return error string to abort failed task
-    fix_oauth:string = null  // Don't provide actual oauth object as should get fresh when needed
+    fix_settings:(()=>Promise<void|string>)|null = null  // Return error string to abort failed task
+    fix_auth:(()=>Promise<void|string>)|null = null  // Return error string to abort failed task
+    fix_oauth:string|null = null  // Don't provide actual oauth obj as should get fresh when needed
 
     // Readable
     name:string  // May be changed if evolving
@@ -56,7 +56,7 @@ export class Task {
     abortable = false  // Whether task can be manually aborted (always internally abortable)
     aborted:TaskAborted|null = null  // An abort error if task has been aborted
     error:any = null  // Error value is both resolved for `done` and set as a property
-    error_report_id:string = null  // UUID for error report (if was sent)
+    error_report_id:string|null = null  // UUID for error report (if was sent)
     subtasks_done = 0
     subtasks_total = 0
 
@@ -103,7 +103,7 @@ export class Task {
         return Math.floor(this.subtasks_done / this.safe_total * 100)
     }
 
-    get error_type():TaskErrorType{
+    get error_type():TaskErrorType|null{
         // Detect the type of error
         if (!this.error){
             return null
@@ -113,6 +113,8 @@ export class Task {
             return 'auth'
         } else if (this.error instanceof MustReconfigure){
             return 'settings'
+        } else if (this.error instanceof MustWait){
+            return 'throttled'
         }
         return 'unknown'
     }
