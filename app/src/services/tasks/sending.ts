@@ -102,7 +102,8 @@ export class Sender {
         const default_tmpl = this.msg.draft.reply_to
             ? this.profile.options.reply_invite_tmpl_email
             : this.profile.msg_options_identity.invite_tmpl_email
-        return this.msg.draft.options_identity.invite_tmpl_email || default_tmpl
+        // NOTE reply_invite_tmpl_email may be undefined due to unknown bug, so fallback to ''
+        return (this.msg.draft.options_identity.invite_tmpl_email || default_tmpl) ?? ''
     }
 
     async send(task:Task):Promise<void>{
