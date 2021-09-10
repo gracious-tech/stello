@@ -29,6 +29,19 @@ module.exports = {
         'plugin:vue/vue3-recommended',
     ],
     rules: {
+        // Enable as errors
+        'no-promise-executor-return': 'error',
+        'no-template-curly-in-string': 'error',
+        'no-unreachable-loop': 'error',
+        'no-constructor-return': 'error',
+        'eqeqeq': 'error',
+        'no-eval': 'error',
+        // Enable as warnings
+        'max-len': ['warn', {code: 100, ignoreUrls: true, ignoreTemplateLiterals: true}],
+        'indent': ['warn'],
+        'comma-dangle': ['warn', 'always-multiline'],
+        'semi': ['warn', 'never', {beforeStatementContinuationChars: 'always'}],
+        'no-console': ['warn', {allow: ['warn', 'error']}],  // Regular logs usually debug leftover
         // Disable as are not problems at all
         '@typescript-eslint/no-extra-semi': 'off',  // Conflicts with 'semi' rule
         '@typescript-eslint/no-empty-interface': 'off',  // Empty interfaces may be expanded later
@@ -49,8 +62,6 @@ module.exports = {
         '@typescript-eslint/ban-types': 'warn',
         // TODO revert below to error once 'any' type cases dealt with, as also checks invalid code
         '@typescript-eslint/restrict-template-expressions': 'warn',
-        // Enable
-        'semi': ['warn', 'never', {beforeStatementContinuationChars: 'always'}],
         // Need customisation
         'no-constant-condition': ['error', {checkLoops: false}],  // while (true) useful at times
         'prefer-const': ['warn', {destructuring: 'all'}],  // Allows `let [a, b]` if only `a` const
