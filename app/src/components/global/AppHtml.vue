@@ -4,7 +4,7 @@
 div
 
     bubble-menu.bubble(v-if='editor' :editor='editor' :tippy-options='bubble_tippy_options'
-            class='app-bg-primary')
+            class='app-bg-primary-relative')
         template(v-if='bubble_url === null')
             app-btn(icon='format_bold' :color='editor.isActive("bold") ? "accent" : ""'
                 @click='focused_run("toggleBold")' data-tip="Bold")
@@ -137,6 +137,8 @@ export default class extends Vue {
         // Custom popup options for the bubble menu
         return {
             maxWidth: 500,  // Prevent wrapping by enlarging
+            // Prevent menu from appearing under section move buttons (not body as then unstyled)
+            appendTo: self.document.querySelector('.v-application--wrap')!,
             onHide: () => {
                 // Clear any url input when bubble closed
                 this.bubble_url = null
@@ -343,6 +345,7 @@ export default class extends Vue {
 .bubble
     display: flex
     border-radius: 24px
+    box-shadow: 0 1px 4px 0 rgba(black, 20%)
 
     .url
         margin-left: 12px
