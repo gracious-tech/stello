@@ -10,6 +10,7 @@ nav.sidebar(class='app-bg-primary')
     app-btn.new(@click='new_draft')
         | {{ default_template ? "new from template" : "new message" }}
 
+    //- NOTE Lists use dark theme as accent color variant easier to read (and bg is same for both)
     v-list(dark).main-nav
         app-list-item(to='/') Dashboard
         v-divider
@@ -161,5 +162,9 @@ export default class extends Vue {
 
 .v-badge
     margin-top: 0
+
+.v-list-item:not(.v-list-item--active)
+    // Prevent all links from being accented on light theme
+    color: white !important
 
 </style>
