@@ -33,9 +33,9 @@ import {gen_variable_items, update_template_values} from '@/services/misc/templa
 })
 export default class extends Vue {
 
-    @Prop({type: Draft, required: true}) draft:Draft
-    @Prop({type: Profile, required: true}) profile:Profile
-    @Prop({type: Object, required: true}) sections:Record<string, Section>
+    @Prop({type: Draft, required: true}) draft!:Draft
+    @Prop({type: Profile, required: true}) profile!:Profile
+    @Prop({type: Object, required: true}) sections!:Record<string, Section>
 
     get image():Blob{
         // Get invite's image, accounting for inheritance
@@ -75,7 +75,8 @@ export default class extends Vue {
             ?? this.profile.msg_options_security.lifespan
         return update_template_values(this.default_tmpl, gen_variable_items(
             "CONTACT'S NAME", "CONTACT'S FULL NAME", sender_name, this.draft.title, new Date(),
-                max_reads, lifespan))
+            max_reads, lifespan,
+        ))
     }
 
     get section_images():Blob[]{
@@ -115,7 +116,7 @@ export default class extends Vue {
 
     save(){
         // Save changes to db
-        self.app_db.drafts.set(this.draft)
+        void self.app_db.drafts.set(this.draft)
     }
 
 }
