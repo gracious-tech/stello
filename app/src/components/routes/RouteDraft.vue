@@ -441,6 +441,8 @@ export default class extends Vue {
 
     // Override app defaults that won't be present in displayer
     ::v-deep
+        a
+            color: var(--stello-primary-fg) !important
         strong
             font-weight: revert  // 500 weight not supported by fonts used for message display
 
