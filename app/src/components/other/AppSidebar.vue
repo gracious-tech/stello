@@ -7,8 +7,10 @@ nav.sidebar(class='app-bg-primary')
 
     app-logo.logo
 
-    app-btn.new(@click='new_draft')
-        | {{ default_template ? "new from template" : "new message" }}
+    div(class='text-center')
+        app-btn.new(@click='new_draft' outlined small color='' dark
+                :data-tip='default_template ? "Uses default template" : null')
+            | new message
 
     //- NOTE Lists use dark theme as accent color variant easier to read (and bg is same for both)
     v-list(dark).main-nav
@@ -130,6 +132,7 @@ export default class extends Vue {
     z-index: 10
     overflow-y: auto
     min-width: $stello_sidebar_width
+    max-width: $stello_sidebar_width
 
 .logo
     flex-shrink: 0  // Don't shrink when sidebar has to scroll
