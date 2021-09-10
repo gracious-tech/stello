@@ -539,5 +539,5 @@ ipcMain.handle('send_emails', async (event, settings:EmailSettings, emails:Email
 
 function sleep(ms:number):Promise<void>{
     // Await this function to delay execution for given ms
-    return new Promise(resolve => setTimeout(resolve, ms))
+    return new Promise(resolve => {setTimeout(resolve, ms)})
 }

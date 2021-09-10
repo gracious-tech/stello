@@ -38,7 +38,7 @@ module.exports = {
         'no-eval': 'error',
         // Enable as warnings
         'max-len': ['warn', {code: 100, ignoreUrls: true, ignoreTemplateLiterals: true}],
-        'indent': ['warn'],
+        'indent': ['warn', 4, {SwitchCase: 1, FunctionDeclaration: {parameters: 2}}],
         'comma-dangle': ['warn', 'always-multiline'],
         'semi': ['warn', 'never', {beforeStatementContinuationChars: 'always'}],
         'no-console': ['warn', {allow: ['warn', 'error']}],  // Regular logs usually debug leftover

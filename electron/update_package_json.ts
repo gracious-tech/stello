@@ -46,6 +46,7 @@ const new_contents:Metadata|PackageJsonMissing = {
         appId: `tech.gracious.${app_config.codename}`,
         productName: app_config.name,
         // NOTE Version not included so will overwrite each time (rely on S3 versioning instead)
+        // eslint-disable-next-line no-template-curly-in-string -- electron-builder syntax
         artifactName: app_config.codename + '.${ext}',
         directories: {
             output: 'packaged',  // dist used for electron JS code (built from TS)

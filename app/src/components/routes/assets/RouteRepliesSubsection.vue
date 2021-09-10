@@ -9,12 +9,14 @@ v-card(class='my-8')
         app-btn(v-if='!all_archived' @click='archive_all' icon='archive' class='mr-2'
             data-tip="Archive all")
 
-    div.section_content(v-if='!sectionless' :class='{img: section_image, expanded: section_expanded}')
+    div.section_content(v-if='!sectionless'
+            :class='{img: section_image, expanded: section_expanded}')
         img(v-if='section_image' :src='section_image')
         div(v-else v-html='section_text' class='ma-4 text--secondary')
 
     div.expand(v-if='!sectionless' class='d-flex justify-end')
-        app-btn(@click='section_expanded = !section_expanded' :icon='expand_icon' fab small color='')
+        app-btn(@click='section_expanded = !section_expanded' :icon='expand_icon' fab small
+            color='')
 
     v-card-text
         RouteRepliesReplaction(v-for='replaction of replactions' :key='replaction.id'
@@ -49,12 +51,12 @@ export default class extends Vue {
     async created(){
         // Get the section (if not sectionless)
         if (this.first.section_id){
-            this.section = await self.app_db.sections.get(this.first.section_id)
+            this.section = await self.app_db.sections.get(this.first.section_id) ?? null
 
             // If a vimeo section then need to do an API request to get the placeholder image
             if (this.section?.content.type === 'video'
                     && this.section.content.format === 'iframe_vimeo'){
-                const video_id = this.section.content.id
+                const video_id = this.section.content.id!
                 const url = `https://vimeo.com/api/oembed.json?url=https://vimeo.com/${video_id}`
                 try {
                     const oembed_resp:{thumbnail_url:string} = await request_json(url)
@@ -90,7 +92,7 @@ export default class extends Vue {
                 return URL.createObjectURL(image.data)
             }
         } else if (this.section?.content.type === 'video'){
-            const video_id = this.section.content.id
+            const video_id = this.section.content.id!
             if (this.section.content.format === 'iframe_youtube'){
                 return `https://img.youtube.com/vi/${video_id}/hqdefault.jpg`
             } else if (this.section.content.format === 'iframe_vimeo'){
@@ -105,7 +107,7 @@ export default class extends Vue {
         if (this.section?.content.type === 'text'){
             return this.section.content.html
         }
-        return `<h1>Section #${this.first.section_num + 1}</h1>`
+        return `<h1>Section #${this.first.section_num! + 1}</h1>`
     }
 
     get expand_icon(){
@@ -152,7 +154,7 @@ export default class extends Vue {
     height: 48px  // Match archive button so same when it isn't present
 
     &:not(.app-bg-primary-relative)
-        // Make header standout a little if representing a section (rather than a lot with primary bg)
+        // Make header standout a little if representing section (rather than a lot with primary bg)
         @include themed(background-color, #0002, #fff2)
 
     span
