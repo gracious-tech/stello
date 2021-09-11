@@ -1,7 +1,22 @@
 
+import {MustReconnect} from './exceptions'
 
-export class RequestError extends Error {
-    // Thrown when a request does not go as expected
+
+export class RequestErrorStatus extends Error {
+    // Thrown when HTTP status code indicates an error occured
+    url:string
+    status:number
+
+    constructor(url:string, status:number){
+        // Include both url & status in message, but also provide separate access to them
+        super(`${url} (${status})`)
+        this.url = url
+        this.status = status
+    }
+}
+
+export class RequestErrorBody extends Error {
+    // Thrown when problem reading response body
 }
 
 
@@ -55,7 +70,7 @@ export async function request(input:string|Request, init?:RequestInit,
     try {
         resp = await fetch(input, init)
     } catch {
-        throw new RequestError(`network ${url}`)
+        throw new MustReconnect(url)
     }
 
     // Optionally throw for bad statuses as well
@@ -67,7 +82,7 @@ export async function request(input:string|Request, init?:RequestInit,
                 || bad_status_handling === 'throw_null403-4')){
             return null
         }
-        throw new RequestError(`status ${resp.status} ${url}`)
+        throw new RequestErrorStatus(url, resp.status)
     }
 
     // Try and read response if configured to
@@ -77,7 +92,7 @@ export async function request(input:string|Request, init?:RequestInit,
     try {
         return await resp[read_body]() as unknown
     } catch {
-        throw new RequestError(`body ${url}`)
+        throw new RequestErrorBody(url)
     }
 }
 
