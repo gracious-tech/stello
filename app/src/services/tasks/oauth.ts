@@ -515,7 +515,7 @@ export async function oauth_revoke_if_obsolete(oauth:OAuth):Promise<void>{
 
 
 export async function oauth_request(oauth:OAuth, url:string, params?:Record<string,string|string[]>,
-        method='GET', body?:unknown):Promise<unknown>{
+        method='GET', body?:unknown):Promise<Response>{
     // Request a resource using OAuth2
 
     // Add params to url if any
@@ -538,106 +538,26 @@ export async function oauth_request(oauth:OAuth, url:string, params?:Record<stri
         await oauth_refresh(oauth)
     }
 
-    // Convert body to JSON string if an object
+    // If body is given, ensure it is a blob, else convert to a JSON blob
     if (body && !(body instanceof Blob)){
         body = new Blob([JSON.stringify(body)], {type: 'application/json'})
     }
 
     // Send the request
-    let resp:Response
-    try {
-        resp = await request(url, {
-            method,
-            headers: {
-                Authorization: `Bearer ${oauth.token_access}`,
-                'Content-Type': (body as Blob)?.type,
-            },
-            body: body as Blob,
-        })
-    } catch (error){
-        throw new MustReconnect()  // Not throwing on bad statuses, so must be network
+    const request_init:RequestInit = {
+        method,
+        headers: {
+            Authorization: `Bearer ${oauth.token_access}`,
+        },
     }
-
-    // Return just the data
-    if (resp.ok){
-        try {
-            return await resp.json() as unknown
-        } catch {
-            throw new Error("Can't parse oauth response")
+    if (body){
+        request_init.body = body as Blob
+        request_init.headers = {
+            ...request_init.headers,
+            'Content-Type': (body as Blob).type,
         }
     }
-
-    // Handle errors
-    // WARN Do not handle 403 yet as Gmail uses for rate limiting too, so must check body first
-    if (resp.status === 401){
-        throw new MustReauthenticate()
-    } else if (resp.status === 410){  // Gone
-        throw new MustRecover()  // e.g. Google sync token expired
-    } else if (resp.status === 429){
-        throw new MustWait()  // Have been rate limited
-    } else if (resp.status >= 500 && resp.status < 600){
-        throw new MustWait()  // Third-party issue that will probably resolve over time
-    }
-
-    // Try to parse JSON data if possible, but otherwise at least include status of resp
-    const error_data = {
-        status_code: resp.status,
-        status_text: resp.statusText,
-        body: null as unknown,
-    }
-    try {
-        // WARN Don't use `resp.json()` as if not JSON then body lost as can only read once
-        error_data.body = await resp.text()
-        error_data.body = JSON.parse(error_data.body as string)
-    } catch {
-        // Error data still useful even without body or with only a string body
-    }
-
-    // If body is not an object, can't analyse it any further
-    if (error_data.body === null || typeof error_data.body !== 'object'){
-        throw new MustInterpret(error_data)
-    }
-    const error_body = error_data.body as Record<string, unknown>
-
-    // Interpret issuer-specific errors
-    if (oauth.issuer === 'google'){
-        // https://developers.google.com/gmail/api/guides/handle-errors
-
-        // Extract useful fields
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const google_status = String(error_body['error']?.['status'])
-        const google_reason = String(error_body['error']?.['errors']?.[0]?.['reason'])
-
-        if (resp.status === 400){
-            if (google_status === 'FAILED_PRECONDITION'){
-                throw new OauthUseless()  // Not a gmail account (e.g. signin only)
-            }
-        }
-
-        if (resp.status === 403){
-            if (google_reason === 'domainPolicy'){
-                throw new OauthUseless()  // Google workspace disabled app access (to e.g. gmail)
-            }
-            if (google_reason.includes('LimitExceeded')){
-                // Includes: dailyLimitExceeded, userRateLimitExceeded, rateLimitExceeded
-                throw new MustWait()  // Gmail usually seems to respond with 429 but 403 in docs too
-            }
-        }
-
-    } else if (oauth.issuer === 'microsoft'){
-        // https://docs.microsoft.com/en-us/graph/errors
-
-        // Extract useful fields
-        const microsoft_code = String(error_body['error']?.['code'])
-    }
-
-    // If didn't handle a 403 yet then probably safe to assume it's an auth issue
-    if (resp.status === 403){
-        throw new MustReauthenticate()
-    }
-
-    // Needs reporting
-    throw new MustInterpret(error_data)
+    return request(url, request_init)
 }
 
 

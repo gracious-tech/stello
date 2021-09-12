@@ -5,6 +5,7 @@ import {Task} from './tasks'
 import {OAuth} from '../database/oauths'
 import {oauth_request} from './oauth'
 import {partition} from '../utils/strings'
+import {MustInterpret, MustReauthenticate, MustWait} from '../utils/exceptions'
 
 
 // Functions which sync contacts in ways specific to the issuer
@@ -222,6 +223,32 @@ interface GoogleListItem {
 }
 
 
+async function google_request(...args:Parameters<typeof oauth_request>):Promise<unknown>{
+    // Wrap oauth_request to provide error interpretation
+
+    // Prefix url arg with the common endpoint
+    args[1] = `https://people.googleapis.com/v1/${args[1]}`
+
+    // Submit request and return if valid
+    const resp = await oauth_request(...args)
+    if (resp.ok){
+        return resp.json()
+    }
+
+    // Can't find documentation, but these are probably safe assumptions
+    if (resp.status === 401){
+        throw new MustReauthenticate()  // Signed out?
+    } else if (resp.status === 403){
+        throw new MustReauthenticate()  // Didn't grant required scope?
+    } else if (resp.status === 429){
+        throw new MustWait()  // Have been rate limited
+    } else if (resp.status >= 500 && resp.status < 600){
+        throw new MustWait()  // Third-party issue that will probably resolve over time
+    }
+    throw new MustInterpret({status: resp.status, body: await resp.json() as unknown})
+}
+
+
 async function contacts_sync_google(task:Task, oauth:OAuth):Promise<void>{
     // Sync contacts from a Google account
     let confirmed:Record<string, string>
@@ -255,18 +282,17 @@ async function contacts_sync_google_full(task:Task, oauth:OAuth):Promise<Record<
 
     // Download pages of contacts until none left
     const page_size = 100
-    let page_token:string
+    let page_token = ''
     while (true){
 
         // Make request
         // NOTE Page size default is 100, and while could do 1000, less better for progress tracking
         // NOTE May raise MustReconnect or MustReauthenticate, which are handled by task manager
-        const url = 'https://people.googleapis.com/v1/people/me/connections'
-        const resp_data = await task.expected(oauth_request(oauth, url, {
+        const resp_data = await task.expected(google_request(oauth, 'people/me/connections', {
             requestSyncToken: 'true',
             personFields: 'names,emailAddresses,biographies',
             pageSize: `${page_size}`,
-            pageToken: page_token || '',
+            pageToken: page_token,
         })) as GooglePersonsListResp
 
         // Save the contacts
@@ -309,7 +335,7 @@ async function contacts_sync_google_full(task:Task, oauth:OAuth):Promise<Record<
                 created.notes = notes
                 created.service_account = `google:${oauth.issuer_id}`
                 created.service_id = service_id
-                self.app_db.contacts.set(created)
+                void self.app_db.contacts.set(created)
                 confirmed[created.service_id] = created.id
             }
         }
@@ -318,7 +344,7 @@ async function contacts_sync_google_full(task:Task, oauth:OAuth):Promise<Record<
         if (resp_data.nextSyncToken){
             // A sync token was returned, so this is the last page
             oauth.contacts_sync_token = resp_data.nextSyncToken
-            self.app_db.oauths.set(oauth)
+            void self.app_db.oauths.set(oauth)
             break
         }
 
@@ -333,7 +359,7 @@ async function contacts_sync_google_full(task:Task, oauth:OAuth):Promise<Record<
 
     // Remove any remaining existing contacts since are no longer present in the service
     for (const existing of Object.values(existing_by_id)){
-        self.app_db.contacts.remove(existing.id)
+        void self.app_db.contacts.remove(existing.id)
     }
 
     // Return confirmed ids
@@ -341,14 +367,13 @@ async function contacts_sync_google_full(task:Task, oauth:OAuth):Promise<Record<
 }
 
 
-async function contacts_sync_google_groups(task:Task, oauth:OAuth, confirmed:Record<string, string>,
-        ):Promise<void>{
+async function contacts_sync_google_groups(task:Task, oauth:OAuth,
+        confirmed:Record<string, string>):Promise<void>{
     // Sync contact groups from a Google account
-    const url = 'https://people.googleapis.com/v1/contactGroups'
 
     // Get fresh list of the groups
     // NOTE While could use pagination/syncToken, list likely to be very small and not worth it
-    const list_resp = await task.add(oauth_request(oauth, url, {
+    const list_resp = await task.add(google_request(oauth, 'contactGroups', {
         groupFields: 'name,groupType,memberCount',
         pageSize: '1000',  // Highest possible and highly unlikely to get anywhere close
     })) as GoogleGroupsListResp
@@ -391,7 +416,7 @@ async function contacts_sync_google_groups(task:Task, oauth:OAuth, confirmed:Rec
         }
 
         // Do batch request
-        const get_resp = await task.expected(oauth_request(oauth, `${url}:batchGet`, {
+        const get_resp = await task.expected(google_request(oauth, `contactGroups:batchGet`, {
             resourceNames: batch.map(g => g.resourceName),
             maxMembers: '10000',  // Have to put something...
             groupFields: 'name',  // Don't need any, but defaults to more if none set
@@ -429,7 +454,7 @@ async function contacts_sync_google_groups(task:Task, oauth:OAuth, confirmed:Rec
 
     // Remove any remaining existing groups since are no longer present in the service
     for (const existing of Object.values(existing_by_id)){
-        self.app_db.groups.remove(existing.id)
+        void self.app_db.groups.remove(existing.id)
     }
 }
 
@@ -453,14 +478,14 @@ async function contacts_change_name_google(oauth:OAuth, service_id:string, value
     // Change the name of a contact in Google Contacts
 
     // Get fresh copy of the person from Google (also need etag to be able to patch)
-    const url = `https://people.googleapis.com/v1/people/${service_id}`
-    const person = await oauth_request(oauth, url, {personFields: 'names'}) as GooglePerson
+    const person =
+        await google_request(oauth, `people/${service_id}`, {personFields: 'names'}) as GooglePerson
 
     // Overwrite any existing names
     person.names = [{unstructuredName: value}]
 
     // Submit request
-    await oauth_request(oauth, `${url}:updateContact`,
+    await google_request(oauth, `people/${service_id}:updateContact`,
         {updatePersonFields: 'names', personFields: ''}, 'PATCH', person)
 }
 
@@ -470,15 +495,15 @@ async function contacts_change_notes_google(oauth:OAuth, service_id:string, valu
     // Change the notes of a contact in Google Contacts
 
     // Get fresh copy of the person from Google (also need etag to be able to patch)
-    const url = `https://people.googleapis.com/v1/people/${service_id}`
-    const person = await oauth_request(oauth, url, {personFields: 'biographies'}) as GooglePerson
+    const person = await google_request(
+        oauth, `people/${service_id}`, {personFields: 'biographies'}) as GooglePerson
 
     // Keep any existing html/other notes, but overwrite any existing plain text
     person.biographies = person.biographies?.filter(i => i.contentType !== 'TEXT_PLAIN') ?? []
     person.biographies.push({contentType: 'TEXT_PLAIN', value})
 
     // Submit request
-    await oauth_request(oauth, `${url}:updateContact`,
+    await google_request(oauth, `people/${service_id}:updateContact`,
         {updatePersonFields: 'biographies', personFields: ''}, 'PATCH', person)
 }
 
@@ -488,8 +513,8 @@ async function contacts_change_email_google(oauth:OAuth, service_id:string, addr
     // Change the email addresses of a contact in Google Contacts
 
     // Get fresh copy of the person from Google (also need etag to be able to patch)
-    const url = `https://people.googleapis.com/v1/people/${service_id}`
-    const person = await oauth_request(oauth, url, {personFields: 'emailAddresses'}) as GooglePerson
+    const person = await google_request(
+        oauth, `people/${service_id}`, {personFields: 'emailAddresses'}) as GooglePerson
 
     // Ensure emailAddresses exists
     if (!person.emailAddresses){
@@ -514,21 +539,20 @@ async function contacts_change_email_google(oauth:OAuth, service_id:string, addr
     }
 
     // Submit request
-    await oauth_request(oauth, `${url}:updateContact`,
+    await google_request(oauth, `people/${service_id}:updateContact`,
         {updatePersonFields: 'emailAddresses', personFields: ''}, 'PATCH', person)
 }
 
 
 async function contacts_remove_google(oauth:OAuth, service_id:string):Promise<void>{
     // Remove the given contact in Google Contacts
-    const url = `https://people.googleapis.com/v1/people/${service_id}:deleteContact`
-    await oauth_request(oauth, url, undefined, 'DELETE')
+    await google_request(oauth, `people/${service_id}:deleteContact`, undefined, 'DELETE')
 }
 
 
 async function contacts_get_addresses_google(oauth:OAuth, service_id:string):Promise<string[]>{
     // Get all email addresses for a Google contact
-    const url = `https://people.googleapis.com/v1/people/${service_id}`
-    const person = await oauth_request(oauth, url, {personFields: 'emailAddresses'}) as GooglePerson
+    const person = await google_request(
+        oauth, `people/${service_id}`, {personFields: 'emailAddresses'}) as GooglePerson
     return person.emailAddresses?.map(i => i.value) ?? []
 }
