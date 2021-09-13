@@ -2,10 +2,12 @@
 import {chunk} from 'lodash'
 
 import {OAuth} from '../database/oauths'
+import {Profile} from '../database/profiles'
 import {create_email} from '../misc/email'
-import {Email, EmailIdentity} from '../native/types'
+import {Email, EmailIdentity, EmailSettings} from '../native/types'
 import {concurrent} from '../utils/async'
-import {MustInterpret, MustReauthenticate, MustWait} from '../utils/exceptions'
+import {MustInterpret, MustReauthenticate, MustReconfigure, MustReconnect, MustWait}
+    from '../utils/exceptions'
 import {oauth_request, OauthUseless} from './oauth'
 
 
@@ -41,21 +43,45 @@ export async function handle_email_submitted(email_id:string, accepted:boolean):
 }
 
 
-export async function send_emails_oauth(oauth_id:string, emails:Email[], from:EmailIdentity,
-        reply_to?:EmailIdentity):Promise<void>{
-    // Send given emails using oauth issuer's API (rather than SMTP)
-    const oauth = await self.app_db.oauths.get(oauth_id)
-    if (oauth?.issuer === 'google'){
-        await send_emails_oauth_google(oauth, emails, from, reply_to)
-    } else if (oauth?.issuer === 'microsoft'){
-        await send_emails_oauth_microsoft(oauth, emails, from, reply_to)
-    } else {
-        throw new Error()
+export async function send_emails(smtp_settings:Profile['smtp_settings'], emails:Email[],
+        from:EmailIdentity, reply_to?:EmailIdentity):Promise<void>{
+    // Send given emails
+    if (smtp_settings.oauth){
+        const oauth = await self.app_db.oauths.get(smtp_settings.oauth)
+        if (oauth?.issuer === 'google'){
+            return send_emails_oauth_google(oauth, emails, from, reply_to)
+        } else if (oauth?.issuer === 'microsoft'){
+            return send_emails_oauth_microsoft(oauth, emails, from, reply_to)
+        }
+    } else if (smtp_settings.pass){
+        return send_emails_smtp(smtp_settings, emails, from, reply_to)
     }
+
+    // SMTP hasn't been configured yet, or was removed (e.g. oauth record deleted)
+    throw new MustReconfigure()
 }
 
 
 // INTERNAL
+
+
+async function send_emails_smtp(smtp_settings:Profile['smtp_settings'], emails:Email[],
+        from:EmailIdentity, reply_to?:EmailIdentity):Promise<void>{
+    // Send emails via SMTP
+    const error = await self.app_native.send_emails(
+        smtp_settings as EmailSettings, emails, from, reply_to)
+    // Translate email error to standard forms
+    if (error){
+        if (['dns', 'starttls_required', 'tls_required', 'timeout'].includes(error.code)){
+            throw new MustReconfigure(error.details)
+        } else if (error.code === 'auth'){
+            throw new MustReauthenticate(error.details)
+        } else if (error.code === 'network'){
+            throw new MustReconnect(error.details)
+        }
+        throw new Error(error.details)
+    }
+}
 
 
 async function send_emails_oauth_google(oauth:OAuth, emails:Email[], from:EmailIdentity,

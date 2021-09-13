@@ -18,9 +18,8 @@ import type {PublishedCopyBase, PublishedAsset, PublishedCopy, PublishedSection,
 import {render_invite_html} from '../misc/invites'
 import {gen_variable_items, update_template_values, TemplateVariables, msg_max_reads_value}
     from '../misc/templates'
-import {MustReauthenticate, MustReconfigure, MustReconnect} from '../utils/exceptions'
-import {Email, EmailSettings} from '../native/types'
-import {send_emails_oauth} from './email'
+import {Email} from '../native/types'
+import {send_emails} from './email'
 import {configs_update} from './configs'
 
 
@@ -337,26 +336,7 @@ export class Sender {
 
         // Send using oauth or regular SMTP (SMTP requires native platform's help)
         const reply_to = this.profile.smtp_reply_to
-        if (this.profile.smtp_settings.oauth){
-            await send_emails_oauth(this.profile.smtp_settings.oauth, emails, from, reply_to)
-        } else if (this.profile.smtp_settings.pass){
-            const error = await self.app_native.send_emails(
-                this.profile.smtp_settings as EmailSettings, emails, from, reply_to)
-            // Translate email error to standard forms
-            if (error){
-                if (['dns', 'starttls_required', 'tls_required', 'timeout'].includes(error.code)){
-                    throw new MustReconfigure(error.details)
-                } else if (error.code === 'auth'){
-                    throw new MustReauthenticate(error.details)
-                } else if (error.code === 'network'){
-                    throw new MustReconnect(error.details)
-                }
-                throw new Error(error.details)
-            }
-        } else {
-            // SMTP hasn't been configured yet, or was removed (e.g. oauth record deleted)
-            throw new MustReconfigure()
-        }
+        await send_emails(this.profile.smtp_settings, emails, from, reply_to)
     }
 }
 
