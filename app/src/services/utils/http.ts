@@ -135,7 +135,7 @@ export function report_http_failure(error:unknown):void{  // Keep error:unknown 
     NOTE This is here for convenience, as not strictly a pure fn, & assumes global report fn exists
     NOTE error should have `unknown` type so don't have to import RequestError when calling it
     */
-    if (!(error as RequestError).message.startsWith('network ')){
+    if (!(error instanceof MustReconnect)){
         self.app_report_error(error)
     }
 }
