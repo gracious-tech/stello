@@ -96,7 +96,7 @@ interface AuthCompletion<Meta=Record<string, any>> {
 // CONSTANTS
 
 
-const REDIRECT_PORT = 44932
+const REDIRECT_PORT = import.meta.env.PROD ? 44932 : 44933
 const REDIRECT_URI = `http://127.0.0.1:${REDIRECT_PORT}/oauth`
 
 export const OAUTH_SUPPORTED:Record<OAuthIssuer, IssuerConfig> = {

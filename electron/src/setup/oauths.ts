@@ -14,7 +14,7 @@ const oauth_html = asar_fs_callbacks.readFileSync(oauth_html_path, {encoding: 'u
 
 
 // Create HTTP server for receiving oauth2 redirects
-const http_server_port = 44932
+const http_server_port = app.isPackaged ? 44932 : 44933
 const http_server = http.createServer(async (request, response) => {
 
     const url = new URL(request.url ?? '', `http://127.0.0.1:${http_server_port}`)
