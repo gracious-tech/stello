@@ -27,31 +27,31 @@ export class RequestErrorBody extends Error {
 
 
 // Overloads for request
-export async function request(input:string|Request, init?:RequestInit):Promise<Response>
+export async function request(input:string|Request, init?:JsonRequestInit):Promise<Response>
 
-export async function request(input:string|Request, init:RequestInit, read_body:undefined,
+export async function request(input:string|Request, init:JsonRequestInit, read_body:undefined,
     bad_status_handling?:'throw'):Promise<Response>
-export async function request(input:string|Request, init:RequestInit, read_body:undefined,
+export async function request(input:string|Request, init:JsonRequestInit, read_body:undefined,
     bad_status_handling:'throw_null404'|'throw_null403-4'):Promise<Response|null>
 
-export async function request(input:string|Request, init:RequestInit, read_body:'text',
+export async function request(input:string|Request, init:JsonRequestInit, read_body:'text',
     bad_status_handling?:'throw'):Promise<string>
-export async function request(input:string|Request, init:RequestInit, read_body:'text',
+export async function request(input:string|Request, init:JsonRequestInit, read_body:'text',
     bad_status_handling:'throw_null404'|'throw_null403-4'):Promise<string|null>
 
-export async function request<T>(input:string|Request, init:RequestInit, read_body:'json',
+export async function request<T>(input:string|Request, init:JsonRequestInit, read_body:'json',
     bad_status_handling?:'throw'):Promise<T>
-export async function request<T>(input:string|Request, init:RequestInit, read_body:'json',
+export async function request<T>(input:string|Request, init:JsonRequestInit, read_body:'json',
     bad_status_handling:'throw_null404'|'throw_null403-4'):Promise<T|null>
 
-export async function request(input:string|Request, init:RequestInit, read_body:'blob',
+export async function request(input:string|Request, init:JsonRequestInit, read_body:'blob',
     bad_status_handling?:'throw'):Promise<Blob>
-export async function request(input:string|Request, init:RequestInit, read_body:'blob',
+export async function request(input:string|Request, init:JsonRequestInit, read_body:'blob',
     bad_status_handling:'throw_null404'|'throw_null403-4'):Promise<Blob|null>
 
-export async function request(input:string|Request, init:RequestInit, read_body:'arrayBuffer',
+export async function request(input:string|Request, init:JsonRequestInit, read_body:'arrayBuffer',
     bad_status_handling?:'throw'):Promise<ArrayBuffer>
-export async function request(input:string|Request, init:RequestInit, read_body:'arrayBuffer',
+export async function request(input:string|Request, init:JsonRequestInit, read_body:'arrayBuffer',
     bad_status_handling:'throw_null404'|'throw_null403-4'):Promise<ArrayBuffer|null>
 
 export async function request(input:string|Request, init?:JsonRequestInit,
@@ -145,25 +145,25 @@ export async function request(input:string|Request, init?:JsonRequestInit,
 // SHORTCUTS
 
 
-export function request_json<T>(input:string|Request, init?:RequestInit){
+export function request_json<T>(input:string|Request, init?:JsonRequestInit){
     // Request this type of response and throw if don't get it
     return request<T>(input, init ?? {}, 'json', 'throw')
 }
 
 
-export function request_text(input:string|Request, init?:RequestInit){
+export function request_text(input:string|Request, init?:JsonRequestInit){
     // Request this type of response and throw if don't get it
     return request(input, init ?? {}, 'text', 'throw')
 }
 
 
-export function request_blob(input:string|Request, init?:RequestInit){
+export function request_blob(input:string|Request, init?:JsonRequestInit){
     // Request this type of response and throw if don't get it
     return request(input, init ?? {}, 'blob', 'throw')
 }
 
 
-export function request_buffer(input:string|Request, init?:RequestInit){
+export function request_buffer(input:string|Request, init?:JsonRequestInit){
     // Request this type of response and throw if don't get it
     return request(input, init ?? {}, 'arrayBuffer', 'throw')
 }
