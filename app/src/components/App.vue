@@ -41,7 +41,7 @@ import {oauth_pretask_process} from '@/services/tasks/oauth'
 import {task_manager} from '@/services/tasks/tasks'
 import {sleep} from '@/services/utils/async'
 import {resume_tasks} from '@/services/tasks/resume'
-import {handle_email_submitted} from '@/services/tasks/email'
+import {handle_email_submitted} from '@/services/email/email'
 
 
 @Component({

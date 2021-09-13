@@ -18,7 +18,7 @@ import type {PublishedCopyBase, PublishedAsset, PublishedCopy, PublishedSection,
 import {render_invite_html} from '../misc/invites'
 import {gen_variable_items, update_template_values, TemplateVariables, msg_max_reads_value}
     from '../misc/templates'
-import {send_email} from './email'
+import {send_email} from '../email/email'
 import {configs_update} from './configs'
 
 

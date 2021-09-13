@@ -3,12 +3,12 @@ import {chunk} from 'lodash'
 
 import {OAuth} from '../database/oauths'
 import {Profile} from '../database/profiles'
-import {create_email} from '../misc/email'
+import {create_email} from './utils'
 import {EmailIdentity, EmailSettings} from '../native/types'
 import {concurrent} from '../utils/async'
 import {MustInterpret, MustReauthenticate, MustReconfigure, MustReconnect, MustWait}
     from '../utils/exceptions'
-import {oauth_request, OauthUseless} from './oauth'
+import {oauth_request, OauthUseless} from '../tasks/oauth'
 
 
 // TYPES
