@@ -24,6 +24,12 @@ declare global {
         }
     }
 
+    class CompressionStream {
+        constructor(format:'gzip')
+        readable:ReadableStream
+        writable:WritableStream
+    }
+
     interface Window {
         app_hash:string
         app_failed:boolean
@@ -35,5 +41,6 @@ declare global {
         app_vue:App
         app_db:typeof database
         app_store:typeof store
+        CompressionStream:typeof CompressionStream
     }
 }

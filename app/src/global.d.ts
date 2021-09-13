@@ -30,6 +30,12 @@ declare module 'Custom' {
     import {AppStoreState} from '@/services/store/types'
     import {NativeInterface} from '@/services/native/types'
 
+    class CompressionStream {
+        constructor(format:'gzip')
+        readable:ReadableStream
+        writable:WritableStream
+    }
+
     // Apply globally (not just this virtual module)
     global {
 
@@ -45,6 +51,7 @@ declare module 'Custom' {
             app_update():void
             app_report_error(error:unknown):string
             app_native:NativeInterface
+            CompressionStream:typeof CompressionStream,
         }
 
         interface ImportMeta {
