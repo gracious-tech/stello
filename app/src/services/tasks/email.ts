@@ -4,7 +4,7 @@ import {chunk} from 'lodash'
 import {OAuth} from '../database/oauths'
 import {Profile} from '../database/profiles'
 import {create_email} from '../misc/email'
-import {Email, EmailIdentity, EmailSettings} from '../native/types'
+import {EmailIdentity, EmailSettings} from '../native/types'
 import {concurrent} from '../utils/async'
 import {MustInterpret, MustReauthenticate, MustReconfigure, MustReconnect, MustWait}
     from '../utils/exceptions'
@@ -12,6 +12,16 @@ import {oauth_request, OauthUseless} from './oauth'
 
 
 // TYPES
+
+
+export interface Email {
+    id:string
+    to:EmailIdentity
+    from:EmailIdentity
+    reply_to:EmailIdentity|undefined
+    subject:string
+    html:string
+}
 
 
 interface MicrosoftBatchResponse {
@@ -43,18 +53,17 @@ export async function handle_email_submitted(email_id:string, accepted:boolean):
 }
 
 
-export async function send_emails(smtp_settings:Profile['smtp_settings'], emails:Email[],
-        from:EmailIdentity, reply_to?:EmailIdentity):Promise<void>{
-    // Send given emails
+export async function send_email(smtp_settings:Profile['smtp_settings'], email:Email):Promise<void>{
+    // Send given email
     if (smtp_settings.oauth){
         const oauth = await self.app_db.oauths.get(smtp_settings.oauth)
         if (oauth?.issuer === 'google'){
-            return send_emails_oauth_google(oauth, emails, from, reply_to)
+            return send_emails_oauth_google(oauth, [email])
         } else if (oauth?.issuer === 'microsoft'){
-            return send_emails_oauth_microsoft(oauth, emails, from, reply_to)
+            return send_emails_oauth_microsoft(oauth, [email])
         }
     } else if (smtp_settings.pass){
-        return send_emails_smtp(smtp_settings, emails, from, reply_to)
+        return send_emails_smtp(smtp_settings, email)
     }
 
     // SMTP hasn't been configured yet, or was removed (e.g. oauth record deleted)
@@ -65,11 +74,10 @@ export async function send_emails(smtp_settings:Profile['smtp_settings'], emails
 // INTERNAL
 
 
-async function send_emails_smtp(smtp_settings:Profile['smtp_settings'], emails:Email[],
-        from:EmailIdentity, reply_to?:EmailIdentity):Promise<void>{
+async function send_emails_smtp(smtp_settings:Profile['smtp_settings'], email:Email):Promise<void>{
     // Send emails via SMTP
     const error = await self.app_native.send_emails(
-        smtp_settings as EmailSettings, emails, from, reply_to)
+        smtp_settings as EmailSettings, [email], email.from, email.reply_to)
     // Translate email error to standard forms
     if (error){
         if (['dns', 'starttls_required', 'tls_required', 'timeout'].includes(error.code)){
@@ -84,8 +92,7 @@ async function send_emails_smtp(smtp_settings:Profile['smtp_settings'], emails:E
 }
 
 
-async function send_emails_oauth_google(oauth:OAuth, emails:Email[], from:EmailIdentity,
-        reply_to?:EmailIdentity):Promise<void>{
+async function send_emails_oauth_google(oauth:OAuth, emails:Email[]):Promise<void>{
     // Send emails via oauth http requests to Google's API
     // NOTE Google allows 2.5 sends/second (average over time), and each request takes ~1.5 seconds
     //      But to be safe, let's assume requests take 1 second, then two channels are suitable
@@ -96,7 +103,8 @@ async function send_emails_oauth_google(oauth:OAuth, emails:Email[], from:EmailI
         return async () => {
             // Google's API expects a raw email
             // NOTE Ignore Google's rubbish about base64 encoding the message
-            const raw_email = create_email(from, email.to, email.subject, email.html, reply_to)
+            const raw_email =
+                create_email(email.from, email.to, email.subject, email.html, email.reply_to)
             const body = new Blob([raw_email], {type: 'message/rfc822'})
             await interpret_gmail_response(
                 await oauth_request(oauth, url, undefined, 'POST', body),
@@ -107,8 +115,7 @@ async function send_emails_oauth_google(oauth:OAuth, emails:Email[], from:EmailI
 }
 
 
-async function send_emails_oauth_microsoft(oauth:OAuth, emails:Email[], from:EmailIdentity,
-        reply_to?:EmailIdentity):Promise<void>{
+async function send_emails_oauth_microsoft(oauth:OAuth, emails:Email[]):Promise<void>{
     // Send emails via oauth http requests to Microsoft's API
     const url = 'https://graph.microsoft.com/v1.0/$batch'
     const limit_per_batch = 20
@@ -130,9 +137,9 @@ async function send_emails_oauth_microsoft(oauth:OAuth, emails:Email[], from:Ema
                         body: {
                             saveToSentItems: false,
                             message: {
-                                from: {emailAddress: from},
+                                from: {emailAddress: email.from},
                                 toRecipients: [{emailAddress: email.to}],
-                                replyTo: reply_to && [{emailAddress: reply_to}],
+                                replyTo: email.reply_to && [{emailAddress: email.reply_to}],
                                 subject: email.subject,
                                 body: {
                                     contentType: 'html',

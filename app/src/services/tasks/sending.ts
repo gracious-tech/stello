@@ -18,8 +18,7 @@ import type {PublishedCopyBase, PublishedAsset, PublishedCopy, PublishedSection,
 import {render_invite_html} from '../misc/invites'
 import {gen_variable_items, update_template_values, TemplateVariables, msg_max_reads_value}
     from '../misc/templates'
-import {Email} from '../native/types'
-import {send_emails} from './email'
+import {send_email} from './email'
 import {configs_update} from './configs'
 
 
@@ -81,6 +80,7 @@ export class Sender {
     task!:Task
     profile!:Profile
     host!:HostUser
+    responder_url!:string
     tmpl_variables!:TemplateVariables
 
     get sender_name():string{
@@ -148,6 +148,9 @@ export class Sender {
         // Init storage client for the message
         this.host = this.profile.new_host_user()
 
+        // Get responder url from deployment config
+        this.responder_url = (await this.host.download_deployment_config()).url_responder
+
         // Generate values for dynamic content
         // NOTE Contact values set to null as will update per copy
         this.tmpl_variables = gen_variable_items(null, null, this.sender_name,
@@ -180,17 +183,15 @@ export class Sender {
         task.check_aborted()
 
         // Upload copies
-        // TODO Use RxJS to start queuing emails as soon as copy uploaded so two concurrent queues
-        // TODO (although nodemailer needs to do it via its own pools...)
         await concurrent(copies.map(copy => {
             return async () => {
+                task.check_aborted()
                 await this._publish_copy(copy, pub_copy_base)
+                task.check_aborted()
+                await this._send_email(copy)
                 task.check_aborted()
             }
         }))
-
-        // Sent email invites
-        await this._send_emails(copies)
     }
 
     async _publish_asset(asset:PublishedAsset):Promise<void>{
@@ -289,54 +290,42 @@ export class Sender {
         self.app_store.state.tmp.uploaded = copy
     }
 
-    async _send_emails(copies:MessageCopy[]):Promise<void>{
-        // Send emails for the contacts with email addresses
+    async _send_email(copy:MessageCopy):Promise<void>{
+        // Send email for contact (if they have an email address)
 
-        // Filter out copies that aren't to be sent by email OR have already been sent to
-        copies = copies.filter(copy => copy.contact_address && !copy.invited)
-
-        // Construct properties common to all emails
-        const from = {
-            name: this.sender_name,
-            address: this.profile.email,
+        // If contact has no email address, or has already been emailed, skip
+        if (!copy.contact_address || copy.invited){
+            return
         }
-        const title = this.msg.draft.title
-
-        // Do initial contact-ambigious replacement of template variables
-        const template = update_template_values(this.invite_tmpl_email, this.tmpl_variables, '-')
-
-        // Get responder url from deployment config
-        const responder_url = (await this.host.download_deployment_config()).url_responder
 
         // Generate email objects from copies
-        const emails:Email[] = await Promise.all(copies.map(async copy => {
-            const max_reads = copy.contact_multiple ? Infinity : this.msg.safe_max_reads
-            const contents = update_template_values(template, {
-                contact_hello: {value: copy.contact_hello},
-                contact_name: {value: copy.contact_name},
-                msg_max_reads: {value: msg_max_reads_value(max_reads)},
-            })
-            const url = this.profile.view_url(copy.id, await export_key(copy.secret))
-            const secret_sse_url64 = buffer_to_url64(await export_key(copy.secret_sse))
-            const image = `${responder_url}?image=${copy.id}&k=${secret_sse_url64}`
-            const address_buffer = string_to_utf8(JSON.stringify({address: copy.contact_address}))
-            let encrypted_address:string|undefined = undefined
-            if (!copy.contact_multiple){  // Don't show subscription links if multiple people
-                encrypted_address = buffer_to_url64(await encrypt_sym(address_buffer,
-                    this.profile.host_state.secret))
-            }
-            return {
-                id: copy.id,  // Use copy's id for email id for matching later
-                to: {name: copy.contact_name, address: copy.contact_address},
-                subject: title,
-                html: render_invite_html(contents, title, url, image, !!this.msg.draft.reply_to,
-                    encrypted_address),
-            }
-        }))
+        const max_reads = copy.contact_multiple ? Infinity : this.msg.safe_max_reads
+        const contents = update_template_values(this.invite_tmpl_email, {
+            ...this.tmpl_variables,
+            contact_hello: {value: copy.contact_hello},
+            contact_name: {value: copy.contact_name},
+            msg_max_reads: {value: msg_max_reads_value(max_reads)},
+        }, '-')
+        const url = this.profile.view_url(copy.id, await export_key(copy.secret))
+        const secret_sse_url64 = buffer_to_url64(await export_key(copy.secret_sse))
+        const image = `${this.responder_url}?image=${copy.id}&k=${secret_sse_url64}`
+        const address_buffer = string_to_utf8(JSON.stringify({address: copy.contact_address}))
+        let encrypted_address:string|undefined = undefined
+        if (!copy.contact_multiple){  // Don't show subscription links if multiple people
+            encrypted_address = buffer_to_url64(await encrypt_sym(address_buffer,
+                this.profile.host_state.secret))
+        }
 
         // Send using oauth or regular SMTP (SMTP requires native platform's help)
-        const reply_to = this.profile.smtp_reply_to
-        await send_emails(this.profile.smtp_settings, emails, from, reply_to)
+        await send_email(this.profile.smtp_settings, {
+            id: copy.id,  // Use copy's id for email id for matching later
+            to: {name: copy.contact_name, address: copy.contact_address},
+            from: {name: this.sender_name, address: this.profile.email},
+            reply_to: this.profile.smtp_reply_to,
+            subject: this.msg.draft.title,
+            html: render_invite_html(contents, this.msg.draft.title, url, image,
+                !!this.msg.draft.reply_to, encrypted_address),
+        })
     }
 }
 
