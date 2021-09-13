@@ -18,7 +18,7 @@ echo "{\"rollbar_electron\": \"$ROLLBAR_ELECTRON\"}" > dist/config.json
 
 
 # Build main and preload scripts
-./node_modules/.bin/esbuild dist/main.ts dist/preload.ts --platform=node --format=cjs --sourcemap --outdir=dist
+./node_modules/.bin/esbuild dist/*.ts dist/**/*.ts --platform=node --format=cjs --sourcemap --outdir=dist
 
 
 # Rm typescript files
