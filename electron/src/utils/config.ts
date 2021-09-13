@@ -2,12 +2,6 @@
 import path from 'path'
 import {readFileSync} from 'fs'
 
-import {app} from 'electron'
-
-
-// Detect if dev mode
-export const DEV = !app.isPackaged
-
 
 // Detect if running automated testing
 export const TESTING = !!process.env['TEST_WORKER_INDEX']  // A var Playwright sets when testing

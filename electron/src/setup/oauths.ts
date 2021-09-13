@@ -1,16 +1,16 @@
 
 import http from 'http'
-import asar_fs_callbacks from 'fs'
 import {URL} from 'url'  // See https://github.com/DefinitelyTyped/DefinitelyTyped/issues/34960
+import {readFileSync} from 'fs'
 
 import {app} from 'electron'
+
 import {get_path} from '../utils/config'
 import {activate_app} from '../utils/window'
 
 
 // Load oauth html
-const oauth_html_path = get_path('assets/server_response.html')
-const oauth_html = asar_fs_callbacks.readFileSync(oauth_html_path, {encoding: 'utf8'})
+const oauth_html = readFileSync(get_path('assets/server_response.html'), {encoding: 'utf8'})
 
 
 // Create HTTP server for receiving oauth2 redirects

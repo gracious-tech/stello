@@ -34,11 +34,7 @@ import './setup/services'
 import './setup/services_smtp'
 
 
-// App event handling
-
-let update_downloaded = false
-
-// Handle app init
+// Setup that relies on ready event
 void app.whenReady().then(async () => {
 
     // Load vue dev tools extension if available (must load before page does)
@@ -54,6 +50,7 @@ void app.whenReady().then(async () => {
 
     // Try to auto-update (if packaging format supports it)
     // NOTE Updates on Windows are currently handled by the Windows Store
+    let update_downloaded = false
     if (app.isPackaged && (process.platform === 'darwin' || process.env['APPIMAGE'])){
 
         // Check for updates
@@ -113,16 +110,15 @@ void app.whenReady().then(async () => {
     app.on('activate', () => {
         void activate_app()
     })
-})
 
-// Handle no-windows event
-app.on('window-all-closed', () => {
-    if (TESTING){
-        // Auto-reopen window when closed during testing, so have new session for each test
-        void open_window()
-    } else if (process.platform !== 'darwin' || update_downloaded){
-        // End this process if no windows, unless Mac where it's normal to keep app in dock still
-        // NOTE If update downloaded, always do a full quit so update applied when reopened
-        app.quit()
-    }
+    app.on('window-all-closed', () => {
+        if (TESTING){
+            // Auto-reopen window when closed during testing, so have new session for each test
+            void open_window()
+        } else if (process.platform !== 'darwin' || update_downloaded){
+            // End this process if no windows, unless Mac where it's normal to keep app in dock
+            // NOTE If update downloaded, always do a full quit so update applied when reopened
+            app.quit()
+        }
+    })
 })
