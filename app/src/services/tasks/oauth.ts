@@ -538,11 +538,6 @@ export async function oauth_request(oauth:OAuth, url:string, params?:Record<stri
         await oauth_refresh(oauth)
     }
 
-    // If body is given, ensure it is a blob, else convert to a JSON blob
-    if (body && !(body instanceof Blob)){
-        body = new Blob([JSON.stringify(body)], {type: 'application/json'})
-    }
-
     // Send the request
     const request_init:RequestInit = {
         method,
@@ -551,11 +546,9 @@ export async function oauth_request(oauth:OAuth, url:string, params?:Record<stri
         },
     }
     if (body){
-        request_init.body = body as Blob
-        request_init.headers = {
-            ...request_init.headers,
-            'Content-Type': (body as Blob).type,
-        }
+        // If body is given, it will be converted to a JSON blob unless it is already a blob
+        request_init.body = body instanceof Blob ? body :
+            new Blob([JSON.stringify(body)], {type: 'application/json'})
     }
     return request(url, request_init)
 }

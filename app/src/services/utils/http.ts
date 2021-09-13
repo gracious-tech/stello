@@ -2,6 +2,12 @@
 import {MustReconnect} from './exceptions'
 
 
+interface JsonRequestInit extends RequestInit {
+    // Extend RequestInit options by adding custom json property
+    json?:unknown
+}
+
+
 export class RequestErrorStatus extends Error {
     // Thrown when HTTP status code indicates an error occured
     url:string
@@ -48,10 +54,13 @@ export async function request(input:string|Request, init:RequestInit, read_body:
 export async function request(input:string|Request, init:RequestInit, read_body:'arrayBuffer',
     bad_status_handling:'throw_null404'|'throw_null403-4'):Promise<ArrayBuffer|null>
 
-export async function request(input:string|Request, init?:RequestInit,
+export async function request(input:string|Request, init?:JsonRequestInit,
         read_body?:'text'|'json'|'blob'|'arrayBuffer',
         bad_status_handling?:'throw'|'throw_null404'|'throw_null403-4'):Promise<unknown>{
     /* Wrapper around `fetch` with the following improvements:
+        * Auto-detects content type
+        * Auto-compresses request body if CompressionStream available (Chrome 80+)
+        * Adds `json` property to RequestInit for auto-stringifying of json body
         * Throws specific error (fetch just throws generic TypeError)
         * Thrown errors have stack trace (fetch does not, making debugging very difficult)
         * Thrown errors include the URL requested (fetch does not)
@@ -64,6 +73,42 @@ export async function request(input:string|Request, init?:RequestInit,
 
     // Determine url, as will need when throwing errors
     const url = typeof input === 'string' ? input : input.url
+
+    // Ensure headers exists, as will manipulate
+    init = init ?? {}
+    init.headers = new Headers(init.headers)
+
+    // If json property exists, stringify as body
+    if (init.json){
+        init.body = JSON.stringify(init.json)
+        init.headers.set('Content-Type', 'application/json')
+        delete init.json
+    }
+
+    // Body-specific
+    if (init.body){
+
+        // Auto-set content type if none yet
+        // NOTE Fetch does this too, but if compressed the original blob type would get lost
+        if (!init.headers.has('Content-Type')){
+            init.headers.set('Content-Type',
+                (init.body instanceof Blob ? init.body.type : '') || 'application/octet-stream')
+        }
+        const content_type = init.headers.get('Content-Type')!
+
+        // Auto-compress text body if present (Chrome 80+)
+        if (self.CompressionStream &&
+            (content_type.startsWith('text/') || content_type === 'application/json')){
+
+            // Use Response to convert any valid body to a stream so can pipe to compressor
+            // NOTE Must convert back to Blob as ReadableStream not accepted for requests yet
+            //      See https://github.com/whatwg/fetch/pull/425#issuecomment-614452337
+            init.body = await new Response(
+                new Response(init.body).body!.pipeThrough(new self.CompressionStream('gzip')),
+            ).blob()
+            init.headers.set('Content-Encoding', 'gzip')
+        }
+    }
 
     // Throw unique error for connection issues, with stack trace
     let resp:Response
