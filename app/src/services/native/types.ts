@@ -6,8 +6,7 @@ export interface NativeInterface {
     update():void
     dns_mx(host:string):Promise<string[]>
     test_email_settings(settings:EmailSettings, auth?:boolean):Promise<EmailError|undefined>
-    send_emails(settings:EmailSettings, emails:Email[], from:EmailIdentity, reply_to?:EmailIdentity)
-        :Promise<EmailError|undefined>
+    send_emails(settings:EmailSettings, emails:Email[]):Promise<EmailError|undefined>
 
     // Listeners
     on_update_ready(handler:()=>void):void
@@ -27,6 +26,8 @@ export interface EmailSettings {
 export interface Email {
     id:string
     to:EmailIdentity
+    from:EmailIdentity
+    reply_to:EmailIdentity|undefined
     subject:string
     html:string
 }

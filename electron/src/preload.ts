@@ -4,7 +4,7 @@
 
 import {contextBridge, ipcRenderer} from 'electron'
 
-import {EmailSettings, Email, EmailError, EmailIdentity, NativeInterface} from './native_types'
+import {EmailSettings, Email, EmailError, NativeInterface} from './native_types'
 
 
 const native_electron:NativeInterface = {
@@ -31,11 +31,9 @@ const native_electron:NativeInterface = {
         return error
     },
 
-    send_emails(settings:EmailSettings, emails:Email[], from:EmailIdentity,
-            reply_to?:EmailIdentity):Promise<EmailError|undefined>{
+    send_emails(settings:EmailSettings, emails:Email[]):Promise<EmailError|undefined>{
         // Send emails
-        return ipcRenderer.invoke('send_emails', settings, emails, from, reply_to,
-            ) as Promise<EmailError|undefined>
+        return ipcRenderer.invoke('send_emails', settings, emails) as Promise<EmailError|undefined>
     },
 
 
