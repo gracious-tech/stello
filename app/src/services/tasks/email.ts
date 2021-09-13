@@ -63,6 +63,7 @@ async function send_emails_oauth_google(oauth:OAuth, emails:Email[], from:EmailI
     // Send emails via oauth http requests to Google's API
     // NOTE Google allows 2.5 sends/second (average over time), and each request takes ~1.5 seconds
     //      But to be safe, let's assume requests take 1 second, then two channels are suitable
+    // For limits see https://www.gmass.co/blog/understanding-gmails-email-sending-limits/
     const limit_concurrent_requests = 2
     const url = 'https://gmail.googleapis.com/upload/gmail/v1/users/me/messages/send'
     await concurrent(emails.map(email => {
