@@ -38,6 +38,7 @@ export interface EmailIdentity {
 }
 
 export interface EmailError {
-    code:'network'|'dns'|'starttls_required'|'tls_required'|'auth'|'timeout'|'unknown'|'unsupported'
+    code:'network'|'dns'|'starttls_required'|'tls_required'|'auth'|'timeout'|'throttled'
+        |'invalid_to'|'unknown'|'unsupported'
     details:string
 }

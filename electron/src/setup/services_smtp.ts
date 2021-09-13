@@ -55,6 +55,16 @@ function smtp_transport(settings:SmtpSettings){
 }
 
 
+interface NodeMailerError extends Error {
+    // See https://github.com/nodemailer/nodemailer/blob/master/lib/smtp-connection/index.js
+    message:string
+    code?:string
+    response?:string
+    responseCode?:number
+    command?:string
+}
+
+
 function normalize_nodemailer_error(error:unknown):EmailError{
     // Normalize a nodemailer error to a cross-platform standard that app can understand
     // NOTE May be other codes, as only those raised during initial connection were accounted for
@@ -65,7 +75,7 @@ function normalize_nodemailer_error(error:unknown):EmailError{
     }
 
     // Map nodemailer codes to app codes
-    const error_obj = error as {code?:string, message?:string}
+    const error_obj = error as NodeMailerError
     let code:EmailError['code'] = 'unknown'
     if (error_obj.code === 'EDNS'){
         // Either DNS server couldn't find name, or had trouble communicating with DNS server
@@ -90,9 +100,23 @@ function normalize_nodemailer_error(error:unknown):EmailError{
     } else if (error_obj.code === 'EAUTH'){
         // Either username or password wrong (may need app password)
         code = 'auth'
+    } else if (error_obj.code === 'EENVELOPE'){
+        // Server didn't accept the actual message
+        if (error_obj.responseCode && error_obj.responseCode >= 400
+                && error_obj.responseCode < 500){
+            // 4xx errors are usually temporary server-side issues
+            code = 'throttled'
+        } else {
+            // Other errors (5xx) are poorly defined, so must guess from text response
+            const response = error_obj.response?.toLowerCase() ?? ''
+            if (response.includes('recipient')){
+                // Assume has something to do with the recipient address being invalid
+                code = 'invalid_to'
+            }
+        }
     }
     // NOTE error_obj.message already includes error_obj.response (if it exists)
-    return {code, details: `${error_obj.code as string}: ${error_obj.message as string}`}
+    return {code, details: `${error_obj.code ?? ''}: ${error_obj.message}`}
 }
 
 
