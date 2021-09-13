@@ -21,9 +21,8 @@ import {AuthorizationServiceConfiguration} from '@openid/appauth'
 import DialogOAuthExisting from '@/components/dialogs/specific/DialogOAuthExisting.vue'
 import {OAuth} from '../database/oauths'
 import {task_manager, TaskStartArgs} from './tasks'
-import {drop, MustInterpret, MustReauthenticate, MustReconnect, MustRecover, MustWait}
-    from '../utils/exceptions'
-import {request} from '../utils/http'
+import {drop, MustReauthenticate, MustReconnect} from '../utils/exceptions'
+import {JsonRequestInit, request} from '../utils/http'
 
 
 // TYPES
@@ -539,16 +538,19 @@ export async function oauth_request(oauth:OAuth, url:string, params?:Record<stri
     }
 
     // Send the request
-    const request_init:RequestInit = {
+    const request_init:JsonRequestInit = {
         method,
         headers: {
             Authorization: `Bearer ${oauth.token_access}`,
         },
     }
     if (body){
-        // If body is given, it will be converted to a JSON blob unless it is already a blob
-        request_init.body = body instanceof Blob ? body :
-            new Blob([JSON.stringify(body)], {type: 'application/json'})
+        if (body instanceof Blob){
+            request_init.body = body
+        } else {
+            request_init.json = body
+            request_init.compress = true
+        }
     }
     return request(url, request_init)
 }

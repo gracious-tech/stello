@@ -2,7 +2,7 @@
 import {MustReconnect} from './exceptions'
 
 
-interface JsonRequestInit extends RequestInit {
+export interface JsonRequestInit extends RequestInit {
     // Extend RequestInit options by adding custom json property
     json?:unknown
     compress?:boolean
