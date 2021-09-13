@@ -16,10 +16,10 @@ import {HostUser} from '../hosts/types'
 import type {PublishedCopyBase, PublishedAsset, PublishedCopy, PublishedSection, PublishedImage,
     PublishedContentText} from '@/shared/shared_types'
 import {render_invite_html} from '../misc/invites'
-import {gen_variable_items, update_template_values, TemplateVariables, msg_max_reads_value,
-    } from '../misc/templates'
+import {gen_variable_items, update_template_values, TemplateVariables, msg_max_reads_value}
+    from '../misc/templates'
 import {MustReauthenticate, MustReconfigure, MustReconnect} from '../utils/exceptions'
-import {Email} from '../native/types'
+import {Email, EmailSettings} from '../native/types'
 import {send_emails_oauth} from './email'
 import {configs_update} from './configs'
 
@@ -27,7 +27,7 @@ import {configs_update} from './configs'
 export async function send_oauth_setup(task:Task):Promise<void>{
     // Setup oauth for email sending for given profile
     // NOTE Doesn't validate whether have correct scopes as can fix later if a send task fails
-    const [oauth_id, profile_id] = task.params
+    const [oauth_id, profile_id] = task.params as [string, string]
     const oauth = await self.app_db.oauths.get(oauth_id)
     if (!oauth){
         throw task.abort("Credentials missing")
@@ -76,12 +76,13 @@ export async function send_message(task:Task):Promise<void>{
 
 export class Sender {
 
-    msg_id:string
-    msg:Message
-    task:Task
-    profile:Profile
-    host:HostUser
-    tmpl_variables:TemplateVariables
+    // Init'd via send method
+    msg_id!:string
+    msg!:Message
+    task!:Task
+    profile!:Profile
+    host!:HostUser
+    tmpl_variables!:TemplateVariables
 
     get sender_name():string{
         // Get sender name, accounting for inheritance from profile
@@ -110,8 +111,8 @@ export class Sender {
         // Encrypt and upload assets and copies, and send email invites
 
         // Get the msg data
-        this.msg_id = task.params[0]
-        this.msg = await self.app_db.messages.get(this.msg_id)
+        this.msg_id = task.params[0] as string
+        this.msg = await self.app_db.messages.get(this.msg_id) as Message
         if (!this.msg){
             throw task.abort("Message no longer exists")
         }
@@ -125,7 +126,7 @@ export class Sender {
         await configs_update(new Task('configs_update', [this.msg.draft.profile], []))
 
         // Get the profile
-        this.profile = await self.app_db.profiles.get(this.msg.draft.profile)
+        this.profile = await self.app_db.profiles.get(this.msg.draft.profile) as Profile
         if (!this.profile){
             throw task.abort("Sending account no longer exists")
         }
@@ -155,7 +156,7 @@ export class Sender {
 
         // Process sections and produce assets
         const sections_data = await Promise.all(this.msg.draft.sections.map(
-            async row => await Promise.all(row.map(sid => self.app_db.sections.get(sid)))
+            async row => await Promise.all(row.map(sid => self.app_db.sections.get(sid))),
         )) as OneOrTwo<Section>[]
         const [pub_sections, assets] = await process_sections(sections_data, this.tmpl_variables)
 
@@ -208,7 +209,7 @@ export class Sender {
 
         // Mark as uploaded
         this.msg.assets_uploaded[asset.id] = true
-        self.app_db.messages.set(this.msg)
+        void self.app_db.messages.set(this.msg)
     }
 
     async _get_copies():Promise<MessageCopy[]>{
@@ -228,7 +229,7 @@ export class Sender {
                 copy.contact_hello = contact.name_hello_result
                 copy.contact_address = contact.address
                 copy.contact_multiple = contact.multiple
-                self.app_db.copies.set(copy)
+                void self.app_db.copies.set(copy)
             }
         }
 
@@ -283,7 +284,7 @@ export class Sender {
         // Mark as uploaded
         copy.uploaded = true
         copy.uploaded_latest = true
-        self.app_db.copies.set(copy)
+        void self.app_db.copies.set(copy)
 
         // Update store property so components can watch it for updates
         self.app_store.state.tmp.uploaded = copy
@@ -320,7 +321,7 @@ export class Sender {
             const secret_sse_url64 = buffer_to_url64(await export_key(copy.secret_sse))
             const image = `${responder_url}?image=${copy.id}&k=${secret_sse_url64}`
             const address_buffer = string_to_utf8(JSON.stringify({address: copy.contact_address}))
-            let encrypted_address:string
+            let encrypted_address:string|undefined = undefined
             if (!copy.contact_multiple){  // Don't show subscription links if multiple people
                 encrypted_address = buffer_to_url64(await encrypt_sym(address_buffer,
                     this.profile.host_state.secret))
@@ -340,7 +341,7 @@ export class Sender {
             await send_emails_oauth(this.profile.smtp_settings.oauth, emails, from, reply_to)
         } else if (this.profile.smtp_settings.pass){
             const error = await self.app_native.send_emails(
-                this.profile.smtp_settings, emails, from, reply_to)
+                this.profile.smtp_settings as EmailSettings, emails, from, reply_to)
             // Translate email error to standard forms
             if (error){
                 if (['dns', 'starttls_required', 'tls_required', 'timeout'].includes(error.code)){
@@ -399,7 +400,14 @@ async function process_section(section:Section, pub_assets:PublishedAsset[],
         return {
             id: section.id,
             respondable: section.respondable_final,
-            content: {...section.content},  // All props same and are primitives
+            content: {
+                type: 'video',
+                format: section.content.format!,
+                id: section.content.id!,
+                caption: section.content.caption,
+                start: section.content.start,
+                end: section.content.end,
+            },
         }
 
     // Handle images
@@ -408,7 +416,7 @@ async function process_section(section:Section, pub_assets:PublishedAsset[],
         // Work out max width/height for all images
         const max_width = SECTION_IMAGE_WIDTH
         // Determine max height from first image's dimensions
-        const base_size = await blob_image_size(section.content.images[0].data)
+        const base_size = await blob_image_size(section.content.images[0]!.data)
         const base_ratio = base_size.width / base_size.height
         const max_height = max_width / base_ratio
 

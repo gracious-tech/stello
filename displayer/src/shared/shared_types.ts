@@ -27,7 +27,7 @@ export type PublishedSectionContent =
 export interface PublishedContentText {
     type:'text'
     html:string
-    standout:string
+    standout:string|null
 }
 
 export interface PublishedContentImages {
@@ -42,8 +42,8 @@ export interface PublishedContentVideo {
     format:'iframe_youtube'|'iframe_vimeo'
     id:string
     caption:string
-    start:number
-    end:number
+    start:number|null
+    end:number|null
 }
 
 export interface PublishedImage {

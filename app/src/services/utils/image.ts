@@ -1,15 +1,11 @@
 
 
-export async function blob_image_size(blob:Blob):Promise<{width:number, height:number}|null>{
-    // Get the width/height of an image blob (null if can't read)
-    try {
-        const bitmap = await createImageBitmap(blob)
-        return {
-            width: bitmap.width,
-            height: bitmap.height,
-        }
-    } catch {
-        return null
+export async function blob_image_size(blob:Blob):Promise<{width:number, height:number}>{
+    // Get the width/height of an image blob
+    const bitmap = await createImageBitmap(blob)
+    return {
+        width: bitmap.width,
+        height: bitmap.height,
     }
 }
 
