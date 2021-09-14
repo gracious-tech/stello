@@ -21,10 +21,8 @@ if (!app.requestSingleInstanceLock()){
 }
 
 
-// SECURITY Enable sandboxing of renderers (but not during dev as doesn't work in docker)
-if (app.isPackaged){
-    app.enableSandbox()
-}
+// SECURITY Enable sandboxing of renderers
+app.enableSandbox()
 
 
 // Setup app
