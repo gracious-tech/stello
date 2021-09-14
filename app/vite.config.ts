@@ -4,6 +4,8 @@ import path from 'path'
 import {defineConfig} from 'vite'
 import {createVuePlugin} from 'vite-plugin-vue2'
 import ViteComponents, {VuetifyResolver} from 'vite-plugin-components'
+import plugin_optimize_persist from 'vite-plugin-optimize-persist'
+import plugin_package_config from 'vite-plugin-package-config'
 
 import plugin_iife from './vite_plugin_iife'
 import plugin_nameless from './vite_plugin_nameless'
@@ -18,6 +20,8 @@ export default defineConfig(({mode}) => {
         base: './',  // Important when served from file:///
         publicDir: 'static',
         plugins: [
+            plugin_optimize_persist(),  // Auto-manual-include modules (avoids reloads at startup)
+            plugin_package_config(),  // Dependency of plugin_optimize_persist
             plugin_index('src/index.pug'),
             plugin_svg(),
             plugin_nameless(),
