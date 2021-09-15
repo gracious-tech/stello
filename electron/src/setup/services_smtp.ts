@@ -129,6 +129,34 @@ function normalize_nodemailer_error(error:unknown):EmailError{
 }
 
 
+function dev_throwing(){
+    // Randomly throw fake errors during dev
+    // WARN Do not make async as can mess up SMTP_TRANSPORTS values which get deleted/recreated
+
+    if (app.isPackaged){
+        return
+    }
+
+    // Randomly throw exceptions
+    const random = Math.random()
+    if (random > 0.9){
+        // Invalid to address
+        throw {
+            code: 'EENVELOPE',
+            responseCode: 550,
+            response: "Can't send mail - all recipients were rejected: 550 5.1.2 <address>:"
+                + " Recipient address rejected: Domain not found",
+        } as NodeMailerError
+    } else if (random > 0.8){
+        // Throttled
+        throw {
+            code: 'EENVELOPE',
+            responseCode: 450,
+        } as NodeMailerError
+    }
+}
+
+
 // IPC handlers
 
 
@@ -162,6 +190,11 @@ ipcMain.handle('smtp_send', async (
     event, settings:EmailSettings, email:Email):Promise<EmailError|null> => {
     // Send email and return null for success, else error
 
+    // Simulate network delay during development (between 0-2 secs)
+    if (!app.isPackaged){
+        await sleep(2000 * Math.random())
+    }
+
     // Generate transport id from settings
     const transport_id = transport_id_from_settings(settings)
 
@@ -172,6 +205,7 @@ ipcMain.handle('smtp_send', async (
 
     // Try to send the email (will throw if a hard fail)
     try {
+        dev_throwing()
         const result = await SMTP_TRANSPORTS[transport_id]!.sendMail({
             from: email.from,
             to: email.to,
