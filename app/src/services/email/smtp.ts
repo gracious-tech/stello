@@ -55,9 +55,12 @@ class SmtpAccountManager {
 
     settings:EmailSettings
     queue:SmtpQueueItem[] = []
+    processors = new Set<string>()
+    max_processors = 10  // Same as native limit
     last_send = 0  // Epoch time
     interval = 0  // ms
     dead = false  // Prevents instance from being used by throwing when try to send
+    aborted = new Set<string>()
 
     constructor(settings:EmailSettings){
         this.settings = settings
@@ -71,17 +74,25 @@ class SmtpAccountManager {
         // WARN Otherwise could end up in situation where promise is never resolved
         if (this.dead){
             throw new Error("SMTP transport is dead but was still given an email to send")
+        } else if (this.aborted.has(task_id)){
+            // Task has been aborted so prevent further queuing
+            throw new TaskAborted()
         }
 
         // Return promise that's resolved when email is actually sent (not just queued)
         return new Promise((resolve, reject) => {
             this.queue.push({resolve, reject, email, task_id})
-            // Let manager know that there's at least one email that needs processing
-            void this.process()
+            // Add a processor if within limit
+            if (this.processors.size < this.max_processors){
+                this.processors.add(email.id)
+                void this.process(email.id)  // Borrow email id for use as processor id since unique
+            }
         })
     }
 
     abort(task_id:string){
+        // Add task_id to aborted list, so no more items are queued (e.g. after throttling)
+        this.aborted.add(task_id)
         // Remove all emails from queue that belong to given task and reject them
         for (let i=this.queue.length-1; i >= 0; i--){
             if (this.queue[i]!.task_id === task_id){
@@ -91,7 +102,7 @@ class SmtpAccountManager {
         }
     }
 
-    private async process():Promise<void>{
+    private async process(processor:string):Promise<void>{
         /* Process an item in the queue
             Now matter how rapidly this is called, items will still be processed at appropriate rate
                 1. SMTP pool used which will limit simultaneous sends to max number of connections
@@ -101,8 +112,9 @@ class SmtpAccountManager {
                 Called after each new item added, and recalls itself until queue empty
         */
 
-        // If no items in queue, can end and assume next addition will call `process()`
-        if (!this.queue.length){
+        // If no items in queue or over limit, kill self
+        if (!this.queue.length || this.processors.size > this.max_processors){
+            this.processors.delete(processor)
             return
         }
 
@@ -113,7 +125,7 @@ class SmtpAccountManager {
             if (time_till_can_send > 0){
                 // Can't send yet, so check again after interval over
                 const buffer = 10  // Avoid chance of being off by a few ms
-                setTimeout(() => {void this.process()}, time_till_can_send + buffer)
+                setTimeout(() => {void this.process(processor)}, time_till_can_send + buffer)
                 console.debug(`SMTP waiting ${time_till_can_send + buffer}ms due to interval`)
                 return
             } else {
@@ -144,7 +156,12 @@ class SmtpAccountManager {
             this.adjust_interval(false)
             // Readd item to queue since will probably succeed if try again
             // BUT add to end of queue in case it is the problem (and let others send first)
-            this.queue.push(item)
+            // NOTE If task has since been aborted, reject with that instead
+            if (this.aborted.has(item.task_id)){
+                item.reject(new TaskAborted())
+            } else {
+                this.queue.push(item)
+            }
 
         } else {
             // REJECT
@@ -172,6 +189,9 @@ class SmtpAccountManager {
             // NOTE transport auto-recreates when smtp_send next called so future tasks will be fine
             void self.app_native.smtp_close(this.settings)
         }
+
+        // Continue processing another item
+        void this.process(processor)
     }
 
     private now():number{
@@ -185,6 +205,8 @@ class SmtpAccountManager {
             // No existing interval, so either keep that way, or init with first value
             if (!success){
                 this.interval = 1000
+                // Only one processor now needed
+                this.max_processors = 1
                 // Native sender queue may be full of items, so clear it and let them be requeued
                 //      otherwise those items wouldn't be subject to the interval
                 void self.app_native.smtp_close(this.settings)
@@ -193,7 +215,7 @@ class SmtpAccountManager {
             return
         }
         // Rapidly increase for failure, but slowly decrease when later get success
-        // NOTE ceil used so can never return to zero (can be reconsidered though)
+        // NOTE ceil used so can never return to zero (would need to redesign process limiting)
         this.interval = Math.ceil(success
             ? this.interval - (this.interval / 10)  // Decrease by 10%
             : this.interval + this.interval,  // Double
