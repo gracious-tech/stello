@@ -2,7 +2,7 @@
 import {TaskAborted} from '../tasks/tasks'
 import {generate_token} from '../utils/crypt'
 import {EmailSettings, Email, EmailError} from '../native/types'
-import {MustInterpret, MustReauthenticate, MustReconfigure, MustReconnect}
+import {MustInterpret, MustReauthenticate, MustReconfigure, MustReconnect, MustWait}
     from '../utils/exceptions'
 
 
@@ -177,6 +177,8 @@ class SmtpAccountManager {
                 reason = new MustReauthenticate(error.details)
             } else if (error.code === 'network'){
                 reason = new MustReconnect(error.details)
+            } else if (error.code === 'throttled'){
+                reason = new MustWait(error.details)
             } else {
                 reason = new MustInterpret(error)
             }
