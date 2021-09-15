@@ -172,11 +172,6 @@ class SmtpAccountManager {
             // NOTE transport auto-recreates when smtp_send next called so future tasks will be fine
             void self.app_native.smtp_close(this.settings)
         }
-
-        // Check if more need sending
-        if (this.queue.length){
-            void this.process()
-        }
     }
 
     private now():number{
@@ -198,9 +193,11 @@ class SmtpAccountManager {
             return
         }
         // Rapidly increase for failure, but slowly decrease when later get success
-        this.interval = success
+        // NOTE ceil used so can never return to zero (can be reconsidered though)
+        this.interval = Math.ceil(success
             ? this.interval - (this.interval / 10)  // Decrease by 10%
-            : this.interval + this.interval  // Double
+            : this.interval + this.interval,  // Double
+        )
         console.warn(`SMTP interval set to ${this.interval}ms`)
     }
 }
