@@ -36,12 +36,6 @@ const native_electron:NativeInterface = {
         return ipcRenderer.invoke('smtp_send', settings, email) as Promise<EmailError|null>
     },
 
-    smtp_close(settings:EmailSettings):Promise<void>{
-        // Close an smtp transport (so can reject all queued emails)
-        return ipcRenderer.invoke('smtp_close', settings) as Promise<void>
-    },
-
-
     // Listeners
 
     on_update_ready(handler:()=>void):void{

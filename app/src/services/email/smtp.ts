@@ -185,9 +185,6 @@ class SmtpAccountManager {
             while (this.queue.length){  // Reject all items in queue
                 this.queue.shift()!.reject(reason)  // Reason of failed email raised for all
             }
-            // Cause all items queued in transport to be rejected
-            // NOTE transport auto-recreates when smtp_send next called so future tasks will be fine
-            void self.app_native.smtp_close(this.settings)
         }
 
         // Continue processing another item
@@ -207,10 +204,7 @@ class SmtpAccountManager {
                 this.interval = 1000
                 // Only one processor now needed
                 this.max_processors = 1
-                // Native sender queue may be full of items, so clear it and let them be requeued
-                //      otherwise those items wouldn't be subject to the interval
-                void self.app_native.smtp_close(this.settings)
-                console.warn("SMTP throttling detected (requeuing with interval)")
+                console.warn("SMTP throttling detected (switching to single processor)")
             }
             return
         }

@@ -131,7 +131,7 @@ function normalize_nodemailer_error(error:unknown):EmailError{
 
 function dev_throwing(){
     // Randomly throw fake errors during dev
-    // WARN Do not make async as can mess up SMTP_TRANSPORTS values which get deleted/recreated
+    // WARN Do not make async as can mess up SMTP_TRANSPORTS values if they get deleted/recreated
 
     if (app.isPackaged){
         return
@@ -216,16 +216,5 @@ ipcMain.handle('smtp_send', async (
         return result.rejected.length === 0 ? null : {code: 'invalid_to', details: ''}
     } catch (error){
         return normalize_nodemailer_error(error)
-    }
-})
-
-
-ipcMain.handle('smtp_close', async (event, settings:EmailSettings):Promise<void> => {
-    // Close and remove transport if present (identified by given settings)
-    // Useful when transport known not to work and want to force its pending messages to reject
-    const transport_id = transport_id_from_settings(settings)
-    if (transport_id in SMTP_TRANSPORTS){
-        SMTP_TRANSPORTS[transport_id]!.close()
-        delete SMTP_TRANSPORTS[transport_id]
     }
 })

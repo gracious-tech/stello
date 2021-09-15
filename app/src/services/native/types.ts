@@ -7,7 +7,6 @@ export interface NativeInterface {
     dns_mx(host:string):Promise<string[]>
     test_email_settings(settings:EmailSettings, auth?:boolean):Promise<EmailError|undefined>
     smtp_send(settings:EmailSettings, email:Email):Promise<EmailError|null>
-    smtp_close(settings:EmailSettings):Promise<void>
 
     // Listeners
     on_update_ready(handler:()=>void):void
