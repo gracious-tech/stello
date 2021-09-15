@@ -449,7 +449,7 @@ export class Database {
 
         // Create a profile
         const profile = await this.profiles.create()
-        profile.email = 'sender@localhost'
+        profile.email = 'blackhole+sender@gracious.tech'
         profile.msg_options_identity.sender_name = "Sender Name"
         profile.host = JSON.parse(import.meta.env.VITE_DEV_HOST_SETTINGS) as RecordProfileHost
         profile.setup_step = null
