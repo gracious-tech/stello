@@ -188,26 +188,20 @@ export class Sender {
         const email_promises:Promise<void>[] = []
 
         // Upload copies
-        try {
-            await concurrent(copies.map(copy => {
-                return async () => {
-                    task.check_aborted()
-                    await this._publish_copy(copy, pub_copy_base)
-                    task.check_aborted()
-                    // Don't await email send so doesn't hold up S3 uploads
-                    email_promises.push(task.expected(this._send_email(copy)).then(() => {
-                        // Since not awaited, not affected by abort throws, so check manually
-                        if (task.aborted){
-                            this.email_client.abort()
-                        }
-                    }))
-                }
-            }))
-        } catch (error){
-            // Ensure don't throw until email tasks aborted, otherwise uncaught rejection shows bar
-            await Promise.all(email_promises)
-            throw error
-        }
+        await concurrent(copies.map(copy => {
+            return async () => {
+                task.check_aborted()
+                await this._publish_copy(copy, pub_copy_base)
+                task.check_aborted()
+                // Don't await email send so doesn't hold up S3 uploads
+                email_promises.push(task.expected(this._send_email(copy)).then(() => {
+                    // Since not awaited, not affected by abort throws, so check manually
+                    if (task.aborted){
+                        this.email_client.abort()
+                    }
+                }))
+            }
+        }))
 
         // Wait for email sends to complete
         await Promise.all(email_promises)
