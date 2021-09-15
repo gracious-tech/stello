@@ -6,13 +6,15 @@ v-list-item
     v-list-item-action
         app-btn(v-if='copy.status === "manual"' @click='copy_invite_and_mark' :icon='status_icon'
             data-tip="Copy invite and mark as sent")
+        app-btn(v-else-if='copy.status === "error"' :to='to' :icon='status_icon' color='error'
+            data-tip="Change email address")
         app-svg(v-else :name='`icon_${status_icon}`' :class='status_class' class='mx-3')
 
     v-list-item-content
         v-list-item-title
             router-link(:to='to') {{ copy.display }}
 
-    v-list-item-action(title='Number of times opened') {{ reads.length }}
+    v-list-item-action(title='Number of times opened' class='noselect') {{ reads.length }}
 
     v-list-item-action(class='ml-0')
         app-menu-more
