@@ -77,7 +77,6 @@ export class Sender {
     // Init'd via send method
     msg_id!:string
     msg!:Message
-    task!:Task
     profile!:Profile
     host!:HostUser
     responder_url!:string
@@ -185,22 +184,32 @@ export class Sender {
 
         // Init email sender
         this.email_client = await new_email_task(this.profile.smtp_settings)
+        const email_promises:Promise<void>[] = []
+
+        // Upload copies
         try {
-            // Upload copies
             await concurrent(copies.map(copy => {
                 return async () => {
                     task.check_aborted()
                     await this._publish_copy(copy, pub_copy_base)
                     task.check_aborted()
-                    await this._send_email(copy)
-                    task.check_aborted()
+                    // Don't await email send so doesn't hold up S3 uploads
+                    email_promises.push(this._send_email(copy).then(() => {
+                        // Since not awaited, not affected by abort throws, so check manually
+                        if (task.aborted){
+                            this.email_client.abort()
+                        }
+                    }))
                 }
             }))
         } catch (error){
-            // Ensure emails don't continue to be sent when task aborted
-            this.email_client.abort()
+            // Ensure don't throw until email tasks aborted, otherwise uncaught rejection shows bar
+            await Promise.all(email_promises)
             throw error
         }
+
+        // Wait for email sends to complete
+        await Promise.all(email_promises)
     }
 
     async _publish_asset(asset:PublishedAsset):Promise<void>{
