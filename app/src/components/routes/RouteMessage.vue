@@ -16,7 +16,7 @@ div
 
                 div(class='d-flex justify-space-around mb-3')
                     div(:title='published_exact') #[strong Sent:] {{ published_relative }}
-                    div(:title='expires_exact') #[strong Expires:] {{ expires_relative }}
+                    div(:title='expires_exact || ""') #[strong Expires:] {{ expires_relative }}
 
                 div(class='text-center')
                     strong {{ num_copies_read }} of {{ copies.length }} opened
@@ -25,8 +25,8 @@ div
                     | Sending
                     v-progress-circular(indeterminate width='2' size='20' color='accent'
                         class='ml-6 mr-3')
-                    app-btn(@click='() => {sending_task.abort()}' :disabled='!!sending_task.aborted'
-                            color='error' small)
+                    app-btn(@click='() => {sending_task!.abort()}'
+                            :disabled='!!sending_task.aborted' color='error' small)
                         | {{ sending_task.aborted ? "Stopping" : "Stop" }}
 
                 div(v-else-if='!automated_sending_done' class='text-center mt-3')
@@ -67,16 +67,16 @@ import {time_between} from '@/services/misc'
 })
 export default class extends Vue {
 
-    @Prop({type: String, required: true}) msg_id:string
+    @Prop({type: String, required: true}) msg_id!:string
 
-    message:Message = null
+    message:Message|null = null
     copies:MessageCopy[] = []
     reads:Read[] = []
-    profile:Profile = null
+    profile:Profile|null = null
 
     async created(){
         // Get message and copies from db
-        this.message = await self.app_db.messages.get(this.msg_id)
+        this.message = await self.app_db.messages.get(this.msg_id) ?? null
         if (!this.message){
             return
         }
@@ -85,46 +85,46 @@ export default class extends Vue {
         this.copies = copies
 
         // Access to profile is required to retract messages
-        this.profile = await self.app_db.profiles.get(this.message.draft.profile)
+        this.profile = await self.app_db.profiles.get(this.message.draft.profile) ?? null
 
         // Do initial load of reads
-        this.load_reads()
+        void this.load_reads()
     }
 
     // COMPUTED
 
     get published_relative(){
         // Get human fiendly published date string relative to now
-        return time_between(this.message.published)
+        return time_between(this.message!.published)
     }
 
     get published_exact(){
         // Get human fiendly exact published date string
-        return this.message.published.toLocaleString()
+        return this.message!.published.toLocaleString()
     }
 
     get expires_relative():string{
         // The time until message expires
-        if (this.message.probably_expired){
+        if (this.message!.probably_expired){
             return "already expired"
         }
-        return this.message.expires ? time_between(this.message.expires) : "never"
+        return this.message!.expires ? time_between(this.message!.expires) : "never"
     }
 
-    get expires_exact():string{
+    get expires_exact():string|null{
         // The exact date of expiry
         // NOTE Not specifying the time since expiration isn't exact
-        return this.message.expires && this.message.expires.toLocaleDateString()
+        return this.message!.expires && this.message!.expires.toLocaleDateString()
     }
 
     get reads_by_copy():Record<string, Read[]>{
         // Reads mapped to copy ids
-        const map = {}
+        const map:Record<string, Read[]> = {}
         for (const copy of this.copies){
             Vue.set(map, copy.id, [])
         }
         for (const read of this.reads){
-            map[read.copy_id].push(read)
+            map[read.copy_id]!.push(read)
         }
         return map
     }
@@ -144,7 +144,7 @@ export default class extends Vue {
         return !this.copies.some(c => c.status === 'manual')
     }
 
-    get sending_task():Task{
+    get sending_task():Task|undefined{
         // The task if message is currently being sent
         return this.$tm.data.tasks.find(
             t => t.name === 'send_message' && t.params[0] === this.msg_id)
@@ -168,7 +168,7 @@ export default class extends Vue {
 
     async send_all(){
         // Ensure all copies have been uploaded, and all emails sent
-        this.$tm.start_send_message(this.msg_id)
+        void this.$tm.start_send_message(this.msg_id)
     }
 
     show_help_dialog():void{
@@ -196,7 +196,7 @@ export default class extends Vue {
     @Watch('$tm.data.finished') watch_tm_finished(task:Task){
         // Listen to task completions and adjust state as needed
         if (task.name === 'responses_receive'){
-            this.load_reads()
+            void this.load_reads()
         }
     }
 
