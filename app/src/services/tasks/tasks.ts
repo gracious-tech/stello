@@ -92,7 +92,7 @@ export class Task {
     get status():string{
         // Return status string
         let status = this.display
-        if (this.show_count){
+        if (this.show_count && !this.aborted){
             status += ` (${this.subtasks_done} of ${this.safe_total})`
         }
         return status

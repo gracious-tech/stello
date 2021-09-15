@@ -13,7 +13,7 @@ transition(name='statusbar' appear)
                     app-svg(v-if='!finished.aborted' name='icon_done')
             template(v-else-if='tasks.length')
                 v-progress-linear(:value='first.percent' :buffer-value='0' color='accent' stream
-                    :indeterminate='first.subtasks_total < 2')
+                    :indeterminate='first.subtasks_total < 2 || !!first.aborted')
                 div.active
                     div(class='ellipsis flex') {{ first.status }}
                     app-btn(v-if='first.abortable' @click='() => {first.abort()}'
