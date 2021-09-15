@@ -4,7 +4,7 @@ import {OAuth} from '../database/oauths'
 import {oauth_request} from '../tasks/oauth'
 import {concurrent} from '../utils/async'
 import {MustWait, MustInterpret} from '../utils/exceptions'
-import {Email, handle_email_submitted} from './email'
+import {Email} from './email'
 
 
 interface MicrosoftBatchResponse {

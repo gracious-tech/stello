@@ -31,9 +31,14 @@ const native_electron:NativeInterface = {
         return error
     },
 
-    send_emails(settings:EmailSettings, emails:Email[]):Promise<EmailError|undefined>{
-        // Send emails
-        return ipcRenderer.invoke('send_emails', settings, emails) as Promise<EmailError|undefined>
+    smtp_send(settings:EmailSettings, email:Email):Promise<EmailError|null>{
+        // Send an email via SMTP
+        return ipcRenderer.invoke('smtp_send', settings, email) as Promise<EmailError|null>
+    },
+
+    smtp_close(settings:EmailSettings):Promise<void>{
+        // Close an smtp transport (so can reject all queued emails)
+        return ipcRenderer.invoke('smtp_close', settings) as Promise<void>
     },
 
 
@@ -50,13 +55,6 @@ const native_electron:NativeInterface = {
         // Listen to oauth redirect events emitted by native platform
         ipcRenderer.on('oauth', (event, url) => {
             handler(url)
-        })
-    },
-
-    on_email_submitted(handler:(email_id:string, accepted:boolean)=>void):void{
-        // Listen to email_submitted events emitted by native platform
-        ipcRenderer.on('email_submitted', (event, email_id, accepted) => {
-            handler(email_id, accepted)
         })
     },
 }

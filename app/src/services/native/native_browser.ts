@@ -34,9 +34,4 @@ export class NativeBrowser implements NativeInterface {
     on_oauth(handler:(url:string)=>void):void{
         // Will never receive events...
     }
-
-
-    on_email_submitted(handler:(email_id:string, accepted:boolean)=>void):void{
-        // Will never receive events...
-    }
 }

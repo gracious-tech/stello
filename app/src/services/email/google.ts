@@ -3,7 +3,7 @@ import {OAuth} from '../database/oauths'
 import {OauthUseless, oauth_request} from '../tasks/oauth'
 import {concurrent} from '../utils/async'
 import {MustInterpret, MustReauthenticate, MustWait} from '../utils/exceptions'
-import {Email, handle_email_submitted} from './email'
+import {Email} from './email'
 import {create_email} from './utils'
 
 

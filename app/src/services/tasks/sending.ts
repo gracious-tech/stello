@@ -18,7 +18,7 @@ import type {PublishedCopyBase, PublishedAsset, PublishedCopy, PublishedSection,
 import {render_invite_html} from '../misc/invites'
 import {gen_variable_items, update_template_values, TemplateVariables, msg_max_reads_value}
     from '../misc/templates'
-import {send_email} from '../email/email'
+import {EmailTask, new_email_task} from '../email/email'
 import {configs_update} from './configs'
 
 
@@ -82,6 +82,7 @@ export class Sender {
     host!:HostUser
     responder_url!:string
     tmpl_variables!:TemplateVariables
+    email_client!:EmailTask
 
     get sender_name():string{
         // Get sender name, accounting for inheritance from profile
@@ -182,16 +183,24 @@ export class Sender {
         // Check if aborted before uploading copies
         task.check_aborted()
 
-        // Upload copies
-        await concurrent(copies.map(copy => {
-            return async () => {
-                task.check_aborted()
-                await this._publish_copy(copy, pub_copy_base)
-                task.check_aborted()
-                await this._send_email(copy)
-                task.check_aborted()
-            }
-        }))
+        // Init email sender
+        this.email_client = await new_email_task(this.profile.smtp_settings)
+        try {
+            // Upload copies
+            await concurrent(copies.map(copy => {
+                return async () => {
+                    task.check_aborted()
+                    await this._publish_copy(copy, pub_copy_base)
+                    task.check_aborted()
+                    await this._send_email(copy)
+                    task.check_aborted()
+                }
+            }))
+        } catch (error){
+            // Ensure emails don't continue to be sent when task aborted
+            this.email_client.abort()
+            throw error
+        }
     }
 
     async _publish_asset(asset:PublishedAsset):Promise<void>{
@@ -317,7 +326,7 @@ export class Sender {
         }
 
         // Send using oauth or regular SMTP (SMTP requires native platform's help)
-        await send_email(this.profile.smtp_settings, {
+        const accepted = await this.email_client.send({
             id: copy.id,  // Use copy's id for email id for matching later
             to: {name: copy.contact_name, address: copy.contact_address},
             from: {name: this.sender_name, address: this.profile.email},
@@ -326,6 +335,14 @@ export class Sender {
             html: render_invite_html(contents, this.msg.draft.title, url, image,
                 !!this.msg.draft.reply_to, encrypted_address),
         })
+
+        // Update copy
+        copy.invited = accepted
+        void self.app_db.copies.set(copy)
+
+        // Emit event so sending task can be tracked more closely in UI
+        // NOTE A little hacky, but currently emitting via watching a store prop
+        self.app_store.state.tmp.invited = copy
     }
 }
 

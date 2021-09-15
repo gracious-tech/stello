@@ -6,12 +6,12 @@ export interface NativeInterface {
     update():void
     dns_mx(host:string):Promise<string[]>
     test_email_settings(settings:EmailSettings, auth?:boolean):Promise<EmailError|undefined>
-    send_emails(settings:EmailSettings, emails:Email[]):Promise<EmailError|undefined>
+    smtp_send(settings:EmailSettings, email:Email):Promise<EmailError|null>
+    smtp_close(settings:EmailSettings):Promise<void>
 
     // Listeners
     on_update_ready(handler:()=>void):void
     on_oauth(handler:(url:string)=>void):void
-    on_email_submitted(handler:(email_id:string, accepted:boolean)=>void):void
 }
 
 

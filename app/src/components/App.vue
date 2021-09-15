@@ -41,7 +41,6 @@ import {oauth_pretask_process} from '@/services/tasks/oauth'
 import {task_manager} from '@/services/tasks/tasks'
 import {sleep} from '@/services/utils/async'
 import {resume_tasks} from '@/services/tasks/resume'
-import {handle_email_submitted} from '@/services/email/email'
 
 
 @Component({
@@ -73,7 +72,6 @@ export default class extends Vue {
 
         // Handle events emitted from native platform
         self.app_native.on_oauth(oauth_pretask_process)
-        self.app_native.on_email_submitted(handle_email_submitted)
 
         // Resume tasks
         resume_tasks()

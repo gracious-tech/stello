@@ -1,7 +1,6 @@
 
 import {app, ipcMain} from 'electron'
-import nodemailer, {Transporter} from 'nodemailer'
-import SMTPTransport from 'nodemailer/lib/smtp-transport'
+import nodemailer from 'nodemailer'
 
 import {sleep} from '../utils/async'
 import {Email, EmailSettings, EmailError} from '../native_types'
@@ -13,6 +12,16 @@ interface SmtpSettings {
     user:string
     pass:string
     starttls:boolean
+}
+
+
+const SMTP_TRANSPORTS:Record<string, ReturnType<typeof smtp_transport>> = {}
+
+
+function transport_id_from_settings(settings:EmailSettings):string{
+    // Generate transport id from settings
+    return JSON.stringify(
+        [settings.host, settings.port, settings.starttls, settings.user, settings.pass])
 }
 
 
@@ -31,7 +40,7 @@ function smtp_transport(settings:SmtpSettings){
         connectionTimeout: 5 * 1000,  // If can't connect in 5 secs then must be wrong name/port
         greetingTimeout: 5 * 1000,  // Greeting should come quickly so allow 5 secs
         // Some servers are slow to reply to auth for security (like smtp.bigpond.com's 10 secs)
-        socketTimeout: 30 * 1000,  // Allow 30 secs for responses
+        socketTimeout: 30 * 1000,  // Allow 30 secs for responses / new sends
         // Reuse same connection for multiple messages
         pool: true,
         maxMessages: Infinity,  // No reason to start new connection after x messages
@@ -123,8 +132,6 @@ function normalize_nodemailer_error(error:unknown):EmailError{
 // IPC handlers
 
 
-
-
 ipcMain.handle('test_email_settings', async (event, settings, auth=true) => {
     // Tests provided settings to see if they work and returns either null or error string
 
@@ -151,67 +158,40 @@ ipcMain.handle('test_email_settings', async (event, settings, auth=true) => {
 })
 
 
-ipcMain.handle('send_emails', async (event, settings:EmailSettings, emails:Email[]) => {
-    // Send emails and return null for success, else error
-    // NOTE Also emits `email_submitted` event for each individual emails that don't hard fail
+ipcMain.handle('smtp_send', async (
+    event, settings:EmailSettings, email:Email):Promise<EmailError|null> => {
+    // Send email and return null for success, else error
 
-    // Helper for sending an email and reporting success
-    const send_email = async(transport:Transporter<SMTPTransport.SentMessageInfo>, email:Email) => {
+    // Generate transport id from settings
+    const transport_id = transport_id_from_settings(settings)
 
-        // Try to send the email (will throw if a hard fail)
-        const result = await transport.sendMail({
+    // Init or reuse transport
+    if (! (transport_id in SMTP_TRANSPORTS)){
+        SMTP_TRANSPORTS[transport_id] = smtp_transport(settings)
+    }
+
+    // Try to send the email (will throw if a hard fail)
+    try {
+        const result = await SMTP_TRANSPORTS[transport_id]!.sendMail({
             from: email.from,
             to: email.to,
             subject: email.subject,
             html: email.html,
             replyTo: email.reply_to,
         })
-
-        // Was submitted, so immediately let renderer know
-        // NOTE Also includes whether recipient address was accepted or not (a soft fail)
-        event.sender.send('email_submitted', email.id, result.rejected.length === 0)
+        return result.rejected.length === 0 ? null : {code: 'invalid_to', details: ''}
+    } catch (error){
+        return normalize_nodemailer_error(error)
     }
+})
 
-    // Initial parallel sending attempt
-    // NOTE Rate limiting very common (especially for gmail), but no way to know unless first try
-    // NOTE This instantly submits all emails to nodemailer which handles the parallel queuing
-    let transport = smtp_transport(settings)
-    const unsent = (await Promise.all(emails.map(async email => {
-        try {
-            await send_email(transport, email)
-        } catch {
-            // Close transport to interrupt remaining sends so can switch to synchronous sending
-            transport.close()
-            // Return email if failed to send
-            return email
-        }
-        return null  // Null return means email was submitted successfully
-    }))).filter(email => email) as Email[]  // Filter out nulls (successes)
 
-    // If nothing in unsent array, then all done
-    if (!unsent.length){
-        return null
+ipcMain.handle('smtp_close', async (event, settings:EmailSettings):Promise<void> => {
+    // Close and remove transport if present (identified by given settings)
+    // Useful when transport known not to work and want to force its pending messages to reject
+    const transport_id = transport_id_from_settings(settings)
+    if (transport_id in SMTP_TRANSPORTS){
+        SMTP_TRANSPORTS[transport_id]!.close()
+        delete SMTP_TRANSPORTS[transport_id]
     }
-
-    // Retry sending of failed emails, this time sequentially, with a delay between each if needed
-    transport = smtp_transport(settings)  // Old transport already closed
-    for (const email of unsent){
-        try {
-            await send_email(transport, email)
-        } catch {
-            // If didn't work, try waiting a bit before next attempt
-            await sleep(5)
-            try {
-                await send_email(transport, email)
-            } catch (error){
-                // If didn't work after waiting, problem not resolvable...
-                transport.close()
-                return normalize_nodemailer_error(error)
-            }
-        }
-    }
-
-    // All submitted successfully
-    transport.close()
-    return null
 })
