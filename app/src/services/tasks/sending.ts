@@ -185,7 +185,7 @@ export class Sender {
 
         // Init email sender
         this.email_client = await new_email_task(this.profile.smtp_settings)
-        const email_promises:Promise<void>[] = []
+        const email_promises:Promise<unknown>[] = []
 
         // Upload copies
         await concurrent(copies.map(copy => {
@@ -194,17 +194,23 @@ export class Sender {
                 await this._publish_copy(copy, pub_copy_base)
                 task.check_aborted()
                 // Don't await email send so doesn't hold up S3 uploads
-                email_promises.push(task.expected(this._send_email(copy)).then(() => {
+                // WARN Careful modifying, as has been setup to avoid uncaught rejection issues
+                // NOTE Catches errors and converts to return value to avoid uncaught complaints
+                email_promises.push(task.expected(this._send_email(copy).then(() => {
                     // Since not awaited, not affected by abort throws, so check manually
                     if (task.aborted){
                         this.email_client.abort()
                     }
-                }))
+                }).catch((error:unknown) => error)))
             }
         }))
 
-        // Wait for email sends to complete
-        await Promise.all(email_promises)
+        // Wait for email sends to complete and throw if any errors
+        for (const error of await Promise.all(email_promises)){
+            if (error){
+                throw error
+            }
+        }
     }
 
     async _publish_asset(asset:PublishedAsset):Promise<void>{
