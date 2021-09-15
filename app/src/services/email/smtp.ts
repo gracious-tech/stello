@@ -118,6 +118,9 @@ class SmtpAccountManager {
             return
         }
 
+        // Preserve whether this item was subject to an interval so can consult when finishes
+        const subject_to_interval = !!this.interval
+
         // If throttled, wait until interval expires before continuing processing
         if (this.interval){
             const now = this.now()
@@ -147,13 +150,13 @@ class SmtpAccountManager {
             // Bad recipient address, only affecting this single email
             item.resolve(error?.code !== 'invalid_to')
             // Since succeeded, consider if interval can be reduced (if interval active)
-            this.adjust_interval(true)
+            this.adjust_interval(true, subject_to_interval)
 
         } else if (error.code === 'throttled' && this.interval < 60000){
             // RETRY
             // Switch to synchronous sending (if not already) with interval between sends
             // NOTE If interval has gotten too large, this is skipped & treated as normal error
-            this.adjust_interval(false)
+            this.adjust_interval(false, subject_to_interval)
             // Readd item to queue since will probably succeed if try again
             // BUT add to end of queue in case it is the problem (and let others send first)
             // NOTE If task has since been aborted, reject with that instead
@@ -196,8 +199,10 @@ class SmtpAccountManager {
         return new Date().getTime()
     }
 
-    private adjust_interval(success:boolean){
+    private adjust_interval(success:boolean, subject_to_interval:boolean){
         // Adjust the time between sends based on whether send was successful or not
+
+        // For when interval not yet applied...
         if (!this.interval){
             // No existing interval, so either keep that way, or init with first value
             if (!success){
@@ -208,6 +213,14 @@ class SmtpAccountManager {
             }
             return
         }
+
+        // If wasn't subject to interval when started, don't let it affect interval value
+        // This prevents e.g. 10 pending sends from all erroring with throttling and jumping
+        //      the interval value straight up to a high number
+        if (!subject_to_interval){
+            return
+        }
+
         // Rapidly increase for failure, but slowly decrease when later get success
         // NOTE ceil used so can never return to zero (would need to redesign process limiting)
         this.interval = Math.ceil(success
