@@ -41,7 +41,7 @@ module.exports = {
         'indent': ['warn', 4, {SwitchCase: 1, FunctionDeclaration: {parameters: 2}}],
         'comma-dangle': ['warn', 'always-multiline'],
         'semi': ['warn', 'never', {beforeStatementContinuationChars: 'always'}],
-        'no-console': ['warn', {allow: ['warn', 'error']}],  // Regular logs usually debug leftover
+        'no-console': ['warn', {allow: ['warn', 'error', 'info', 'debug']}],  // Non-log allowed
         // Disable as are not problems at all
         '@typescript-eslint/no-extra-semi': 'off',  // Conflicts with 'semi' rule
         '@typescript-eslint/no-empty-interface': 'off',  // Empty interfaces may be expanded later
