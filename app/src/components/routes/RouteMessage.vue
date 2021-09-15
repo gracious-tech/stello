@@ -25,13 +25,15 @@ div
                     | Sending
                     v-progress-circular(indeterminate width='2' size='20' color='accent'
                         class='ml-6 mr-3')
-                    app-btn(@click='() => {sending_task!.abort()}'
+                    app-btn(@click='() => {sending_task && sending_task.abort()}'
                             :disabled='!!sending_task.aborted' color='error' small)
                         | {{ sending_task.aborted ? "Stopping" : "Stop" }}
 
                 div(v-else-if='!automated_sending_done' class='text-center mt-3')
-                    span(class='error--text') Some messages could not be sent
-                    app-btn(@click='show_help_dialog' small) Why?
+                    template(v-if='some_still_pending')
+                        span(class='error--text') Some messages could not be sent
+                        app-btn(@click='show_help_dialog' small) Why?
+                    span(v-else class='error--text mr-3') Some recipients have invalid addresses
                     | |
                     app-btn(@click='send_all' small) Finish sending
 
@@ -132,6 +134,11 @@ export default class extends Vue {
     get num_copies_read(){
         // Return how many copies have at least one read recorded
         return Object.values(this.reads_by_copy).filter(reads => reads.length).length
+    }
+
+    get some_still_pending(){
+        // Whether some copies are still pending upload / email attempt
+        return this.copies.some(c => c.status === 'pending')
     }
 
     get automated_sending_done(){
