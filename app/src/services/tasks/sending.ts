@@ -117,7 +117,6 @@ export class Sender {
         }
 
         // Setup task
-        // TODO Add tracking of subtasks
         task.abortable = true
         task.label = `Sending message "${this.msg.display}"`
 
@@ -178,6 +177,8 @@ export class Sender {
 
         // Get copies
         const copies = await this._get_copies()
+        task.upcoming(copies.length)
+        task.show_count = true
 
         // Check if aborted before uploading copies
         task.check_aborted()
@@ -194,7 +195,7 @@ export class Sender {
                     await this._publish_copy(copy, pub_copy_base)
                     task.check_aborted()
                     // Don't await email send so doesn't hold up S3 uploads
-                    email_promises.push(this._send_email(copy).then(() => {
+                    email_promises.push(task.expected(this._send_email(copy)).then(() => {
                         // Since not awaited, not affected by abort throws, so check manually
                         if (task.aborted){
                             this.email_client.abort()
