@@ -34,6 +34,54 @@
             ],
             "status": "FAILED_PRECONDITION"
         }
-    }
+    },
     // MICROSOFT
+    {
+        "responses": [
+            {
+                "id": "971s9Ufg2Aa8sZFMSguE",
+                "status": 202,
+                "headers": {
+                    "Cache-Control": "private"
+                },
+                "body": null
+            }
+        ]
+    },
+    {
+        "responses": [
+            {
+                "id": "YzRN8NnM252Tetjc8yp2",
+                "status": 403,
+                "headers": {
+                    "Cache-Control": "private",
+                    "Content-Type": "application/json; odata.metadata=minimal; odata.streaming=true; IEEE754Compatible=false; charset=utf-8"
+                },
+                "body": {
+                    "error": {
+                        "code": "ErrorMessageTransientError",
+                        "message": "Cannot send this mail due to a transient error. Please try again later (0x00004000)., WASCL UserAction verdict is not None. Actual verdict is TransientError."
+                    }
+                }
+            }
+        ]
+    },
+    {
+        "responses": [
+            {
+                "id": "0d4bbrCvRsl20Nejdg0o",
+                "status": 429,
+                "headers": {
+                    "Cache-Control": "private",
+                    "Content-Type": "application/json; odata.metadata=minimal; odata.streaming=true; IEEE754Compatible=false; charset=utf-8"
+                },
+                "body": {
+                    "error": {
+                        "code": "ErrorExceededMessageLimit",
+                        "message": "Cannot send mail. Daily Message/Recipient limit exceeded. Follow the instructions in your Inbox to verify your account., WASCL UserAction verdict is not None. Actual verdict is RefuseQuota, ShowTierUpgrade."
+                    }
+                }
+            }
+        ]
+    }
 ]
