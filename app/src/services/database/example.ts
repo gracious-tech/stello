@@ -21,6 +21,14 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
     // Create a profile
     const profile = await db.profiles.create()
     profile.email = 'blackhole+sender@gracious.tech'
+    profile.smtp = {
+        oauth: null,
+        host: 'localhost',
+        port: 25,
+        user: 'user',
+        pass: 'pass',
+        starttls: true,
+    }
     profile.msg_options_identity.sender_name = "Sender Name"
     profile.host = JSON.parse(import.meta.env.VITE_DEV_HOST_SETTINGS) as RecordProfileHost
     profile.setup_step = null
