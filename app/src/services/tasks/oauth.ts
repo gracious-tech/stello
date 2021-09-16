@@ -549,8 +549,9 @@ export async function oauth_request(oauth:OAuth, url:string, params?:Record<stri
             request_init.body = body
         } else {
             request_init.json = body
-            request_init.compress = oauth.issuer !== 'microsoft'
         }
+        // So far all requests are text-based, including blobs, so enable for blobs too
+        request_init.compress = oauth.issuer !== 'microsoft'  // Microsoft doesn't support
     }
     return request(url, request_init)
 }
