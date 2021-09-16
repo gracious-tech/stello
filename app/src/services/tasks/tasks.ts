@@ -14,9 +14,9 @@ import {hosts_storage_setup, hosts_storage_delete} from './hosts'
 import {retract_message} from './management'
 
 
-export type TaskStartArgs = [string, any[]?, any[]?]
+export type TaskStartArgs = [string, unknown[]?, unknown[]?]
 // Task functions return a promise which may resolve to single/array of other subtask promises
-export type TaskReturn = Promise<Promise<any>|Promise<any>[]|void>
+export type TaskReturn = Promise<Promise<unknown>|Promise<unknown>[]|void>
 export type TaskErrorType = 'network'|'auth'|'settings'|'throttled'|'unknown'
 export type TaskFunction = (task:Task)=>TaskReturn
 
@@ -50,20 +50,20 @@ export class Task {
 
     // Readable
     name:string  // May be changed if evolving
-    readonly params:any[]  // Must be serializable for storing as post-oauth actions
-    readonly options:any[]  // Must be serializable for storing as post-oauth actions
-    readonly done:Promise<any>  // Resolves with an error value (if any) when task done
+    readonly params:string[]  // Must be serializable for storing as post-oauth actions
+    readonly options:unknown[]  // Must be serializable for storing as post-oauth actions
+    readonly done:Promise<unknown>  // Resolves with an error value (if any) when task done
     abortable = false  // Whether task can be manually aborted (always internally abortable)
     aborted:TaskAborted|null = null  // An abort error if task has been aborted
-    error:any = null  // Error value is both resolved for `done` and set as a property
+    error:unknown = null  // Error value is both resolved for `done` and set as a property
     error_report_id:string|null = null  // UUID for error report (if was sent)
     subtasks_done = 0
     subtasks_total = 0
 
     // Private
-    private done_resolve:(error:any)=>void
+    private done_resolve!:(error:unknown)=>void
 
-    constructor(name:string, params:string[], options:string[]){
+    constructor(name:string, params:string[], options:unknown[]){
         this.name = name
         this.params = params
         this.options = options
@@ -140,7 +140,7 @@ export class Task {
 
         // If just a single promise, return as is
         if (promises.length === 1){
-            return promises[0]
+            return promises[0]!
         }
 
         // Wait till all promises done, whether resolved or rejected, and return array of values
@@ -182,7 +182,7 @@ export class Task {
         }
     }
 
-    finish(error:any=null){
+    finish(error:unknown=null){
         // Resolve task's done promise, optionally setting and resolving done with error if any
         this.error = error
         if (this.error_type === 'unknown'){
@@ -202,13 +202,13 @@ export class Task {
 
 export class TaskManager {
 
-    data:{tasks:Task[], fails:Task[], finished:Task} = Vue.observable({
+    data:{tasks:Task[], fails:Task[], finished:Task|null} = Vue.observable({
         tasks: [],
         fails: [],
         finished: null,  // Only stores last task to have finished
     })
 
-    async start(name:string, params:any[]=[], options:any[]=[]):Promise<Task>{
+    async start(name:string, params:string[]=[], options:unknown[]=[]):Promise<Task>{
         // Register the task identified by given code and params
 
         // See if an existing task matches code and params
@@ -232,7 +232,7 @@ export class TaskManager {
         })
 
         // Start doing the work
-        TASKS[name](task).then(async subtasks => {
+        void TASKS[name]!(task).then(async subtasks => {
             // If task returns a value, they are subtasks to be tracked and awaited
             if (subtasks){
                 await task.add(...(Array.isArray(subtasks) ? subtasks : [subtasks]))
@@ -241,8 +241,8 @@ export class TaskManager {
             return null
         }).catch(error => {
             // Return value of `then` is null, so simply return error to mark task as failed
-            return error
-        }).then((error:any) => {
+            return error as unknown
+        }).then((error:unknown) => {
             // Resolve task's promise with error if any
             task.finish(error)
             // Remove task from active list
@@ -272,12 +272,12 @@ export class TaskManager {
     }
 
     start_contacts_change_property(oauth_id:string, contact_id:string, property:'name'|'notes',
-            value:string):Promise<Task>{
+        value:string):Promise<Task>{
         return this.start('contacts_change_property', [oauth_id, contact_id, property], [value])
     }
 
     start_contacts_change_email(oauth_id:string, contact_id:string, addresses:string[],
-            chosen:string):Promise<Task>{
+        chosen:string):Promise<Task>{
         return this.start('contacts_change_email', [oauth_id, contact_id], [addresses, chosen])
     }
 
