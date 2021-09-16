@@ -6,6 +6,7 @@ import {Email, EmailSettings} from '../native/types'
 import {MustReconfigure, MustWait} from '../utils/exceptions'
 import {send_batch_smtp} from './smtp'
 import {BadEmailAddress} from './utils'
+import {send_batch_microsoft} from './microsoft'
 
 
 export interface EmailTask {
@@ -234,7 +235,7 @@ class EmailAccountManager {
                 if (oauth?.issuer === 'google'){
                     //return send_emails_oauth_google(oauth)
                 } else if (oauth?.issuer === 'microsoft'){
-                    //return send_emails_oauth_microsoft(oauth)
+                    return send_batch_microsoft(items, oauth)
                 }
             } else if (this.settings.pass){
                 return send_batch_smtp(items, this.settings as EmailSettings)

@@ -1,10 +1,8 @@
 
-import {chunk} from 'lodash'
 import {OAuth} from '../database/oauths'
 import {oauth_request} from '../tasks/oauth'
-import {concurrent} from '../utils/async'
 import {MustWait, MustInterpret} from '../utils/exceptions'
-import {Email} from './email'
+import {QueueItem} from './email'
 
 
 interface MicrosoftBatchResponse {
@@ -21,50 +19,38 @@ interface MicrosoftBatchResponse {
 }
 
 
-export async function send_emails_oauth_microsoft(oauth:OAuth, emails:Email[]):Promise<void>{
-    // Send emails via oauth http requests to Microsoft's API
+export async function send_batch_microsoft(items:QueueItem[],
+        oauth:OAuth):Promise<[QueueItem, unknown][]>{
+    // Send batch of emails via oauth http request to Microsoft's API
+
+    // Make request (network error throws don't need catching)
     const url = 'https://graph.microsoft.com/v1.0/$batch'
-    const limit_per_batch = 20
-    const limit_concurrent_requests = 4
-    const batches = chunk(emails, limit_per_batch)
-    await concurrent(batches.map(batch => {
-        return async () => {
-
-            // Do batch request
-            await interpret_microsoft_response(await oauth_request(oauth, url, undefined, 'POST', {
-                requests: batch.map(email => {
-                    return {
-                        id: email.id,
-                        method: 'POST',
-                        url: '/me/sendMail',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
+    const resp = await oauth_request(oauth, url, undefined, 'POST', {
+        requests: items.map(item => {
+            const email = item.email
+            return {
+                id: email.id,
+                method: 'POST',
+                url: '/me/sendMail',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: {
+                    saveToSentItems: false,
+                    message: {
+                        from: {emailAddress: email.from},
+                        toRecipients: [{emailAddress: email.to}],
+                        replyTo: email.reply_to && [{emailAddress: email.reply_to}],
+                        subject: email.subject,
                         body: {
-                            saveToSentItems: false,
-                            message: {
-                                from: {emailAddress: email.from},
-                                toRecipients: [{emailAddress: email.to}],
-                                replyTo: email.reply_to && [{emailAddress: email.reply_to}],
-                                subject: email.subject,
-                                body: {
-                                    contentType: 'html',
-                                    content: email.html,
-                                },
-                            },
+                            contentType: 'html',
+                            content: email.html,
                         },
-                    }
-                }),
-            }))
-        }
-    }), limit_concurrent_requests)
-}
-
-
-async function interpret_microsoft_response(resp:Response):Promise<void>{
-    // Interpret Outlook API response, throwing appropriate errors
-    // https://docs.microsoft.com/en-us/graph/json-batching
-    // https://docs.microsoft.com/en-us/graph/errors
+                    },
+                },
+            }
+        }),
+    })
 
     // Batch request should never fail, even if subrequests do
     if (resp.status >= 500 && resp.status < 600){
@@ -76,20 +62,22 @@ async function interpret_microsoft_response(resp:Response):Promise<void>{
     // Parse body to know individual request results
     const body = await resp.json() as MicrosoftBatchResponse
 
-    // Process each sub-response individually
-    // WARN Do not throw until all analysed
-    const bad_statuses:number[] = []
-    for (const sub_resp of body.responses){
-        // NOTE Success response should be 202
-        if (sub_resp.status >= 200 && sub_resp.status < 300){
-            await handle_email_submitted(sub_resp.id, true)
-        } else {
-            bad_statuses.push(sub_resp.status)
-        }
-    }
+    // Map errors back to their items, ensuring every item returned
+    // https://docs.microsoft.com/en-us/graph/json-batching
+    // https://docs.microsoft.com/en-us/graph/errors
+    return items.map(item => {
 
-    // Can now throw after analysing all sub responses
-    if (bad_statuses.length){
-        throw new Error()  // TODO differentiate
-    }
+        // Find the item's result
+        const sub_resp = body.responses.find(canditate => canditate.id === item.email.id)
+        if (!sub_resp){
+            return [item, new Error("Missing result from Microsoft batch send")]
+        }
+
+        // Handle different response codes
+        if (sub_resp.status >= 200 && sub_resp.status < 300){
+            // NOTE Success response should usually be 202
+            return [item, null]
+        }
+        return [item, new MustInterpret(sub_resp)]
+    })
 }
