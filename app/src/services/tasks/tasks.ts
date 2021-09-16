@@ -241,6 +241,8 @@ export class TaskManager {
             return null
         }).catch(error => {
             // Return value of `then` is null, so simply return error to mark task as failed
+            console.debug(error)
+            console.debug('(handled by task manager)')
             return error as unknown
         }).then((error:unknown) => {
             // Resolve task's promise with error if any
