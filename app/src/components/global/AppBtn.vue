@@ -10,6 +10,7 @@ v-btn(
     :text='$attrs["raised"] === undefined && $attrs["outlined"] === undefined && !show_icon'
     :color='color'
     :outlined='$attrs["outlined"] !== undefined && !show_icon'
+    :target='$attrs["target"] || ($attrs["href"] && "_blank")'
 )
     app-svg(v-if='show_icon' :name='`icon_${icon}`')
     slot(v-else)

@@ -21,6 +21,7 @@ import {task_manager, TaskManager} from '@/services/tasks/tasks'
 
 // Components
 import App from '@/components/App.vue'
+import AppA from '@/components/global/AppA.vue'
 import AppBtn from '@/components/global/AppBtn.vue'
 import AppBtnCheckbox from '@/components/global/AppBtnCheckbox.vue'
 import AppSVG from '@/components/global/AppSVG.vue'
@@ -123,6 +124,7 @@ Vue.use(Vuetify)
 
 
 // Register global components
+Vue.component('AppA', AppA)
 Vue.component('AppBtn', AppBtn)
 Vue.component('AppBtnCheckbox', AppBtnCheckbox)
 Vue.component('AppSvg', AppSVG)

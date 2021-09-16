@@ -19,7 +19,7 @@ app-content(class='pa-6 app-bg-primary')
         | This is a beta/preview version. While ready to use, the coming official version will be even more reliable and secure if you prefer to wait for it.
 
     div
-        p To use Stello you must agree to the #[a(href='https://stello.news/terms/') terms of use] and #[a(href='https://stello.news/privacy/') privacy policy]
+        p To use Stello you must agree to the #[app-a(href='https://stello.news/terms/') terms of use] and #[app-a(href='https://stello.news/privacy/') privacy policy]
         v-checkbox(v-model='accept' label="I agree to the terms of use and privacy policy" dark
             color='accent')
 
