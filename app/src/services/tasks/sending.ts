@@ -184,7 +184,7 @@ export class Sender {
         task.check_aborted()
 
         // Init email sender
-        this.email_client = await new_email_task(this.profile.smtp_settings)
+        this.email_client = new_email_task(this.profile.smtp_settings)
         const email_promises:Promise<unknown>[] = []
 
         // Upload copies

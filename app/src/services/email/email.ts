@@ -13,40 +13,19 @@ export interface EmailTask {
 }
 
 
-export async function new_email_task(settings:Profile['smtp_settings']):Promise<EmailTask>{
-    // Init a new email task, returning access to send/abort methods
-    if (settings.oauth){
-        const oauth = await self.app_db.oauths.get(settings.oauth)
-        if (oauth?.issuer === 'google'){
-            //return send_emails_oauth_google(oauth)
-        } else if (oauth?.issuer === 'microsoft'){
-            //return send_emails_oauth_microsoft(oauth)
-        }
-    } else if (settings.pass){
-        return new_smtp_task(settings as EmailSettings)
-    }
-
-    // SMTP hasn't been configured yet, or was removed (e.g. oauth record deleted)
-    throw new MustReconfigure()
-}
+// Preserve instances of email accounts so throttling is account-wide, not per task
+const ACCOUNT_MANAGERS:Record<string, EmailAccountManager> = {}
 
 
-
-
-
-// Preserve instances of smtp accounts so throttling is account-wide, not per task
-const ACCOUNT_MANAGERS:Record<string, SmtpAccountManager> = {}
-
-
-function transport_id_from_settings(settings:EmailSettings):string{
+function transport_id_from_settings(settings:Profile['smtp_settings']):string{
     // Generate transport id from settings
-    return JSON.stringify(
-        [settings.host, settings.port, settings.starttls, settings.user, settings.pass])
+    return JSON.stringify([settings.oauth, settings.host, settings.port, settings.starttls,
+        settings.user, settings.pass])
 }
 
 
-export function new_smtp_task(settings:EmailSettings){
-    // Start a new smtp task for sending emails associated with one another
+export function new_email_task(settings:Profile['smtp_settings']){
+    // Start a new email task for sending emails associated with one another
 
     // Use single manager for single host-user so throttling is cross-task per account
     // NOTE id made up of all settings so that if any change, the change will take effect
@@ -57,7 +36,7 @@ export function new_smtp_task(settings:EmailSettings){
     // Init a new manager if it doesn't exist or is dead
     let manager = ACCOUNT_MANAGERS[transport_id]
     if (!manager || manager.dead){
-        manager = ACCOUNT_MANAGERS[transport_id] = new SmtpAccountManager(settings)
+        manager = ACCOUNT_MANAGERS[transport_id] = new EmailAccountManager(settings)
     }
 
     // Give the task a new id so that any abort only happens to emails belonging to this task
@@ -71,7 +50,7 @@ export function new_smtp_task(settings:EmailSettings){
 }
 
 
-interface SmtpQueueItem {
+interface QueueItem {
     email:Email
     task_id:string
     resolve:(success:boolean)=>void
@@ -79,19 +58,25 @@ interface SmtpQueueItem {
 }
 
 
-class SmtpAccountManager {
+class EmailAccountManager {
 
-    settings:EmailSettings
-    queue:SmtpQueueItem[] = []
+    settings:Profile['smtp_settings']
+    queue:QueueItem[] = []
     processors = new Set<string>()
-    max_processors = 10  // Same as native limit
+    max_processors = 10  // Default for smtp
+    max_batch_size = 1  // Default for smtp (smtp doesn't support batching)
     last_send = 0  // Epoch time
     interval = 0  // ms
     dead = false  // Prevents instance from being used by throwing when try to send
     aborted = new Set<string>()
 
-    constructor(settings:EmailSettings){
+    constructor(settings:Profile['smtp_settings']){
         this.settings = settings
+        if (settings.oauth){
+            // Oauth supports batching, so send in batches but with less processors
+            this.max_processors = 4
+            this.max_batch_size = 20
+        }
     }
 
     async send(task_id:string, email:Email):Promise<boolean>{
@@ -101,7 +86,7 @@ class SmtpAccountManager {
         // Prevent queuing of any more emails if transport is declared dead
         // WARN Otherwise could end up in situation where promise is never resolved
         if (this.dead){
-            throw new Error("SMTP transport is dead but was still given an email to send")
+            throw new Error("Email transport is dead but was still given an email to send")
         } else if (this.aborted.has(task_id)){
             // Task has been aborted so prevent further queuing
             throw new TaskAborted()
@@ -131,14 +116,7 @@ class SmtpAccountManager {
     }
 
     private async process(processor:string):Promise<void>{
-        /* Process an item in the queue
-            Now matter how rapidly this is called, items will still be processed at appropriate rate
-                1. SMTP pool used which will limit simultaneous sends to max number of connections
-                2. If interval set, sends will happen synchronously despite SMTP pool's async nature
-
-            WARN `process()` is not scheduled and must be called until no items left
-                Called after each new item added, and recalls itself until queue empty
-        */
+        // Check queue and send any items (if not throttled)
 
         // If no items in queue or over limit, kill self
         if (!this.queue.length || this.processors.size > this.max_processors){
@@ -157,7 +135,7 @@ class SmtpAccountManager {
                 // Can't send yet, so check again after interval over
                 const buffer = 10  // Avoid chance of being off by a few ms
                 setTimeout(() => {void this.process(processor)}, time_till_can_send + buffer)
-                console.debug(`SMTP waiting ${time_till_can_send + buffer}ms due to interval`)
+                console.debug(`Sending waiting ${time_till_can_send + buffer}ms due to interval`)
                 return
             } else {
                 // Can send, so update last_send before other calls to `process()` also go through
@@ -165,62 +143,62 @@ class SmtpAccountManager {
             }
         }
 
-        // Process the next item in the queue
-        const item = this.queue.shift()!
+        // Process the next items in the queue
+        const items = this.queue.splice(0, this.max_batch_size)
 
-        // Add to node mailer's own queue and wait till it actually sends
-        const error = await self.app_native.smtp_send(this.settings, item.email)
-            .catch(():EmailError => ({code: 'unknown', details: 'app_native.smtp_send throw'}))
+        // Send batch to transporter and wait for results
+        for (const [item, error] of await this.send_batch(items)){
 
-        // Handle result
-        if (!error || error.code === 'invalid_to'){
-            // RESOLVE
-            // Bad recipient address, only affecting this single email
-            item.resolve(error?.code !== 'invalid_to')
-            // Since succeeded, consider if interval can be reduced (if interval active)
-            this.adjust_interval(true, subject_to_interval)
+            // Handle result
+            if (!error || error.code === 'invalid_to'){
+                // RESOLVE
+                // Bad recipient address, only affecting this single email
+                item.resolve(error?.code !== 'invalid_to')
+                // Since succeeded, consider if interval can be reduced (if interval active)
+                this.adjust_interval(true, subject_to_interval)
 
-        } else if (error.code === 'throttled' && this.interval < 60000){
-            // RETRY
-            // Switch to synchronous sending (if not already) with interval between sends
-            // NOTE If interval has gotten too large, this is skipped & treated as normal error
-            this.adjust_interval(false, subject_to_interval)
-            // Readd item to queue since will probably succeed if try again
-            // BUT add to end of queue in case it is the problem (and let others send first)
-            // NOTE If task has since been aborted, reject with that instead
-            if (this.aborted.has(item.task_id)){
-                item.reject(new TaskAborted())
+            } else if (error.code === 'throttled' && this.interval < 60000){
+                // RETRY
+                // Switch to synchronous sending (if not already) with interval between sends
+                // NOTE If interval has gotten too large, this is skipped & treated as normal error
+                this.adjust_interval(false, subject_to_interval)
+                // Readd item to queue since will probably succeed if try again
+                // BUT add to end of queue in case it is the problem (and let others send first)
+                // NOTE If task has since been aborted, reject with that instead
+                if (this.aborted.has(item.task_id)){
+                    item.reject(new TaskAborted())
+                } else {
+                    this.queue.push(item)
+                }
+
             } else {
-                this.queue.push(item)
-            }
+                // REJECT
 
-        } else {
-            // REJECT
+                // Convert email error to a standard error object
+                let reason:Error
+                if (['dns', 'starttls_required', 'tls_required', 'timeout'].includes(error.code)){
+                    reason = new MustReconfigure(error.details)
+                } else if (error.code === 'auth'){
+                    reason = new MustReauthenticate(error.details)
+                } else if (error.code === 'network'){
+                    reason = new MustReconnect(error.details)
+                } else if (error.code === 'throttled'){
+                    reason = new MustWait(error.details)
+                } else {
+                    reason = new MustInterpret(error)
+                }
 
-            // Convert email error to a standard error object
-            let reason:Error
-            if (['dns', 'starttls_required', 'tls_required', 'timeout'].includes(error.code)){
-                reason = new MustReconfigure(error.details)
-            } else if (error.code === 'auth'){
-                reason = new MustReauthenticate(error.details)
-            } else if (error.code === 'network'){
-                reason = new MustReconnect(error.details)
-            } else if (error.code === 'throttled'){
-                reason = new MustWait(error.details)
-            } else {
-                reason = new MustInterpret(error)
-            }
-
-            // An error occurred that requires user action to resolve
-            // NOTE Assumes all items will fail, not just this one
-            this.dead = true  // Prevent any more items being added to queue
-            item.reject(reason)  // Reject this item
-            while (this.queue.length){  // Reject all items in queue
-                this.queue.shift()!.reject(reason)  // Reason of failed email raised for all
+                // An error occurred that requires user action to resolve
+                // NOTE Assumes all items will fail, not just this one
+                this.dead = true  // Prevent any more items being added to queue
+                item.reject(reason)  // Reject this item
+                while (this.queue.length){  // Reject all items in queue
+                    this.queue.shift()!.reject(reason)  // Reason of failed email raised for all
+                }
             }
         }
 
-        // Continue processing another item
+        // Continue processing more items
         void this.process(processor)
     }
 
@@ -236,10 +214,11 @@ class SmtpAccountManager {
         if (!this.interval){
             // No existing interval, so either keep that way, or init with first value
             if (!success){
+                // Enable interval and disable multi-processor and batched sending
                 this.interval = 1000
-                // Only one processor now needed
                 this.max_processors = 1
-                console.warn("SMTP throttling detected (switching to single processor)")
+                this.max_batch_size = 1
+                console.warn("Email throttling detected (switching to single processor)")
             }
             return
         }
@@ -257,6 +236,30 @@ class SmtpAccountManager {
             ? this.interval - (this.interval / 10)  // Decrease by 10%
             : this.interval + this.interval,  // Double
         )
-        console.warn(`SMTP interval set to ${this.interval}ms`)
+        console.warn(`Email sending interval set to ${this.interval}ms`)
+    }
+
+    async send_batch(items:QueueItem[]):Promise<[QueueItem, EmailError|null][]>{
+        // Send a batch of emails, detecting the appropriate transport to use
+        if (this.settings.oauth){
+            // WARN Should request fresh copy of oauth object for every send so expires etc correct
+            const oauth = await self.app_db.oauths.get(this.settings.oauth)
+            if (oauth?.issuer === 'google'){
+                //return send_emails_oauth_google(oauth)
+            } else if (oauth?.issuer === 'microsoft'){
+                //return send_emails_oauth_microsoft(oauth)
+            }
+        } else if (this.settings.pass){
+            // Should only ever get one item, but implemented in way that avoids errors if not
+            return Promise.all(items.map(async item => {
+                return [
+                    item,
+                    await self.app_native.smtp_send(this.settings as EmailSettings, item.email),
+                ] as [QueueItem, EmailError|null]
+            }))
+        }
+
+        // Email sending hasn't been configured yet, or was removed (e.g. oauth record deleted)
+        throw new MustReconfigure()
     }
 }
