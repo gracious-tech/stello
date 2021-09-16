@@ -1,7 +1,7 @@
 
 import {OAuth} from '../database/oauths'
 import {oauth_request} from '../tasks/oauth'
-import {MustWait, MustInterpret} from '../utils/exceptions'
+import {MustWait, MustInterpret, MustReauthenticate} from '../utils/exceptions'
 import {QueueItem} from './email'
 
 
@@ -11,7 +11,7 @@ interface MicrosoftBatchResponse {
         id:string,
         status:number,
         body?:null|{
-            error:{
+            error?:{
                 code:string,
             },
         },
@@ -75,8 +75,23 @@ export async function send_batch_microsoft(items:QueueItem[],
 
         // Handle different response codes
         if (sub_resp.status >= 200 && sub_resp.status < 300){
-            // NOTE Success response should usually be 202
+            // Success (should usually be 202)
             return [item, null]
+        } else if (sub_resp.status === 401){
+            // Common code for needing to authenticate
+            return [item, new MustReauthenticate()]
+        } else if (sub_resp.status === 403){
+            // May be throttled or bad auth
+            if (sub_resp.body?.error?.code === 'ErrorMessageTransientError'){
+                return [item, new MustWait()]  // Some kind of rate/amount limiting
+            }
+            return [item, new MustReauthenticate()]
+        } else if (sub_resp.status === 429){
+            // Throttled
+            return [item, new MustWait()]
+        } else if (sub_resp.status >= 500 && sub_resp.status < 600){
+            // Server issue, so retry and hope resolves itself
+            return [item, new MustWait()]
         }
         return [item, new MustInterpret(sub_resp)]
     })
