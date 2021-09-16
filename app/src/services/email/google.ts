@@ -1,42 +1,62 @@
 
 import {OAuth} from '../database/oauths'
 import {OauthUseless, oauth_request} from '../tasks/oauth'
-import {concurrent} from '../utils/async'
 import {MustInterpret, MustReauthenticate, MustWait} from '../utils/exceptions'
-import {Email} from './email'
-import {create_email} from './utils'
+import {QueueItem} from './email'
+import {BadEmailAddress, create_email} from './utils'
 
 
-export async function send_emails_oauth_google(oauth:OAuth, emails:Email[]):Promise<void>{
-    // Send emails via oauth http requests to Google's API
-    // NOTE Google allows 2.5 sends/second (average over time), and each request takes ~1.5 seconds
-    //      But to be safe, let's assume requests take 1 second, then two channels are suitable
+export async function send_batch_google(items:QueueItem[],
+        oauth:OAuth):Promise<[QueueItem, unknown][]>{
+    // Send emails via oauth http request to Google's API
     // For limits see https://www.gmass.co/blog/understanding-gmails-email-sending-limits/
-    const limit_concurrent_requests = 2
+
+    // Batching not currently implemented (got 400s with no error details when attempted)
+    if (items.length !== 1){
+        throw new Error(`send_batch_google expects exactly one item, not ${items.length}`)
+    }
+    const item = items[0]!
+    const email = item.email
+
+    // Google's API expects a raw email
+    // NOTE Ignore Google's rubbish about base64 encoding the message
+    const raw_email = create_email(email.from, email.to, email.subject, email.html, email.reply_to)
+    const body = new Blob([raw_email], {type: 'message/rfc822'})
+
+    // Send the email
     const url = 'https://gmail.googleapis.com/upload/gmail/v1/users/me/messages/send'
-    await concurrent(emails.map(email => {
-        return async () => {
-            // Google's API expects a raw email
-            // NOTE Ignore Google's rubbish about base64 encoding the message
-            const raw_email =
-                create_email(email.from, email.to, email.subject, email.html, email.reply_to)
-            const body = new Blob([raw_email], {type: 'message/rfc822'})
-            await interpret_gmail_response(
-                await oauth_request(oauth, url, undefined, 'POST', body),
-                email.id,
-            )
-        }
-    }), limit_concurrent_requests)
+    const resp = await oauth_request(oauth, url, undefined, 'POST', body)
+
+    // Interpret the response
+    try {
+        await interpret_gmail_response(resp)
+    } catch (error){
+        return [[item, error]]
+    }
+    return [[item, null]]
 }
 
 
-async function interpret_gmail_response(resp:Response, email_id:string):Promise<void>{
+interface GmailResponse {
+    error?:{
+        code?:number
+        status?:string
+        message?:string
+        errors?:{
+            message?:string
+            domain?:string
+            reason?:string
+        }[]
+    }
+}
+
+
+async function interpret_gmail_response(resp:Response):Promise<void>{
     // Interpret gmail API response, throwing appropriate errors
     // See https://developers.google.com/gmail/api/guides/handle-errors
 
     // All good if success
     if (resp.ok){
-        await handle_email_submitted(email_id, true)
         return
     }
 
@@ -51,11 +71,9 @@ async function interpret_gmail_response(resp:Response, email_id:string):Promise<
     }
 
     // Need to parse body to know any more
-    /* eslint-disable @typescript-eslint/no-explicit-any,
-        @typescript-eslint/no-unsafe-member-access -- unknown not suitable for long chains */
-    let body:any = null
+    let body:GmailResponse|null = null
     try {
-        body = await resp.json() as unknown
+        body = await resp.json() as GmailResponse
 
         // Extract useful fields
         const error_status = String(body?.error?.status)
@@ -79,11 +97,9 @@ async function interpret_gmail_response(resp:Response, email_id:string):Promise<
         }
 
         if (error_message.includes('invalid to header')){
-            // Contact's address is probably invalid so don't hard fail
-            await handle_email_submitted(email_id, false)
-            return
+            // Contact's address is probably invalid
+            throw new BadEmailAddress()
         }
-        /* eslint-enable */
     } catch {
         // Body not available or not as expected
     }
@@ -94,5 +110,5 @@ async function interpret_gmail_response(resp:Response, email_id:string):Promise<
     }
 
     // Needs reporting
-    throw new MustInterpret({status: resp.status, body: body as unknown})
+    throw new MustInterpret({status: resp.status, body})
 }

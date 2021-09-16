@@ -7,6 +7,7 @@ import {MustReconfigure, MustWait} from '../utils/exceptions'
 import {send_batch_smtp} from './smtp'
 import {BadEmailAddress} from './utils'
 import {send_batch_microsoft} from './microsoft'
+import {send_batch_google} from './google'
 
 
 export interface EmailTask {
@@ -65,8 +66,8 @@ class EmailAccountManager {
     settings:Profile['smtp_settings']
     queue:QueueItem[] = []
     processors = new Set<string>()
-    max_processors = 10  // Default for smtp
-    max_batch_size = 1  // Default for smtp (smtp doesn't support batching)
+    max_processors = 5  // NOTE SMTP currently configured to provide 10 connections, used as needed
+    max_batch_size = 1  // Not currently used as only Microsoft implemented, and rate limited anyway
     last_send = 0  // Epoch time
     interval = 0  // ms
     dead = false  // Prevents instance from being used by throwing when try to send
@@ -74,11 +75,6 @@ class EmailAccountManager {
 
     constructor(settings:Profile['smtp_settings']){
         this.settings = settings
-        if (settings.oauth){
-            // Oauth supports batching, so send in batches but with less processors
-            this.max_processors = 4
-            this.max_batch_size = 20
-        }
     }
 
     async send(task_id:string, email:Email):Promise<boolean>{
@@ -234,7 +230,7 @@ class EmailAccountManager {
                 // WARN Request fresh copy of oauth object for every send so expires etc correct
                 const oauth = await self.app_db.oauths.get(this.settings.oauth)
                 if (oauth?.issuer === 'google'){
-                    //return await send_batch_google(items, oauth)
+                    return await send_batch_google(items, oauth)
                 } else if (oauth?.issuer === 'microsoft'){
                     return await send_batch_microsoft(items, oauth)
                 }
