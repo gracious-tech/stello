@@ -2,9 +2,10 @@
 import {Profile} from '../database/profiles'
 import {TaskAborted} from '../tasks/tasks'
 import {generate_token} from '../utils/crypt'
-import {EmailSettings, Email, EmailError} from '../native/types'
+import {Email, EmailError, EmailSettings} from '../native/types'
 import {MustInterpret, MustReauthenticate, MustReconfigure, MustReconnect, MustWait}
     from '../utils/exceptions'
+import {send_batch_smtp} from './smtp'
 
 
 export interface EmailTask {
@@ -50,7 +51,7 @@ export function new_email_task(settings:Profile['smtp_settings']){
 }
 
 
-interface QueueItem {
+export interface QueueItem {
     email:Email
     task_id:string
     resolve:(success:boolean)=>void
@@ -250,13 +251,7 @@ class EmailAccountManager {
                 //return send_emails_oauth_microsoft(oauth)
             }
         } else if (this.settings.pass){
-            // Should only ever get one item, but implemented in way that avoids errors if not
-            return Promise.all(items.map(async item => {
-                return [
-                    item,
-                    await self.app_native.smtp_send(this.settings as EmailSettings, item.email),
-                ] as [QueueItem, EmailError|null]
-            }))
+            return send_batch_smtp(items, this.settings as EmailSettings)
         }
 
         // Email sending hasn't been configured yet, or was removed (e.g. oauth record deleted)
