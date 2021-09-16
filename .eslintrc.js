@@ -38,7 +38,12 @@ module.exports = {
         'no-eval': 'error',
         // Enable as warnings
         'max-len': ['warn', {code: 100, ignoreUrls: true, ignoreTemplateLiterals: true}],
-        'indent': ['warn', 4, {SwitchCase: 1, FunctionDeclaration: {parameters: 2}}],
+        'indent': ['warn', 4, {
+            SwitchCase: 1,
+            FunctionDeclaration: {parameters: 2},
+            // eslint doesn't handle class methods well yet, so ignore identing of their params
+            ignoredNodes: ['MethodDefinition Identifier'],
+        }],
         'comma-dangle': ['warn', 'always-multiline'],
         'semi': ['warn', 'never', {beforeStatementContinuationChars: 'always'}],
         'no-console': ['warn', {allow: ['warn', 'error', 'info', 'debug']}],  // Non-log allowed
