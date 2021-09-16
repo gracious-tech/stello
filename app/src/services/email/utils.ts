@@ -9,6 +9,11 @@ interface Person {
 }
 
 
+export class BadEmailAddress extends Error {
+    // Raised when sending fails due to rejection of the recipient's address
+}
+
+
 export function create_email(from:Person, to:Person, subject:string, html:string, reply_to?:Person)
         :ArrayBuffer{
     // Create a simple RFC 2822 compatible email and return as utf8 arraybuffer

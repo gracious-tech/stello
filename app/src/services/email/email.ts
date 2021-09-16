@@ -2,10 +2,10 @@
 import {Profile} from '../database/profiles'
 import {TaskAborted} from '../tasks/tasks'
 import {generate_token} from '../utils/crypt'
-import {Email, EmailError, EmailSettings} from '../native/types'
-import {MustInterpret, MustReauthenticate, MustReconfigure, MustReconnect, MustWait}
-    from '../utils/exceptions'
+import {Email, EmailSettings} from '../native/types'
+import {MustReconfigure, MustWait} from '../utils/exceptions'
 import {send_batch_smtp} from './smtp'
+import {BadEmailAddress} from './utils'
 
 
 export interface EmailTask {
@@ -55,7 +55,7 @@ export interface QueueItem {
     email:Email
     task_id:string
     resolve:(success:boolean)=>void
-    reject:(reason:Error)=>void
+    reject:(reason:unknown)=>void
 }
 
 
@@ -151,14 +151,14 @@ class EmailAccountManager {
         for (const [item, error] of await this.send_batch(items)){
 
             // Handle result
-            if (!error || error.code === 'invalid_to'){
+            if (!error || error instanceof BadEmailAddress){
                 // RESOLVE
                 // Bad recipient address, only affecting this single email
-                item.resolve(error?.code !== 'invalid_to')
+                item.resolve(! (error instanceof BadEmailAddress))
                 // Since succeeded, consider if interval can be reduced (if interval active)
                 this.adjust_interval(true, subject_to_interval)
 
-            } else if (error.code === 'throttled' && this.interval < 60000){
+            } else if (error instanceof MustWait && this.interval < 60000){
                 // RETRY
                 // Switch to synchronous sending (if not already) with interval between sends
                 // NOTE If interval has gotten too large, this is skipped & treated as normal error
@@ -174,27 +174,12 @@ class EmailAccountManager {
 
             } else {
                 // REJECT
-
-                // Convert email error to a standard error object
-                let reason:Error
-                if (['dns', 'starttls_required', 'tls_required', 'timeout'].includes(error.code)){
-                    reason = new MustReconfigure(error.details)
-                } else if (error.code === 'auth'){
-                    reason = new MustReauthenticate(error.details)
-                } else if (error.code === 'network'){
-                    reason = new MustReconnect(error.details)
-                } else if (error.code === 'throttled'){
-                    reason = new MustWait(error.details)
-                } else {
-                    reason = new MustInterpret(error)
-                }
-
                 // An error occurred that requires user action to resolve
                 // NOTE Assumes all items will fail, not just this one
                 this.dead = true  // Prevent any more items being added to queue
-                item.reject(reason)  // Reject this item
+                item.reject(error)  // Reject this item
                 while (this.queue.length){  // Reject all items in queue
-                    this.queue.shift()!.reject(reason)  // Reason of failed email raised for all
+                    this.queue.shift()!.reject(error)  // Reason of failed email raised for all
                 }
             }
         }
@@ -240,21 +225,26 @@ class EmailAccountManager {
         console.warn(`Email sending interval set to ${this.interval}ms`)
     }
 
-    async send_batch(items:QueueItem[]):Promise<[QueueItem, EmailError|null][]>{
+    async send_batch(items:QueueItem[]):Promise<[QueueItem, unknown][]>{
         // Send a batch of emails, detecting the appropriate transport to use
-        if (this.settings.oauth){
-            // WARN Should request fresh copy of oauth object for every send so expires etc correct
-            const oauth = await self.app_db.oauths.get(this.settings.oauth)
-            if (oauth?.issuer === 'google'){
-                //return send_emails_oauth_google(oauth)
-            } else if (oauth?.issuer === 'microsoft'){
-                //return send_emails_oauth_microsoft(oauth)
+        try {
+            if (this.settings.oauth){
+                // WARN Request fresh copy of oauth object for every send so expires etc correct
+                const oauth = await self.app_db.oauths.get(this.settings.oauth)
+                if (oauth?.issuer === 'google'){
+                    //return send_emails_oauth_google(oauth)
+                } else if (oauth?.issuer === 'microsoft'){
+                    //return send_emails_oauth_microsoft(oauth)
+                }
+            } else if (this.settings.pass){
+                return send_batch_smtp(items, this.settings as EmailSettings)
             }
-        } else if (this.settings.pass){
-            return send_batch_smtp(items, this.settings as EmailSettings)
-        }
+            // Email sending hasn't been configured yet, or was removed (e.g. oauth record deleted)
+            throw new MustReconfigure()
 
-        // Email sending hasn't been configured yet, or was removed (e.g. oauth record deleted)
-        throw new MustReconfigure()
+        } catch (error){
+            // If anything throws, all items get returned with that error
+            return items.map(item => [item, error])
+        }
     }
 }
