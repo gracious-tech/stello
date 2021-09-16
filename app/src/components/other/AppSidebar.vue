@@ -86,7 +86,7 @@ export default class extends Vue {
         if (import.meta.env.MODE === 'development' && event.shiftKey){
             const multiplier = (event.shiftKey?1:0) + (event.altKey?1:0) + (event.ctrlKey?1:0)
             this.$store.dispatch('show_snackbar', `Generating dummy data * ${multiplier}...`)
-            await self.app_db.generate_dummy_data(multiplier)
+            await self.app_db.generate_example_data(multiplier)
             self.location.reload()
             return
         }
