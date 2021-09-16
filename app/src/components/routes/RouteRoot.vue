@@ -15,9 +15,8 @@ div
                 h1(class='text-h6 mb-0') What's new
                 h1(class='text-subtitle-2 opacity-secondary mt-0') Version {{ version }}
                 ul
-                    li Readers can now unsubscribe
-                    li Emails now have a customisable header image
-                    li Can now customise the email sent for replies
+                    li Sending is up to 100% faster
+                    li Sending easier to troubleshoot
                 p(class='text-body-2') plus many other improvements
 
         div(class='notes')
@@ -25,8 +24,8 @@ div
                 h1(class='text-h6') Still to come
                 ul
                     li A more useful dashboard
-                    li Reducing the chance of errors when sending
-                    li Attach files / polls / graphs / and other media types
+                    li File attachments
+                    li Encrypted videos
                 p plus many many more...
                 app-btn(href='https://give.gracious.tech' color='#fa5788' raised small) Help fund improvements
 
