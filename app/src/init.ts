@@ -99,6 +99,8 @@ Vue.prototype.$network_error = function(error:unknown):void{
     // Handle network error at a UI level
     // TODO Also handle Google network errors etc
     if (error instanceof TypeError){
+        console.debug(error)
+        console.debug("(handled by $network_error)")
         this.$store.dispatch('show_snackbar',
             "Network error (please check your Internet connection)")
     } else {
