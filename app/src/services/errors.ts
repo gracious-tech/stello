@@ -20,7 +20,7 @@ function show_fail_bar(){
             A problem was detected
             <div>
                 Please
-                <a href="https://gracious.tech/support/stello/">LET US KNOW</a>
+                <a href="https://gracious.tech/support/stello/" target='_blank'>LET US KNOW</a>
                 and then
                 <button onclick="location.assign('#/');location.reload()">
                     RELOAD
