@@ -228,17 +228,18 @@ class EmailAccountManager {
 
     async send_batch(items:QueueItem[]):Promise<[QueueItem, unknown][]>{
         // Send a batch of emails, detecting the appropriate transport to use
+        // WARN Be sure to await batch methods so that throws caught here (otherwise uncaught)
         try {
             if (this.settings.oauth){
                 // WARN Request fresh copy of oauth object for every send so expires etc correct
                 const oauth = await self.app_db.oauths.get(this.settings.oauth)
                 if (oauth?.issuer === 'google'){
-                    //return send_emails_oauth_google(oauth)
+                    //return await send_batch_google(items, oauth)
                 } else if (oauth?.issuer === 'microsoft'){
-                    return send_batch_microsoft(items, oauth)
+                    return await send_batch_microsoft(items, oauth)
                 }
             } else if (this.settings.pass){
-                return send_batch_smtp(items, this.settings as EmailSettings)
+                return await send_batch_smtp(items, this.settings as EmailSettings)
             }
             // Email sending hasn't been configured yet, or was removed (e.g. oauth record deleted)
             throw new MustReconfigure()
