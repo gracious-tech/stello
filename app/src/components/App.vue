@@ -55,6 +55,9 @@ export default class extends Vue {
 
     mounted(){
         // Prevent window close if still doing tasks
+        // WARN This also catches nav attempts and can't distinguish between nav and close
+        //      Even though nav will open new window due to Electron handling
+        //      Must .'. always give a target to links to avoid them not working when tasks running
         self.addEventListener('beforeunload', event => {
             if (task_manager.data.tasks.length && !this.allow_force_quit){
                 this.$store.dispatch('show_snackbar', {
