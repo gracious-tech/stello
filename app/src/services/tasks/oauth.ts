@@ -549,7 +549,7 @@ export async function oauth_request(oauth:OAuth, url:string, params?:Record<stri
             request_init.body = body
         } else {
             request_init.json = body
-            request_init.compress = true
+            request_init.compress = oauth.issuer !== 'microsoft'
         }
     }
     return request(url, request_init)
