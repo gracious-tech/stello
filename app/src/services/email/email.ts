@@ -66,7 +66,7 @@ class EmailAccountManager {
     settings:Profile['smtp_settings']
     queue:QueueItem[] = []
     processors = new Set<string>()
-    max_processors = 5  // NOTE SMTP currently configured to provide 10 connections, used as needed
+    max_processors = 10  // NOTE SMTP currently configured to provide 10 connections, to match
     max_batch_size = 1  // Not currently used as only Microsoft implemented, and rate limited anyway
     last_send = 0  // Epoch time
     interval = 0  // ms
