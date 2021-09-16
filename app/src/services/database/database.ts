@@ -325,7 +325,8 @@ export class Database {
         }
     }
 
-    async read_create(sent:Date, resp_token:string, ip:string, user_agent:string):Promise<Read|null>{
+    async read_create(sent:Date, resp_token:string, ip:string,
+            user_agent:string):Promise<Read|null>{
         // Create a new read
 
         // Try to get msg copy identified by resp_token (if valid and copy not deleted yet)
