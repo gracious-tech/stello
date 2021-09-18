@@ -32,9 +32,10 @@ Rollbar.init({
     onSendCallback: (isUncaught, args, payload) => {
         // SECURITY Replace all file paths with fake base dir to avoid exposing OS username etc
         // NOTE `transform` callback is called earlier and doesn't apply to `notifier` prop
+        const base = path.dirname(get_path())  // Must be parent of node_modules too
         for (const [key, val] of Object.entries(payload)){
             ;(payload as Record<string, unknown>)[key] =
-                JSON.parse(JSON.stringify(val).split(get_path()).join(fake_app_dir + path.sep))
+                JSON.parse(JSON.stringify(val).split(base).join(fake_app_dir))
         }
     },
 })
