@@ -4,10 +4,12 @@ set -e
 cd "$(dirname "$(dirname "$0")")"
 
 
-# If current commit doesn't have a version tag, remove env vars that trigger code signing/notarizing
-publish='always'
-if [[ `git tag --contains` =~ ^[^v]? ]]; then
-    publish='never'
+# Determine whether to publish
+# Github actions provides $GITHUB_REF and allows avoiding double publish for master and tag
+publish='never'
+if [[ "$GITHUB_REF" =~ ^refs/tags/v ]]; then
+    publish='always'
+else
     unset CSC_LINK  # Prevents electron builder from signing and skips notarizing
 fi
 
