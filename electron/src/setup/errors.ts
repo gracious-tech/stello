@@ -34,7 +34,7 @@ Rollbar.init({
         // NOTE `transform` callback is called earlier and doesn't apply to `notifier` prop
         for (const [key, val] of Object.entries(payload)){
             ;(payload as Record<string, unknown>)[key] =
-                JSON.parse(JSON.stringify(val).split(get_path()).join(fake_app_dir))  // replaceAll
+                JSON.parse(JSON.stringify(val).split(get_path()).join(fake_app_dir + path.sep))
         }
     },
 })
