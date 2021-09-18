@@ -50,7 +50,7 @@
         "@types/sass": "^1.16.1",
         "@types/svgo": "^2.4.2",
         "pug": "^3.0.2",
-        "sass": "1.41.1",
+        "sass": "1.32.13",
         "svgo": "^2.6.1",
         "vite": "^2.5.8",
         "vite-plugin-components": "^0.13.3",
