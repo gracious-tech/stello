@@ -17,10 +17,10 @@
     },
     "devDependencies": {
         "@types/nodemailer": "^6.4.4",
-        "electron": "^14.0.0",
+        "electron": "^14.0.1",
         "electron-builder": "^22.11.7",
-        "electron-notarize": "^1.1.0",
-        "esbuild": "^0.12.24",
+        "electron-notarize": "^1.1.1",
+        "esbuild": "^0.12.28",
         "png-to-ico": "^2.1.2"
     },
     "build": {

@@ -43,11 +43,11 @@
         },
         "aws-sam-cli": {
             "hashes": [
-                "sha256:257a618c446a639563f23d85e19ec5ac52491290602bfe76dfaa587d045575ca",
-                "sha256:bcbf5eb39cb06b9a3f259aed49bdeb4ffc218e7fd370302f133cf421f5540365"
+                "sha256:21a25fe3b042c9c9e517b88b121d364128081be5e094c2f9b2d953a0e864d12d",
+                "sha256:eb3d8e785410a8e33532d7a40f735b108d468183749a89ba3e23117da3b7ab7d"
             ],
             "index": "pypi",
-            "version": "==1.29.0"
+            "version": "==1.31.0"
         },
         "aws-sam-translator": {
             "hashes": [
@@ -66,19 +66,19 @@
         },
         "boto3": {
             "hashes": [
-                "sha256:5116e9bdec19adcc5531a9b7b535be77d5314eef092aaf7033ace48a9be65036",
-                "sha256:658ddf4ba552f654fd4d48335fa95ff4e3e1a4e82f90021a1a1d3de4a5428ba4"
+                "sha256:3a270f002818703d5f2eef5296c2fd8b44ef21a3f3290a716ec2202da8dd464e",
+                "sha256:8bc3211a7d7767c2c72ae9b226edb5eec5bb96989c83696832b8a5c35feb356a"
             ],
             "markers": "python_version >= '3.6'",
-            "version": "==1.18.34"
+            "version": "==1.18.44"
         },
         "botocore": {
             "hashes": [
-                "sha256:1b4999fb0e1a4c050c4d9118ebdaac8d83761ef32c3c0f13a25f9204045998fe",
-                "sha256:ec2cdf1c8ed64a7f392f352125d248c76103fa9d137b275b7c76836776cedf56"
+                "sha256:2e134c9f799015e448086ed2b809fe50cc776f6600f093d1a44772288e61260f",
+                "sha256:c7640cb49c0e009bea4ad767715acbe0d305b7007235f52422bf31b5d23be8f1"
             ],
             "markers": "python_version >= '3.6'",
-            "version": "==1.21.34"
+            "version": "==1.21.44"
         },
         "certifi": {
             "hashes": [
