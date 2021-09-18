@@ -1,5 +1,5 @@
 
-import {IDBPDatabase, DBSchema} from 'idb'
+import {IDBPDatabase, DBSchema, IDBPTransaction, StoreNames} from 'idb'
 
 
 // State
@@ -402,3 +402,9 @@ export interface AppDatabaseSchema extends DBSchema {
         },
     }
 }
+
+export type VersionChangeTransaction = IDBPTransaction<
+    AppDatabaseSchema,
+    StoreNames<AppDatabaseSchema>[],
+    'versionchange'
+>

@@ -20,18 +20,22 @@ import {export_key, generate_hash, generate_token, generate_key_sym} from '../ut
 import {buffer_to_url64} from '../utils/coding'
 import {remove_item} from '../utils/arrays'
 import {escape_for_html} from '../utils/strings'
-import {migrate, DATABASE_VERSION} from './migrations'
+import {migrate, migrate_async, DATABASE_VERSION} from './migrations'
 import {get_final_recipients} from '../misc/recipients'
 import {generate_example_data} from './example'
 
 
-export function open_db():Promise<AppDatabaseConnection>{
+export async function open_db():Promise<AppDatabaseConnection>{
     // Get access to db (and create/upgrade if needed)
-    return openDB<AppDatabaseSchema>('main', DATABASE_VERSION, {
+    let old_version_cache:number
+    const db_conn = await openDB<AppDatabaseSchema>('main', DATABASE_VERSION, {
         upgrade(db, old_version, new_version, transaction){
-            migrate(transaction, old_version)
+            old_version_cache = old_version
+            void migrate(transaction, old_version)
         },
     })
+    await migrate_async(db_conn, old_version_cache!)
+    return db_conn
 }
 
 

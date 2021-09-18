@@ -64,7 +64,7 @@ type VersionChangeTransaction = IDBPTransaction<
 
 export async function upgrade_database(db:IDBPDatabase<DisplayerDatabaseSchema>, old_version:number,
         transaction:VersionChangeTransaction):Promise<void>{
-    // WARN Do not await anything except db methods, as transaction will close
+    // WARN Always await db methods to prevent overlap, but never anything else (transaction closes)
     switch (old_version){
         default: {
             throw new Error("Database version unknown (should never happen)")
@@ -85,14 +85,14 @@ export async function upgrade_database(db:IDBPDatabase<DisplayerDatabaseSchema>,
                 let cursor = await transaction.objectStore('messages').openCursor()
                 while (cursor){
                     cursor.value.published = new Date(cursor.value.published)
-                    void cursor.update(cursor.value)
+                    await cursor.update(cursor.value)
                     cursor = await cursor.continue()  // null when no more records
                 }
             })()
             // Last read now a single id rather than object
             const last_read = await transaction.objectStore('dict').get('last_read')
             if (last_read){
-                void transaction.objectStore('dict').put({
+                await transaction.objectStore('dict').put({
                     key: 'last_read',
                     value: (last_read.value as {id:string}).id,
                 })

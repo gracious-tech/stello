@@ -1,7 +1,6 @@
 
 import {sample} from 'lodash'
 
-import {request_blob} from '../utils/http'
 import {cycle, percent, range} from '../utils/iteration'
 import {Section} from './sections'
 import {ContentImages, RecordProfileHost} from './types'
@@ -81,7 +80,8 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
     })
 
     // Create a image section
-    const image_blob = await request_blob('default_invite_image.jpg')
+    const image_blob = new Blob([await self.app_native.read_file('default_invite_image.jpg')],
+        {type: 'image/jpeg'})
     const section_image = await db.sections.create({
         type: 'images',
         images: [{id: generate_token(), data: image_blob, caption: "An example image"}],

@@ -8,7 +8,6 @@ import {OAUTH_SUPPORTED} from '@/services/tasks/oauth'
 import {email_address_like} from '../utils/misc'
 import {partition} from '../utils/strings'
 import {get_host_user} from '../hosts/hosts'
-import {request_blob} from '../utils/http'
 
 
 export interface SmtpProvider {
@@ -259,7 +258,8 @@ export class DatabaseProfiles {
     async create():Promise<Profile>{
         // Create a new profile
         // NOTE Defaults are for 'very_high' security category
-        const default_invite_image = await request_blob('default_invite_image.jpg')
+        const default_invite_image = new Blob(
+            [await self.app_native.read_file('default_invite_image.jpg')], {type: 'image/jpeg'})
         const profile = new Profile({
             id: generate_token(),
             setup_step: 0,

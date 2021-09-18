@@ -11,6 +11,11 @@ const native_electron:NativeInterface = {
 
     // Functions
 
+    read_file(path:string){
+        // Read a file and return as an ArrayBuffer (must be within app's dir)
+        return ipcRenderer.invoke('read_file', path) as Promise<ArrayBuffer>
+    },
+
     update():void{
         // Tell electron to update
         void ipcRenderer.invoke('update')

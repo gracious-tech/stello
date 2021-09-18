@@ -23,7 +23,6 @@ import {StorageBaseAws, waitUntilUserExists, waitUntilRoleExists} from './aws_co
 import {HostCloud, HostCredentials, HostManager, HostManagerStorage, HostPermissionError,
     HostStorageCredentials, HostStorageVersion} from './types'
 import {displayer_asset_type} from './common'
-import {request_buffer} from '../utils/http'
 
 
 export class HostManagerAws implements HostManager {
@@ -352,7 +351,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         // Get list of files in displayer tar
         // WARN js-untar is unmaintained and readAsString() is buggy so not using
         interface TarFile {name:string, type:string, buffer:ArrayBuffer}
-        const files:TarFile[] = await untar(await request_buffer('displayer.tar'))
+        const files:TarFile[] = await untar(await self.app_native.read_file('displayer.tar'))
 
         // Add deployment config to files to be uploaded so user can access it
         // NOTE `type` is for TarFile and means "regular file"
@@ -692,7 +691,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         // SECURITY Lambda code managed by admin rather than user to prevent malicious code uploads
 
         // Load code so can deploy or compare
-        const fn_code = new Uint8Array(await request_buffer('responder_aws.zip'))
+        const fn_code = new Uint8Array(await self.app_native.read_file('responder_aws.zip'))
 
         // Function config that can be used in a create or update request
         const fn_config = {
