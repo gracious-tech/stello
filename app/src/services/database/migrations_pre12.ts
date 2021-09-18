@@ -106,7 +106,7 @@ async function to3(transaction:VersionChangeTransaction){
 async function to4(transaction:VersionChangeTransaction){
 
     // New table for oauths
-    if (!transaction.objectStoreNames.includes('oauths')){
+    if (!transaction.objectStoreNames.contains('oauths')){
         const oauths = transaction.db.createObjectStore('oauths', {keyPath: 'id'})
         oauths.createIndex('by_issuer_id', ['issuer', 'issuer_id'])
     }
@@ -293,7 +293,7 @@ async function to9(transaction:VersionChangeTransaction):Promise<void>{
     }
 
     // New store for unsubscribes
-    if (!transaction.objectStoreNames.includes('unsubscribes')){
+    if (!transaction.objectStoreNames.contains('unsubscribes')){
         const unsubscribes = transaction.db.createObjectStore('unsubscribes',
             {keyPath: ['profile', 'contact']})
         unsubscribes.createIndex('by_profile', 'profile')
@@ -301,9 +301,9 @@ async function to9(transaction:VersionChangeTransaction):Promise<void>{
     }
 
     // New stores for requests
-    if (!transaction.objectStoreNames.includes('request_address'))
+    if (!transaction.objectStoreNames.contains('request_address'))
         transaction.db.createObjectStore('request_address', {keyPath: 'contact'})
-    if (!transaction.objectStoreNames.includes('request_resend'))
+    if (!transaction.objectStoreNames.contains('request_resend'))
         transaction.db.createObjectStore('request_resend', {keyPath: ['contact', 'message']})
 
     // New `multiple` property for contacts and copies
