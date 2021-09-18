@@ -41,7 +41,7 @@ export default defineComponent({
         return {
             floatified_rows,
         }
-    }
+    },
 })
 
 </script>

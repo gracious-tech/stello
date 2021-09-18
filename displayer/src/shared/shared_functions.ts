@@ -5,7 +5,7 @@ interface SectionLike {
     id:string
     content:{
         type:string,
-        standout?:string,
+        standout?:string|null,
     }
 }
 

@@ -1,9 +1,13 @@
 // A non-operational implementation of native interface for browser env for use during dev
 
-import {EmailSettings, Email, EmailError, EmailIdentity, NativeInterface} from './types'
+import {EmailSettings, Email, EmailError, NativeInterface} from './types'
 
 
 export class NativeBrowser implements NativeInterface {
+
+    async read_file(path:string):Promise<ArrayBuffer>{
+        throw new Error('unsupported')
+    }
 
     update():void{
         self.location.assign('#/')
@@ -19,10 +23,8 @@ export class NativeBrowser implements NativeInterface {
         return {code: 'unsupported', details: ""}
     }
 
-
-    async send_emails(settings:EmailSettings, emails:Email[], from:EmailIdentity,
-            reply_to?:EmailIdentity):Promise<EmailError>{
-        return {code: 'unsupported', details: ""}
+    async smtp_send(settings:EmailSettings, email:Email):Promise<EmailError|null>{
+        throw new Error('unsupported')
     }
 
 

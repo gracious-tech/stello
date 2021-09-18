@@ -34,7 +34,7 @@ export async function contacts_oauth_setup(task:Task):Promise<void>{
 
     // Set syncing property in db
     // NOTE This isn't done when first receiving new auth, especially when using an existing one
-    const [oauth_id] = task.params
+    const [oauth_id] = task.params as [string]
     const oauth = await self.app_db.oauths.get(oauth_id)
     if (!oauth){
         throw task.abort("No longer have access to contacts account")
@@ -51,7 +51,7 @@ export async function contacts_sync(task:Task):Promise<void>{
     // Task for syncing contacts
 
     // Extract args from task object and get oauth record
-    const [oauth_id] = task.params
+    const [oauth_id] = task.params as [string]
     let oauth = await self.app_db.oauths.get(oauth_id)
     if (!oauth){
         throw task.abort("No longer have access to contacts account")
@@ -77,7 +77,7 @@ export async function contacts_change_property(task:Task):Promise<void>{
     // Task for changing a simple property of a contact
 
     // Extract args from task object and get oauth record
-    const [oauth_id, contact_id, property] = task.params
+    const [oauth_id, contact_id, property] = task.params as [string, string, string]
     const [value] = task.options
     const oauth = await self.app_db.oauths.get(oauth_id)
     if (!oauth){
@@ -107,8 +107,8 @@ export async function contacts_change_email(task:Task):Promise<void>{
     // Task for changing email address for a contact (accounting for multiple being present)
 
     // Extract args from task object and get oauth record
-    const [oauth_id, contact_id] = task.params
-    const [addresses, chosen] = task.options
+    const [oauth_id, contact_id] = task.params as [string, string]
+    const [addresses, chosen] = task.options as [string[], string]
     const oauth = await self.app_db.oauths.get(oauth_id)
     if (!oauth){
         throw task.abort("No longer have access to contacts account")
@@ -125,7 +125,7 @@ export async function contacts_change_email(task:Task):Promise<void>{
     task.fix_oauth = oauth_id
 
     // Call handler specific to the oauth's issuer
-    await HANDLERS[oauth.issuer].change_email(oauth, contact.service_id, addresses)
+    await HANDLERS[oauth.issuer]!.change_email(oauth, contact.service_id!, addresses)
 
     // If all went well, update value in own database
     contact.address = chosen
@@ -137,7 +137,7 @@ export async function contacts_remove(task:Task):Promise<void>{
     // Task for removing a contact
 
     // Extract args from task object and get oauth record
-    const [oauth_id, contact_id] = task.params
+    const [oauth_id, contact_id] = task.params as [string, string]
     const oauth = await self.app_db.oauths.get(oauth_id)
     if (!oauth){
         throw task.abort("No longer have access to contacts account")

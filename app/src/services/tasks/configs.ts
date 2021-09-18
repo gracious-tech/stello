@@ -9,7 +9,7 @@ export async function configs_update(task:Task){
     // Update config files in host
 
     // Get profile from params
-    const [profile_id] = task.params
+    const [profile_id] = task.params as [string]
     let profile = await self.app_db.profiles.get(profile_id)
     if (!profile){
         throw task.abort("Sending account no longer exists")

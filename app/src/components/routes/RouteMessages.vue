@@ -54,7 +54,7 @@ export default class extends Vue {
         // Respond to finished tasks
         if (task.name === 'retract_message' && task.options[0]){  // remove option
             // Message has been deleted
-            this.remove(task.params[0])
+            this.remove(task.params[0] as string)
         }
     }
 }

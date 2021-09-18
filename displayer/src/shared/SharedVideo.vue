@@ -17,6 +17,7 @@ div
 
 <script lang='ts'>
 
+import type {PropType} from 'vue'  // Importing just as type should still keep compatible with Vue 2
 import {defineComponent} from 'vue-demi'
 
 
@@ -24,19 +25,24 @@ export default defineComponent({
 
     props: {
         format: {
-            type: String,
+            type: String as PropType<string|null>,
+            default: null,
         },
         id: {
-            type: String,
+            type: String as PropType<string|null>,
+            default: null,
         },
         caption: {
             type: String,
+            default: '',
         },
         start: {
-            type: Number,
+            type: Number as PropType<number|null>,
+            default: null,
         },
         end: {
-            type: Number,
+            type: Number as PropType<number|null>,
+            default: null,
         },
     },
 

@@ -6,7 +6,7 @@ import {encrypt_asym} from './utils/crypt'
 import {report_http_failure, request} from './utils/http'
 
 
-async function respond(data):Promise<boolean>{
+async function respond(data:any):Promise<boolean>{
     // Send a response and return success boolean
     // SECURITY Only success boolean is returned, for error info rely on lambda's own reporting
 
@@ -50,7 +50,7 @@ export function respond_read(resp_token:string, copy_id:string,
 export function respond_reply(resp_token:string, text:string, section_id:string|null,
         subsection_id:string|null):Promise<boolean>{
     // Send text response
-    const data = {
+    const data:any = {
         type: 'reply',
         encrypted: {
             resp_token,
@@ -70,7 +70,7 @@ export function respond_reply(resp_token:string, text:string, section_id:string|
 export function respond_reaction(resp_token:string, reaction:string|null, section_id:string,
         subsection_id:string|null):Promise<boolean>{
     // Send reaction response
-    const data = {
+    const data:any = {
         type: 'reaction',
         encrypted: {
             resp_token,
@@ -117,7 +117,7 @@ export function respond_address(resp_token:string, new_address:string,
 
 export function respond_resend(resp_token:string, reason:string):Promise<boolean>{
     // Send "resend" response
-    const data = {
+    const data:any = {
         type: 'resend',
         encrypted: {
             resp_token,

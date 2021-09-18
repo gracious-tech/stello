@@ -152,8 +152,8 @@ class CustomQueryStringUtils extends appauth.BasicQueryStringUtils {
 }
 
 
-async function oauth_authorize_init(issuer:OAuthIssuer, scope_sets:string[],
-        meta:Record<string, unknown>={}, email?:string):Promise<void>{
+async function oauth_authorize_init(issuer:OAuthIssuer, scope_sets:string[], meta:unknown={},
+        email?:string):Promise<void>{
     // Authenticate with given issuer using OAuth2
 
     // Get issuer config
@@ -435,7 +435,7 @@ export async function oauth_refresh(oauth:OAuth):Promise<void>{
     let token_resp:appauth.TokenResponse
     try {
         token_resp = await handler.performTokenRequest(
-            oauth.issuer_config as appauth.AuthorizationServiceConfiguration,
+            oauth.issuer_config as unknown as appauth.AuthorizationServiceConfiguration,
             new appauth.TokenRequest({
                 client_id: OAUTH_SUPPORTED[oauth.issuer].client_id,
                 grant_type: 'refresh_token',
@@ -470,7 +470,7 @@ export async function oauth_revoke(oauth:OAuth):Promise<void>{
     const handler = new appauth.BaseTokenRequestHandler(new appauth.FetchRequestor())
     try {
         await handler.performRevokeTokenRequest(
-            oauth.issuer_config as appauth.AuthorizationServiceConfiguration,
+            oauth.issuer_config as unknown as appauth.AuthorizationServiceConfiguration,
             new appauth.RevokeTokenRequest({
                 client_id: OAUTH_SUPPORTED[oauth.issuer].client_id,
                 client_secret: OAUTH_SUPPORTED[oauth.issuer].client_secret,

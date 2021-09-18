@@ -50,7 +50,7 @@ export class Task {
 
     // Readable
     name:string  // May be changed if evolving
-    readonly params:string[]  // Must be serializable for storing as post-oauth actions
+    readonly params:unknown[]  // Must be serializable for storing as post-oauth actions
     readonly options:unknown[]  // Must be serializable for storing as post-oauth actions
     readonly done:Promise<unknown>  // Resolves with an error value (if any) when task done
     abortable = false  // Whether task can be manually aborted (always internally abortable)
@@ -63,7 +63,7 @@ export class Task {
     // Private
     private done_resolve!:(error:unknown)=>void
 
-    constructor(name:string, params:string[], options:unknown[]){
+    constructor(name:string, params:unknown[], options:unknown[]){
         this.name = name
         this.params = params
         this.options = options
@@ -208,7 +208,7 @@ export class TaskManager {
         finished: null,  // Only stores last task to have finished
     })
 
-    async start(name:string, params:string[]=[], options:unknown[]=[]):Promise<Task>{
+    async start(name:string, params:unknown[]=[], options:unknown[]=[]):Promise<Task>{
         // Register the task identified by given code and params
 
         // See if an existing task matches code and params

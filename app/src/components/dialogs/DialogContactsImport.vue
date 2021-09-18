@@ -231,7 +231,7 @@ export default class extends Vue {
 
     async parse_csv(text:string):Promise<void>{
         // Turn given csv data into a list of contacts
-        this.csv_items = papaparse.parse(text, {header: true}).data
+        this.csv_items = papaparse.parse(text, {header: true}).data as Record<string, string>[]
 
         // Can't detect columns if no items
         if (!this.csv_items.length){
