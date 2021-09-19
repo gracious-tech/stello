@@ -14,7 +14,7 @@
 #         So production may jump versions if problems found
 
 
-version: 0.8.2
+version: 0.8.3
 theme_codes:
     # ALL colors must support both LARGE black/white contrast FOR their darker/lighter variants
     # AND preferable to also support for the base color as well!
