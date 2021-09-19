@@ -2,6 +2,20 @@
     // GOOGLE
     {
         "error": {
+            "code": 400,
+            "message": "Invalid To header",
+            "errors": [
+                {
+                    "message": "Invalid To header",
+                    "domain": "global",
+                    "reason": "invalidArgument"
+                }
+            ],
+            "status": "INVALID_ARGUMENT"
+        }
+    },
+    {
+        "error": {
             "code": 429,
             "message": "Resource has been exhausted (e.g. check quota).",
             "errors": [
