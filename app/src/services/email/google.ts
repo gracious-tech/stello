@@ -60,53 +60,49 @@ async function interpret_gmail_response(resp:Response):Promise<void>{
         return
     }
 
-    // Handle status codes that are unambiguous
-    // WARN Do not handle 403 yet as Gmail uses for rate limiting too, so must check body first
-    if (resp.status === 401){
-        throw new MustReauthenticate()
-    } else if (resp.status === 429){
-        throw new MustWait()  // Have been rate limited
-    } else if (resp.status >= 500 && resp.status < 600){
-        throw new MustWait()  // Third-party issue that will probably resolve over time
-    }
-
-    // Need to parse body to know any more
+    // Parse body and extract useful fields
     let body:GmailResponse|null = null
     try {
         body = await resp.json() as GmailResponse
-
-        // Extract useful fields
-        const error_status = String(body?.error?.status)
-        const error_message = String(body?.error?.message).toLowerCase()
-        const error_reason = String(body?.error?.errors?.[0]?.reason)  // Usually only one sub-error
-
-        if (resp.status === 400){
-            if (error_status === 'FAILED_PRECONDITION'){
-                throw new OauthUseless()  // Not a gmail account (e.g. signin only)
-            }
-        }
-
-        if (resp.status === 403){
-            if (error_reason === 'domainPolicy'){
-                throw new OauthUseless()  // Google workspace disabled app access (to e.g. gmail)
-            }
-            if (error_reason.includes('LimitExceeded')){
-                // Includes: dailyLimitExceeded, userRateLimitExceeded, rateLimitExceeded
-                throw new MustWait()  // Gmail usually seems to respond with 429 but 403 in docs too
-            }
-        }
-
-        if (error_message.includes('invalid to header')){
-            // Contact's address is probably invalid
-            throw new BadEmailAddress()
-        }
     } catch {
         // Body not available or not as expected
     }
+    const error_status = String(body?.error?.status ?? '')
+    const error_message = String(body?.error?.message ?? '').toLowerCase()
+    const error_reason = String(body?.error?.errors?.[0]?.reason ?? '')  // Usually only one item
 
-    // If didn't handle a 403 yet then probably safe to assume it's an auth issue
+    // Interpret errors
+    if (resp.status === 400){
+        if (error_status === 'FAILED_PRECONDITION'){
+            throw new OauthUseless()  // Not a gmail account (e.g. signin only)
+        }
+        if (error_message.includes('invalid to header')){
+            throw new BadEmailAddress()  // Contact's address is probably invalid
+        }
+    }
+
+    if (resp.status === 401){
+        throw new MustReauthenticate()  // Straight forward auth error
+    }
+
     if (resp.status === 403){
+        if (error_reason === 'domainPolicy'){
+            throw new OauthUseless()  // Google workspace disabled app access (to e.g. gmail)
+        }
+        if (error_reason.includes('LimitExceeded')){
+            // Includes: dailyLimitExceeded, userRateLimitExceeded, rateLimitExceeded
+            throw new MustWait()  // Gmail usually seems to respond with 429 but 403 in docs too
+        }
+        // If didn't handle a 403 yet then probably safe to assume it's an auth issue
         throw new MustReauthenticate()
+    }
+
+    if (resp.status === 429){
+        throw new MustWait()  // Have been rate limited
+    }
+
+    if (resp.status >= 500 && resp.status < 600){
+        throw new MustWait()  // Third-party issue that will probably resolve over time
     }
 
     // Needs reporting
