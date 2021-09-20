@@ -15,7 +15,7 @@ div
         v-card
             v-card-text
                 p(class='body-2 text--secondary' v-t='"email.p1"')
-                p(class='text-center')
+                h6.address(class='text-center text-h6')
                     span(v-if='profile.smtp_ready') {{ profile.email }}
                     app-btn(@click='show_email_dialog')
                         | {{ profile.smtp_ready ? "Change" : "Connect email account" }}
@@ -339,6 +339,7 @@ export default class extends Vue {
             component: DialogEmailSettings,
             props: {
                 profile: this.profile,
+                force_step: 'init',
             },
         })
     }
@@ -355,6 +356,9 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+@import '../../styles/globals'
+
+
 h2
     margin-top: 56px
     margin-bottom: 12px
@@ -363,5 +367,9 @@ h2
 
 .v-input
     margin-bottom: 18px
+
+.address
+    // Stand out more by removing usual opacity
+    @include themed(color, black, white)
 
 </style>
