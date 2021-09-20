@@ -60,6 +60,20 @@ export async function send_oauth_setup(task:Task):Promise<void>{
         profile.msg_options_identity.sender_name = oauth.name
     }
 
+    // Confirm works
+    try {
+        await new_email_task(profile.smtp_settings).send({
+            id: 'none',
+            from: {name: '', address: profile.email},
+            to: {name: '', address: 'blackhole@gracious.tech'},
+            subject: "Confirm can send",
+            html: "<p>Confirm can send</p>",
+        })
+    } catch (error){
+        console.warn(error)
+        throw task.abort("Connected account cannot send email")
+    }
+
     // Save changes
     await self.app_db.profiles.set(profile)
 }
