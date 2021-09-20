@@ -38,8 +38,7 @@ export async function send_oauth_setup(task:Task):Promise<void>{
     // Still set task label as will show briefly that task has been completed
     task.label = `Use ${oauth.email} to send emails`
 
-    // Update email if needed
-    // TODO Consider verifying with user if they intended this, as very easy to select wrong account
+    // Update email if it changed
     if (profile.email !== oauth.email){
         profile.email = oauth.email
         profile.host_state.responder_config_uploaded = false
