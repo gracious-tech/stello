@@ -5,17 +5,18 @@ v-card
     v-card-title {{ title }}
 
     //- Choose auth type (oauth or other)
+    //- WARN Keep in sync with duplicate in RouteProfileSteps.vue
     v-card-text(v-if='setup === "init"')
         div.oauth_row
             app-btn(@click='oauth_google' raised color='' light class='mr-3')
                 app-svg(name='icon_google' class='mr-3')
                 | Gmail
-            div(class='text--secondary body-2') @gmail.com or other addresses that use Gmail
+            div(class='text--secondary body-2') Including any address that uses Gmail app
         div.oauth_row
             app-btn(@click='oauth_microsoft' raised color='' light class='mr-3')
                 app-svg(name='icon_microsoft' class='mr-3')
                 | Outlook
-            div(class='text--secondary body-2') @hotmail.com, @outlook.com, etc
+            div(class='text--secondary body-2') Including any address that uses Microsoft 365
         div.oauth_row
             app-btn(@click='setup = "email"' raised color='' light) Other
 
@@ -46,7 +47,7 @@ v-card
         p(v-if='!profile.smtp_detected' class='my-4')
             | #[strong Server] {{ profile.smtp_settings.host }}:{{ profile.smtp_settings.port }}
             app-btn(@click='setup = "settings"') Change
-        app-password(v-model='smtp_pass' :error='error && !smtp_pass' v-bind='$t("smtp_pass")'
+        app-password(v-model='tmp_pass' :error='error && !tmp_pass' v-bind='$t("smtp_pass")'
             class='external-hint')
         p(class='hint text--secondary body-2')
             template(v-if='not_detected')
@@ -118,10 +119,13 @@ const i18n = {
 
 import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
-import {EmailError} from '@/services/native/types'
+import {EmailError, EmailSettings} from '@/services/native/types'
 import {email_address_like} from '@/services/utils/misc'
 import {Profile, SMTP_PROVIDERS} from '@/services/database/profiles'
 import {OAuthIssuer, oauth_pretask_new_usage} from '@/services/tasks/oauth'
+
+
+export type EmailSetupStep = 'init'|'email'|'settings'|'signin'|'password'
 
 
 @Component({
@@ -130,16 +134,23 @@ import {OAuthIssuer, oauth_pretask_new_usage} from '@/services/tasks/oauth'
 export default class extends Vue {
 
     @Prop() profile!:Profile
+    @Prop({type: String, default: null}) force_step!:EmailSetupStep|null
 
-    setup:'init'|'email'|'settings'|'signin'|'password' = 'init'
+    setup:EmailSetupStep = 'init'
     init_email = ''  // Address entered in initial setup phase (not auto-saved to profile)
     error:EmailError|null = null
     error_report_id:string|null = null
     loading = false
+    tmp_pass = ''
 
     async created(){
+        // Init tmp_pass
+        this.tmp_pass = this.profile.smtp.pass
+
         // Detect best state to put the UI in
-        if (this.profile.smtp.oauth){
+        if (this.force_step){
+            this.setup = this.force_step
+        } else if (this.profile.smtp.oauth){
             this.setup = 'init'  // Have oauth already so user must be wanting to change address
         } else if (this.profile.smtp_oauth_supported){
             this.setup = 'signin'  // Detected oauth provider but not auth'd yet
@@ -199,7 +210,7 @@ export default class extends Vue {
         // Whether continue/next button should be disabled
         if (this.setup === 'email' && !email_address_like(this.init_email)){
             return true
-        } else if (this.setup === 'password' && !this.smtp_pass){
+        } else if (this.setup === 'password' && !this.tmp_pass){
             return true
         }
         return false
@@ -408,8 +419,13 @@ export default class extends Vue {
         // Test the current email settings
         this.loading = true
         this.error = null
-        this.error = await self.app_native.test_email_settings(this.profile.smtp_settings)
+        this.error = await self.app_native.test_email_settings({
+            ...this.profile.smtp_settings,
+            pass: this.tmp_pass,
+        } as EmailSettings)
         if (!this.error){
+            // Password worked, so save it (smtp settings detected as done when password exists)
+            this.smtp_pass = this.tmp_pass
             this.$emit('close')
         }
         this.loading = false

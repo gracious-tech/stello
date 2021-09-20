@@ -339,7 +339,8 @@ export default class extends Vue {
             component: DialogEmailSettings,
             props: {
                 profile: this.profile,
-                force_step: 'init',
+                // Revert to first step if smtp working, as likely want to change address completely
+                force_step: this.profile.smtp_ready ? 'init' : null,
             },
         })
     }

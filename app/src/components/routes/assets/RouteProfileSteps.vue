@@ -29,10 +29,30 @@ v-stepper(:value='setup_step' @change='change_step')
             h3(class='text-h6 my-6') Which email address do you want to send from?
             p(class='text--secondary body-2 mb-12') Stello will use it to send messages on your
                 |  behalf, and notify you of any replies.
-            p(class='text-center')
-                span(v-if='profile.smtp_ready') {{ profile.email }}
-                app-btn(@click='show_email_dialog')
-                    | {{ profile.smtp_ready ? "Change" : "Connect email account" }}
+            div.email_done(v-if='profile.smtp_ready')
+                div(class='row align-center justify-center mb-1 text-h5')
+                    strong {{ profile.email }}
+                    app-svg.correct(name='icon_done' class='app-fg-accent-relative')
+                v-alert(v-if='profile.smtp.oauth' class='mt-4' color='#ffc400' text)
+                    | Ensure this is the address you'd like to send emails from, and not just
+                    | another account you own.
+                div
+                    app-btn(@click='show_email_dialog("init")' small color='primary') Change address
+            div.email_options(v-else)
+                //- WARN Keep in sync with duplicate in DialogEmailSettings.vue
+                div
+                    app-btn(@click='email_oauth("google")' raised color='' light class='mr-3')
+                        app-svg(name='icon_google' class='mr-3')
+                        | Gmail
+                    div(class='text--secondary body-2') Including any address that uses Gmail app
+                div
+                    app-btn(@click='email_oauth("microsoft")' raised color='' light class='mr-3')
+                        app-svg(name='icon_microsoft' class='mr-3')
+                        | Outlook
+                    div(class='text--secondary body-2')
+                        | Including any address that uses Microsoft 365
+                div
+                    app-btn(@click='show_email_dialog("email")' raised color='' light) Other
             div.nav
                 app-btn(@click='prev_step') Prev
                 app-btn(@click='next_step' :disabled='!profile.smtp_ready') Next
@@ -97,6 +117,7 @@ import RouteProfileHost from '@/components/routes/assets/RouteProfileHost.vue'
 import DialogEmailSettings from '@/components/dialogs/reuseable/DialogEmailSettings.vue'
 import RouteProfileIdentity from '@/components/routes/assets/RouteProfileIdentity.vue'
 import {Profile} from '@/services/database/profiles'
+import {OAuthIssuer, oauth_pretask_new_usage} from '@/services/tasks/oauth'
 
 
 @Component({
@@ -215,12 +236,18 @@ export default class extends Vue {
         this.setup_step = step
     }
 
-    show_email_dialog(){
+    email_oauth(issuer:OAuthIssuer){
+        // Start task for setting up oauth for email sending
+        void oauth_pretask_new_usage('send_oauth_setup', [this.profile.id], issuer)
+    }
+
+    show_email_dialog(force_step:string){
         // Show dialog for configuring smtp settings
         this.$store.dispatch('show_dialog', {
             component: DialogEmailSettings,
             props: {
                 profile: this.profile,
+                force_step,
             },
         })
     }
@@ -333,6 +360,20 @@ export default class extends Vue {
         svg, .v-list-item__title
             color: var(--accent_lighter)
 
+.email_done
+    text-align: center
+
+    .correct
+        margin-left: 24px
+        width: 80px
+        height: 80px
+
+.email_options
+    > div
+        display: flex
+        align-items: center
+        margin-bottom: 24px
+        margin-left: 24px
 
 .decor
     position: absolute
