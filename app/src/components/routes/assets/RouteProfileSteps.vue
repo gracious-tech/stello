@@ -31,7 +31,7 @@ v-stepper(:value='setup_step' @change='change_step')
                 |  behalf, and notify you of any replies.
             div.email_done(v-if='profile.smtp_ready')
                 div(class='row align-center justify-center mb-1 text-h5')
-                    strong {{ profile.email }}
+                    strong(@click='show_email_dialog("init")' class='clickable') {{ profile.email }}
                     app-svg.correct(name='icon_done' class='app-fg-accent-relative')
                 v-alert(v-if='profile.smtp.oauth' class='mt-4' color='#ffc400' text)
                     | Ensure this is the address you'd like to send emails from, and not just
