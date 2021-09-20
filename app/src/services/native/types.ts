@@ -27,9 +27,9 @@ export interface Email {
     id:string
     to:EmailIdentity
     from:EmailIdentity
-    reply_to:EmailIdentity|undefined
     subject:string
     html:string
+    reply_to?:EmailIdentity|undefined
 }
 
 export interface EmailIdentity {
