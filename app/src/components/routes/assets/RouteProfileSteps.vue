@@ -16,8 +16,10 @@ v-stepper(:value='setup_step' @change='change_step')
         v-stepper-content(:step='0')
             h1(class='text-h4 text-center mb-4') New sending account
             img.decor_intro(src='@/assets/decor/setup_intro.png')
-            p Accounts are what Stello uses to send your messages, securely storing them for recipients to view.
-            p(class='text--secondary body-2') You can have multiple accounts, such as a personal account and a ministry account.
+            p Accounts are what Stello uses to send your messages, securely storing them for
+                |  recipients to view.
+            p(class='text--secondary body-2') You can have multiple accounts, such as a personal
+                |  account and a ministry account.
             div.nav
                 span &nbsp;
                 app-btn(@click='next_step') Next
@@ -25,7 +27,8 @@ v-stepper(:value='setup_step' @change='change_step')
         v-stepper-content(:step='1')
             img.decor(src='@/assets/decor/setup_email.png')
             h3(class='text-h6 my-6') Which email address do you want to send from?
-            p(class='text--secondary body-2 mb-12') Stello will use it to send messages on your behalf, and notify you of any replies.
+            p(class='text--secondary body-2 mb-12') Stello will use it to send messages on your
+                |  behalf, and notify you of any replies.
             p(class='text-center')
                 span(v-if='profile.smtp_ready') {{ profile.email }}
                 app-btn(@click='show_email_dialog')
@@ -37,7 +40,9 @@ v-stepper(:value='setup_step' @change='change_step')
         v-stepper-content(:step='2')
             img.decor(src='@/assets/decor/setup_storage.png')
             h3(class='text-h6 my-6') Where should your messages be stored?
-            p(class='text--secondary body-2 mb-12') You can store them with the creators of Stello, or provide your own storage (only recommended for experts). Wherever they are stored they will be securely encrypted.
+            p(class='text--secondary body-2 mb-12') You can store them with the creators of Stello,
+                |  or provide your own storage (only recommended for experts).
+                |  Wherever they are stored they will be securely encrypted.
             p(v-if='profile.host.cloud' class='text-center text--secondary text-h5')
                 | Storage confirmed
             route-profile-host(:profile='profile')
@@ -54,7 +59,8 @@ v-stepper(:value='setup_step' @change='change_step')
                 v-list-item-group(v-model='security_choice' :mandatory='security_choice !== null')
                     v-list-item(v-for='(option, i) of security_options' :key='option.code')
                         v-list-item-icon
-                            app-svg(:name='`icon_radio_${security_choice === i ? "" : "un"}checked`')
+                            app-svg(
+                                :name='`icon_radio_${security_choice === i ? "" : "un"}checked`')
                         v-list-item-content
                             v-list-item-title {{ option.title }}
                             v-list-item-subtitle {{ option.subtitle1 }}
@@ -67,7 +73,8 @@ v-stepper(:value='setup_step' @change='change_step')
             img.decor(src='@/assets/decor/setup_id.png')
             h2(class='text-h6 my-6') How would you like to identify yourself?
             p(class='text--secondary body-2') When inviting contacts to read your messages
-            app-security-alert(class='my-12') Personalize so recipients trust it's you, but don't include anything sensitive as invitation text does not expire
+            app-security-alert(class='my-12') Personalize so recipients trust it's you,
+                |  but don't include anything sensitive as invitation text does not expire
             route-profile-identity(:profile='profile' steps)
             div.nav
                 app-btn(@click='prev_step') Prev
