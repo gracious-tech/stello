@@ -1,5 +1,5 @@
 
-import {MustReconnect} from './exceptions'
+import {CustomError, MustReconnect} from './exceptions'
 
 
 export interface JsonRequestInit extends RequestInit {
@@ -9,7 +9,7 @@ export interface JsonRequestInit extends RequestInit {
 }
 
 
-export class RequestErrorStatus extends Error {
+export class RequestErrorStatus extends CustomError {
     // Thrown when HTTP status code indicates an error occured
     url:string
     status:number
@@ -22,7 +22,7 @@ export class RequestErrorStatus extends Error {
     }
 }
 
-export class RequestErrorBody extends Error {
+export class RequestErrorBody extends CustomError {
     // Thrown when problem reading response body
 }
 

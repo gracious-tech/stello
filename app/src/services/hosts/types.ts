@@ -1,6 +1,7 @@
 
 import {Task} from '@/services/tasks/tasks'
 import {DeploymentConfig} from '@/shared/shared_types'
+import {CustomError} from '../utils/exceptions'
 
 
 export const HostStorageVersion = 10  // Bump whenever an update to storage services needed
@@ -122,4 +123,4 @@ export declare class HostUser {
 // ERRORS (real thing, not just types)
 
 
-export class HostPermissionError extends Error {}
+export class HostPermissionError extends CustomError {}

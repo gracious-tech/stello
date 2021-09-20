@@ -4,6 +4,7 @@ import nodemailer from 'nodemailer'
 
 import {sleep} from '../utils/async'
 import {Email, EmailSettings, EmailError} from '../native_types'
+import {CustomError} from '../utils/exceptions'
 
 
 interface SmtpSettings {
@@ -64,7 +65,7 @@ function smtp_transport(settings:SmtpSettings){
 }
 
 
-interface NodeMailerError extends Error {
+interface NodeMailerError extends CustomError {
     // See https://github.com/nodemailer/nodemailer/blob/master/lib/smtp-connection/index.js
     message:string
     code?:string

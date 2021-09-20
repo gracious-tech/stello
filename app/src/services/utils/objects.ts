@@ -1,13 +1,13 @@
 
-import {type_of} from './exceptions'
+import {CustomError, type_of} from './exceptions'
 
 
-export class NestedKeyMissing extends Error {
+export class NestedKeyMissing extends CustomError {
     override name = 'NestedKeyMissing'
 }
 
 
-export class NestedStructureChanged extends Error {
+export class NestedStructureChanged extends CustomError {
     override name = 'NestedStructureChanged'
 }
 

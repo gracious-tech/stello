@@ -21,35 +21,48 @@ Generating stack trace for non-error throws
 
 
 
+// EXTENDABLE ERROR
+
+
+export class CustomError extends Error {
+    // Bridge for extending Error while keeping prototype and name
+    constructor(message?:string){
+        super(message)
+        this.name = new.target.name
+        Object.setPrototypeOf(this, new.target.prototype)
+    }
+}
+
+
 // GENERICS
 
 
-export class MustReconnect extends Error {
+export class MustReconnect extends CustomError {
     // Use for errors that can be resolved by fixing network connection
 }
 
 
-export class MustReauthenticate extends Error {
+export class MustReauthenticate extends CustomError {
     // Use for errors that can be resolved by reauthenticating
 }
 
 
-export class MustReconfigure extends Error {
+export class MustReconfigure extends CustomError {
     // Use for errors that can be resolved by reconfiguring settings
 }
 
 
-export class MustWait extends Error {
+export class MustWait extends CustomError {
     // Use for errors that can be resolved by trying again later (throttled etc)
 }
 
 
-export class MustRecover extends Error {
+export class MustRecover extends CustomError {
     // Use for missing resource errors that can be resolved by recreating or giving up
 }
 
 
-export class MustInterpret extends Error {
+export class MustInterpret extends CustomError {
     // Use for unknown errors that have data available that could be interpreted
     data:Record<string, any>
 

@@ -1,6 +1,7 @@
 
 import {encode_contact, encode_subject} from './mime'
 import {string_to_utf8} from '@/services/utils/coding'
+import {CustomError} from '../utils/exceptions'
 
 
 interface Person {
@@ -9,7 +10,7 @@ interface Person {
 }
 
 
-export class BadEmailAddress extends Error {
+export class BadEmailAddress extends CustomError {
     // Raised when sending fails due to rejection of the recipient's address
 }
 

@@ -9,7 +9,8 @@ import {responses_receive} from './responses'
 import {contacts_oauth_setup, contacts_sync, contacts_change_property, contacts_change_email,
     contacts_remove} from './contacts'
 import {send_oauth_setup, send_message} from './sending'
-import {MustReauthenticate, MustReconfigure, MustReconnect, MustWait} from '../utils/exceptions'
+import {CustomError, MustReauthenticate, MustReconfigure, MustReconnect, MustWait}
+    from '../utils/exceptions'
 import {hosts_storage_setup, hosts_storage_delete} from './hosts'
 import {retract_message} from './management'
 
@@ -33,7 +34,7 @@ const TASKS:Record<string, TaskFunction> = Object.fromEntries([
 ].map(fn => [fn.name, fn]))
 
 
-export class TaskAborted extends Error {
+export class TaskAborted extends CustomError {
     // The error returned when a task has been aborted
 }
 

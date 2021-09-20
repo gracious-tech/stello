@@ -21,7 +21,7 @@ import {AuthorizationServiceConfiguration} from '@openid/appauth'
 import DialogOAuthExisting from '@/components/dialogs/specific/DialogOAuthExisting.vue'
 import {OAuth} from '../database/oauths'
 import {task_manager, TaskStartArgs} from './tasks'
-import {drop, MustReauthenticate, MustReconnect} from '../utils/exceptions'
+import {CustomError, drop, MustReauthenticate, MustReconnect} from '../utils/exceptions'
 import {JsonRequestInit, request} from '../utils/http'
 
 
@@ -571,7 +571,7 @@ export function scope_set_for_task(task_name:string):ScopeSet{
 }
 
 
-export class OauthUseless extends Error {
+export class OauthUseless extends CustomError {
     // Use for when oauth has correct scopes but can't actually use them
     // For example, the account is ALLOWED but not ABLE to send email
 }
