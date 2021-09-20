@@ -1,16 +1,14 @@
 
+# Global
+node_modules/
+
 /.venv/
-/node_modules/
 
 /app/.env.development.local
 /app/dist/
-/app/node_modules/
 /app/static/displayer.tar
 /app/static/responder_aws.zip
 
-/app_config/node_modules/
-
-/electron/node_modules/
 /electron/.chrome_ext_vue/
 /electron/src/app
 /electron/dist/
@@ -18,7 +16,6 @@
 
 /displayer/.env.development.local
 /displayer/dist/
-/displayer/node_modules/
 /displayer/public/dev/
 /displayer/public/displayer/reactions/
 
