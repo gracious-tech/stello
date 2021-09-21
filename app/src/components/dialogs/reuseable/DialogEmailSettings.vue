@@ -323,6 +323,8 @@ export default class extends Vue {
 
             // Auto-detect host via DNS if not known from email's domain already
             // Especially useful for the many domains using Google email hosting
+            // WARN Cannot detect all, as some use 3p filters that obscure the real host
+            // e.g. https://help.proofpoint.com/Proofpoint_Essentials/Email_Security/Administrator_Topics/hostedemailservices/Configuring_Office_365_for_Proofpoint_Essentials
             if (!this.profile.smtp_detected){
                 const mx_domain = (await self.app_native.dns_mx(this.profile.email_domain))[0]
                 if (mx_domain){
