@@ -8,7 +8,7 @@ div.root(:style='container_styles')
         @input='$emit("input", $event)')
     div.security(class='d-flex align-items-center justify-end')
         app-svg(name='icon_error')
-        span(class='ml-1') Invitation text never expires
+        span(class='ml-1 noselect') Invitation text never expires
     div.action(v-html='action_html')
 
 </template>
