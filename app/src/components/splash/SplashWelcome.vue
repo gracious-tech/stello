@@ -5,25 +5,10 @@ app-content(class='pa-3 text-center app-bg-primary')
 
     app-logo.logo
 
-    h2(class='text-h4') A new way to send newsletters
-    h3(class='text-h6') Specially designed for Christian ministry
+    app-svg.gt(name='gt_logo' responsive)
 
-    v-list(class='text-left' dark)
-        v-list-item
-            v-list-item-icon
-                app-svg(name='icon_next_plan')
-            v-list-item-content
-                v-list-item-title Simple to use
-        v-list-item
-            v-list-item-icon
-                app-svg(name='icon_lock')
-            v-list-item-content
-                v-list-item-title Secure and encrypted
-        v-list-item
-            v-list-item-icon
-                app-svg(name='icon_color_lens')
-            v-list-item-content
-                v-list-item-title Stylish without effort
+    h2
+        | A new way to send newsletters<br>that are #[span secure] & #[span interactive]
 
     p(class='mt-6')
         v-btn(@click='done' light) Continue
@@ -54,33 +39,21 @@ export default class extends Vue {
 <style lang='sass' scoped>
 
 .logo
-    margin-top: 40px
-    margin-bottom: 40px
+    margin-top: 80px
     width: 300px
     height: 100px
 
+.gt
+    max-width: 150px
+    margin-top: 24px
+
 h2
-    margin-bottom: 10px
-    color: var(--accent_lighter)
+    margin: 80px 0
+    line-height: 1.5 !important
+    font-weight: 300
+    font-size: 30px
+    span
+        font-weight: bold
 
-h3
-    margin-bottom: 30px
-
-.v-list
-    display: inline-block // So can center whole list
-    width: 100%
-    max-width: 300px
-
-    .v-list-item
-        padding-left: 16px * 2
-        padding-right: 0
-
-    .v-list-item__icon svg
-        // Override default icon size (applied as inline style)
-        width: 32px !important
-        height: 32px !important
-
-    .v-list-item__title
-        white-space: normal  // Allow wrapping
 
 </style>

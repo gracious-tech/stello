@@ -5,6 +5,7 @@
 
 // Custom images
 export * as logo                    from '@/branding/logo.svg?raw-svg'
+export * as gt_logo                 from '@/branding/gt_logo.svg?raw-svg'
 export * as decor_compose           from '@/assets/decor/draft.svg?raw-svg'
 
 
