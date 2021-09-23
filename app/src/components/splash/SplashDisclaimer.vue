@@ -9,22 +9,34 @@ app-content(class='pa-6 app-bg-primary')
         app-svg(name='icon_compare_arrows')
         span Convenience
 
-    p(class='body-1 text-left mt-15') Stello is designed to send communication as securely as possible while still remaining easy and enjoyable to use. This is a balance and you must decide if Stello is the right choice for your situation, and use at your own risk.
-
-    app-btn(href='https://stello.news' color='' dark) More information
-
     v-alert(class='body-2 text-left app-bg-accent')
         template(#prepend)
             app-svg(name='icon_info' class='mr-3')
         | This is a beta/preview version. While ready to use, the coming official version will be even more reliable and secure if you prefer to wait for it.
 
-    div
-        p To use Stello you must agree to the #[app-a(href='https://stello.news/terms/') terms of use] and #[app-a(href='https://stello.news/privacy/') privacy policy]
-        v-checkbox(v-model='accept' label="I agree to the terms of use and privacy policy" dark
-            color='accent')
+    p(class='body-1 text-left mt-15') Stello is designed to send communication as securely as possible while still remaining easy and enjoyable to use. This is a balance and you must decide if Stello is the right choice for your situation, and use at your own risk.
 
-    p(class='text-center')
-        v-btn(@click='done' :disabled='!accept' light) Continue
+    div.policies
+        div
+            h3 Security &amp; Privacy
+            ul
+                li Data stays with you
+                li Messages &amp; replies are encrypted
+                li We don't benefit from your use
+            div(class='mt-4 mb-8')
+                app-btn(href='https://stello.news/privacy/' color='' dark outlined small) Full Privacy Policy
+
+        div
+            h3 Terms of use
+            ul
+                li Use at your own risk
+                li Security is not guaranteed
+                li Do not misuse
+            div(class='mt-4 mb-8')
+                app-btn(href='https://stello.news/terms/' color='' dark outlined small) Full Terms of use
+
+    p(class='text-center my-12')
+        v-btn(@click='done' light) I agree to both
 
 </template>
 
@@ -36,8 +48,6 @@ import {Component, Vue} from 'vue-property-decorator'
 
 @Component({})
 export default class extends Vue {
-
-    accept = false
 
     done(){
         this.$store.commit('dict_set', ['show_splash_disclaimer', false])
@@ -76,5 +86,10 @@ h2
 
     svg
         min-width: 24px
+
+.policies
+    display: flex
+    justify-content: space-around
+    margin-top: 48px
 
 </style>
