@@ -75,8 +75,8 @@ v-card
                 app-btn(@click='source = "mailchimp"' raised color='#ffe01b' light)
                     app-svg(name='icon_mailchimp' :fill='false' class='mr-3')
                     | Mailchimp
-                app-btn(@click='source = "email"' raised color='' light) Regular email
-                app-btn(@click='source = "other"' raised color='' dark) Other
+                app-btn(@click='source = "email"' raised color='accent') Regular email
+                app-btn(@click='source = "other"' raised color='primary') Other
 
             h1(class='text-h5') From a contacts list...
 
@@ -87,7 +87,7 @@ v-card
                 //- app-btn(@click='oauth_microsoft' raised color='' light)
                 //-     app-svg(name='icon_microsoft' class='mr-3')
                 //-     | Outlook
-                app-btn(@click='source = "other"' raised color='' dark) Other
+                app-btn(@click='source = "other"' raised color='primary') Other
 
 
         p(v-if='type && !contacts.length' class='text-subtitle-1 text-center error--text')
