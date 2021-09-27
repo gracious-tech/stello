@@ -15,6 +15,7 @@ node_modules/
 /electron/packaged/
 
 /host/template.yml
+/host/template_input.toml
 
 /displayer/.env.development.local
 /displayer/dist/

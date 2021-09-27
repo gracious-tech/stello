@@ -23,5 +23,11 @@ rules[0] = rules[0]!.replace('ExpirationInDays: 0', 'ExpirationInDays: 1')
 template = template.replace('MESSAGE_EXPIRY_RULES', rules.join('\n'))
 
 
+// Insert the current version
+const app_config = readFileSync('../electron/app_config.json', {encoding: 'utf-8'})
+const version = (JSON.parse(app_config) as {version:string}).version
+template = template.replace('INPUT_VERSION', `"${version}"`)
+
+
 // Save to actual template file
 writeFileSync('template.yml', template, {encoding: 'utf-8'})

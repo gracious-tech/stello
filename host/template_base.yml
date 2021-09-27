@@ -5,6 +5,7 @@ Transform: AWS::Serverless-2016-10-31
 Parameters:
     InputVersion:
         Type: String
+        Default: INPUT_VERSION
     InputRollbarResponder:
         Type: String
     InputDomains:
@@ -136,7 +137,9 @@ Resources:
             Events:
                 ApiEvent:
                     Type: HttpApi
-                    Properties: {}
+                    Properties:
+                        Method: POST
+                        Path: /responder
             Environment:
                 Variables:
                     stello_env: production  # Dev only used when serving responder by itself
@@ -177,7 +180,9 @@ Resources:
             Events:
                 ApiEvent:
                     Type: HttpApi
-                    Properties: {}
+                    Properties:
+                        Method: POST
+                        Path: /accounts
             Environment:
                 Variables:
                     stello_user_pool: !Ref AWS::StackName
@@ -185,7 +190,7 @@ Resources:
                 -   Version: '2012-10-17'
                     Statement:
                         -   Effect: Allow
-                            Resource: !Ref UserPool
+                            Resource: !GetAtt UserPool.Arn
                             Action:
                                 -   cognito-identity:AdminCreateUser
                                 -   cognito-identity:AdminSetUserPassword
@@ -204,11 +209,9 @@ Resources:
             Schema:
                 -   Name: custom:hashed_email
                     AttributeDataType: String
-                    Required: true
                     Mutable: true
                 -   Name: custom:ip
                     AttributeDataType: String
-                    Required: true
                     Mutable: false
                     DeveloperOnlyAttribute: true
             AccountRecoverySetting:
@@ -223,8 +226,11 @@ Resources:
             UserPoolId: !Ref UserPool
             GenerateSecret: false  # Can't keep secret in desktop clients
             EnableTokenRevocation: true
-            AccessTokenValidity: 86400  # max (1 day in seconds)
-            RefreshTokenValidity: 315360000  # max (10 years in seconds)
+            TokenValidityUnits:
+                AccessToken: days
+                RefreshToken: days
+            AccessTokenValidity: 1  # max
+            RefreshTokenValidity: 3650  # max (10 years)
 
     IdentityPool:
         Type: AWS::Cognito::IdentityPool
