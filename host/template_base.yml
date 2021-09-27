@@ -209,10 +209,12 @@ Resources:
             Schema:
                 -   Name: custom:hashed_email
                     AttributeDataType: String
-                    Mutable: true
                 -   Name: custom:ip
                     AttributeDataType: String
                     Mutable: false
+                    DeveloperOnlyAttribute: true
+                -   Name: custom:plan
+                    AttributeDataType: String
                     DeveloperOnlyAttribute: true
             AccountRecoverySetting:
                 RecoveryMechanisms:
