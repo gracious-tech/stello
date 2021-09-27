@@ -1,0 +1,317 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+    InputVersion:
+        Type: String
+    InputRollbarResponder:
+        Type: String
+    InputDomains:
+        Type: List<String>
+    InputCertArn:
+        Type: String
+    InputSesArn:
+        Type: String
+
+Resources:
+
+    # BUCKETS
+
+    DisplayerBucket:
+        # Displayer bucket holds displayer code and nothing more
+        # SECURITY Users must never have write access to this bucket (not even their own prefix)
+        #   Since Cloudfront serves from this bucket, all user subdomains serve any uploads
+        #   e.g. a user could upload malicious html that extracts secrets from indexedb
+        #       They then get ppl to click a link to the html file but with another users' subdomain
+        #   So users must use a separate bucket for messages (unlike when self-hosting)
+        Type: AWS::S3::Bucket
+        Properties:
+            BucketName: !Join ['', [!Ref AWS::StackName, -displayer]]
+            BucketEncryption:
+                ServerSideEncryptionConfiguration:
+                    -   ServerSideEncryptionByDefault:
+                            SSEAlgorithm: AES256
+
+    DisplayerBucketPolicy:
+        # Anyone can read objects in displayer bucket, no one can write
+        Type: AWS::S3::BucketPolicy
+        Properties:
+            Bucket: !Ref DisplayerBucket
+            PolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                    Effect: 'Allow'
+                    Principal: '*'
+                    Action: 's3:GetObject'
+                    Resource: !Join ['', [!Ref DisplayerBucket, '/*']]
+
+    MessagesBucket:
+        # Messages bucket holds encrypted messages and supports expiring tagged objects
+        Type: AWS::S3::Bucket
+        Properties:
+            BucketName: !Join ['', [!Ref AWS::StackName, -messages]]
+            BucketEncryption:
+                ServerSideEncryptionConfiguration:
+                    -   ServerSideEncryptionByDefault:
+                            SSEAlgorithm: AES256
+            LifecycleConfiguration:
+                Rules: [
+                    # Ensure max 2 year expiry can't be avoided by not including a lifespan tag
+                    {Status: Enabled, Prefix: messages/, ExpirationInDays: 731},
+                    MESSAGE_EXPIRY_RULES
+                ]
+
+    MessagesBucketPolicy:
+        # Anyone can read objects in messages bucket (user role allows writing to own prefix)
+        Type: AWS::S3::BucketPolicy
+        Properties:
+            Bucket: !Ref MessagesBucket
+            PolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                    Effect: 'Allow'
+                    Principal: '*'
+                    Action: 's3:GetObject'
+                    Resource: !Join ['', [!Ref MessagesBucket, '/*']]
+
+    ResponsesBucket:
+        # Responses bucket holds private encrypted responses (user role allows reading own prefix)
+        Type: AWS::S3::Bucket
+        Properties:
+            BucketName: !Join ['', [!Ref AWS::StackName, -responses]]
+            BucketEncryption:
+                ServerSideEncryptionConfiguration:
+                    -   ServerSideEncryptionByDefault:
+                            SSEAlgorithm: AES256
+            LifecycleConfiguration:
+                Rules:
+                    -   Status: Enabled
+                        Prefix: responses/
+                        ExpirationInDays: 365  # Ensure unreceived responses eventually cleaned up
+
+            PublicAccessBlockConfiguration:
+                # Not necessary, but just in case...
+                BlockPublicAcls: true
+                BlockPublicPolicy: true
+                IgnorePublicAcls: true
+                RestrictPublicBuckets: true
+
+    # CLOUDFRONT
+
+    DisplayerCloudfront:
+        Type: AWS::CloudFront::Distribution
+        Properties:
+            DistributionConfig:
+                Enabled: true
+                HttpVersion: http2  # Requires TLS 1.2
+                Aliases: !Ref InputDomains
+                DefaultRootObject: index.html
+                ViewerCertificate:
+                    AcmCertificateArn: !Ref InputCertArn
+                    SslSupportMethod: sni-only
+                    MinimumProtocolVersion: TLSv1.2_2021  # Drops insecure ciphers (still compat.)
+                Origins:
+                    -   Id: primary
+                        DomainName: !GetAtt DisplayerBucket.RegionalDomainName
+                        CustomOriginConfig:
+                            OriginProtocolPolicy: https-only
+                            OriginSSLProtocols: [TLSv1.2]  # Only needs supporting by S3
+                DefaultCacheBehavior:
+                    TargetOriginId: primary
+                    ViewerProtocolPolicy: https-only
+                    CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6  # CachingOptimized
+
+    # FUNCTIONS
+
+    ResponderFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            FunctionName: !Join ['', [!Ref AWS::StackName, -responder]]
+            Runtime: python3.9
+            Handler: responder.entry
+            Timeout: 5
+            MemorySize: 128
+            CodeUri: responder/
+            Events:
+                ApiEvent:
+                    Type: HttpApi
+                    Properties: {}
+            Environment:
+                Variables:
+                    stello_env: production  # Dev only used when serving responder by itself
+                    stello_version: !Ref InputVersion
+                    stello_msgs_bucket: !Join ['', [!Ref AWS::StackName, -messages]]
+                    stello_resp_bucket: !Join ['', [!Ref AWS::StackName, -responses]]
+                    stello_topic_arn: ''  # Will use SES
+                    stello_region: !Ref AWS::Region
+                    stello_rollbar_responder: !Ref InputRollbarResponder
+            Policies:
+                -   Version: '2012-10-17'
+                    Statement:
+                        # Allow getting/modifying tags and deleting objects (for applying max reads)
+                        -   Effect: Allow
+                            Resource: !Join ['', [!Ref MessagesBucket, '/*']]
+                            Action: ['s3:GetObjectTagging', 's3:PutObjectTagging', 's3:DeleteObject']
+                        # Count responses, get config, and put responses
+                        -   Effect: Allow
+                            Resource: !Ref ResponsesBucket
+                            Action: ['s3:ListBucket']
+                        -   Effect: Allow
+                            Resource: !Join ['', [!Ref ResponsesBucket, '/*']]
+                            Action: ['s3:GetObject', 's3:PutObject']
+                        # Send emails
+                        -   Effect: Allow
+                            Resource: !Ref InputSesArn
+                            Action: ['ses:SendEmail']
+
+    AccountsFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            FunctionName: !Join ['', [!Ref AWS::StackName, -accounts]]
+            Runtime: nodejs14.x
+            Handler: index.handler
+            Timeout: 5
+            MemorySize: 128
+            CodeUri: accounts/
+            Events:
+                ApiEvent:
+                    Type: HttpApi
+                    Properties: {}
+            Environment:
+                Variables:
+                    stello_user_pool: !Ref AWS::StackName
+            Policies:
+                -   Version: '2012-10-17'
+                    Statement:
+                        -   Effect: Allow
+                            Resource: !Ref UserPool
+                            Action:
+                                -   cognito-identity:AdminCreateUser
+                                -   cognito-identity:AdminSetUserPassword
+
+    # COGNITO
+
+    UserPool:
+        Type: AWS::Cognito::UserPool
+        Properties:
+            UserPoolName: !Ref AWS::StackName
+            MfaConfiguration: 'OFF'
+            AdminCreateUserConfig:
+                AllowAdminCreateUserOnly: true
+            UsernameConfiguration:
+                CaseSensitive: false  # Will be used as a subdomain which isn't case-sensitive
+            Schema:
+                -   Name: custom:hashed_email
+                    AttributeDataType: String
+                    Required: true
+                    Mutable: true
+                -   Name: custom:ip
+                    AttributeDataType: String
+                    Required: true
+                    Mutable: false
+                    DeveloperOnlyAttribute: true
+            AccountRecoverySetting:
+                RecoveryMechanisms:
+                    -   Name: admin_only
+                        Priority: 1
+
+    UserPoolClient:
+        Type: AWS::Cognito::UserPoolClient
+        Properties:
+            ClientName: stello
+            UserPoolId: !Ref UserPool
+            GenerateSecret: false  # Can't keep secret in desktop clients
+            EnableTokenRevocation: true
+            AccessTokenValidity: 86400  # max (1 day in seconds)
+            RefreshTokenValidity: 315360000  # max (10 years in seconds)
+
+    IdentityPool:
+        Type: AWS::Cognito::IdentityPool
+        Properties:
+            IdentityPoolName: !Ref AWS::StackName
+            AllowUnauthenticatedIdentities: false
+            CognitoIdentityProviders:
+                -   ClientId: !Ref UserPoolClient
+                    ProviderName: !GetAtt UserPool.ProviderName
+                    ServerSideTokenCheck: true  # Check user not e.g. deleted before granting access
+
+    IdentityPoolRoleAttachment:
+        Type: AWS::Cognito::IdentityPoolRoleAttachment
+        Properties:
+            IdentityPoolId: !Ref IdentityPool
+            Roles:
+                authenticated: !GetAtt IdentityPoolRole.Arn
+
+    IdentityPoolRole:
+        Type: AWS::IAM::Role
+        Properties:
+            RoleName: !Join ['', [!Ref AWS::StackName, -user]]
+            AssumeRolePolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                    -   Effect: Allow
+                        Principal:
+                            Federated: cognito-identity.amazonaws.com
+                        Action: sts:AssumeRoleWithWebIdentity
+                        Condition:
+                            StringEquals:
+                                cognito-identity.amazonaws.com:aud: !Ref IdentityPool
+                            ForAnyValue:StringLike:
+                                cognito-identity.amazonaws.com:amr: authenticated
+            Policies:
+                -   PolicyName: main
+                    PolicyDocument:
+                        Version: '2012-10-17'
+                        Statement:
+                            # SECURITY Every permission granted must be for own prefix/resource only
+
+                            # List own messages
+                            -   Effect: Allow
+                                Resource: !Ref MessagesBucket
+                                Action: ['s3:ListBucket']
+                                Condition:
+                                    StringLike:
+                                        s3:prefix: 'messages/${aws:PrincipalTag/username}/*'
+
+                            # Put/delete own messages
+                            -   Effect: Allow
+                                Resource: !Join ['/', [!Ref MessagesBucket,
+                                    'messages/${aws:PrincipalTag/username}/*']]
+                                Action: ['s3:PutObject', 's3:PutObjectTagging', 's3:DeleteObject']
+                                # SECURITY tags could be used for other reasons in an AWS account
+                                #      So must ensure user can only set stello- tags
+                                # NOTE Tags can be set via PutObject (not just PutObjectTagging)
+                                # NOTE ForAllValues:StringLike means for every value in
+                                #      s3:RequestObjectTagKeys, ensure it is included in given array
+                                #      See https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_multi-value-conditions.html
+                                Condition:
+                                    ForAllValues:StringLike:
+                                        s3:RequestObjectTagKeys: ['stello-lifespan', 'stello-reads',
+                                            'stello-max-reads']
+
+                            # Put own displayer config (config prefix not subject to expiry)
+                            -   Effect: Allow
+                                Resource: !Join ['/', [!Ref MessagesBucket,
+                                    'config/${aws:PrincipalTag/username}/config']]
+                                Action: ['s3:PutObject']
+
+                            # List own responses
+                            -   Effect: Allow
+                                Resource: !Ref ResponsesBucket
+                                Action: ['s3:ListBucket']
+                                Condition:
+                                    StringLike:
+                                        s3:prefix: 'responses/${aws:PrincipalTag/username}/*'
+
+                            # Get/delete own responses
+                            -   Effect: Allow
+                                Resource: !Join ['/', [!Ref ResponsesBucket,
+                                    'responses/${aws:PrincipalTag/username}/*']]
+                                Action: ['s3:GetObject', 's3:DeleteObject']
+
+                            # Put own responder config (config prefix not subject to expiry)
+                            -   Effect: Allow
+                                Resource: !Join ['/', [!Ref ResponsesBucket,
+                                    'config/${aws:PrincipalTag/username}/config']]
+                                Action: ['s3:PutObject']

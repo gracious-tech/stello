@@ -14,6 +14,8 @@ node_modules/
 /electron/dist/
 /electron/packaged/
 
+/host/template.yml
+
 /displayer/.env.development.local
 /displayer/dist/
 /displayer/public/dev/
