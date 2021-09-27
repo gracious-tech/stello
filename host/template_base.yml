@@ -9,7 +9,7 @@ Parameters:
     InputRollbarResponder:
         Type: String
     InputDomains:
-        Type: List<String>
+        Type: CommaDelimitedList
     InputCertArn:
         Type: String
     InputSesArn:
@@ -45,7 +45,7 @@ Resources:
                     Effect: 'Allow'
                     Principal: '*'
                     Action: 's3:GetObject'
-                    Resource: !Join ['', [!Ref DisplayerBucket, '/*']]
+                    Resource: !Join ['', [!GetAtt DisplayerBucket.Arn, '/*']]
 
     MessagesBucket:
         # Messages bucket holds encrypted messages and supports expiring tagged objects
@@ -74,7 +74,7 @@ Resources:
                     Effect: 'Allow'
                     Principal: '*'
                     Action: 's3:GetObject'
-                    Resource: !Join ['', [!Ref MessagesBucket, '/*']]
+                    Resource: !Join ['', [!GetAtt MessagesBucket.Arn, '/*']]
 
     ResponsesBucket:
         # Responses bucket holds private encrypted responses (user role allows reading own prefix)
@@ -154,14 +154,14 @@ Resources:
                     Statement:
                         # Allow getting/modifying tags and deleting objects (for applying max reads)
                         -   Effect: Allow
-                            Resource: !Join ['', [!Ref MessagesBucket, '/*']]
+                            Resource: !Join ['', [!GetAtt MessagesBucket.Arn, '/*']]
                             Action: ['s3:GetObjectTagging', 's3:PutObjectTagging', 's3:DeleteObject']
                         # Count responses, get config, and put responses
                         -   Effect: Allow
-                            Resource: !Ref ResponsesBucket
+                            Resource: !GetAtt ResponsesBucket.Arn
                             Action: ['s3:ListBucket']
                         -   Effect: Allow
-                            Resource: !Join ['', [!Ref ResponsesBucket, '/*']]
+                            Resource: !Join ['', [!GetAtt ResponsesBucket.Arn, '/*']]
                             Action: ['s3:GetObject', 's3:PutObject']
                         # Send emails
                         -   Effect: Allow
@@ -274,7 +274,7 @@ Resources:
 
                             # List own messages
                             -   Effect: Allow
-                                Resource: !Ref MessagesBucket
+                                Resource: !GetAtt MessagesBucket.Arn
                                 Action: ['s3:ListBucket']
                                 Condition:
                                     StringLike:
@@ -282,7 +282,7 @@ Resources:
 
                             # Put/delete own messages
                             -   Effect: Allow
-                                Resource: !Join ['/', [!Ref MessagesBucket,
+                                Resource: !Join ['/', [!GetAtt MessagesBucket.Arn,
                                     'messages/${aws:PrincipalTag/username}/*']]
                                 Action: ['s3:PutObject', 's3:PutObjectTagging', 's3:DeleteObject']
                                 # SECURITY tags could be used for other reasons in an AWS account
@@ -298,13 +298,13 @@ Resources:
 
                             # Put own displayer config (config prefix not subject to expiry)
                             -   Effect: Allow
-                                Resource: !Join ['/', [!Ref MessagesBucket,
+                                Resource: !Join ['/', [!GetAtt MessagesBucket.Arn,
                                     'config/${aws:PrincipalTag/username}/config']]
                                 Action: ['s3:PutObject']
 
                             # List own responses
                             -   Effect: Allow
-                                Resource: !Ref ResponsesBucket
+                                Resource: !GetAtt ResponsesBucket.Arn
                                 Action: ['s3:ListBucket']
                                 Condition:
                                     StringLike:
@@ -312,12 +312,12 @@ Resources:
 
                             # Get/delete own responses
                             -   Effect: Allow
-                                Resource: !Join ['/', [!Ref ResponsesBucket,
+                                Resource: !Join ['/', [!GetAtt ResponsesBucket.Arn,
                                     'responses/${aws:PrincipalTag/username}/*']]
                                 Action: ['s3:GetObject', 's3:DeleteObject']
 
                             # Put own responder config (config prefix not subject to expiry)
                             -   Effect: Allow
-                                Resource: !Join ['/', [!Ref ResponsesBucket,
+                                Resource: !Join ['/', [!GetAtt ResponsesBucket.Arn,
                                     'config/${aws:PrincipalTag/username}/config']]
                                 Action: ['s3:PutObject']
