@@ -148,7 +148,7 @@ export class DisplayerStore {
             secret,
             title,
             published,
-            resp_token: buffer_to_url64(await generate_hash(await export_key(secret))),
+            resp_token: buffer_to_url64(await generate_hash(await export_key(secret), 0)),
         }
         // Reset page title when changing message
         self.document.title = title || "Message Viewer"

@@ -212,7 +212,7 @@ export class Database {
             // NOTE Response token always kept in url64 so quicker for comparison
             // SECURITY No salt necessary since secret is random and one-time use
             const secret = await generate_key_sym(true)
-            const resp_token = buffer_to_url64(await generate_hash(await export_key(secret)))
+            const resp_token = buffer_to_url64(await generate_hash(await export_key(secret), 0))
 
             // Generate server-side encryption secret
             // SECURITY This secret is exposed to server, so NOT for end-to-end encryption

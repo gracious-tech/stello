@@ -1,4 +1,5 @@
 
+import {join_buffers} from './buffers'
 import {buffer_to_url64, url64_to_buffer} from './coding'
 
 
@@ -76,13 +77,8 @@ export async function encrypt_sym(data:ArrayBuffer, key:CryptoKey):Promise<Array
     const algorithm = {name: 'AES-GCM', tagLength: SYM_TAG_BITS, iv}
     const encrypted = await crypto.subtle.encrypt(algorithm, key, data) as ArrayBuffer
 
-    // Create a new buffer with iv prepended (ArrayBuffers are fixed length so must copy)
-    const iv_encrypted = new Uint8Array(SYM_IV_BYTES + encrypted.byteLength)
-    iv_encrypted.set(iv)
-    iv_encrypted.set(new Uint8Array(encrypted), SYM_IV_BYTES)
-
-    // Return the buffer of the result
-    return iv_encrypted.buffer
+    // Return encrypted buffer with iv prepended
+    return join_buffers([iv, encrypted])
 }
 
 
@@ -123,7 +119,7 @@ export async function decrypt_sym(buffer:ArrayBuffer, key:CryptoKey):Promise<Arr
     // Decrypt
     const algorithm = {name: 'AES-GCM', tagLength: SYM_TAG_BITS, iv}
     try {
-        return await crypto.subtle.decrypt(algorithm, key, encrypted)
+        return await crypto.subtle.decrypt(algorithm, key, encrypted) as ArrayBuffer
     } catch (error){
         throw error instanceof DOMException ? new Error(`${error.name}: Failed to decrypt`) : error
     }
@@ -134,7 +130,7 @@ export async function decrypt_asym_primitive(buffer:ArrayBuffer, key:CryptoKey)
         :Promise<ArrayBuffer>{
     // Do primitive asymmetric decryption of given buffer
     try {
-        return await crypto.subtle.decrypt({name: 'RSA-OAEP'}, key, buffer)
+        return await crypto.subtle.decrypt({name: 'RSA-OAEP'}, key, buffer) as ArrayBuffer
     } catch (error){
         throw error instanceof DOMException ? new Error(`${error.name}: Failed to decrypt`) : error
     }
@@ -145,7 +141,8 @@ export async function decrypt_asym(json:string, asym_key:CryptoKey):Promise<Arra
     // Do asymmetric decryption with internal symmetric decryption
 
     // Parse json input
-    const {encrypted_data, encrypted_key} = JSON.parse(json)
+    const {encrypted_data, encrypted_key} =
+        JSON.parse(json) as {encrypted_data:string, encrypted_key:string}
 
     // Decode and decrypt symmetric key
     const sym_key = await import_key_sym(
@@ -159,17 +156,23 @@ export async function decrypt_asym(json:string, asym_key:CryptoKey):Promise<Arra
 // OTHER
 
 
+export function random_buffer(bytes:number):ArrayBuffer{
+    // Generate a buffer filled with random bits
+    return crypto.getRandomValues(new Uint8Array(bytes)).buffer
+}
+
+
 export function generate_token(bytes=15):string{
     // Return a random string that is url safe (can be used for authentication or uuid etc)
     // NOTE Standard UUIDs are 15.25 bytes random + 0.75 version info (16 in total)
     // NOTE Returned string will be bytes/3*4 in length (multiples of 3 best for base64)
-    const bytes_array = new Uint8Array(bytes)
-    crypto.getRandomValues(bytes_array)
-    return buffer_to_url64(bytes_array.buffer)
+    return buffer_to_url64(random_buffer(bytes))
 }
 
 
-export function generate_hash(buffer:ArrayBuffer):Promise<ArrayBuffer>{
-    // Generate a hash of provided data
-    return crypto.subtle.digest('SHA-256', buffer)
+export async function generate_hash(buffer:ArrayBuffer, salt_bytes=16):Promise<ArrayBuffer>{
+    // Generate a hash of provided data (salt is prepended to hash input & to the result)
+    const salt = random_buffer(salt_bytes)
+    const digest = await crypto.subtle.digest('SHA-256', join_buffers([salt, buffer]))
+    return join_buffers([salt, digest])
 }
