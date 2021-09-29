@@ -207,13 +207,13 @@ Resources:
             UsernameConfiguration:
                 CaseSensitive: false  # Will be used as a subdomain which isn't case-sensitive
             Schema:
-                -   Name: custom:hashed_email
+                -   Name: hashed_email
                     AttributeDataType: String
-                -   Name: custom:ip
+                -   Name: ip
                     AttributeDataType: String
                     Mutable: false
                     DeveloperOnlyAttribute: true
-                -   Name: custom:plan
+                -   Name: plan
                     AttributeDataType: String
                     DeveloperOnlyAttribute: true
             AccountRecoverySetting:
