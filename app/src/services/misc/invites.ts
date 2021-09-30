@@ -16,7 +16,7 @@ export const INVITE_HTML_IMAGE_STYLES =
     + `max-height: ${INVITE_HTML_MAX_WIDTH / 3}px; background-color: #ddeeff`
 
 
-export function render_invite_html(contents:string, title:string, url:string, image:string,
+export function render_invite_html(contents:string, url:string, image:string,
         reply:boolean, encrypted_address?:string):string{
     // Render a HTML invite template with the provided contents
     // NOTE Header image must be wrapped in <a> to prevent gmail showing download button for it
@@ -49,7 +49,7 @@ export function render_invite_html(contents:string, title:string, url:string, im
                 <div style='padding: 24px;'>
                     ${contents}
                 </div>
-                ${render_invite_html_action(title, url, reply)}
+                ${render_invite_html_action(url, reply)}
             </div>
             ${subscription_links}
         </body>
@@ -58,15 +58,13 @@ export function render_invite_html(contents:string, title:string, url:string, im
 }
 
 
-export function render_invite_html_action(title:string, url:string, reply:boolean):string{
+export function render_invite_html_action(url:string, reply:boolean):string{
     // Return html for the action footer of a html invite
     return `
         <hr style='margin: 0; border-style: solid; border-color: #cccccc; border-width: 1px 0 0 0;'>
 
         <div style='padding: 12px; border-radius: 0 0 12px 12px; text-align: center;
                 background-color: #ddeeff; color: #000000; font-family: Roboto, sans-serif;'>
-
-            <h3 style='font-size: 1.2em;'>${html_escape(title)}</h3>
 
             <p style='margin: 36px 0;'>
                 <a href='${html_escape(url)}' style='background-color: #224477; color: #ffffff;

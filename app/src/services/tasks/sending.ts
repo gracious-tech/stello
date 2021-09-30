@@ -355,8 +355,8 @@ export class Sender {
             from: {name: this.sender_name, address: this.profile.email},
             reply_to: this.profile.smtp_reply_to,
             subject: this.msg.draft.title,
-            html: render_invite_html(contents, this.msg.draft.title, url, image,
-                !!this.msg.draft.reply_to, encrypted_address),
+            html: render_invite_html(contents, url, image, !!this.msg.draft.reply_to,
+                encrypted_address),
         })
 
         // Update copy

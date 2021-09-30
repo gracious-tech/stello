@@ -55,8 +55,7 @@ export default class extends Vue {
 
     get action_html(){
         // Get the html needed to render the action footer
-        const title = this.draft?.title || "Example Message Subject"
-        return render_invite_html_action(title, "", this.reply)
+        return render_invite_html_action("", this.reply)
     }
 }
 
