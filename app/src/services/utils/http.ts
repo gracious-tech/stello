@@ -116,7 +116,8 @@ export async function request(input:string|Request, init?:JsonRequestInit,
         delete init.json
         delete init.compress
         resp = await fetch(input, init)
-    } catch {
+    } catch (error){
+        console.warn(error)  // Log error as can rarely fail for bad args and not just network fail
         throw new MustReconnect(url)
     }
 
