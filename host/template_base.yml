@@ -254,6 +254,7 @@ Resources:
                     RequireUppercase: false
                     RequireNumbers: false
                     RequireSymbols: false
+                    MinimumLength: 32  # Length of a uuid4
 
     UserPoolClient:
         Type: AWS::Cognito::UserPoolClient
