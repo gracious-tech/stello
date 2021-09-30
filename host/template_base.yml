@@ -247,6 +247,13 @@ Resources:
                 RecoveryMechanisms:
                     -   Name: admin_only
                         Priority: 1
+            Policies:
+                PasswordPolicy:
+                    # Don't require char groups as a random password may not fulfill one or more
+                    RequireLowercase: false
+                    RequireUppercase: false
+                    RequireNumbers: false
+                    RequireSymbols: false
 
     UserPoolClient:
         Type: AWS::Cognito::UserPoolClient
