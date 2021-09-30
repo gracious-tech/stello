@@ -3,13 +3,19 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
 Parameters:
+    InputEnv:
+        Type: String
     InputVersion:
         Type: String
         Default: INPUT_VERSION
     InputRollbarResponder:
         Type: String
-    InputDomains:
-        Type: CommaDelimitedList
+    InputRollbarAccounts:
+        Type: String
+    InputDomainPrimary:  # The domain used for CF _and_ API requests etc
+        Type: String
+    InputDomainSecondary:  # An alternate domain usable for CF
+        Type: String
     InputCertArn:
         Type: String
     InputSesArn:
@@ -51,7 +57,7 @@ Resources:
         # Messages bucket holds encrypted messages and supports expiring tagged objects
         Type: AWS::S3::Bucket
         Properties:
-            BucketName: !Join ['', [!Ref AWS::StackName, -messages]]
+            BucketName: !Ref AWS::StackName
             BucketEncryption:
                 ServerSideEncryptionConfiguration:
                     -   ServerSideEncryptionByDefault:
@@ -106,7 +112,9 @@ Resources:
             DistributionConfig:
                 Enabled: true
                 HttpVersion: http2  # Requires TLS 1.2
-                Aliases: !Ref InputDomains
+                Aliases:
+                    -   !Join ['', ['*.', !Ref InputDomainPrimary]]
+                    -   !Join ['', ['*.', !Ref InputDomainSecondary]]
                 DefaultRootObject: index.html
                 ViewerCertificate:
                     AcmCertificateArn: !Ref InputCertArn
@@ -125,6 +133,18 @@ Resources:
 
     # FUNCTIONS
 
+    Gateway:
+        Type: AWS::Serverless::HttpApi
+        Properties:
+            DisableExecuteApiEndpoint: true
+
+    GatewayDomainMap:
+        Type: AWS::ApiGatewayV2::ApiMapping
+        Properties:
+            ApiId: !Ref Gateway
+            DomainName: !Join ['', ['api.', !Ref InputDomainPrimary]]
+            Stage: !Ref Gateway.Stage
+
     ResponderFunction:
         Type: AWS::Serverless::Function
         Properties:
@@ -138,11 +158,12 @@ Resources:
                 ApiEvent:
                     Type: HttpApi
                     Properties:
+                        ApiId: !Ref Gateway  # Legit property, despite linter error
                         Method: POST
                         Path: /responder
             Environment:
                 Variables:
-                    stello_env: production  # Dev only used when serving responder by itself
+                    stello_env: !Ref InputEnv
                     stello_version: !Ref InputVersion
                     stello_msgs_bucket: !Join ['', [!Ref AWS::StackName, -messages]]
                     stello_resp_bucket: !Join ['', [!Ref AWS::StackName, -responses]]
@@ -185,6 +206,10 @@ Resources:
                         Path: /accounts
             Environment:
                 Variables:
+                    stello_env: !Ref InputEnv
+                    stello_version: !Ref InputVersion
+                    stello_region: !Ref AWS::Region
+                    stello_rollbar: !Ref InputRollbarAccounts
                     stello_user_pool: !Ref AWS::StackName
             Policies:
                 -   Version: '2012-10-17'
@@ -192,6 +217,7 @@ Resources:
                         -   Effect: Allow
                             Resource: !GetAtt UserPool.Arn
                             Action:
+                                -   cognito-identity:AdminGetUser
                                 -   cognito-identity:AdminCreateUser
                                 -   cognito-identity:AdminSetUserPassword
 
