@@ -217,9 +217,10 @@ Resources:
                         -   Effect: Allow
                             Resource: !GetAtt UserPool.Arn
                             Action:
-                                -   cognito-identity:AdminGetUser
-                                -   cognito-identity:AdminCreateUser
-                                -   cognito-identity:AdminSetUserPassword
+                                -   cognito-idp:ListUsers
+                                -   cognito-idp:AdminGetUser
+                                -   cognito-idp:AdminCreateUser
+                                -   cognito-idp:AdminSetUserPassword
 
     # COGNITO
 
