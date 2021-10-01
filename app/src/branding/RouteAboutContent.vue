@@ -2,17 +2,22 @@
 <template lang='pug'>
 
 div
-    p This app is a free gift from <app-a href='https://gracious.tech'>Gracious Tech</app-a>. We create apps that are:
+    p This app is a free gift from <app-a href='https://gracious.tech'>Gracious Tech</app-a>. We create Christian apps that are:
     ul(class='mb-3')
         li Mission-focused
         li High quality
         li Secure
         li Free
-    p As such, this app is completely non-profit with no ads, no tracking, and nothing else that would benefit us. This app is for your benefit alone. You can see this for yourself as <app-a href='https://github.com/gracious-tech/stello'>the code is publicly available</app-a>.
-    p We hope this app helps you to communicate well with the supporters of your ministry.
-    p
-        app-btn(href='https://stello.news')
+    p As such, this app is completely non-profit with no ads, no tracking, and nothing else that would benefit us. This app is for your benefit alone. You can see this for yourself as <app-a href='https://github.com/gracious-tech/stello'>the code is publicly available</app-a>. We hope you find it useful.
+    p(class='row justify-space-around mt-6')
+        app-btn(href='https://stello.news' small)
             | Website
+            app-svg(name='icon_open_in_new' class='pl-1')
+        app-btn(href='https://stello.news/terms/' small)
+            | Terms of use
+            app-svg(name='icon_open_in_new' class='pl-1')
+        app-btn(href='https://stello.news/privacy/' small)
+            | Security &amp; Privacy
             app-svg(name='icon_open_in_new' class='pl-1')
 
 </template>
