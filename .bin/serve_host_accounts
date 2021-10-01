@@ -1,0 +1,20 @@
+#!/bin/bash
+# Serve accounts lambda in dev mode
+set -e
+cd "$(dirname "$(dirname "$0")")"
+
+
+# Executing lambda locally requires credentials for a user with same permissions as lambda role
+# NOTE Can't set in .dev_env.json as sam will override them if in there
+cd host
+source accounts/.dev_env_key
+
+
+# Must build beforehand so that requirements are available
+../.bin/build_host_accounts
+
+
+# Serve lambda locally
+# NOTE sudo required to run docker
+# NOTE Will also serve responder, but doesn't seem to be way of serving only one lambda with sep env
+sudo --preserve-env="AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY" ../.venv/bin/sam local start-api --port 8005 --env-vars accounts/.dev_env.json
