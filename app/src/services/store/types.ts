@@ -12,7 +12,7 @@ export interface AppStoreState {
     default_profile:string|null
     default_template:string|null
     manager_aws_key_id:string
-    manager_aws_max_lifespan:number
+    manager_aws_max_lifespan:number  // Added after 0.8.3
 
     // Private state
     usage_installed:Date|null
