@@ -13,7 +13,7 @@ function _decode_config():DeploymentConfig{
         b64_json_config = btoa(JSON.stringify({
             url_msgs: '/dev/',  // Will point at public dev assets that are never deployed
             url_msgs_append_subdomain: false,
-            url_responder: 'http://localhost:3050/',
+            url_responder: 'http://localhost:8004/',
         } as DeploymentConfig))
     }
     return JSON.parse(atob(b64_json_config))
