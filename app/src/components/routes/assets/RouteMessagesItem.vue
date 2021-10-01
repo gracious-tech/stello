@@ -8,7 +8,8 @@ v-list-item(:to='to')
     div.right(class='text-right')
         div(:title='published_exact' class='text--secondary')
             | {{ published_relative }}
-        div.expires(v-if='expires' class='mt-1') {{ expires }}
+        div.expires(v-if='expires_relative' :title='expires_exact' class='mt-1')
+            | {{ expires_relative }}
     v-list-item-action
         app-menu-more
             app-list-item(@click='copy') Copy to new draft
@@ -32,8 +33,8 @@ import {time_between} from '@/services/misc'
 @Component({})
 export default class extends Vue {
 
-    @Prop() msg:Message
-    @Prop() recipients:string
+    @Prop({required: true}) msg!:Message
+    @Prop({default: ''}) recipients!:string
 
     get to(){
         return {name: 'message', params: {msg_id: this.msg.id}}
@@ -57,19 +58,27 @@ export default class extends Vue {
         return "Retract (confirm expired)"
     }
 
-    get expires():string{
+    get expires_relative():string|null{
         // A useful description of the msg's expiry time
         if (this.msg.probably_expired){
             return "Expired"
         } else if (this.msg.expires){
-            return `Expires in ${this.msg.safe_lifespan_remaining} days`
+            return `Expires ${time_between(this.msg.expires)}`
         }
         return null
     }
 
+    get expires_exact():string{
+        // Get human fiendly exact expires date string
+        if (!this.msg.probably_expired && this.msg.expires){
+            return this.msg.expires.toLocaleDateString()
+        }
+        return ''
+    }
+
     async copy(){
         const copy = await self.app_db.draft_copy(new Draft(this.msg.draft), false)
-        this.$router.push({name: 'draft', params: {draft_id: copy.id}})
+        void this.$router.push({name: 'draft', params: {draft_id: copy.id}})
     }
 
     async can_access_profile():Promise<boolean>{
@@ -82,7 +91,7 @@ export default class extends Vue {
 
         // Can't retract if can't access profile
         if (! await this.can_access_profile()){
-            this.$store.dispatch('show_snackbar',
+            void this.$store.dispatch('show_snackbar',
                 "Cannot retract message as no longer have access to the sending account")
             return
         }
@@ -137,9 +146,9 @@ export default class extends Vue {
         // Either retract+delete or just delete
         if (can_access_profile){
             // NOTE Parent component responsible for detecting task completion
-            this.$tm.start('retract_message', [this.msg.id], [true])
+            void this.$tm.start('retract_message', [this.msg.id], [true])
         } else {
-            self.app_db.messages.remove(this.msg.id)
+            void self.app_db.messages.remove(this.msg.id)
             this.$emit('remove', this.msg.id)
         }
     }
