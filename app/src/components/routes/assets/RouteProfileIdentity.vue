@@ -4,6 +4,10 @@
 div
     app-text(v-model='sender_name' label="Name"
         hint="Name displayed in messages, notifications, and emails")
+
+    slot
+        //- Steps component inserts username field here
+
     h2(class='text-subtitle-2 mb-0 mt-8') Emailed invitation
     app-invite-html(v-model='invite_tmpl_email' :image='invite_image' :profile='profile'
         @change_image='change_image')
