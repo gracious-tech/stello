@@ -7,12 +7,13 @@ div
         v-toolbar-title Storage Manager
 
     app-content(class='pa-5')
-        p(class='error--text') This is an advanced feature, and mistakes may result in loss of data or security breaches.
-        p If you have root access to your storage account then you are able to share your storage with other users. If other users have high security needs, it is recommended they create their own accounts, unless you have a good knowledge of information security yourself.
+        p(class='error--text') This is an advanced feature, and mistakes may result in loss of data or security breaches. It is also in alpha and not recommended for anything but testing.
+        p This tool allows you to host your own storage for Stello messages. You can also create storages for sharing with other users who do not have their own cloud account.
 
         v-btn-toggle.host(v-model='cloud' color='accent' mandatory)
             v-btn(value='aws') Amazon Web Services
-            v-btn(disabled) Google Cloud
+            v-btn(disabled)
+                //- Might be Google Cloud or Azure in future...
 
         RouteStorageItem(:cloud='cloud')
 
