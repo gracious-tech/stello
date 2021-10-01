@@ -1,0 +1,13 @@
+{
+  "private": true,
+  "name": "keep_sam_happy",
+  "version": "1.0.0",
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.83",
+    "esbuild": "^0.13.3"
+  },
+  "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.33.0",
+    "rollbar": "^2.24.0"
+  }
+}
