@@ -5,9 +5,9 @@ v-card
     v-card-title Expiry
 
     v-card-text
-        app-integer(v-model='lifespan' v-bind='$t("lifespan")' :min='1' :max='365' infinity
-            :inherit='inherit_lifespan')
-        app-integer(v-model='max_reads' v-bind='$t("max_reads")' :min='1' infinity
+        app-select(v-bind='$t("lifespan")' v-model='lifespan' :items='lifespan_options'
+            :placeholder='inherit_lifespan')
+        app-integer(v-bind='$t("max_reads")' v-model='max_reads' :min='1' infinity
             :inherit='inherit_max_reads')
 
     v-card-actions
@@ -22,7 +22,6 @@ const i18n = {
     lifespan: {
         label: "Expire after",
         hint: "The number of days until the message expires",
-        suffix: "days",
     },
     max_reads: {
         label: "Lose access after opening",
@@ -36,6 +35,7 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 
 import {Draft} from '@/services/database/drafts'
 import {Profile} from '@/services/database/profiles'
+import {generate_lifespan_options, lifespan_days_to_text} from '@/services/misc'
 
 
 @Component({
@@ -43,15 +43,19 @@ import {Profile} from '@/services/database/profiles'
 })
 export default class extends Vue {
 
-    @Prop() draft:Draft
-    @Prop() profile:Profile  // Profile must be set before can use this dialog
+    @Prop({required: true}) draft!:Draft
+    @Prop({required: true}) profile!:Profile  // Profile must be set before can use this dialog
+
+    get lifespan_options(){
+        return generate_lifespan_options(this.profile.host.max_lifespan)
+    }
 
     get lifespan(){
         return this.draft.options_security.lifespan
     }
     set lifespan(value){
         this.draft.options_security.lifespan = value
-        self.app_db.drafts.set(this.draft)
+        void self.app_db.drafts.set(this.draft)
     }
 
     get max_reads(){
@@ -59,11 +63,11 @@ export default class extends Vue {
     }
     set max_reads(value){
         this.draft.options_security.max_reads = value
-        self.app_db.drafts.set(this.draft)
+        void self.app_db.drafts.set(this.draft)
     }
 
     get inherit_lifespan(){
-        return this.profile.msg_options_security.lifespan
+        return lifespan_days_to_text(this.profile.msg_options_security.lifespan)
     }
 
     get inherit_max_reads(){

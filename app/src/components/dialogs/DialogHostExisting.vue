@@ -22,6 +22,7 @@ v-card
 <script lang='ts'>
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
+import {clamp} from 'lodash'
 
 import {get_clipboard_text} from '@/services/utils/misc'
 import {decrypt_sym, import_key_sym} from '@/services/utils/crypt'
@@ -110,6 +111,10 @@ export default class extends Vue {
                     key_id: ensure_string(data.credentials.key_id),
                     key_secret: ensure_string(data.credentials.key_secret),
                 },
+                // max_lifespan must always be <= 2 years (or Infinity) otherwise tag won't match
+                // NOTE JSON encodes Infinity as null
+                max_lifespan: data.max_lifespan ? clamp(Math.floor(data.max_lifespan), 1, 365*2)
+                    : Infinity,
             }
         } catch {
             return "There is something wrong with the credentials"

@@ -84,6 +84,7 @@ export interface RecordProfileHost {
     region:string|null
     user:string|null  // Absence of user indicates self-hosted (one user per bucket)
     credentials:HostCredentials|null  // May be a JSON string for Google Cloud
+    max_lifespan:number
 }
 
 export interface RecordProfileHostState {

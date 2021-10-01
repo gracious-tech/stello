@@ -54,38 +54,49 @@ export function time_between(date:Date, comparator:Date=new Date(), tense=true):
 }
 
 
+// Lifespan options used in exported lifespan methods
+const lifespan_options = [
+    // Precise up to 10 days
+    {value: 1, text: '1 day'},
+    {value: 2, text: '2 days'},
+    {value: 3, text: '3 days'},
+    {value: 4, text: '4 days'},
+    {value: 5, text: '5 days'},
+    {value: 6, text: '6 days'},
+    {value: 7, text: '7 days'},
+    {value: 8, text: '8 days'},
+    {value: 9, text: '9 days'},
+    {value: 10, text: '10 days', divider: true},
+    // Precise weeks up to 6
+    {value: 2*7, text: '2 weeks'},
+    {value: 3*7, text: '3 weeks'},
+    {value: 4*7, text: '4 weeks'},
+    {value: 5*7, text: '5 weeks'},
+    {value: 6*7, text: '6 weeks', divider: true},
+    // Precise months up to 6
+    {value: 2*30, text: '2 months'},
+    {value: 3*30, text: '3 months'},
+    {value: 4*30, text: '4 months'},
+    {value: 5*30, text: '5 months'},
+    {value: 6*30, text: '6 months'},
+    {value: 9*30, text: '9 months', divider: true},  // Fill gap between 1/2 and 1 year
+    // Less precise up to 2 years
+    {value: 365, text: '1 year'},
+    {value: 365+182, text: '1½ years'},
+    {value: 365*2, text: '2 years'},
+    {value: Infinity, text: 'No expiry'},
+]
+
+
 export function generate_lifespan_options(max_lifespan=Infinity){
     // Generate lifespan options for use with v-select, optionally limiting
-    const options = [
-        // Precise up to 10 days
-        {value: 1, text: '1 day'},
-        {value: 2, text: '2 days'},
-        {value: 3, text: '3 days'},
-        {value: 4, text: '4 days'},
-        {value: 5, text: '5 days'},
-        {value: 6, text: '6 days'},
-        {value: 7, text: '7 days'},
-        {value: 8, text: '8 days'},
-        {value: 9, text: '9 days'},
-        {value: 10, text: '10 days', divider: true},
-        // Precise weeks up to 6
-        {value: 2*7, text: '2 weeks'},
-        {value: 3*7, text: '3 weeks'},
-        {value: 4*7, text: '4 weeks'},
-        {value: 5*7, text: '5 weeks'},
-        {value: 6*7, text: '6 weeks', divider: true},
-        // Precise months up to 6
-        {value: 2*30, text: '2 months'},
-        {value: 3*30, text: '3 months'},
-        {value: 4*30, text: '4 months'},
-        {value: 5*30, text: '5 months'},
-        {value: 6*30, text: '6 months'},
-        {value: 9*30, text: '9 months', divider: true},  // Fill gap between 1/2 and 1 year
-        // Less precise up to 2 years
-        {value: 365, text: '1 year'},
-        {value: 365+182, text: '1½ years'},
-        {value: 365*2, text: '2 years'},
-        {value: Infinity, text: 'No expiry'},
-    ]
-    return options.filter(item => item.value <= max_lifespan)
+    return lifespan_options.filter(item => item.value <= max_lifespan)
+}
+
+
+export function lifespan_days_to_text(days:number){
+    // Return UI text for given lifespan days
+    // NOTE Ensures consistent rather than using 3rd party lib that might count months etc different
+    const item = lifespan_options.find(item => item.value === days)
+    return item ? item.text : `${days} days`
 }

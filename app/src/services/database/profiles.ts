@@ -269,6 +269,7 @@ export class DatabaseProfiles {
                 region: null,
                 user: null,
                 credentials: null,
+                max_lifespan: Infinity,
             },
             host_state: {
                 secret: await generate_key_sym(false, ['encrypt', 'decrypt']),

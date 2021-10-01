@@ -72,6 +72,7 @@ import {Unsubscribe} from '@/services/database/unsubscribes'
 import {sort} from '@/services/utils/arrays'
 import {Task} from '@/services/tasks/tasks'
 import {get_final_recipients} from '@/services/misc/recipients'
+import {lifespan_days_to_text} from '@/services/misc'
 
 
 @Component({
@@ -257,7 +258,7 @@ export default class extends Vue {
         // Get desc of lifespan, accounting for inheritance
         const lifespan = this.draft!.options_security.lifespan
             ?? this.profile.msg_options_security.lifespan
-        return lifespan === Infinity ? "No expiry" : `${lifespan} days`
+        return lifespan_days_to_text(lifespan)
     }
 
     get max_reads_desc():string{

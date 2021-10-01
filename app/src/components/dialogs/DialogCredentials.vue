@@ -41,14 +41,14 @@ import {get_host_user} from '@/services/hosts/hosts'
 @Component({})
 export default class extends Vue {
 
-    @Prop() storage:HostManagerStorage
+    @Prop({required: true}) storage!:HostManagerStorage
 
-    storage_credentials:HostStorageCredentials = null
+    storage_credentials:HostStorageCredentials|null = null
     waiting = false
     sharing_key = null
     sharing_lifespan = 30
 
-    get credentials_package():HostCredentialsPackage{
+    get credentials_package():HostCredentialsPackage|null{
         // Return credentials package for passing to a sending profile
         if (!this.storage_credentials)
             return null
@@ -57,7 +57,8 @@ export default class extends Vue {
             bucket: this.storage.bucket,
             region: this.storage.region,
             user: null,
-            ...this.storage_credentials,
+            max_lifespan: this.$store.state.manager_aws_max_lifespan,
+            credentials: this.storage_credentials.credentials,
         }
     }
 

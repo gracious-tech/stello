@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- needed when prop no longer exists */
 
 import 'fake-indexeddb/auto'  // WARN Must import before indexeddb accessed
-import {test} from '@playwright/test'
+import {expect, test} from '@playwright/test'
 
-import {migrate, migrate_async, DATABASE_VERSION, to_12_from_0, _to1_creates} from './migrations'
+import {migrate, migrate_async, DATABASE_VERSION, to_12_from_0, _to1_creates, to_13}
+    from './migrations'
 import {STORES_V12, STORES_LATEST, test_stores, open_db, to_12_from_1, to_12_from_11}
     from './migrations.test_utils'
 
@@ -37,8 +39,14 @@ test.describe('migrate', async () => {
 
     test('to_12_from_11', to_12_from_11)
 
-    // test('to_13', async () => {
-    //     // Future tests just test the step from previous version to their own (12 -> 13)
-    // })
+    test('to_13', async () => {
+        let db = await open_db('to_13', 12, to_12_from_0)
+        await db.put('state', {key: 'manager_aws_key_secret', value: 'value'})
+        await db.put('profiles', {id: 'id', host: {}} as any)
+        db.close()
+        db = await open_db('to_13', 13, to_13)
+        expect(await db.get('state', 'manager_aws_key_secret')).toBe(undefined)
+        expect((await db.get('profiles', 'id'))!.host.max_lifespan).toBe(Infinity)
+    })
 
 })

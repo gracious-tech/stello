@@ -6,7 +6,7 @@ import {AppDatabaseConnection, VersionChangeTransaction} from './types'
 import {to_12_from_1plus, to_12_from_1plus_async} from './migrations_pre12'
 
 
-export const DATABASE_VERSION = 12
+export const DATABASE_VERSION = 13
 
 
 export async function migrate(transaction:VersionChangeTransaction,
@@ -14,9 +14,12 @@ export async function migrate(transaction:VersionChangeTransaction,
     // Do synchronous upgrades (have access to transaction but can't await anything except it)
     // WARN Database waits for transaction actions to finish, not for this function to finish
     // WARN MUST await db changes so migrations don't overlap (just don't await anything else)
-    if (old_version < 12)
+    if (old_version < 12){
         await (old_version === 0 ? to_12_from_0(transaction)
             : to_12_from_1plus(transaction, old_version))
+    }
+    if (old_version < 13)
+        await to_13(transaction)
 }
 
 
@@ -81,4 +84,17 @@ export async function to_12_from_0(transaction:VersionChangeTransaction){
     await _to1_creates(transaction)
     await _to4_creates(transaction)
     await _to9_creates(transaction)
+}
+
+
+export async function to_13(transaction:VersionChangeTransaction){
+
+    // Removed manager_aws_key_secret from state store
+    await transaction.objectStore('state').delete('manager_aws_key_secret')
+
+    // Added max_lifespan to profiles
+    for await (const cursor of transaction.objectStore('profiles')){
+        cursor.value.host.max_lifespan = Infinity
+        await cursor.update(cursor.value)
+    }
 }

@@ -37,8 +37,8 @@ div
         h2 Message expiry
         v-card
             v-card-text
-                app-integer(v-bind='$t("msg_lifespan")' v-model='msg_lifespan'  :min='1' :max='365'
-                    infinity)
+                app-select(v-bind='$t("msg_lifespan")' v-model='msg_lifespan'
+                    :items='lifespan_options')
                 app-integer(v-bind='$t("msg_max_reads")' v-model='msg_max_reads'  :min='1' infinity)
                 //- app-switch(v-bind='$t("allow_delete")' disabled v-model='allow_delete')
                 app-switch(v-bind='$t("allow_resend_requests")' v-model='allow_resend_requests')
@@ -110,8 +110,7 @@ const i18n = {
     // Message expiry
     msg_lifespan: {
         label: "Expire after",
-        hint: "The default number of days until messages expire",
-        suffix: "days",
+        hint: "The default duration until messages expire",
     },
     msg_max_reads: {
         label: "Lose access after opening",
@@ -154,23 +153,23 @@ const i18n = {
 
 import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
-import RouteProfileHost from '@/components/routes/assets/RouteProfileHost.vue'
 import DialogEmailSettings from '@/components/dialogs/reuseable/DialogEmailSettings.vue'
 import RouteProfileIdentity from '@/components/routes/assets/RouteProfileIdentity.vue'
 import RouteProfileSteps from '@/components/routes/assets/RouteProfileSteps.vue'
 import {Profile} from '@/services/database/profiles'
 import {Task, task_manager} from '@/services/tasks/tasks'
+import {generate_lifespan_options} from '@/services/misc'
 
 
 @Component({
-    components: {RouteProfileHost, RouteProfileIdentity, RouteProfileSteps},
+    components: {RouteProfileIdentity, RouteProfileSteps},
     i18n: {messages: {en: i18n}},
 })
 export default class extends Vue {
 
-    @Prop() profile_id:string
+    @Prop({required: true}) profile_id!:string
 
-    profile:Profile = null
+    profile:Profile = null as unknown as Profile  // Avoid having to type profile as optional
     groups_ui = []
     notify_mode_items = [
         {value: 'none', text: "None"},
@@ -188,7 +187,7 @@ export default class extends Vue {
         this.groups_ui = groups.map(g => {
             return {text: g.display, value: g.id}
         })
-        this.profile = profile
+        this.profile = profile!
     }
 
     async destroyed(){
@@ -214,6 +213,11 @@ export default class extends Vue {
     get cant_include_contents(){
         // When the current notify mode is incompatible with including contents of replies
         return ["none", "first_new_reply"].includes(this.profile.options.notify_mode)
+    }
+
+    get lifespan_options(){
+        // List of lifespan options for UI to make selection simpler
+        return generate_lifespan_options(this.profile.host.max_lifespan)
     }
 
     // OPTIONS

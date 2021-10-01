@@ -9,13 +9,13 @@ export interface AppStoreState {
     // Configurable
     dark:boolean
     dark_message:boolean
-    default_profile:string
-    default_template:string
+    default_profile:string|null
+    default_template:string|null
     manager_aws_key_id:string
-    manager_aws_key_secret:string
+    manager_aws_max_lifespan:number
 
     // Private state
-    usage_installed:Date
+    usage_installed:Date|null
     usage_opens:number
     usage_sends:number
     show_splash_welcome:boolean
@@ -30,10 +30,10 @@ export interface AppStoreState {
         viewport_height:number,
 
         // User UI
-        snackbar:{msg:string, btn_label?:string, btn_color?:string, btn_handler?:()=>void},
-        dialog:StateTmpDialog,
-        prev_route:Route,
-        prev_state_contacts:{filter_group_id:string, search:string, scroll_top:number},
+        snackbar:{msg:string, btn_label?:string, btn_color?:string, btn_handler?:()=>void}|null,
+        dialog:StateTmpDialog|null,
+        prev_route:Route|null,
+        prev_state_contacts:{filter_group_id:string, search:string, scroll_top:number}|null,
 
         // Unread responses
         // NOTE Using objects with `true` constant for performance and reactivity
@@ -43,6 +43,9 @@ export interface AppStoreState {
         // Copy property changes (for watching)
         uploaded:MessageCopy|null,
         invited:MessageCopy|null,
+
+        // Secrets that shouldn't be preserved
+        manager_aws_key_secret:string,
     }
 }
 

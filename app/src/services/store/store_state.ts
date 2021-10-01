@@ -19,8 +19,8 @@ export async function get_initial_state(db:Database):Promise<AppStoreState>{
         dark_message: false,
         default_profile: null,
         default_template: null,
-        manager_aws_key_id: null,
-        manager_aws_key_secret: null,
+        manager_aws_key_id: '',
+        manager_aws_max_lifespan: Infinity,
 
         // Private state
         usage_installed: null,  // Will be inited via main.ts if null
@@ -51,6 +51,9 @@ export async function get_initial_state(db:Database):Promise<AppStoreState>{
             // Copy property changes (for watching)
             uploaded: null,
             invited: null,
+
+            // Secrets that shouldn't be preserved
+            manager_aws_key_secret: '',
         },
     }
 

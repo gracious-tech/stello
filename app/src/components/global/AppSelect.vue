@@ -12,6 +12,7 @@ component(
     :spellcheck='false'
     deletable-chips
     persistent-hint
+    persistent-placeholder
     filled
 )
     //- NOTE Using $scopedSlots and receiving props via `v-slot:[name]='props'` seems to have bug
