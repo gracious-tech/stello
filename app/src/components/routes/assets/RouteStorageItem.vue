@@ -3,18 +3,15 @@
 
 div
     p(class='btns-row')
-        app-btn(@click='set_key') Set Key
-        app-btn(@click='scan' :disabled='!key_id') Scan
-        app-btn(@click='new_storage' :disabled='!key_id') New
-        app-btn(@click='update_all') Update all
+        app-btn(@click='settings') Settings
+        app-btn(@click='scan' :disabled='!key_available') Scan
+        app-btn(@click='new_storage' :disabled='!key_available') New
+        app-btn(@click='update_all' :disabled='!key_available') Update all
 
     div.none(v-if='scanning')
         v-progress-circular(indeterminate color='accent')
 
-    div.none(v-else-if='!storages.length' class='text--secondary')
-        p No storage created yet
-
-    v-list(v-else dense)
+    v-list(v-else-if='storages.length' dense)
         v-list-item(v-for='storage of storages' :key='storage.bucket')
             v-list-item-title
                 | {{ storage.bucket }}
@@ -28,6 +25,16 @@ div
                         | {{ storage.version === undefined ? "Fix" : "Update" }}
                     app-list-item(@click='() => delete_services(storage)' color='error') Delete
 
+    div.none(v-else-if='have_scanned' class='text--secondary')
+        p No storage created yet
+
+    div.none(v-else-if='!key_available' class='text--secondary')
+        p Enter key to scan or create new storages
+        app-btn(@click='settings' small) Enter key
+
+    div.none(v-else class='text--secondary')
+        p Haven't scanned yet
+
 </template>
 
 
@@ -35,7 +42,7 @@ div
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
-import DialogManagerKey from '@/components/dialogs/DialogManagerKey.vue'
+import DialogManagerSettings from '@/components/dialogs/DialogManagerSettings.vue'
 import DialogStorageCreate from '@/components/dialogs/DialogStorageCreate.vue'
 import DialogCredentials from '@/components/dialogs/DialogCredentials.vue'
 import {HostCloud, HostManagerStorage} from '@/services/hosts/types'
@@ -45,16 +52,15 @@ import {get_host_manager} from '@/services/hosts/hosts'
 @Component({})
 export default class extends Vue {
 
-    @Prop() cloud:HostCloud
+    @Prop({required: true}) cloud!:HostCloud
 
     storages:HostManagerStorage[] = []
     scanning = false
+    have_scanned = false
 
-    async created(){
-        // If key set, do an initial scan for storages
-        if (this.key_id){
-            this.scan()
-        }
+    get key_available(){
+        // Whether key id and secret have been provided
+        return !!this.key_id && !!this.key_secret
     }
 
     get key_id(){
@@ -62,7 +68,7 @@ export default class extends Vue {
     }
 
     get key_secret(){
-        return this.$store.state[`manager_${this.cloud}_key_secret`]
+        return this.$store.state.tmp[`manager_${this.cloud}_key_secret`]
     }
 
     get manager(){
@@ -74,10 +80,10 @@ export default class extends Vue {
         })
     }
 
-    async set_key(){
-        // Show a dialog for setting the access key
-        this.$store.dispatch('show_dialog', {
-            component: DialogManagerKey,
+    async settings(){
+        // Show a dialog for changing manager settings
+        void this.$store.dispatch('show_dialog', {
+            component: DialogManagerSettings,
             props: {cloud: this.cloud},
         })
     }
@@ -87,7 +93,13 @@ export default class extends Vue {
         this.scanning = true
         try {
             this.storages = await this.manager.list_storages()
+            this.have_scanned = true
         } catch (error){
+            const aws_auth = ['InvalidClientTokenId', 'SignatureDoesNotMatch']
+            if (this.cloud === 'aws' && aws_auth.includes((error as Error).name)){
+                void this.$store.dispatch('show_snackbar', "Invalid key")
+                return
+            }
             this.$network_error(error)
         } finally {
             this.scanning = false
@@ -102,13 +114,13 @@ export default class extends Vue {
         })
         if (resp){
             const storage = this.manager.new_storage(resp.bucket, resp.region)
-            this.setup_services(storage)
+            void this.setup_services(storage)
         }
     }
 
     async new_credentials(storage:HostManagerStorage){
         // Show dialog for generating new credentials
-        this.$store.dispatch('show_dialog', {
+        void this.$store.dispatch('show_dialog', {
             component: DialogCredentials,
             props: {storage},
             persistent: true,
@@ -120,7 +132,7 @@ export default class extends Vue {
         const task = await this.$tm.start('hosts_storage_setup',
             [this.cloud, storage.credentials, storage.bucket, storage.region])
         await task.done
-        this.scan()
+        void this.scan()
     }
 
     async delete_services(storage:HostManagerStorage){
@@ -129,7 +141,7 @@ export default class extends Vue {
         const task = await this.$tm.start('hosts_storage_delete',
             [this.cloud, storage.credentials, storage.bucket, storage.region])
         await task.done
-        this.scan()
+        void this.scan()
     }
 
     async update_all():Promise<void>{
