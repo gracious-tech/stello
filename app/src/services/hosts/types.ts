@@ -4,7 +4,7 @@ import {DeploymentConfig} from '@/shared/shared_types'
 import {CustomError} from '../utils/exceptions'
 
 
-export const HostStorageVersion = 10  // Bump whenever an update to storage services needed
+export const HostStorageVersion = 11  // Bump whenever an update to storage services needed
 
 
 // SIMPLE TYPES

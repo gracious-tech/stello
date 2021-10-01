@@ -454,15 +454,25 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
             },
         })
 
-        // Generate list of expiry rules for possible lifespan values (1-365)
+        // Generate list of expiry rules for possible lifespan values (1 day - 2 years)
         // NOTE Limit is 1,000 rules
-        const rules = [...Array(365).keys()].map(n => n + 1).map(n => {
+        const rules = [...Array(365 * 2).keys()].map(n => n + 1).map(n => {
             return {
                 Status: 'Enabled',
                 Expiration: {Days: n},
                 Filter: {Tag: {Key: 'stello-lifespan', Value: `${n}`}},
             }
         })
+
+        // Include zero rule, just in case (shouldn't ever be used; 1 day value since 0 invalid)
+        rules.push({
+            Status: 'Enabled',
+            Expiration: {Days: 1},
+            Filter: {Tag: {Key: 'stello-lifespan', Value: '0'}},
+        })
+
+        // Include hard limit if configured to
+        // TODO Implement max_lifespan config
 
         // Set expiry policies
         await this.s3.putBucketLifecycleConfiguration({
