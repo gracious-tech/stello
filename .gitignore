@@ -16,6 +16,9 @@ node_modules/
 
 /host/template.yml
 /host/template_input.toml
+/host/.aws-sam/
+/host/accounts/.dev_env.json
+/host/accounts/.dev_env_key
 
 /displayer/.env.development.local
 /displayer/dist/

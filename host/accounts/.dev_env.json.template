@@ -1,0 +1,11 @@
+// A JSON file with environment variables used by accounts lambda for local development
+
+{
+    "AccountsFunction": {
+        "stello_env": "development",
+        "stello_version": "0.0.1",
+        "stello_region": "us-west-2",
+        "stello_rollbar": "",
+        "stello_user_pool": "..."
+    }
+}
