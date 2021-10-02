@@ -1,20 +1,10 @@
 
 <template lang='pug'>
 
-v-card
-    v-card-title Use existing storage
-
-    v-card-text
-        p If you've been provided with storage credentials you can copy and paste them in here.
-        app-security-alert Only use credentials from a source you trust
-
-        p(class='text-center')
-            app-btn(@click='paste') Paste storage credentials
-
-        p(class='text-center error--text mt-4') {{ error }}
-
-    v-card-actions
-        app-btn(@click='dismiss') Close
+div
+    p(class='text-center')
+        app-btn(@click='paste') Paste storage code
+    p(class='text-center error--text mt-4') {{ error }}
 
 </template>
 
@@ -29,7 +19,7 @@ import {decrypt_sym, import_key_sym} from '@/services/utils/crypt'
 import {utf8_to_string, url64_to_buffer} from '@/services/utils/coding'
 import {Profile} from '@/services/database/profiles'
 import {RecordProfileHost} from '@/services/database/types'
-import {HostCredentialsPackage} from '../types_ui'
+import {HostCredentialsPackage} from '@/components/types_ui'
 import {report_http_failure, request} from '@/services/utils/http'
 import {ensure_string} from '@/services/utils/exceptions'
 
@@ -49,7 +39,7 @@ export default class extends Vue {
         }
     }
 
-    async paste_inner():Promise<string|undefined>{
+    async paste_inner():Promise<string|null>{
         // Paste credentials, returning either an error string or nothing for success
 
         // Get text from clipboard
@@ -107,6 +97,7 @@ export default class extends Vue {
                 bucket: bucket,
                 region: ensure_string(data.region),
                 user: ensure_string(data.user, true),
+                user_pass: ensure_string(data.user_pass, true),
                 credentials: {
                     key_id: ensure_string(data.credentials.key_id),
                     key_secret: ensure_string(data.credentials.key_secret),
@@ -128,16 +119,8 @@ export default class extends Vue {
         const storage = this.profile.new_host_user()
         await storage.delete_file('credentials')
 
-        // Close dialog
-        this.dismiss()
-        return undefined
+        return null
     }
-
-    dismiss(){
-        // Close the dialog
-        this.$emit('close')
-    }
-
 }
 
 </script>
