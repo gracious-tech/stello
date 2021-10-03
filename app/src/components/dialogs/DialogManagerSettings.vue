@@ -5,6 +5,16 @@ v-card
     v-card-title Manager Settings
 
     v-card-text
+        ol(class='mb-4')
+            li
+                app-a(href='https://portal.aws.amazon.com/billing/signup')
+                    | Create an account
+                |
+                | with Amazon Web Services
+            li
+                app-a(href='https://console.aws.amazon.com/iam/home?#/security_credentials')
+                    | Create an access key
+            li Delete the access key after creating the storages you require
         app-text(v-model.trim='key_id' label="Access key ID"
             hint="Must have permission to manipulate the services Stello relies on")
         app-password(v-model='key_secret' label="Secret key")
