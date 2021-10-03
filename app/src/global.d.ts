@@ -69,6 +69,7 @@ declare module 'Custom' {
                 VITE_HOSTED_USER_POOL:string,
                 VITE_HOSTED_USER_POOL_CLIENT:string,
                 VITE_HOSTED_IDENTITY_POOL:string,
+                VITE_HOSTED_BUCKET:string,
             }
         }
     }
