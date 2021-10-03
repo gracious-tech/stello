@@ -59,10 +59,11 @@ div
         //-             v-bind='$t("auto_exclude_exempt_groups")' :disabled='!auto_exclude')
 
 
-        //- h2 Additional security
-        //- v-card
-        //-     v-card-text
-        //-         app-switch(disabled v-model='social_referral_ban' v-bind='$t("social_referral_ban")')
+        template(v-if='profile.host!.type === "gt"')
+            h2 Additional security
+            v-card
+                v-card-text
+                    app-switch(v-bind='$t("generic_domain")' v-model='generic_domain')
 
 
         //- NOTE Identity section at end since takes up the most room
@@ -144,9 +145,9 @@ const i18n = {
         hint: "Auto-exclude will never apply to any contacts in these groups (e.g. groups for your family or financial supporters)",
     },
     // Additional security
-    social_referral_ban: {
-        label: "Ban social media sharing",
-        hint: "Prevent anyone from reading messages if they are shared on social media by one of your recipients. This provides only limited protection, so you should still delete messages that have been exposed on social media.",
+    generic_domain: {
+        label: "Don't mention Stello in message links",
+        hint: "This makes it less obvious you're using newsletter software linked to a Christian organisation",
     },
 }
 
@@ -294,11 +295,11 @@ export default class extends Vue {
         this.save()
     }
 
-    get social_referral_ban(){
-        return this.profile.options.social_referral_ban
+    get generic_domain(){
+        return this.profile.options.generic_domain
     }
-    set social_referral_ban(value){
-        this.profile.options.social_referral_ban = value
+    set generic_domain(value){
+        this.profile.options.generic_domain = value
         this.save(true)
     }
 
