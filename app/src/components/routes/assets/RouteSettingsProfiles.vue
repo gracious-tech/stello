@@ -3,7 +3,9 @@
 
 div(class='my-6')
     h1(class='text-h6') Sending Accounts
-    p(class='body-2 text--secondary') Accounts are what Stello uses to send your messages, securely storing them for recipients to view. You can have multiple accounts, such as a personal account and a ministry account.
+    p(class='body-2 text--secondary')
+        | Create multiple accounts to distinguish between different newsletters, identities,
+        | languages, etc.
 
     v-list
         route-settings-profiles-item(v-for='profile of profiles' :key='profile.id'
@@ -40,9 +42,10 @@ export default class extends Vue {
 
     async create(){
         // Create a new profile and go to it
+        void this.$store.dispatch('show_waiting', "Creating new sending account...")
         const profile = await self.app_db.profiles.create()
-        this.profiles.push(profile)
-        this.$router.push({
+        void this.$store.dispatch('close_dialog')
+        void this.$router.push({
             name: 'profile',
             params: {profile_id: profile.id},
         })
