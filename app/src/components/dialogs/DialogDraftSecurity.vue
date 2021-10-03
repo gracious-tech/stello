@@ -47,7 +47,7 @@ export default class extends Vue {
     @Prop({required: true}) profile!:Profile  // Profile must be set before can use this dialog
 
     get lifespan_options(){
-        return generate_lifespan_options(this.profile.host.max_lifespan)
+        return generate_lifespan_options(this.profile.max_lifespan)
     }
 
     get lifespan(){

@@ -217,7 +217,7 @@ export default class extends Vue {
 
     get lifespan_options(){
         // List of lifespan options for UI to make selection simpler
-        return generate_lifespan_options(this.profile.host.max_lifespan)
+        return generate_lifespan_options(this.profile.max_lifespan)
     }
 
     // OPTIONS
