@@ -10,12 +10,13 @@ export const HostStorageVersion = 11  // Bump whenever an update to storage serv
 // SIMPLE TYPES
 
 
-export type HostCloud = 'aws'|'google'
+export type HostCloud = 'aws'  //|'google'|'azure'
 
 
 export interface HostCredentials {
     key_id:string
     key_secret:string
+    key_session?:string
 }
 
 
