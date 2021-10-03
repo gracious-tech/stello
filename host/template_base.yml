@@ -265,15 +265,20 @@ Resources:
             EnableTokenRevocation: true
             TokenValidityUnits:
                 AccessToken: days
+                IdToken: days
                 RefreshToken: days
-            AccessTokenValidity: 1  # max
-            RefreshTokenValidity: 3650  # max (10 years)
+            AccessTokenValidity: 1
+            IdTokenValidity: 1  # Can't be greater than refresh
+            RefreshTokenValidity: 1  # Refresh tokens are not used since have access to user/pass
+            ExplicitAuthFlows: [ALLOW_USER_PASSWORD_AUTH, ALLOW_REFRESH_TOKEN_AUTH]
+            PreventUserExistenceErrors: 'ENABLED'  # Recommended, but provide availability fn anyway
 
     IdentityPool:
         Type: AWS::Cognito::IdentityPool
         Properties:
             IdentityPoolName: !Ref AWS::StackName
             AllowUnauthenticatedIdentities: false
+            AllowClassicFlow: false
             CognitoIdentityProviders:
                 -   ClientId: !Ref UserPoolClient
                     ProviderName: !GetAtt UserPool.ProviderName
