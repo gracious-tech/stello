@@ -104,3 +104,11 @@ export function trusted_html_to_text(trusted_html:string){
     div.innerHTML = trusted_html
     return div.innerText
 }
+
+
+export function jwt_to_object(jwt:string){
+    // Convert a JSON Web Token string to an object (only extracts payload part)
+    // SECURITY Does not verify signature, so ensure to do that separately if necessary
+    const payload_part = jwt.split('.')[1]!
+    return JSON.parse(utf8_to_string(standard_url64_to_buffer(payload_part))) as unknown
+}

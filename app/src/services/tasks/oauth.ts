@@ -23,6 +23,7 @@ import {OAuth} from '../database/oauths'
 import {task_manager, TaskStartArgs} from './tasks'
 import {CustomError, drop, MustReauthenticate, MustReconnect} from '../utils/exceptions'
 import {JsonRequestInit, request} from '../utils/http'
+import {jwt_to_object} from '@/services/utils/coding'
 
 
 // TYPES
@@ -253,7 +254,7 @@ async function oauth_authorize_complete(url:string):Promise<AuthCompletion>{
 
     // Extract identity info from id token
     // SECURITY Don't need to verify the JWT signature since got straight from issuer over HTTPS
-    const id_info:IDToken = JSON.parse(atob(token_resp.idToken.split('.')[1]))
+    const id_info = jwt_to_object(token_resp.idToken!) as IDToken
 
     // Determine which scope sets have been granted
     const granted_scopes = token_resp.scope.split(' ')
