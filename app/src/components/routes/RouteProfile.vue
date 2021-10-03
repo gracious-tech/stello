@@ -170,7 +170,7 @@ export default class extends Vue {
     @Prop({required: true}) profile_id!:string
 
     profile:Profile = null as unknown as Profile  // Avoid having to type profile as optional
-    groups_ui = []
+    groups_ui:{text:string, value:string}[] = []
     notify_mode_items = [
         {value: 'none', text: "None"},
         {value: 'first_new_reply', text: "Once until Stello opened"},
@@ -193,7 +193,7 @@ export default class extends Vue {
     async destroyed(){
         // Check if configs need uploading when leaving
         if (this.profile?.configs_need_uploading){
-            task_manager.start_configs_update(this.profile_id)
+            void task_manager.start_configs_update(this.profile.id)
         }
     }
 
