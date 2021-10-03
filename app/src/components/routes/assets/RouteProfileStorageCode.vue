@@ -93,11 +93,10 @@ export default class extends Vue {
         let host:RecordProfileHost
         try {
             host = {
+                type: '3p',
                 cloud: cloud,
                 bucket: bucket,
                 region: ensure_string(data.region),
-                user: ensure_string(data.user, true),
-                user_pass: ensure_string(data.user_pass, true),
                 credentials: {
                     key_id: ensure_string(data.credentials.key_id),
                     key_secret: ensure_string(data.credentials.key_secret),
