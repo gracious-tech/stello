@@ -7,7 +7,7 @@ v-card
     v-card-text
         app-select(v-model='profile' :items='profiles_ui' select label="Account")
         app-text(v-model='sender_name' label="Name" :placeholder='sender_name_inherit'
-            persistentPlaceholder)
+            persistent-placeholder)
 
     v-card-actions
         app-btn(@click='dismiss') Close

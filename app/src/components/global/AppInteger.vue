@@ -10,7 +10,7 @@ v-text-field(
     :color='$attrs["color"] || "accent"'
     inputmode='numeric'
     persistent-hint
-    persistentPlaceholder
+    persistent-placeholder
     filled
 )
     template(#append v-if='buttons')
