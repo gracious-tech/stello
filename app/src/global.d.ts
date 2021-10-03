@@ -65,6 +65,10 @@ declare module 'Custom' {
                 VITE_OAUTH_SECRET_GOOGLE:string,
                 VITE_ROLLBAR_APP:string,
                 VITE_ROLLBAR_RESPONDER:string,
+                VITE_HOSTED_REGION:string,
+                VITE_HOSTED_USER_POOL:string,
+                VITE_HOSTED_USER_POOL_CLIENT:string,
+                VITE_HOSTED_IDENTITY_POOL:string,
             }
         }
     }
