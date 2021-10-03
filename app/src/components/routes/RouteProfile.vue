@@ -324,7 +324,7 @@ export default class extends Vue {
         // Listen to task completions and adjust state as needed
         if (task.name === 'send_oauth_setup' && task.params[1] === this.profile.id){
             // Reload profile to get latest email related settings
-            this.profile = await self.app_db.profiles.get(this.profile.id)
+            this.profile = (await self.app_db.profiles.get(this.profile.id))!
         }
     }
 
@@ -334,12 +334,12 @@ export default class extends Vue {
             this.profile.host_state.displayer_config_uploaded = false
             this.profile.host_state.responder_config_uploaded = false
         }
-        self.app_db.profiles.set(this.profile)
+        void self.app_db.profiles.set(this.profile)
     }
 
     show_email_dialog(){
         // Show dialog for configurable smtp settings
-        this.$store.dispatch('show_dialog', {
+        void this.$store.dispatch('show_dialog', {
             component: DialogEmailSettings,
             props: {
                 profile: this.profile,
@@ -349,7 +349,7 @@ export default class extends Vue {
         })
     }
 
-    toggle_auto_exclude(value){
+    toggle_auto_exclude(value:boolean){
         // Handle toggle of auto exclude switch
         this.profile.options.auto_exclude_threshold = value ? 5 : null
         this.save()
