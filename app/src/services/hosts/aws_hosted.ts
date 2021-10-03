@@ -48,10 +48,6 @@ export async function signup(username:string, email:string, plan:AccountPlan){
     // Get first tokens
     const login = await new_login(username, resp.password)
 
-    // Extract expiry info from id token
-    const id_token_data = jwt_to_object(login.IdToken!) as {exp:number}
-    const id_token_expires = new Date(id_token_data.exp * 1000)
-
     // Get the federated id (identity pool id) of the user (required when getting aws credentials)
     const identity_pools = new CognitoIdentity({region: REGION})
     const id = await identity_pools.getId({
@@ -65,7 +61,7 @@ export async function signup(username:string, email:string, plan:AccountPlan){
         password: resp.password,
         federated_id: id.IdentityId!,
         id_token: login.IdToken!,
-        id_token_expires,
+        id_token_expires: login.id_token_expires,
     }
 }
 
@@ -95,7 +91,15 @@ export async function new_login(username:string, password:string){
             PASSWORD: password,
         },
     })
-    return login.AuthenticationResult!
+
+    // Extract expiry info from id token
+    const id_token_data = jwt_to_object(login.AuthenticationResult!.IdToken!) as {exp:number}
+    const id_token_expires = id_token_data.exp * 1000
+
+    return {
+        ...login.AuthenticationResult,
+        id_token_expires,
+    }
 }
 
 
