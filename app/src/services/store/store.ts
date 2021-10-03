@@ -2,6 +2,7 @@
 import Vue from 'vue'
 import {Store, StoreOptions} from 'vuex'
 
+import DialogGenericWait from '@/components/dialogs/generic/DialogGenericWait.vue'
 import {nested_objects_set} from '@/services/utils/objects'
 import {get_initial_state, KEY_SEPARATOR} from './store_state'
 import {AppStoreState, StateTmpDialog} from './types'
@@ -94,7 +95,7 @@ async function get_store_options(db:Database):Promise<StoreOptions<AppStoreState
             })
 
             // Automatically clear the dialog state when closed
-            p.then(() => {
+            void p.then(() => {
                 // WARN Must only clear if is own state (could have been replaced already)
                 if (state.tmp.dialog === dialog){
                     commit('tmp_set', ['dialog', null])
@@ -102,6 +103,20 @@ async function get_store_options(db:Database):Promise<StoreOptions<AppStoreState
             })
 
             return p
+        },
+
+        close_dialog({commit}){
+            // Close any existing dialog
+            commit('tmp_set', ['dialog', null])
+        },
+
+        show_waiting({dispatch}, title:string):void{
+            // Show a waiting dialog that cannot be closed by user interaction
+            void dispatch('show_dialog', {
+                component: DialogGenericWait,
+                persistent: true,
+                props: {title},
+            } as StateTmpDialog)
         },
 
         set_dark({commit}, value:boolean):void{
