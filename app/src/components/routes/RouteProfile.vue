@@ -59,7 +59,7 @@ div
         //-             v-bind='$t("auto_exclude_exempt_groups")' :disabled='!auto_exclude')
 
 
-        template(v-if='profile.host!.type === "gt"')
+        template(v-if='profile.host && profile.host.type === "gt"')
             h2 Additional security
             v-card
                 v-card-text
