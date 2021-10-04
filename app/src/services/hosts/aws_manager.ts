@@ -25,6 +25,12 @@ import {HostCloud, HostCredentials, HostManager, HostManagerStorage, HostPermiss
 import {displayer_asset_type} from './common'
 
 
+// Standard wait time
+// NOTE Occasionally hit timeout for bucket creation when set to 30 seconds, so doubled to 60
+// NOTE casing matches property casing allowing easier insertion
+const maxWaitTime = 60
+
+
 export class HostManagerAws implements HostManager {
     // Management access to host's API for setting up new users
 
@@ -437,7 +443,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         // NOTE The following tasks conflict (409 errors) and cannot be run in parallel
 
         // Ensure bucket creation has finished, as these tasks rely on it (not just securing id)
-        await waitUntilBucketExists({client: this.s3, maxWaitTime: 30}, {Bucket: this.bucket})
+        await waitUntilBucketExists({client: this.s3, maxWaitTime}, {Bucket: this.bucket})
 
         // Set tag
         await this.s3.putBucketTagging({
@@ -504,7 +510,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
             }
             await this.s3.createBucket({Bucket: this._bucket_resp_id})
         }
-        await waitUntilBucketExists({client: this.s3, maxWaitTime: 30},
+        await waitUntilBucketExists({client: this.s3, maxWaitTime},
             {Bucket: this._bucket_resp_id})
 
         // Set tag
@@ -542,7 +548,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         // Ensure iam user has correct permissions
 
         // May need to wait if still creating user
-        await waitUntilUserExists({client: this.iam, maxWaitTime: 30}, {UserName: this._user_id})
+        await waitUntilUserExists({client: this.iam, maxWaitTime}, {UserName: this._user_id})
 
         // Define permissions
         const statements = [
@@ -646,7 +652,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         }
 
         // May need to wait if still creating role
-        await waitUntilRoleExists({client: this.iam, maxWaitTime: 30},
+        await waitUntilRoleExists({client: this.iam, maxWaitTime},
             {RoleName: this._lambda_role_id})
 
         // What the function will be allowed to do
@@ -740,7 +746,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
                     Tags: {stello: this.bucket},
                 })
                 await waitUntilFunctionExists(
-                    {client: this.lambda, maxWaitTime: 30},
+                    {client: this.lambda, maxWaitTime},
                     {FunctionName: this._lambda_id},
                 )
                 return
@@ -752,7 +758,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         // May need to wait for function still if recently created
         if (resp.Configuration.StateReasonCode === 'Creating'){
             await waitUntilFunctionExists(
-                {client: this.lambda, maxWaitTime: 30},
+                {client: this.lambda, maxWaitTime},
                 {FunctionName: this._lambda_id},
             )
         }
