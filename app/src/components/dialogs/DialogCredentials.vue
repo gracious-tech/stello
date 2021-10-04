@@ -2,7 +2,7 @@
 <template lang='pug'>
 
 v-card
-    v-card-title Storage Credentials
+    v-card-title Credentials for {{ storage.bucket }}
 
     v-card-text
         p(class='error--text')
@@ -20,8 +20,8 @@ v-card
             template(v-else-if='waiting')
                 v-progress-circular(indeterminate color='accent')
             template(v-else-if='storage_credentials')
-                p(class='accent--text') New credentials created
-                p
+                p New credentials created
+                div
                     app-btn(@click='create_profile') Create profile
                     app-btn(@click='upload') Upload and share
             template(v-else)
