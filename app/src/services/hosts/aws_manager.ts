@@ -568,7 +568,9 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
             {Effect: 'Allow', Resource: this._bucket_resp_arn,
                 Action: ['s3:ListBucket']},
             {Effect: 'Allow', Resource: `${this._bucket_resp_arn}/*`,
-                Action: ['s3:GetObject', 's3:PutObject', 's3:DeleteObject']},
+                Action: ['s3:GetObject', 's3:DeleteObject']},
+            {Effect: 'Allow', Resource: `${this._bucket_resp_arn}/config`,
+                Action: ['s3:PutObject']},
 
             // Manage SNS subscriptions
             // SECURITY Unlike s3, region is important here for not creating in multiple regions
