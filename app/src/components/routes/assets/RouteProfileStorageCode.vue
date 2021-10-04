@@ -114,7 +114,7 @@ export default class extends Vue {
         void self.app_db.profiles.set(this.profile)
 
         // Delete the credentials from the bucket
-        const storage = this.profile.new_host_user()
+        const storage = await self.app_db.new_host_user(this.profile)
         await storage.delete_file('credentials')
 
         return null

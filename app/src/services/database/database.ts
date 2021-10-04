@@ -2,7 +2,7 @@
 import {openDB} from 'idb/with-async-ittr.js'
 
 import {AppDatabaseSchema, AppDatabaseConnection, RecordReplaction, RecordSectionContent,
-    RecordDraft, RecordDraftPublished} from './types'
+    RecordDraft, RecordDraftPublished, HostCredentials} from './types'
 import {DatabaseState} from './state'
 import {DatabaseContacts} from './contacts'
 import {DatabaseGroups} from './groups'
@@ -23,6 +23,9 @@ import {escape_for_html} from '../utils/strings'
 import {migrate, migrate_async, DATABASE_VERSION} from './migrations'
 import {get_final_recipients} from '../misc/recipients'
 import {generate_example_data} from './example'
+import {HostUser} from '@/services/hosts/types'
+import {get_host_user} from '@/services/hosts/hosts'
+import {new_credentials, new_login} from '@/services/hosts/aws_hosted'
 
 
 export async function open_db():Promise<AppDatabaseConnection>{
@@ -327,6 +330,42 @@ export class Database {
 
             return names.join(', ')
         }
+    }
+
+    async new_host_user(profile:Profile):Promise<HostUser>{
+        // Return new instance of correct host class with profile's host settings
+        let cloud:'aws'
+        let credentials:HostCredentials
+        let bucket:string
+        let region:string
+        let user:string|null
+
+        if (profile.host?.cloud === 'gt'){
+            cloud = 'aws'
+            bucket = import.meta.env.VITE_HOSTED_BUCKET
+            region = import.meta.env.VITE_HOSTED_REGION
+            user = profile.host.username
+
+            // If id token expired, will need to get a new one
+            if (new Date().getTime() > profile.host.id_token_exires - 1000 * 60 * 5){
+                const login = await new_login(profile.host.username, profile.host.password)
+                profile.host.id_token = login.IdToken!
+                profile.host.id_token_exires = login.id_token_expires
+                void this.profiles.set(profile)
+            }
+
+            // Get new aws credentials
+            credentials = await new_credentials(profile.host.username, profile.host.password)
+        } else {
+            cloud = profile.host!.cloud
+            credentials = profile.host!.credentials
+            bucket = profile.host!.bucket
+            region = profile.host!.region
+            user = null
+        }
+
+        const host_user_class = get_host_user(cloud)
+        return new host_user_class(credentials, bucket, region, user)
     }
 
     async read_create(sent:Date, resp_token:string, ip:string,

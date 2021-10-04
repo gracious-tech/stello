@@ -20,7 +20,7 @@ export async function retract_message(task:Task):Promise<void>{
     if (!profile){
         throw task.abort("Sending account no longer exists")
     }
-    const storage = profile.new_host_user()
+    const storage = await self.app_db.new_host_user(profile)
 
     // Delete copies
     const copies = await self.app_db.copies.list_for_msg(msg_id)

@@ -3,11 +3,9 @@ import {AppDatabaseConnection, RecordProfile, RecordProfileHost, RecordProfileSm
     RecordProfileOptions, RecordProfileHostState} from './types'
 import {generate_token, generate_key_asym, generate_key_sym} from '@/services/utils/crypt'
 import {buffer_to_url64} from '@/services/utils/coding'
-import {HostUser} from '@/services/hosts/types'
 import {OAUTH_SUPPORTED} from '@/services/tasks/oauth'
 import {email_address_like} from '../utils/misc'
 import {partition} from '../utils/strings'
-import {get_host_user} from '../hosts/hosts'
 
 
 export interface SmtpProvider {
@@ -206,27 +204,34 @@ export class Profile implements RecordProfile {
         )
     }
 
-    view_url(copy_id:string, secret:ArrayBuffer, action?:string){
-        // Return URL for viewing the given copy
-        let domain!:string
-        if (this.host.cloud === 'aws'){
-            // NOTE Not using website mode since actually makes URL longer
-            // NOTE Including region as faster than being redirected from generic subdomain
-            domain = `${this.host.bucket!}.s3-${this.host.region!}.amazonaws.com`
+    get max_lifespan():number{
+        // Get max lifespan for messages
+        if (!this.host){
+            return Infinity
         }
-        const secret64 = buffer_to_url64(secret)
-        let url = `https://${domain}/_#${this.host_state.disp_config_name},${copy_id},${secret64}`
-        if (action){
-            url += `,${action}`
-        }
-        return url
+        return this.host.cloud === 'gt' ? 365 * 2 : this.host.max_lifespan
     }
 
-    new_host_user():HostUser{
-        // Return new instance of correct host class with profile's host settings
-        const host_user_class = get_host_user(this.host.cloud!)
-        return new host_user_class(this.host.credentials!, this.host.bucket!, this.host.region!,
-            this.host.user)
+    get view_domain():string{
+        // The domain messages will be viewed at
+        if (this.host?.cloud === 'gt'){
+            const user = this.host.username
+            return this.options.generic_domain ? `${user}.message.quest` : `${user}.stello.news`
+        } else if (this.host?.cloud === 'aws'){
+            // NOTE Not using website mode since actually makes URL longer
+            // NOTE Including region as faster than being redirected from generic subdomain
+            return `${this.host.bucket}.s3-${this.host.region}.amazonaws.com`
+        }
+        throw new Error('impossible')
+    }
+
+    view_url(copy_id:string, secret:ArrayBuffer, action?:string){
+        // Return URL for viewing the given copy
+        const path = this.host?.cloud === 'gt' ? '/' : '/_'
+        const config_name = this.host_state.disp_config_name
+        const secret64 = buffer_to_url64(secret)
+        action = action ? `,${action}` : ''
+        return `https://${this.view_domain}${path}#${config_name},${copy_id},${secret64}${action}`
     }
 }
 

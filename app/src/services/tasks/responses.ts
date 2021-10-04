@@ -25,7 +25,7 @@ export async function responses_receive(task:Task):Promise<void>{
     // Don't want to interrupt processing as a single error could block all response receiving
     // And errors may often be isolated to a single response or single profile
     // So use this var to store any error for throwing at the end (overwritten by future errors)
-    let deferred_throw:any
+    let deferred_throw:unknown
 
     // Get all active profiles
     const profiles = (await self.app_db.profiles.list()).filter(profile => profile.setup_complete)
@@ -34,14 +34,14 @@ export async function responses_receive(task:Task):Promise<void>{
     const resp_fns_sync:(()=>Promise<void>)[] = []
     const resp_fns_async:{type:string, fn:()=>Promise<void>}[] = []
     for (const profile of profiles){
-        const storage = profile.new_host_user()
+        const storage = await self.app_db.new_host_user(profile)
         try {
             // Get object keys for all responses for profile
             // NOTE Returns keys in order of last modified (important for sync processing)
             for (const key of await storage.list_responses()){
 
                 // Extract response type from key
-                const type = key.split('/')[1]
+                const type = key.split('/')[1] ?? ''
 
                 // Create fn for downloading and processing the response
                 const fn = async () => {
@@ -101,7 +101,7 @@ async function download_response(profile:Profile, storage:HostUser, object_key:s
 
     // Access profile's keys
     const sym_secret = profile.host_state.secret
-    const asym_secret = profile.host_state.resp_key.privateKey
+    const asym_secret = profile.host_state.resp_key.privateKey!
 
     // Download and decrypt the data
     const resp = await storage.download_response(object_key)
@@ -111,7 +111,7 @@ async function download_response(profile:Profile, storage:HostUser, object_key:s
     } catch {
         // Likely failed due to _responder_ having an old key of a profile
         // Since unlikely ever able to recover, delete response and throw
-        storage.delete_response(object_key)
+        void storage.delete_response(object_key)
         throw new Error("Could not decrypt response")
     }
     const data = JSON.parse(utf8_to_string(binary_data))
@@ -123,7 +123,7 @@ async function download_response(profile:Profile, storage:HostUser, object_key:s
     } catch {
         // Likely failed due to _displayer_ having an old key of a profile
         // Since unlikely ever able to recover, delete response and throw
-        storage.delete_response(object_key)
+        void storage.delete_response(object_key)
         throw new Error("Could not decrypt response's encrypted field")
     }
     const encrypted_data = JSON.parse(utf8_to_string(encrypted_field))
@@ -154,7 +154,7 @@ async function download_response(profile:Profile, storage:HostUser, object_key:s
     await process_data(profile, data, sent)
 
     // Delete response object from bucket if processed successfully
-    storage.delete_response(object_key)
+    await storage.delete_response(object_key)
 }
 
 
@@ -277,7 +277,8 @@ async function process_data(profile:Profile, data:ResponseData, sent:Date):Promi
         }
 
         // Create request record
-        await self.app_db._conn.put('request_resend', {sent, ip, user_agent, contact, message, reason})
+        await self.app_db._conn.put('request_resend',
+            {sent, ip, user_agent, contact, message, reason})
 
     } else {
         throw new Error("Invalid type")

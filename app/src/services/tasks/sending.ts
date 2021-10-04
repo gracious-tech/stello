@@ -147,7 +147,7 @@ export class Sender {
         task.fix_settings = async () => {
             const fresh_profile = await self.app_db.profiles.get(this.profile.id)
             if (fresh_profile){
-                self.app_store.dispatch('show_dialog', {
+                void self.app_store.dispatch('show_dialog', {
                     component: DialogEmailSettings, props: {profile: fresh_profile},
                 })
             } else {
@@ -158,7 +158,7 @@ export class Sender {
         task.fix_auth = task.fix_settings
 
         // Init storage client for the message
-        this.host = this.profile.new_host_user()
+        this.host = await self.app_db.new_host_user(this.profile)
 
         // Get responder url from deployment config
         this.responder_url = (await this.host.download_deployment_config()).url_responder

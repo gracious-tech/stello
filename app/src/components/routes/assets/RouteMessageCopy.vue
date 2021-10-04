@@ -37,9 +37,9 @@ import {get_text_invite_for_copy} from '@/services/misc/invites'
 @Component({})
 export default class extends Vue {
 
-    @Prop({type: Object, required: true}) copy:MessageCopy
-    @Prop({type: Array, required: true}) reads:Read[]
-    @Prop({type: Object}) profile:Profile|null
+    @Prop({type: Object, required: true}) copy!:MessageCopy
+    @Prop({type: Array, required: true}) reads!:Read[]
+    @Prop({type: Object, default: null}) profile!:Profile|null
 
     get to(){
         // Route config for viewing the contact
@@ -73,8 +73,8 @@ export default class extends Vue {
     async copy_invite(){
         // Copy a text-form invite to the clipboard
         const text = await get_text_invite_for_copy(this.copy)
-        self.navigator.clipboard.writeText(text)
-        this.$store.dispatch('show_snackbar',
+        void self.navigator.clipboard.writeText(text)
+        void this.$store.dispatch('show_snackbar',
             `Invite copied (now paste in a message to ${this.copy.contact_name})`)
     }
 
@@ -86,28 +86,29 @@ export default class extends Vue {
 
         // Update invited prop
         this.copy.invited = true
-        self.app_db.copies.set(this.copy)
+        void self.app_db.copies.set(this.copy)
 
         // Copy invite
-        this.copy_invite()
+        void this.copy_invite()
     }
 
     async retract(){
         // Retract the copy
         if (!this.profile){
-            this.$store.dispatch('show_snackbar',
+            void this.$store.dispatch('show_snackbar',
                 "Cannot retract message as no longer have access to the sending account")
             return
         }
-        await this.profile.new_host_user().delete_file(`copies/${this.copy.id}`)
-        await this.profile.new_host_user().delete_file(`invite_images/${this.copy.id}`)
+        const host_user = await self.app_db.new_host_user(this.profile)
+        await host_user.delete_file(`copies/${this.copy.id}`)
+        await host_user.delete_file(`invite_images/${this.copy.id}`)
 
         // Update current instance of copy before save (in case changes)
         Object.assign(this.copy, await self.app_db.copies.get(this.copy.id))
 
         // Update expired and save to db
         this.copy.expired = true
-        self.app_db.copies.set(this.copy)
+        void self.app_db.copies.set(this.copy)
     }
 }
 
