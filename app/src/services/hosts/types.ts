@@ -1,6 +1,5 @@
 
 import {Task} from '@/services/tasks/tasks'
-import {DeploymentConfig} from '@/shared/shared_types'
 import {CustomError} from '../utils/exceptions'
 
 
@@ -22,6 +21,7 @@ export interface HostCredentials {
 
 export interface HostStorageCredentials {
     credentials:HostCredentials
+    api:string  // Dynamically generated so convenient to pair with also-dynamic credentials
 }
 
 
@@ -90,9 +90,10 @@ export declare class HostUser {
     credentials:HostCredentials
     bucket:string
     region:string
+    api:string
     user:string|null
 
-    constructor(credentials:HostCredentials, bucket:string, region:string, user:string)
+    constructor(credentials:HostCredentials, bucket:string, region:string, api:string, user:string)
 
     // Upload a file into the storage
     upload_file(path:string, data:Blob|ArrayBuffer, lifespan?:number, max_reads?:number)
@@ -115,9 +116,6 @@ export declare class HostUser {
 
     // Upload config for responder function
     upload_responder_config(config:Record<string, unknown>):Promise<void>
-
-    // Download deployment config
-    download_deployment_config():Promise<DeploymentConfig>
 }
 
 

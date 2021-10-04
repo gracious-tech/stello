@@ -96,6 +96,7 @@ export default class extends Vue {
                 cloud: cloud,
                 bucket: bucket,
                 region: ensure_string(data.region),
+                api: ensure_string(data.api),
                 credentials: {
                     key_id: ensure_string(data.credentials.key_id),
                     key_secret: ensure_string(data.credentials.key_secret),

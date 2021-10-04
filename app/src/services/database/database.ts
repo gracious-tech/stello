@@ -338,12 +338,14 @@ export class Database {
         let credentials:HostCredentials
         let bucket:string
         let region:string
+        let api:string
         let user:string|null
 
         if (profile.host?.cloud === 'gt'){
             cloud = 'aws'
             bucket = import.meta.env.VITE_HOSTED_BUCKET
             region = import.meta.env.VITE_HOSTED_REGION
+            api = import.meta.env.VITE_HOSTED_API
             user = profile.host.username
 
             // If id token expired, will need to get a new one
@@ -361,11 +363,12 @@ export class Database {
             credentials = profile.host!.credentials
             bucket = profile.host!.bucket
             region = profile.host!.region
+            api = profile.host!.api
             user = null
         }
 
         const host_user_class = get_host_user(cloud)
-        return new host_user_class(credentials, bucket, region, user)
+        return new host_user_class(credentials, bucket, region, api, user)
     }
 
     async read_create(sent:Date, resp_token:string, ip:string,

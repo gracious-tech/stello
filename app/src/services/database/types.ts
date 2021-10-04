@@ -84,6 +84,7 @@ export interface RecordProfileHostAws {
     cloud:'aws'
     bucket:string
     region:string
+    api:string
     credentials:HostCredentials
     max_lifespan:number
 }

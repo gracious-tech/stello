@@ -4,7 +4,6 @@ import {SNS} from '@aws-sdk/client-sns'
 import {IAM} from '@aws-sdk/client-iam'
 import {STS} from '@aws-sdk/client-sts'
 
-import {DeploymentConfig} from '@/shared/shared_types'
 import {HostCloud, HostCredentials, HostUser} from './types'
 import {StorageBaseAws} from './aws_common'
 import {enforce_range} from '../utils/numbers'
@@ -17,6 +16,7 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
 
     cloud:HostCloud = 'aws'
     credentials:HostCredentials
+    api:string
     user:string|null
 
     _prefix:string
@@ -26,13 +26,15 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
     iam:IAM
     sts:STS
 
-    constructor(credentials:HostCredentials, bucket:string, region:string, user:string|null){
+    constructor(credentials:HostCredentials, bucket:string, region:string, api:string,
+            user:string|null){
         super()
 
         // Store args
         this.credentials = credentials
         this.bucket = bucket
         this.region = region
+        this.api = api
         this.user = user
 
         // Determine prefix for user
@@ -145,15 +147,6 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
             Protocol: 'email',
             Endpoint: config.email,
         })
-    }
-
-    async download_deployment_config():Promise<DeploymentConfig>{
-        // Download deployment config from msgs bucket
-        const resp = await this.s3.getObject({
-            Bucket: this.bucket,
-            Key: 'deployment.json',
-        })
-        return await new Response(resp.Body as ReadableStream).json() as DeploymentConfig
     }
 
     // PRIVATE

@@ -62,6 +62,7 @@ export default class extends Vue {
             cloud: this.storage.cloud,
             bucket: this.storage.bucket,
             region: this.storage.region,
+            api: this.storage_credentials.api,
             credentials: this.storage_credentials.credentials,
             max_lifespan: this.$store.state.manager_aws_max_lifespan,
         }
@@ -90,6 +91,7 @@ export default class extends Vue {
             cloud: this.storage.cloud,
             region: this.storage.region,
             bucket: this.storage.bucket,
+            api: this.storage_credentials!.api,
             credentials: this.storage_credentials!.credentials,
             max_lifespan: Infinity,
         }
@@ -113,6 +115,7 @@ export default class extends Vue {
             this.storage.credentials,
             this.credentials_package!.bucket,
             this.credentials_package!.region,
+            this.credentials_package!.api,
             null,
         )
         this.waiting = true

@@ -258,12 +258,16 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         // Create new key
         const user_key = await this.iam.createAccessKey({UserName: this._user_id})
 
+        // Get api id
+        const api_id = await this._get_api_id()
+
         // Return credentials
         return {
             credentials: {
-                key_id: user_key.AccessKey.AccessKeyId,
-                key_secret: user_key.AccessKey.SecretAccessKey,
+                key_id: user_key.AccessKey!.AccessKeyId!,
+                key_secret: user_key.AccessKey!.SecretAccessKey!,
             },
+            api: `https://${api_id!}.execute-api.${this.region}.amazonaws.com/`,
         }
     }
 
@@ -358,10 +362,6 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         // WARN js-untar is unmaintained and readAsString() is buggy so not using
         interface TarFile {name:string, type:string, buffer:ArrayBuffer}
         const files:TarFile[] = await untar(await self.app_native.read_file('displayer.tar'))
-
-        // Add deployment config to files to be uploaded so user can access it
-        // NOTE `type` is for TarFile and means "regular file"
-        files.push({name: 'deployment.json', type: '', buffer: string_to_utf8(deployment_config)})
 
         // Start uploading displayer assets and collect promises that resolve with their path
         const uploads:Promise<string>[] = []
