@@ -84,7 +84,7 @@ export function setup_handler<T>(inner_handler:(input:T, ip:string)=>Promise<unk
         try {
             // Parse input
             const ip = event.requestContext.http.sourceIp
-            const input = JSON.parse(event.body!) as unknown
+            const input = JSON.parse(event.body!) as T
             const output = await inner_handler(input, ip)
             return {
                 statusCode: 200,
