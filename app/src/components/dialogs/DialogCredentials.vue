@@ -74,7 +74,7 @@ export default class extends Vue {
             this.storage_credentials = await this.storage.new_credentials()
         } catch (error){
             // Handle situation where old keys still waiting to be deleted
-            if (error.code !== 'LimitExceeded'){
+            if ((error as {code:string})?.code !== 'LimitExceeded'){
                 throw error
             }
             void this.$store.dispatch('show_snackbar',
