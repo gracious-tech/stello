@@ -110,11 +110,12 @@ v-stepper(:value='setup_step' @change='change_step')
             div.nav
                 app-btn(@click='prev_step' raised color='') Prev
                 div.done
+                    template(v-if='account_create_error')
+                        p(class='error--text') {{ account_create_error }}
+                        br
                     app-btn(@click='done_return' :disabled='done_disabled' raised) Done
                     br
                     app-btn(@click='done' :disabled='done_disabled') Customise further
-                    br
-                    p(class='error--text') {{ account_create_error }}
 
 </template>
 
@@ -327,7 +328,7 @@ export default class extends Vue {
                 }
 
                 // Can't complete setup
-                return
+                return false
 
             } finally {
                 // Ensure waiting dialog always closes, otherwise can't interact anymore
@@ -351,11 +352,15 @@ export default class extends Vue {
                 await self.app_db.drafts.set(draft)
             }
         }
+
+        return true
     }
 
     async done_return(){
         // Complete steps and return to draft (if came from there) or otherwise root
-        await this.done()  // Need to wait for draft to be assigned this profile before nav
+        if (! await this.done()){
+            return  // Something went wrong
+        }
         const prev_route = this.$store.state.tmp.prev_route as Route
         if (prev_route.name === 'draft'){
             void this.$router.push({name: 'draft', params: prev_route.params})
