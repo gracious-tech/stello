@@ -6,15 +6,18 @@ cd "$(dirname "$(dirname "$0")")"
 cd host
 
 # Build using SAM (seems to include everything but removes dev modules)
-sam build AccountsFunction --config-file template_input.toml
+sam build AccountsAvailableFunction --config-file template_input.toml
 
 # Build ts to js
 # NOTE project tsconfig ignored as extends path wrong due to further dir nesting
-accounts/node_modules/.bin/esbuild .aws-sam/build/AccountsFunction/src/*.ts --platform=node --format=cjs --sourcemap --tsconfig=../tsconfig_node.jsonc --outdir=.aws-sam/build/AccountsFunction
+accounts/node_modules/.bin/esbuild .aws-sam/build/AccountsAvailableFunction/src/*.ts --platform=node --format=cjs --sourcemap --tsconfig=../tsconfig_node.jsonc --outdir=.aws-sam/build/AccountsAvailableFunction
 
 # Remove hidden files and src files
-rm .aws-sam/build/AccountsFunction/.[!.]*
-rm -r .aws-sam/build/AccountsFunction/src
+rm .aws-sam/build/AccountsAvailableFunction/.[!.]*
+rm -r .aws-sam/build/AccountsAvailableFunction/src
 
 # Grant permission to everyone, or lambda won't be able to execute it
-chmod -R a+rwx .aws-sam/build/AccountsFunction
+chmod -R a+rwx .aws-sam/build/AccountsAvailableFunction
+
+# Other functions use the same code
+ln -s AccountsAvailableFunction .aws-sam/build/AccountsCreateFunction

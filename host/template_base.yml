@@ -189,12 +189,12 @@ Resources:
                             Resource: !Ref InputSesArn
                             Action: ['ses:SendEmail']
 
-    AccountsFunction:
+    AccountsAvailableFunction:
         Type: AWS::Serverless::Function
         Properties:
-            FunctionName: !Join ['', [!Ref AWS::StackName, -accounts]]
+            FunctionName: !Join ['', [!Ref AWS::StackName, -accounts-available]]
             Runtime: nodejs14.x
-            Handler: index.handler
+            Handler: handle_available
             Timeout: 5
             MemorySize: 128
             CodeUri: accounts/
@@ -203,7 +203,37 @@ Resources:
                     Type: HttpApi
                     Properties:
                         Method: POST
-                        Path: /accounts
+                        Path: /accounts/available
+            Environment:
+                Variables:
+                    stello_env: !Ref InputEnv
+                    stello_version: !Ref InputVersion
+                    stello_region: !Ref AWS::Region
+                    stello_rollbar: !Ref InputRollbarAccounts
+                    stello_user_pool: !Ref AWS::StackName
+            Policies:
+                -   Version: '2012-10-17'
+                    Statement:
+                        -   Effect: Allow
+                            Resource: !GetAtt UserPool.Arn
+                            Action:
+                                -   cognito-idp:AdminGetUser
+
+    AccountsCreateFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            FunctionName: !Join ['', [!Ref AWS::StackName, -accounts-create]]
+            Runtime: nodejs14.x
+            Handler: handle_create
+            Timeout: 5
+            MemorySize: 128
+            CodeUri: accounts/
+            Events:
+                ApiEvent:
+                    Type: HttpApi
+                    Properties:
+                        Method: POST
+                        Path: /accounts/create
             Environment:
                 Variables:
                     stello_env: !Ref InputEnv
@@ -218,7 +248,6 @@ Resources:
                             Resource: !GetAtt UserPool.Arn
                             Action:
                                 -   cognito-idp:ListUsers
-                                -   cognito-idp:AdminGetUser
                                 -   cognito-idp:AdminCreateUser
                                 -   cognito-idp:AdminSetUserPassword
 
