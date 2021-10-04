@@ -355,7 +355,7 @@ export class Database {
             }
 
             // Get new aws credentials
-            credentials = await new_credentials(profile.host.username, profile.host.password)
+            credentials = await new_credentials(profile.host.federated_id, profile.host.id_token)
         } else {
             cloud = profile.host!.cloud
             credentials = profile.host!.credentials
