@@ -194,7 +194,7 @@ Resources:
         Properties:
             FunctionName: !Join ['', [!Ref AWS::StackName, -accounts-available]]
             Runtime: nodejs14.x
-            Handler: handle_available.handler
+            Handler: dist/handle_available.handler
             Timeout: 5
             MemorySize: 128
             CodeUri: accounts/
@@ -224,7 +224,7 @@ Resources:
         Properties:
             FunctionName: !Join ['', [!Ref AWS::StackName, -accounts-create]]
             Runtime: nodejs14.x
-            Handler: handle_create.handler
+            Handler: dist/handle_create.handler
             Timeout: 5
             MemorySize: 128
             CodeUri: accounts/
