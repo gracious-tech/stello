@@ -93,7 +93,6 @@ export default class extends Vue {
         let host:RecordProfileHost
         try {
             host = {
-                type: '3p',
                 cloud: cloud,
                 bucket: bucket,
                 region: ensure_string(data.region),

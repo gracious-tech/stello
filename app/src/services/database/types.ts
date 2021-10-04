@@ -78,13 +78,23 @@ export interface RecordProfile {
     }
 }
 
-export interface RecordProfileHost {
-    cloud:'aws'|null
-    bucket:string|null
-    region:string|null
-    user:string|null  // Absence of user indicates self-hosted (one user per bucket)
-    credentials:HostCredentials|null  // May be a JSON string for Google Cloud
+export type RecordProfileHost = RecordProfileHostAws|RecordProfileHostGracious|null
+
+export interface RecordProfileHostAws {
+    cloud:'aws'
+    bucket:string
+    region:string
+    credentials:HostCredentials
     max_lifespan:number
+}
+
+export interface RecordProfileHostGracious {
+    cloud:'gt'
+    username:string
+    password:string
+    federated_id:string
+    id_token:string
+    id_token_exires:number  // Since epoch (ms)
 }
 
 export interface RecordProfileHostState {
@@ -120,6 +130,7 @@ export interface RecordProfileOptions {
     auto_exclude_exempt_groups:string[]
     smtp_no_reply:boolean
     social_referral_ban:boolean
+    generic_domain:boolean
     reaction_options:('like'|'love'|'yay'|'pray'|'laugh'|'wow'|'sad')[]
     reply_invite_image:Blob  // Used for inheritance for replies instead of invite_image
     reply_invite_tmpl_email:string  // Used for inheritance for replies instead of invite_tmpl_email

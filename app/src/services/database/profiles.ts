@@ -117,9 +117,9 @@ export class Profile implements RecordProfile {
 
     get display_host():string{
         // Return string for displaying host bucket/user
-        if (!this.setup_complete)
+        if (!this.host)
             return "New Account"
-        return this.host.user ?? this.host.bucket!
+        return this.host.cloud === 'gt' ? this.host.username : this.host.bucket
     }
 
     get email_domain():string|null{
@@ -263,14 +263,7 @@ export class DatabaseProfiles {
         const profile = new Profile({
             id: generate_token(),
             setup_step: 0,
-            host: {
-                cloud: null,
-                bucket: null,
-                region: null,
-                user: null,
-                credentials: null,
-                max_lifespan: Infinity,
-            },
+            host: null,
             host_state: {
                 secret: await generate_key_sym(false, ['encrypt', 'decrypt']),
                 resp_key: await generate_key_asym(),
@@ -298,6 +291,7 @@ export class DatabaseProfiles {
                 auto_exclude_exempt_groups: [],
                 smtp_no_reply: true,
                 social_referral_ban: true,
+                generic_domain: true,
                 reaction_options: ['like', 'love', 'yay', 'pray', 'laugh', 'wow', 'sad'],
                 reply_invite_image: default_invite_image,
                 reply_invite_tmpl_email: `

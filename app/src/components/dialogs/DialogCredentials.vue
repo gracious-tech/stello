@@ -5,18 +5,24 @@ v-card
     v-card-title Storage Credentials
 
     v-card-text
-        p(class='error--text') Generating new credentials will delete any old ones, causing loss of access for any accounts currently using them.
+        p(class='error--text')
+            | Generating new credentials will delete any old ones,
+            | causing loss of access for any accounts currently using them.
 
         div(class='text-center')
             template(v-if='sharing_key')
-                p(class='accent--text') Share below (copied already, expires in {{ sharing_lifespan }} days)
+                p(class='accent--text')
+                    | Share below (copied already, expires in {{ sharing_lifespan }} days)
                 v-textarea(:value='sharing_key' readonly)
+                app-security-alert
+                    | You must trust whoever you grant access to this storage,
+                    | as it will be possible for them to abuse the storage and compute services.
             template(v-else-if='waiting')
                 v-progress-circular(indeterminate color='accent')
             template(v-else-if='storage_credentials')
                 p(class='accent--text') New credentials created
                 p
-                    app-btn(disabled) Create profile
+                    app-btn(@click='create_profile') Create profile
                     app-btn(@click='upload') Upload and share
             template(v-else)
                 app-btn(@click='generate' color='error') Generate new credentials
@@ -56,9 +62,8 @@ export default class extends Vue {
             cloud: this.storage.cloud,
             bucket: this.storage.bucket,
             region: this.storage.region,
-            user: null,
-            max_lifespan: this.$store.state.manager_aws_max_lifespan,
             credentials: this.storage_credentials.credentials,
+            max_lifespan: this.$store.state.manager_aws_max_lifespan,
         }
     }
 
@@ -72,10 +77,25 @@ export default class extends Vue {
             if (error.code !== 'LimitExceeded'){
                 throw error
             }
-            this.$store.dispatch('show_snackbar',
+            void this.$store.dispatch('show_snackbar',
                 "Old keys still waiting to be deleted (try again soon)")
         }
         this.waiting = false
+    }
+
+    async create_profile(){
+        // Create a profile with the new credentials
+        const profile = await self.app_db.profiles.create()
+        profile.host = {
+            cloud: this.storage.cloud,
+            region: this.storage.region,
+            bucket: this.storage.bucket,
+            credentials: this.storage_credentials!.credentials,
+            max_lifespan: Infinity,
+        }
+        await self.app_db.profiles.set(profile)
+        void this.$router.push({name: 'profile', params: {profile_id: profile.id}})
+        this.dismiss()
     }
 
     async upload(){
