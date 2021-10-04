@@ -40,7 +40,7 @@ export default class extends Vue {
     username_raw = ''
     username_checking:string|null = null  // The last username that a check was initiated for
     username_checked:string|null = null  // The last username that a check was completed for
-    username_checked_available:boolean|null = null  // Whether the checked username is available
+    username_checked_available:boolean|null = null  // Whether username available (null for error)
 
     get suffix(){
         // The part of the URL after the username
@@ -90,7 +90,7 @@ export default class extends Vue {
             return null
         } else if (this.username_punycode === this.username_checked &&
                 !this.username_checked_available){
-            return "Not available"
+            return this.username_checked_available === null ? "Couldn't connect" : "Not available"
         }
         return null
     }
@@ -107,12 +107,13 @@ export default class extends Vue {
     @debounce_method() async check_availability(value:string){
         // Check if username is available
         this.username_checking = value
-        let success = false
+        let success:boolean|null = false
         try {
             const result = await username_available(value)
             success = result.valid && result.available
         } catch (error){
             console.error(error)
+            success = null
         }
         // Only process if username hasn't changed in the meantime (and sent another request)
         if (this.username_checking === value){
