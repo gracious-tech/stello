@@ -4,28 +4,28 @@
 v-card
     v-card-title Credentials for {{ storage.bucket }}
 
-    v-card-text
-        p(class='error--text')
-            | Generating new credentials will delete any old ones,
-            | causing loss of access for any accounts currently using them.
-
-        div(class='text-center')
-            template(v-if='sharing_key')
-                p(class='accent--text')
-                    | Share below (copied already, expires in {{ sharing_lifespan }} days)
-                v-textarea(:value='sharing_key' readonly)
-                app-security-alert
-                    | You must trust whoever you grant access to this storage,
-                    | as it will be possible for them to abuse the storage and compute services.
-            template(v-else-if='waiting')
-                v-progress-circular(indeterminate color='accent')
-            template(v-else-if='storage_credentials')
-                p New credentials created
-                div
-                    app-btn(@click='create_profile') Create profile
-                    app-btn(@click='upload') Upload and share
-            template(v-else)
-                app-btn(@click='generate' color='error') Generate new credentials
+    v-card-text(class='mt-4 text-center')
+        template(v-if='sharing_key')
+            app-security-alert(class='text-left')
+                | You must trust whoever you grant access to this storage,
+                | as it will be possible for them to abuse the storage and compute services
+                | (but not that of other users).
+            p(class='mt-8')
+                | Share this storage code
+                | (copied already, expires in {{ sharing_lifespan }} days)
+            app-textarea(:value='sharing_key' readonly rows=2)
+        template(v-else-if='waiting')
+            v-progress-circular(indeterminate color='accent')
+        template(v-else-if='storage_credentials')
+            p New credentials created
+            div
+                app-btn(@click='create_profile') Create profile
+                app-btn(@click='upload') Upload and share
+        template(v-else)
+            p(class='error--text text-left')
+                | Generating new credentials will delete any old ones,
+                | causing loss of access for any accounts currently using them.
+            app-btn(@click='generate' color='error') Generate new credentials
 
     v-card-actions
         app-btn(@click='dismiss') Close
@@ -51,7 +51,7 @@ export default class extends Vue {
 
     storage_credentials:HostStorageCredentials|null = null
     waiting = false
-    sharing_key = null
+    sharing_key:string|null = null
     sharing_lifespan = 30
 
     get credentials_package():HostCredentialsPackage|null{
@@ -111,9 +111,9 @@ export default class extends Vue {
         const user_storage = new host_user_class(
             // NOTE Use manager credentials since new access keys can take some seconds to work
             this.storage.credentials,
-            this.credentials_package.bucket,
-            this.credentials_package.region,
-            this.credentials_package.user,
+            this.credentials_package!.bucket,
+            this.credentials_package!.region,
+            null,
         )
         this.waiting = true
         try {
@@ -128,7 +128,7 @@ export default class extends Vue {
         // Display sharing key and copy to clipboard
         const url64_key = buffer_to_url64(await crypto.subtle.exportKey('raw', key))
         this.sharing_key = `stello:${this.storage.cloud}:${this.storage.bucket}:${url64_key}`
-        self.navigator.clipboard.writeText(this.sharing_key)
+        void self.navigator.clipboard.writeText(this.sharing_key)
     }
 
     dismiss(){
@@ -140,5 +140,8 @@ export default class extends Vue {
 
 
 <style lang='sass' scoped>
+
+.v-textarea
+    word-break: break-all
 
 </style>
