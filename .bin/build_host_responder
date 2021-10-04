@@ -1,8 +1,0 @@
-#!/bin/bash
-# Build responder lambda for host setup
-set -e
-cd "$(dirname "$(dirname "$0")")"
-
-cd host
-sam build ResponderFunction --config-file template_input.toml
-chmod -R a+rwx .aws-sam/build/  # AWS can't execute functions without all permissions

@@ -19,6 +19,7 @@ node_modules/
 /host/.aws-sam/
 /host/accounts/.dev_env.json
 /host/accounts/.dev_env_key
+/host/accounts/dist/
 
 /displayer/.env.development.local
 /displayer/dist/

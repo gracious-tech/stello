@@ -5,6 +5,5 @@ cd "$(dirname "$(dirname "$0")")"
 
 cd host
 ../node_modules/.bin/ts-node template_builder.ts
-../.bin/build_host_accounts
-../.bin/build_host_responder
+../.bin/build_host
 sam deploy --config-file template_input.toml
