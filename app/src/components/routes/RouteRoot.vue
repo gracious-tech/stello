@@ -27,7 +27,10 @@ div
                     li File attachments
                     li Encrypted videos
                 p plus many many more...
-                app-btn(href='https://give.gracious.tech' color='#fa5788' raised small) Help fund improvements
+                app-btn(href='https://give.gracious.tech' color='#fa5788' raised small)
+                    | Help fund improvements
+        div.really
+            really-free
 
 </template>
 
@@ -37,12 +40,13 @@ div
 import {Component, Vue} from 'vue-property-decorator'
 
 import app_config from '@/app_config.json'
+import ReallyFree from '@/components/reuseable/ReallyFree.vue'
 import RouteRootAddressRequests from './assets/RouteRootAddressRequests.vue'
 import RouteRootResendRequests from './assets/RouteRootResendRequests.vue'
 
 
 @Component({
-    components: {RouteRootAddressRequests, RouteRootResendRequests},
+    components: {RouteRootAddressRequests, RouteRootResendRequests, ReallyFree},
 })
 export default class extends Vue {
 
@@ -59,6 +63,15 @@ export default class extends Vue {
 
 @import 'src/styles/globals.sass'
 
+
+.really
+    text-align: center
+    margin-bottom: 200px
+    font-size: 12px
+    a
+        opacity: 0.5
+        &:hover
+            opacity: 1
 
 .v-card
     margin: 48px 0
