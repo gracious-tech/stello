@@ -5,6 +5,7 @@ import {CognitoIdentityProvider} from '@aws-sdk/client-cognito-identity-provider
 import {request_json} from '../utils/http'
 import {generate_hash} from '../utils/crypt'
 import {string_to_utf8, buffer_to_url64, jwt_to_object} from '../utils/coding'
+import {CustomError} from '@/services/utils/exceptions'
 
 
 // Types
@@ -30,10 +31,20 @@ export async function username_available(username:string){
 }
 
 
+// The possible errors create function may return
+type create_errors = 'username_invalid'|'username_taken'|'ip_limit_day'|'ip_limit_fortnight'
+
+
+export class AccountsCreateError extends CustomError {
+    // Create error expects error code as the message
+    override message!:create_errors
+}
+
+
 export async function create_account(username:string, email:string, plan:AccountPlan){
     // Create new user
-    type CreateResp = {password:string}
-    const resp = await request_json<CreateResp>(`${API_URL}accounts/create`, {
+    type CreateOutput = {error?:create_errors, password?:string}
+    const resp = await request_json<CreateOutput>(`${API_URL}accounts/create`, {
         method: 'POST',
         json: {
             username,
@@ -42,8 +53,13 @@ export async function create_account(username:string, email:string, plan:Account
         },
     })
 
+    // Throw for errors
+    if (resp.error){
+        throw new AccountsCreateError(resp.error)  // Pass error code as the message
+    }
+
     // Get first tokens
-    const login = await new_login(username, resp.password)
+    const login = await new_login(username, resp.password!)
 
     // Get the federated id (identity pool id) of the user (required when getting aws credentials)
     const identity_pools = new CognitoIdentity({region: REGION})
@@ -55,7 +71,7 @@ export async function create_account(username:string, email:string, plan:Account
     })
 
     return {
-        password: resp.password,
+        password: resp.password!,
         federated_id: id.IdentityId!,
         id_token: login.IdToken!,
         id_token_expires: login.id_token_expires,

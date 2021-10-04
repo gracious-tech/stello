@@ -113,6 +113,8 @@ v-stepper(:value='setup_step' @change='change_step')
                     app-btn(@click='done_return' :disabled='done_disabled' raised) Done
                     br
                     app-btn(@click='done' :disabled='done_disabled') Customise further
+                    br
+                    p(class='error--text') {{ account_create_error }}
 
 </template>
 
@@ -128,7 +130,8 @@ import DialogEmailSettings from '@/components/dialogs/reuseable/DialogEmailSetti
 import RouteProfileIdentity from '@/components/routes/assets/RouteProfileIdentity.vue'
 import {Profile} from '@/services/database/profiles'
 import {OAuthIssuer, oauth_pretask_new_usage} from '@/services/tasks/oauth'
-import {create_account} from '@/services/hosts/aws_hosted'
+import {AccountsCreateError, create_account} from '@/services/hosts/aws_hosted'
+import {MustReconnect} from '@/services/utils/exceptions'
 
 
 @Component({
@@ -141,6 +144,8 @@ export default class extends Vue {
     plan_choice:'christian'|'other'|null = null
     username_choice:string|null = null
     security_choice:number|null = null
+    account_create_error:string|null = null
+
     security_options = [
         {
             code: 'standard',
@@ -279,6 +284,57 @@ export default class extends Vue {
     }
 
     async done(){
+        // Finish setting up profile
+
+        // Create account if hosting with GT
+        if (!this.profile.host){
+
+            // Prevent user interaction until done
+            void this.$store.dispatch('show_waiting', "Finishing account setup...")
+
+            try {
+                const result = await create_account(
+                    this.username_choice!, this.profile.email, this.plan_choice!)
+                this.profile.host = {
+                    cloud: 'gt',
+                    username: this.username_choice!,
+                    password: result.password,
+                    federated_id: result.federated_id,
+                    id_token: result.id_token,
+                    id_token_exires: result.id_token_expires,
+                }
+            } catch (error){
+
+                // Ensure an error message is displayed
+                this.account_create_error = "Something went wrong :("
+
+                // Set a more useful error message if possible
+                if (error instanceof MustReconnect){
+                    this.account_create_error = "Couldn't connect"
+                } else if (error instanceof AccountsCreateError){
+                    if (error.message === 'username_invalid' || error.message === 'username_taken'){
+                        this.account_create_error = "Please try a different username"
+                    } else if (error.message === 'ip_limit_day'){
+                        this.account_create_error =
+                            "Please wait a day before making any more accounts"
+                    } else if (error.message === 'ip_limit_fortnight'){
+                        this.account_create_error =
+                            "Please wait a couple of weeks before making any more accounts"
+                    }
+                } else {
+                    // Report this unusual error
+                    self.app_report_error(error)
+                }
+
+                // Can't complete setup
+                return
+
+            } finally {
+                // Ensure waiting dialog always closes, otherwise can't interact anymore
+                void this.$store.dispatch('close_dialog')
+            }
+        }
+
         // Complete steps (reveals normal profile settings UI)
         this.profile.setup_step = null
         void self.app_db.profiles.set(this.profile)
