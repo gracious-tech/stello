@@ -289,7 +289,7 @@ export default class extends Vue {
     @Watch('error') watch_error():void{
         // If an unknown error occurs, submit a report for it
         this.error_report_id = null  // Always reset since error has changed
-        if (this.error.code === 'unknown'){
+        if (this.error?.code === 'unknown'){
             this.error_report_id = self.app_report_error(
                 new Error(`Unknown smtp error: ${this.error.details}`))
         }
