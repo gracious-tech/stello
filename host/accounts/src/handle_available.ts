@@ -15,7 +15,8 @@ interface AvailableOutput {
 }
 
 
-export default setup_handler<AvailableInput>(async (raw_input, ip):Promise<AvailableOutput> => {
+export const handler = setup_handler<AvailableInput>(async (raw_input, ip)
+        :Promise<AvailableOutput> => {
     // Report whether given username is available for rego or not
 
     // Validate input types

@@ -19,7 +19,7 @@ interface CreateOutput {
 }
 
 
-export default setup_handler<CreateInput>(async (raw_input, ip):Promise<CreateOutput> => {
+export const handler = setup_handler<CreateInput>(async (raw_input, ip):Promise<CreateOutput> => {
     // Create user
 
     /* SECURITY Regarding email address verification...
