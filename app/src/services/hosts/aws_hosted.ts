@@ -17,28 +17,25 @@ const USER_POOL = import.meta.env.VITE_HOSTED_USER_POOL
 const USER_POOL_CLIENT = import.meta.env.VITE_HOSTED_USER_POOL_CLIENT
 const USER_POOL_PROVIDER = `cognito-idp.${REGION}.amazonaws.com/${USER_POOL}`
 const IDENTITY_POOL = import.meta.env.VITE_HOSTED_IDENTITY_POOL
+const API_URL = import.meta.env.VITE_HOSTED_API
 
 
 export async function username_available(username:string){
     // Check if a username is available
     type AvailableResp = {valid:boolean, available:boolean}
-    return request_json<AvailableResp>('http://127.0.0.1:8005/accounts', {
+    return request_json<AvailableResp>(`${API_URL}accounts/available`, {
         method: 'POST',
-        json: {
-            type: 'available',
-            username,
-        },
+        json: {username},
     })
 }
 
 
-export async function signup(username:string, email:string, plan:AccountPlan){
+export async function create_account(username:string, email:string, plan:AccountPlan){
     // Create new user
-    type SignupResp = {password:string}
-    const resp = await request_json<SignupResp>('http://127.0.0.1:8005/accounts', {
+    type CreateResp = {password:string}
+    const resp = await request_json<CreateResp>(`${API_URL}accounts/create`, {
         method: 'POST',
         json: {
-            type: 'signup',
             username,
             hashed_email: buffer_to_url64(await generate_hash(string_to_utf8(email))),
             plan,
