@@ -4,9 +4,9 @@
 v-stepper(:value='setup_step' @change='change_step')
     v-stepper-header(class='app-bg-primary-relative')
         v-stepper-step(:step='1' :complete='setup_step > 1' :editable='setup_step > 1'
-            edit-icon='$complete' color='accent') Email
-        v-stepper-step(:step='2' :complete='setup_step > 2' :editable='setup_step > 2'
             edit-icon='$complete' color='accent') Storage
+        v-stepper-step(:step='2' :complete='setup_step > 2' :editable='setup_step > 2'
+            edit-icon='$complete' color='accent') Email
         v-stepper-step(:step='3' :complete='setup_step > 3' :editable='setup_step > 3'
             edit-icon='$complete' color='accent') Security
         v-stepper-step(:step='4' color='accent') Identity
@@ -14,17 +14,37 @@ v-stepper(:value='setup_step' @change='change_step')
     v-stepper-items
 
         v-stepper-content(:step='0')
-            h1(class='text-h4 text-center mb-4') New sending account
+            h1(class='text-h4 text-center my-6 mb-4') New sending account
             img.decor_intro(src='@/assets/decor/setup_intro.png')
-            p Accounts are what Stello uses to send your messages, securely storing them for
-                |  recipients to view.
-            p(class='text--secondary body-2') You can have multiple accounts, such as a personal
-                |  account and a ministry account.
+            p Create as many accounts as you need, such as to...
+            ul
+                li
+                    | Send a different newsletter
+                    br
+                    span(class='text--secondary')
+                        | So unsubscribes for one newsletter do not apply to all
+                li
+                    | Represent a different identity
+                    br
+                    span(class='text--secondary') Such as having a personal and a business account
+                li
+                    | Send in another language
+                    br
+                    span(class='text--secondary') So each reader gets emailed in their own language
+
             div.nav
                 span &nbsp;
-                app-btn(@click='next_step') Next
+                app-btn(@click='next_step' raised) Next
 
         v-stepper-content(:step='1')
+            img.decor(src='@/assets/decor/setup_storage.png')
+            h3(class='text-h6 my-6') Who should store your messages?
+            route-profile-storage(:profile='profile' @plan='plan_choice = $event')
+            div.nav
+                app-btn(@click='prev_step' raised color='') Prev
+                app-btn(@click='next_step' :disabled='!plan_choice && !profile.host' raised) Next
+
+        v-stepper-content(:step='2')
             img.decor(src='@/assets/decor/setup_email.png')
             h3(class='text-h6 my-6') Which email address do you want to send from?
             p(class='text--secondary body-2 mb-12') Stello will use it to send messages on your
@@ -37,7 +57,8 @@ v-stepper(:value='setup_step' @change='change_step')
                     | Ensure this is the address you'd like to send emails from, and not just
                     | another account you own.
                 div
-                    app-btn(@click='show_email_dialog("init")' small color='primary') Change address
+                    app-btn(@click='show_email_dialog("init")' small color='primary' raised)
+                        | Change address
             div.email_options(v-else)
                 //- WARN Keep in sync with duplicate in DialogEmailSettings.vue
                 div
@@ -54,21 +75,8 @@ v-stepper(:value='setup_step' @change='change_step')
                 div
                     app-btn(@click='show_email_dialog("email")' raised color='' light) Other
             div.nav
-                app-btn(@click='prev_step') Prev
-                app-btn(@click='next_step' :disabled='!profile.smtp_ready') Next
-
-        v-stepper-content(:step='2')
-            img.decor(src='@/assets/decor/setup_storage.png')
-            h3(class='text-h6 my-6') Where should your messages be stored?
-            p(class='text--secondary body-2 mb-12') You can store them with the creators of Stello,
-                |  or provide your own storage (only recommended for experts).
-                |  Wherever they are stored they will be securely encrypted.
-            p(v-if='profile.host.cloud' class='text-center text--secondary text-h5')
-                | Storage confirmed
-            route-profile-host(:profile='profile')
-            div.nav
-                app-btn(@click='prev_step') Prev
-                app-btn(@click='next_step' :disabled='!profile.host.cloud') Next
+                app-btn(@click='prev_step' raised color='') Prev
+                app-btn(@click='next_step' :disabled='!profile.smtp_ready' raised) Next
 
         v-stepper-content(:step='3')
             img.decor(src='@/assets/decor/setup_security.png')
@@ -86,24 +94,25 @@ v-stepper(:value='setup_step' @change='change_step')
                             v-list-item-subtitle {{ option.subtitle1 }}
                             v-list-item-subtitle {{ option.subtitle2 }}
             div.nav
-                app-btn(@click='prev_step') Prev
-                app-btn(@click='next_step' :disabled='security_choice === null') Next
+                app-btn(@click='prev_step' raised color='') Prev
+                app-btn(@click='next_step' :disabled='security_choice === null' raised) Next
 
         v-stepper-content(:step='4')
             img.decor(src='@/assets/decor/setup_id.png')
             h2(class='text-h6 my-6') How would you like to identify yourself?
             p(class='text--secondary body-2') When inviting contacts to read your messages
             app-security-alert(class='my-12') Personalize so recipients trust it's you,
-                |  but don't include anything sensitive as invitation text does not expire
+                |  but don't include anything sensitive as this info will not expire
             route-profile-identity(:profile='profile' steps)
+                route-profile-username(v-if='!profile.host || profile.host.cloud === "gt"'
+                    :generic_domain='profile.options.generic_domain'
+                    @available='username_choice = $event')
             div.nav
-                app-btn(@click='prev_step') Prev
+                app-btn(@click='prev_step' raised color='') Prev
                 div.done
-                    app-btn(@click='done_return'
-                        :disabled='!profile.msg_options_identity.sender_name') Done
+                    app-btn(@click='done_return' :disabled='done_disabled' raised) Done
                     br
-                    app-btn(@click='done' :disabled='!profile.msg_options_identity.sender_name'
-                        color='') Customise further
+                    app-btn(@click='done' :disabled='done_disabled') Customise further
 
 </template>
 
@@ -113,35 +122,41 @@ v-stepper(:value='setup_step' @change='change_step')
 import {Route} from 'vue-router'
 import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
-import RouteProfileHost from '@/components/routes/assets/RouteProfileHost.vue'
+import RouteProfileUsername from '@/components/routes/assets/RouteProfileUsername.vue'
+import RouteProfileStorage from '@/components/routes/assets/RouteProfileStorage.vue'
 import DialogEmailSettings from '@/components/dialogs/reuseable/DialogEmailSettings.vue'
 import RouteProfileIdentity from '@/components/routes/assets/RouteProfileIdentity.vue'
 import {Profile} from '@/services/database/profiles'
 import {OAuthIssuer, oauth_pretask_new_usage} from '@/services/tasks/oauth'
+import {create_account} from '@/services/hosts/aws_hosted'
 
 
 @Component({
-    components: {RouteProfileHost, RouteProfileIdentity},
+    components: {RouteProfileUsername, RouteProfileIdentity, RouteProfileStorage},
 })
 export default class extends Vue {
 
     @Prop() profile!:Profile
 
+    plan_choice:'christian'|'other'|null = null
+    username_choice:string|null = null
     security_choice:number|null = null
     security_options = [
         {
             code: 'standard',
             title: "Standard security",
             subtitle1: "Private but also easy to use",
+            subtitle2: "(default message expiry 1 year)",
             settings: {
                 options: {
                     notify_include_contents: true,
                     allow_delete: false,
                     smtp_no_reply: false,
                     social_referral_ban: false,
+                    generic_domain: false,
                 },
                 msg_options_security: {
-                    lifespan: Infinity,
+                    lifespan: 365,
                     max_reads: Infinity,
                 },
             },
@@ -150,16 +165,17 @@ export default class extends Vue {
             code: 'high',
             title: "High security",
             subtitle1: "Sacrifice some convenience for security",
-            subtitle2: "Messages expire after a month",
+            subtitle2: "(default message expiry 1 month)",
             settings: {
                 options: {
                     notify_include_contents: false,
                     allow_delete: true,
                     smtp_no_reply: true,
                     social_referral_ban: true,
+                    generic_domain: true,
                 },
                 msg_options_security: {
-                    lifespan: 31,
+                    lifespan: 30,
                     max_reads: 10,
                 },
             },
@@ -168,7 +184,7 @@ export default class extends Vue {
             code: 'very_high',
             title: "Very high security",
             subtitle1: "Force my recipients to read quickly and reply securely",
-            subtitle2: "Messages expire after a week",
+            subtitle2: "(default message expiry 1 week)",
             settings: {
                 // Ideally keep these in sync with defaults in database/profiles.ts
                 options: {
@@ -176,6 +192,7 @@ export default class extends Vue {
                     allow_delete: true,
                     smtp_no_reply: true,
                     social_referral_ban: true,
+                    generic_domain: true,
                 },
                 msg_options_security: {
                     lifespan: 7,
@@ -194,6 +211,14 @@ export default class extends Vue {
         void self.app_db.profiles.set(this.profile)
     }
 
+    get done_disabled(){
+        // Whether setup completion buttons are disabled
+        if (!this.profile.host && !this.username_choice){
+            return true
+        }
+        return !this.profile.msg_options_identity.sender_name
+    }
+
     @Watch('security_choice') watch_security_choice(){
         // Apply security choice whenever it changes
         // NOTE While value is initially null, watch will only ever receive a number
@@ -204,6 +229,7 @@ export default class extends Vue {
         this.profile.options.allow_delete = settings.options.allow_delete
         this.profile.options.smtp_no_reply = settings.options.smtp_no_reply
         this.profile.options.social_referral_ban = settings.options.social_referral_ban
+        this.profile.options.generic_domain = settings.options.generic_domain
         this.profile.msg_options_security.lifespan = settings.msg_options_security.lifespan
         this.profile.msg_options_security.max_reads = settings.msg_options_security.max_reads
 
@@ -243,7 +269,7 @@ export default class extends Vue {
 
     show_email_dialog(force_step:string){
         // Show dialog for configuring smtp settings
-        this.$store.dispatch('show_dialog', {
+        void this.$store.dispatch('show_dialog', {
             component: DialogEmailSettings,
             props: {
                 profile: this.profile,
@@ -280,7 +306,7 @@ export default class extends Vue {
         } else {
             void this.$router.push('/')
         }
-        this.$store.dispatch('show_snackbar', "Account created")
+        void this.$store.dispatch('show_snackbar', "Account created")
     }
 }
 
