@@ -602,6 +602,9 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
                 Tags: {stello: this.bucket},
                 Name: `stello ${this.bucket}`,  // Not used programatically, just for UI
                 ProtocolType: 'HTTP',
+                // Setting target auto-creates stage/integration/route
+                // NOTE Should still use normal paths /responder/type as responder will check path
+                // NOTE Since only one user, only one fn/policy for simplicity (unlike host setup)
                 Target: await this._get_lambda_arn(),
             })
             this._gateway_id_cache = resp.ApiId
@@ -623,7 +626,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
             if (error instanceof Error && error.name === 'ResourceConflictException'){
                 return  // Already exists
             }
-                throw error
+            throw error
         }
     }
 
