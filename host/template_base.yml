@@ -86,7 +86,7 @@ Resources:
         # Responses bucket holds private encrypted responses (user role allows reading own prefix)
         Type: AWS::S3::Bucket
         Properties:
-            BucketName: !Join ['', [!Ref AWS::StackName, -responses]]
+            BucketName: !Join ['', [!Ref AWS::StackName, -stello-responses]]
             BucketEncryption:
                 ServerSideEncryptionConfiguration:
                     -   ServerSideEncryptionByDefault:
@@ -165,8 +165,8 @@ Resources:
                 Variables:
                     stello_env: !Ref InputEnv
                     stello_version: !Ref InputVersion
-                    stello_msgs_bucket: !Join ['', [!Ref AWS::StackName, -messages]]
-                    stello_resp_bucket: !Join ['', [!Ref AWS::StackName, -responses]]
+                    stello_msgs_bucket: !Ref AWS::StackName
+                    stello_resp_bucket: !Join ['', [!Ref AWS::StackName, -stello-responses]]
                     stello_topic_arn: ''  # Will use SES
                     stello_region: !Ref AWS::Region
                     stello_rollbar_responder: !Ref InputRollbarResponder
