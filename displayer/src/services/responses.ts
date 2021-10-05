@@ -6,7 +6,7 @@ import {encrypt_asym} from './utils/crypt'
 import {report_http_failure, request} from './utils/http'
 
 
-async function respond(data:any):Promise<boolean>{
+async function respond(type:string, data:any):Promise<boolean>{
     // Send a response and return success boolean
     // SECURITY Only success boolean is returned, for error info rely on lambda's own reporting
 
@@ -20,7 +20,7 @@ async function respond(data:any):Promise<boolean>{
 
     // Submit data
     try {
-        await request(deployment_config.url_responder, {
+        await request(`${deployment_config.url_responder}${type}`, {
             mode: 'cors',
             method: 'POST',
             json: data,
@@ -36,8 +36,7 @@ async function respond(data:any):Promise<boolean>{
 export function respond_read(resp_token:string, copy_id:string,
         has_max_reads:boolean):Promise<boolean>{
     // Send read response
-    return respond({
-        type: 'read',
+    return respond('read', {
         copy_id,  // Responder needs
         has_max_reads,  // Responder needs
         encrypted: {
@@ -51,7 +50,6 @@ export function respond_reply(resp_token:string, text:string, section_id:string|
         subsection_id:string|null):Promise<boolean>{
     // Send text response
     const data:any = {
-        type: 'reply',
         encrypted: {
             resp_token,
             section_id,
@@ -63,7 +61,7 @@ export function respond_reply(resp_token:string, text:string, section_id:string|
     const container = displayer_config.notify_include_contents ? data : data.encrypted
     container.content = text
 
-    return respond(data)
+    return respond('reply', data)
 }
 
 
@@ -71,7 +69,6 @@ export function respond_reaction(resp_token:string, reaction:string|null, sectio
         subsection_id:string|null):Promise<boolean>{
     // Send reaction response
     const data:any = {
-        type: 'reaction',
         encrypted: {
             resp_token,
             section_id,
@@ -83,15 +80,14 @@ export function respond_reaction(resp_token:string, reaction:string|null, sectio
     const container = displayer_config.notify_include_contents ? data : data.encrypted
     container.content = reaction
 
-    return respond(data)
+    return respond('reaction', data)
 }
 
 
 export function respond_subscription(resp_token:string, subscribed:boolean,
         encrypted_address:string|null):Promise<boolean>{
     // Send subscription response
-    return respond({
-        type: 'subscription',
+    return respond('subscription', {
         encrypted: {
             resp_token,
             subscribed,
@@ -104,8 +100,7 @@ export function respond_subscription(resp_token:string, subscribed:boolean,
 export function respond_address(resp_token:string, new_address:string,
         encrypted_address:string|null):Promise<boolean>{
     // Send change address response
-    return respond({
-        type: 'address',
+    return respond('address', {
         encrypted: {
             resp_token,
             new_address,
@@ -118,7 +113,6 @@ export function respond_address(resp_token:string, new_address:string,
 export function respond_resend(resp_token:string, reason:string):Promise<boolean>{
     // Send "resend" response
     const data:any = {
-        type: 'resend',
         encrypted: {
             resp_token,
         },
@@ -128,5 +122,5 @@ export function respond_resend(resp_token:string, reason:string):Promise<boolean
     const container = displayer_config.notify_include_contents ? data : data.encrypted
     container.content = reason
 
-    return respond(data)
+    return respond('resend', data)
 }
