@@ -17,9 +17,9 @@ div
     v-expansion-panels(v-else v-model='storage_provider')
 
         v-expansion-panel
-            v-expansion-panel-header(color='primary')
+            v-expansion-panel-header(class='primary')
                 strong Gracious Tech
-                span(class='text--secondary') Recommended for most users
+                span Recommended for most users
             v-expansion-panel-content
                 p
                     | Your messages will be stored with Gracious Tech (Stello's creator).
@@ -41,9 +41,9 @@ div
                     | However, other use cases are also currently free too.
 
         v-expansion-panel
-            v-expansion-panel-header(color='primary')
+            v-expansion-panel-header(class='app-bg-primary-relative')
                 strong Self-hosted
-                span(class='text--secondary') Advanced users only
+                span Advanced users only
             v-expansion-panel-content
                 p
                     | Your messages will be stored in your own cloud services account
@@ -58,9 +58,9 @@ div
                     app-btn(@click='self_host') Storage manager
 
         v-expansion-panel
-            v-expansion-panel-header(color='primary')
+            v-expansion-panel-header(class='app-bg-primary-relative')
                 strong Third party
-                span(class='text--secondary') Choose if you were given a code
+                span Choose if you were given a code
             v-expansion-panel-content
                 p
                     | Your messages will be stored with the third party who gave you a Stello
@@ -148,10 +148,13 @@ export default class extends Vue {
 
     .v-expansion-panel-header
         user-select: none
+        color: white  // All shades of primary better with white
         &:not(.v-expansion-panel-header--active)
             border-radius: 4px
         strong
             max-width: 150px
+        span
+            opacity: 0.8
 
     .v-expansion-panel-content
         margin-top: 24px
