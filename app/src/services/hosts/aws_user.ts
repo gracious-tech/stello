@@ -17,9 +17,7 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
     cloud:HostCloud = 'aws'
     credentials:HostCredentials
     api:string
-    user:string|null
-
-    _prefix:string
+    user:string
 
     s3:S3
     sns:SNS
@@ -35,10 +33,7 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         this.bucket = bucket
         this.region = region
         this.api = api
-        this.user = user
-
-        // Determine prefix for user
-        this._prefix = user ? `${user}/` : ''
+        this.user = user ?? '_user'
 
         // Init AWS clients
         const aws_creds = {
@@ -54,7 +49,7 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
 
     async upload_file(path:string, data:Blob|ArrayBuffer, lifespan=Infinity, max_reads=Infinity,
             ):Promise<void>{
-        // Upload a file into the storage
+        // Upload a message file into the storage
 
         // Determine tags
         const tagging:string[] = []
@@ -68,7 +63,7 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
 
         await this.s3.putObject({
             Bucket: this.bucket,
-            Key: this._prefix + path,
+            Key: `messages/${this.user}/${path}`,
             Body: data instanceof Blob ? data : new Uint8Array(data),
             ContentType: (data instanceof Blob ? data.type : null) || 'application/octet-stream',
             CacheControl: 'no-store',
@@ -77,21 +72,20 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
     }
 
     async delete_file(path:string):Promise<void>{
-        // Delete a file that was uploaded into storage
-        await this.s3.deleteObject({Bucket: this.bucket, Key: this._prefix + path})
+        // Delete a message file that was uploaded into storage
+        await this.s3.deleteObject({Bucket: this.bucket, Key: `messages/${this.user}/${path}`})
     }
 
     async list_files(prefix=''):Promise<string[]>{
-        // List uploaded files (useful for deleting old messages if app lost state)
-        // NOTE `_prefix` is the user name if any, while `prefix` is limiting results to a subdir
-        return this._list_objects(this.bucket, prefix)
+        // List uploaded message files (useful for deleting old messages if app lost state)
+        return this._list_objects(this.bucket, `messages/${this.user}/`, prefix)
     }
 
     async download_response(path:string):Promise<ArrayBuffer>{
         // Download a response file
         const resp = await this.s3.getObject({
             Bucket: this._bucket_resp_id,
-            Key: this._prefix + path,
+            Key: `responses/${this.user}/${path}`,
         })
         return stream_to_buffer(resp.Body as ReadableStream)  // ReadableStream when in browser
     }
@@ -100,21 +94,20 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         // Delete a response file
         await this.s3.deleteObject({
             Bucket: this._bucket_resp_id,
-            Key: this._prefix + path,
+            Key: `responses/${this.user}/${path}`,
         })
     }
 
     async list_responses(type=''):Promise<string[]>{
         // List responses
-        // NOTE `_prefix` is the user name if any, while `prefix` is limiting results to a subdir
-        return this._list_objects(this._bucket_resp_id, `responses/${type}`)
+        return this._list_objects(this._bucket_resp_id, `responses/${this.user}/`, type)
     }
 
     async upload_responder_config(config:{email:string, [k:string]:unknown}):Promise<void>{
         // Upload config for the responder function
         await this.s3.putObject({
             Bucket: this._bucket_resp_id,
-            Key: `${this._prefix}config`,
+            Key: `config/${this.user}/config`,
             ContentType: 'application/json',
             Body: JSON.stringify(config),
         })
@@ -160,19 +153,20 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         return (await this.sts.getCallerIdentity({})).Account!
     }
 
-    async _list_objects(bucket:string, prefix=''):Promise<string[]>{
+    async _list_objects(bucket:string, auth_prefix:string, prefix:string):Promise<string[]>{
         // List objects in a bucket
+        // NOTE auth_prefix is the prefix authorized to list objects at and is stripped in resp
         // WARN Application logic (such as response processing) expects in ascending order by date
         const paginator = paginateListObjectsV2({client: this.s3}, {
             Bucket: bucket,
-            Prefix: this._prefix + prefix,
+            Prefix: auth_prefix + prefix,
         })
         const objects:{key:string, date:Date}[] = []
         for await (const resp of paginator){
             // NOTE Keys returned have any user-prefix already removed (but not prefix arg)
             objects.push(...(resp.Contents ?? []).map(obj => {
                 return {
-                    key: obj.Key!.slice(this._prefix.length),
+                    key: obj.Key!.slice(auth_prefix.length),
                     date: obj.LastModified!,
                 }
             }))
