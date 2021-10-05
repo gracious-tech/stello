@@ -355,7 +355,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         const deployment_config = JSON.stringify({
             url_msgs: `./`,  // Same URL as displayer for self-hosted AWS
             url_msgs_append_subdomain: false,
-            url_responder: `https://${api_id}.execute-api.${this.region}.amazonaws.com/`,
+            url_responder: `https://${api_id}.execute-api.${this.region}.amazonaws.com/responder/`,
         } as DeploymentConfig)
 
         // Get list of files in displayer tar
