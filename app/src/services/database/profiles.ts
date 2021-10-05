@@ -212,6 +212,13 @@ export class Profile implements RecordProfile {
         return this.host.cloud === 'gt' ? 365 * 2 : this.host.max_lifespan
     }
 
+    get api():string{
+        // Get URL for api
+        if (!this.host)
+            throw new Error('impossible')
+        return this.host.cloud === 'gt' ? import.meta.env.VITE_HOSTED_API : this.host.api
+    }
+
     get view_domain():string{
         // The domain messages will be viewed at
         if (this.host?.cloud === 'gt'){
