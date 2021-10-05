@@ -2,6 +2,8 @@
 # Global
 node_modules/
 
+/.bin/deploy_host_*.env
+
 /.venv/
 
 /app/.env.development.local
@@ -23,6 +25,7 @@ node_modules/
 
 /displayer/.env.development.local
 /displayer/dist/
+/displayer/dist_compressed/
 /displayer/public/dev/
 /displayer/public/displayer/reactions/
 

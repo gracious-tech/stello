@@ -13,8 +13,20 @@ cd displayer
 # NOTE This issue only occurs randomly in some browsers and is hard to reproduce
 sed --in-place 's/\.\/lottie_light/\/displayer\/lottie_light/' dist/displayer/index.*.js
 
-# Tar index and assets and place in app
-# WARN Be sure to avoid including a dev dir in the tar
-# WARN `assets` dir is reserved for message assets, so displayer assets put in `displayer` dir
-cd dist
+# Create compressed version in new dir
+# NOTE All files are compressed for simplicity (only one png icon that might not really need it)
+# NOTE Only copies index.html and displayer dir to exclude dev files etc
+rm -rf dist_compressed
+mkdir dist_compressed
+cp --archive dist/index.html dist/displayer dist_compressed
+gzip -r --best dist_compressed
+# Remove the .gz extension that was added to all files
+python3 -c '
+from pathlib import Path
+for file in Path().glob("dist_compressed/**/*.gz"):
+    file.rename(file.parent / file.stem)
+'
+
+# Place tar'd copy in app component
+cd dist_compressed
 tar --create --file ../../app/static/displayer.tar index.html displayer

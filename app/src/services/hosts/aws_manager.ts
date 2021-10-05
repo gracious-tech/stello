@@ -1,7 +1,6 @@
 // Management of sets of storage services
 // NOTE Must be reuseable outside of Stello app as well (e.g. automation of new users)
 
-import pako from 'pako'
 import untar from 'js-untar'
 import {SSM} from '@aws-sdk/client-ssm'
 import {IAM} from '@aws-sdk/client-iam'
@@ -18,7 +17,6 @@ import app_config from '@/app_config.json'
 import {buffer_to_hex} from '@/services/utils/coding'
 import {sleep} from '@/services/utils/async'
 import {Task} from '@/services/tasks/tasks'
-import {DeploymentConfig} from '@/shared/shared_types'
 import {StorageBaseAws, waitUntilUserExists, waitUntilRoleExists} from './aws_common'
 import {HostCloud, HostCredentials, HostManager, HostManagerStorage, HostPermissionError,
     HostStorageCredentials, HostStorageVersion} from './types'
@@ -350,14 +348,6 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
     async _setup_displayer():Promise<void>{
         // Upload displayer, configured with deployment config
 
-        // Define displayer's deployment config for later embedding in displayer code
-        const api_id = await this._get_api_id()
-        const deployment_config = JSON.stringify({
-            url_msgs: `./`,  // Same URL as displayer for self-hosted AWS
-            url_msgs_append_subdomain: false,
-            url_responder: `https://${api_id}.execute-api.${this.region}.amazonaws.com/responder/`,
-        } as DeploymentConfig)
-
         // Get list of files in displayer tar
         // WARN js-untar is unmaintained and readAsString() is buggy so not using
         interface TarFile {name:string, type:string, buffer:ArrayBuffer}
@@ -365,7 +355,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
 
         // Start uploading displayer assets and collect promises that resolve with their path
         const uploads:Promise<string>[] = []
-        let index_contents:string
+        let index_contents:Uint8Array
         for (const file of files){
 
             // Actual files have type ''|'0' (others may be directory etc)
@@ -373,18 +363,9 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
                 continue
             }
 
-            // Process file contents
-            // WARN Currently assume all assets are text (and suitable for gzip compressing)
-            let contents = new TextDecoder().decode(file.buffer)
-            const type = displayer_asset_type(file.name)
-            if (type === 'text/javascript'){
-                contents = contents.replace('DEPLOYMENT_CONFIG_DATA_UfWFTF5axRWX',
-                    btoa(deployment_config))
-            }
-
             // Index should be uploaded last so that assets are ready (important for updates)
             if (file.name === 'index.html'){
-                index_contents = contents
+                index_contents = new Uint8Array(file.buffer)
                 continue
             }
 
@@ -392,9 +373,9 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
             uploads.push(this.s3.putObject({
                 Bucket: this.bucket,
                 Key: file.name,
-                ContentType: type,
+                ContentType: displayer_asset_type(file.name),
                 ContentEncoding: 'gzip',
-                Body: pako.gzip(contents),
+                Body: new Uint8Array(file.buffer),
             }).then(() => file.name))
         }
 
@@ -402,13 +383,12 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         await Promise.all(uploads).then(async upload_paths => {
 
             // Upload the index
-            // TODO For org hosting, probably leave as index.html to serve from '/'
             await this.s3.putObject({
                 Bucket: this.bucket,
                 Key: '_',
                 ContentType: 'text/html',
                 ContentEncoding: 'gzip',
-                Body: pako.gzip(index_contents),
+                Body: index_contents,
             })
 
             // List all old assets

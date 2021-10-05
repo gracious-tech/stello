@@ -1,0 +1,22 @@
+#!/bin/bash
+# Deploy displayer for hosted storage
+set -e
+cd "$(dirname "$(dirname "$0")")"
+
+
+# Do fresh build of displayer
+.bin/build_displayer
+
+# Load in env vars for deployment
+source deploy_host_${1:-dev}.env
+read -s -p "AWS_SECRET_ACCESS_KEY: "
+export AWS_SECRET_ACCESS_KEY="$REPLY"
+echo  # Password input doesn't look like it worked otherwise (as silenced)
+echo "Uploading..."
+
+# Upload assets
+cd displayer/dist_compressed
+aws s3 sync --content-encoding gzip --delete . "s3://$STELLO_HOSTED_BUCKET"
+
+# Invalidate cloudfront
+aws cloudfront create-invalidation --distribution-id "$STELLO_HOSTED_CF" --paths '/*'
