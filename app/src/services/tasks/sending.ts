@@ -161,7 +161,7 @@ export class Sender {
         this.host = await self.app_db.new_host_user(this.profile)
 
         // Get responder url from deployment config
-        this.responder_url = (await this.host.download_deployment_config()).url_responder
+        this.responder_url = `${this.profile.api}responder/`
 
         // Generate values for dynamic content
         // NOTE Contact values set to null as will update per copy
