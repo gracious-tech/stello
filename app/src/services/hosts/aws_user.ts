@@ -41,7 +41,11 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         this._prefix = user ? `${user}/` : ''
 
         // Init AWS clients
-        const aws_creds = {accessKeyId: credentials.key_id, secretAccessKey: credentials.key_secret}
+        const aws_creds = {
+            accessKeyId: credentials.key_id,
+            secretAccessKey: credentials.key_secret,
+            sessionToken: credentials.key_session!,
+        }
         this.s3 = new S3({apiVersion: '2006-03-01', credentials: aws_creds, region})
         this.sns = new SNS({apiVersion: '2010-03-31', credentials: aws_creds, region})
         this.iam = new IAM({apiVersion: '2010-05-08', credentials: aws_creds, region})
