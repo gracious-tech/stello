@@ -46,7 +46,6 @@
   },
   "devDependencies": {
     "@types/lodash": "^4.14.173",
-    "@types/pako": "^1.0.2",
     "@types/papaparse": "^5.2.6",
     "@types/pug": "^2.0.5",
     "@types/punycode": "^2.1.0",
@@ -106,7 +105,6 @@
         "js-untar",
         "lodash",
         "lottie-web/build/player/lottie_light",
-        "pako",
         "papaparse",
         "postal-mime",
         "punycode/",
