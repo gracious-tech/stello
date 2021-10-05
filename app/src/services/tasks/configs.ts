@@ -32,8 +32,7 @@ export async function configs_update(task:Task){
 
     // Upload displayer config
     if (!profile.host_state.displayer_config_uploaded){
-        const disp_config_name = `disp_config_${profile.host_state.disp_config_name}`
-        upload_displayer = storage.upload_file(disp_config_name, object_to_blob({
+        upload_displayer = storage.upload_displayer_config({
             version: app_config.version,  // Did not exist v0.7.2 and below
             notify_include_contents: profile.options.notify_include_contents,
             allow_replies: profile.options.allow_replies,
@@ -43,7 +42,7 @@ export async function configs_update(task:Task){
             social_referral_ban: profile.options.social_referral_ban,
             resp_key_public,
             reaction_options: profile.options.reaction_options,
-        }))
+        })
     }
 
     // Upload responder config

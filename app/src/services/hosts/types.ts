@@ -114,6 +114,9 @@ export declare class HostUser {
     // List all responses
     list_responses(type?:string):Promise<string[]>
 
+    // Upload config for the displayer
+    upload_displayer_config(config:Record<string, unknown>):Promise<void>
+
     // Upload config for responder function
     upload_responder_config(config:Record<string, unknown>):Promise<void>
 }

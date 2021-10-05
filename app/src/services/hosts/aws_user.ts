@@ -103,6 +103,16 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         return this._list_objects(this._bucket_resp_id, `responses/${this.user}/`, type)
     }
 
+    async upload_displayer_config(config:Record<string, unknown>):Promise<void>{
+        // Upload config for the displayer
+        await this.s3.putObject({
+            Bucket: this.bucket,
+            Key: `config/${this.user}/config`,
+            ContentType: 'application/json',
+            Body: JSON.stringify(config),
+        })
+    }
+
     async upload_responder_config(config:{email:string, [k:string]:unknown}):Promise<void>{
         // Upload config for the responder function
         await this.s3.putObject({
