@@ -2,6 +2,10 @@
 import {readFileSync, writeFileSync} from 'fs'
 
 
+// Change to host dir
+process.chdir(__dirname)
+
+
 // Read in base template
 let template = readFileSync('template_base.yml', {encoding: 'utf-8'})
 

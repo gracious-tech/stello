@@ -1,0 +1,30 @@
+#!/bin/bash
+# Deploy AWS services for hosted storage (takes env arg -- dev|prod)
+set -e
+cd "$(dirname "$(dirname "$0")")"
+
+
+# Build cloudformation template
+node_modules/.bin/ts-node host/template_builder.ts
+
+
+# Build host lambdas
+.bin/build_host
+
+
+# Load in env vars for deployment
+source deploy_host_${1:-dev}.env
+read -s -p "AWS_SECRET_ACCESS_KEY: "
+export AWS_SECRET_ACCESS_KEY="$REPLY"
+echo  # Password input doesn't look like it worked otherwise (as silenced)
+echo "Deploying..."
+
+
+# Deploy services
+cd host
+sam deploy --config-file template_input.toml
+
+
+# SetPrincipalTagAttributeMap not supported by CloudFormation yet
+# TODO Waiting on https://github.com/aws-cloudformation/cloudformation-coverage-roadmap/issues/779
+echo "MANUAL: Enable attributes for access control mapping 'username' -> 'cognito:username'"

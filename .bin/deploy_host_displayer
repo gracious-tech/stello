@@ -1,5 +1,5 @@
 #!/bin/bash
-# Deploy displayer for hosted storage
+# Deploy displayer for hosted storage (takes env arg -- dev|prod)
 set -e
 cd "$(dirname "$(dirname "$0")")"
 
