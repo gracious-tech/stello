@@ -10,4 +10,4 @@ sam deploy --config-file template_input.toml
 
 # SetPrincipalTagAttributeMap not supported by CloudFormation yet
 # TODO Waiting on https://github.com/aws-cloudformation/cloudformation-coverage-roadmap/issues/779
-echo "MANUAL: Enable default attributes for access control"
+echo "MANUAL: Enable attributes for access control mapping 'username' -> 'cognito:username'"

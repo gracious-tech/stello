@@ -263,6 +263,9 @@ Resources:
             UsernameConfiguration:
                 CaseSensitive: false  # Will be used as a subdomain which isn't case-sensitive
             Schema:
+                # NOTE Non-dev attributes are returned in API calls, so not hidden from user
+                # NOTE Depending on the context, attributes may need prefix dev:custom: or custom:
+                # NOTE cognito:username is the attribute for the builtin username field
                 -   Name: hashed_email
                     AttributeDataType: String
                 -   Name: ip
