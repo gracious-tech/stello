@@ -179,8 +179,8 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
     sns:SNS
     sts:STS
 
-    _account_id_cache:string
-    _gateway_id_cache:string
+    _account_id_cache:string|undefined = undefined
+    _gateway_id_cache:string|undefined = undefined
 
     constructor(credentials:HostCredentials, bucket:string, region:string, version?:number){
         super()
@@ -294,7 +294,7 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
 
     // PRIVATE METHODS
 
-    async _get_account_id():Promise<string>{
+    async _get_account_id():Promise<string|undefined>{
         // Some requests strictly require the account id to be specified
         if (!this._account_id_cache){
             this._account_id_cache = (await this.sts.getCallerIdentity({})).Account
@@ -308,11 +308,11 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
             // NOTE ResourceTypeFilters does not work (seems to be an AWS bug) so manually filtering
             const resp = await this.tagging.getResources({
                 TagFilters: [{Key: 'stello', Values: [this.bucket]}]})
-            const arn = resp.ResourceTagMappingList
-                .map(i => i.ResourceARN.split(':'))  // Get ARN parts
+            const arn = (resp.ResourceTagMappingList ?? [])
+                .map(i => i.ResourceARN?.split(':') ?? [])  // Get ARN parts
                 .filter(i => i[2] === 'apigateway')[0]  // Only match API gateway
                 // Should only be one if any `[0]`
-            this._gateway_id_cache = arn && arn[5].split('/')[2]  // Extract gateway id part
+            this._gateway_id_cache = arn?.[5]?.split('/')[2]  // Extract gateway id part
         }
         return this._gateway_id_cache
     }
