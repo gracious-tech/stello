@@ -15,7 +15,7 @@ import {GetFunctionCommandOutput, Lambda, UpdateFunctionConfigurationCommandInpu
     waitUntilFunctionExists} from '@aws-sdk/client-lambda'
 
 import app_config from '@/app_config.json'
-import {buffer_to_hex, string_to_utf8} from '@/services/utils/coding'
+import {buffer_to_hex} from '@/services/utils/coding'
 import {sleep} from '@/services/utils/async'
 import {Task} from '@/services/tasks/tasks'
 import {DeploymentConfig} from '@/shared/shared_types'
