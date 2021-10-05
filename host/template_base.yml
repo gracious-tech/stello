@@ -325,12 +325,14 @@ Resources:
         Properties:
             RoleName: !Join ['', [!Ref AWS::StackName, -user]]
             AssumeRolePolicyDocument:
+                # See https://docs.aws.amazon.com/cognito/latest/developerguide/using-attributes-for-access-control-policy-example.html
                 Version: '2012-10-17'
                 Statement:
                     -   Effect: Allow
                         Principal:
                             Federated: cognito-identity.amazonaws.com
-                        Action: sts:AssumeRoleWithWebIdentity
+                        # NOTE TagSession needed for using PrincipalTag variables
+                        Action: [sts:AssumeRoleWithWebIdentity, sts:TagSession]
                         Condition:
                             StringEquals:
                                 cognito-identity.amazonaws.com:aud: !Ref IdentityPool
