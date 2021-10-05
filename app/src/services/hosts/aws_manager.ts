@@ -620,9 +620,10 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
                 SourceArn: `arn:aws:execute-api:${this.region}:${account_id}:${api_id}/*`,
             })
         } catch (error){
-            if (error.name !== 'ResourceConflictException'){  // Already exists
-                throw error
+            if (error instanceof Error && error.name === 'ResourceConflictException'){
+                return  // Already exists
             }
+                throw error
         }
     }
 
