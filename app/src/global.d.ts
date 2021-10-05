@@ -71,6 +71,8 @@ declare module 'Custom' {
                 VITE_HOSTED_IDENTITY_POOL:string,
                 VITE_HOSTED_BUCKET:string,
                 VITE_HOSTED_API:string,
+                VITE_HOSTED_DOMAIN_GENERIC:string,
+                VITE_HOSTED_DOMAIN_BRANDED:string,
             }
         }
     }

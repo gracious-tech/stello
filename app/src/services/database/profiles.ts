@@ -223,7 +223,9 @@ export class Profile implements RecordProfile {
         // The domain messages will be viewed at
         if (this.host?.cloud === 'gt'){
             const user = this.host.username
-            return this.options.generic_domain ? `${user}.message.quest` : `${user}.stello.news`
+            const parent = this.options.generic_domain ? import.meta.env.VITE_HOSTED_DOMAIN_GENERIC
+                : import.meta.env.VITE_HOSTED_DOMAIN_BRANDED
+            return `${user}.${parent}`
         } else if (this.host?.cloud === 'aws'){
             // NOTE Not using website mode since actually makes URL longer
             // NOTE Including region as faster than being redirected from generic subdomain

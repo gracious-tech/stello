@@ -12,9 +12,9 @@ Parameters:
         Type: String
     InputRollbarAccounts:
         Type: String
-    InputDomainPrimary:  # The domain used for CF _and_ API requests etc
+    InputDomainGeneric:  # The domain used for CF _and_ API requests etc
         Type: String
-    InputDomainSecondary:  # An alternate domain usable for CF
+    InputDomainBranded:  # An alternate domain usable for CF
         Type: String
     InputCertArn:
         Type: String
@@ -113,8 +113,8 @@ Resources:
                 Enabled: true
                 HttpVersion: http2  # Requires TLS 1.2
                 Aliases:
-                    -   !Join ['', ['*.', !Ref InputDomainPrimary]]
-                    -   !Join ['', ['*.', !Ref InputDomainSecondary]]
+                    -   !Join ['', ['*.', !Ref InputDomainGeneric]]
+                    -   !Join ['', ['*.', !Ref InputDomainBranded]]
                 DefaultRootObject: index.html
                 ViewerCertificate:
                     AcmCertificateArn: !Ref InputCertArn
@@ -142,7 +142,7 @@ Resources:
         Type: AWS::ApiGatewayV2::ApiMapping
         Properties:
             ApiId: !Ref Gateway
-            DomainName: !Join ['', ['api.', !Ref InputDomainPrimary]]
+            DomainName: !Join ['', ['api.', !Ref InputDomainGeneric]]
             Stage: !Ref Gateway.Stage
 
     ResponderFunction:

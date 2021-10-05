@@ -44,7 +44,8 @@ export default class extends Vue {
 
     get suffix(){
         // The part of the URL after the username
-        return this.generic_domain ? '.message.quest/...' : '.stello.news/...'
+        return this.generic_domain ? `.${import.meta.env.VITE_HOSTED_DOMAIN_GENERIC}/...`
+            : `.${import.meta.env.VITE_HOSTED_DOMAIN_BRANDED}/...`
     }
 
     get username_visual(){
