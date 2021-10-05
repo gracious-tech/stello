@@ -188,8 +188,6 @@ export default class extends Vue {
         }
         if (!this.profile)
             return "Specify which account to send from"
-        if (!this.profile.host.bucket)
-            return "Selected sending account has not been setup yet"
         if (!this.final_recipients.length)
             return "Add some recipients"
         return null
