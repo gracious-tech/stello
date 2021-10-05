@@ -90,10 +90,9 @@ export declare class HostUser {
     credentials:HostCredentials
     bucket:string
     region:string
-    api:string
     user:string|null
 
-    constructor(credentials:HostCredentials, bucket:string, region:string, api:string, user:string)
+    constructor(credentials:HostCredentials, bucket:string, region:string, user:string)
 
     // Upload a file into the storage
     upload_file(path:string, data:Blob|ArrayBuffer, lifespan?:number, max_reads?:number)

@@ -115,7 +115,6 @@ export default class extends Vue {
             this.storage.credentials,
             this.credentials_package!.bucket,
             this.credentials_package!.region,
-            this.credentials_package!.api,
             null,
         )
         this.waiting = true

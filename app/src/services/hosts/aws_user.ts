@@ -16,7 +16,6 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
 
     cloud:HostCloud = 'aws'
     credentials:HostCredentials
-    api:string
     user:string
 
     s3:S3
@@ -24,15 +23,13 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
     iam:IAM
     sts:STS
 
-    constructor(credentials:HostCredentials, bucket:string, region:string, api:string,
-            user:string|null){
+    constructor(credentials:HostCredentials, bucket:string, region:string, user:string|null){
         super()
 
         // Store args
         this.credentials = credentials
         this.bucket = bucket
         this.region = region
-        this.api = api
         this.user = user ?? '_user'
 
         // Init AWS clients
