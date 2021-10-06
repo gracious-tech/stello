@@ -214,7 +214,7 @@ Resources:
                     stello_version: !Ref InputVersion
                     stello_region: !Ref AWS::Region
                     stello_rollbar: !Ref InputRollbarAccounts
-                    stello_user_pool: !Ref AWS::StackName
+                    stello_user_pool: !Ref UserPool
             Policies:
                 -   Version: '2012-10-17'
                     Statement:
@@ -242,7 +242,7 @@ Resources:
                     stello_version: !Ref InputVersion
                     stello_region: !Ref AWS::Region
                     stello_rollbar: !Ref InputRollbarAccounts
-                    stello_user_pool: !Ref AWS::StackName
+                    stello_user_pool: !Ref UserPool
             Policies:
                 -   Version: '2012-10-17'
                     Statement:
