@@ -709,10 +709,10 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
                 stello_env: 'production',
                 stello_version: app_config.version,
                 stello_msgs_bucket: this.bucket,
-                stello_resp_bucket: this._bucket_resp_id,
                 stello_topic_arn: await this._get_topic_arn(),
                 stello_region: this.region,
                 stello_rollbar_responder: import.meta.env.VITE_ROLLBAR_RESPONDER,
+                stello_domains: '',  // Only needed for hosted setup
             },
         }
 

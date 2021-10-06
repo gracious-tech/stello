@@ -180,6 +180,7 @@ Resources:
                     stello_topic_arn: ''  # Will use SES
                     stello_region: !Ref AWS::Region
                     stello_rollbar_responder: !Ref InputRollbarResponder
+                    stello_domains: !Join [' ', [!Ref InputDomainGeneric, !Ref InputDomainBranded]]
             Policies:
                 -   Version: '2012-10-17'
                     Statement:

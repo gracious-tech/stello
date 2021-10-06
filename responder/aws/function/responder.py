@@ -40,8 +40,8 @@ MSGS_BUCKET = os.environ['stello_msgs_bucket']
 RESP_BUCKET = MSGS_BUCKET + '-stello-resp'
 TOPIC_ARN = os.environ['stello_topic_arn']
 REGION = os.environ['stello_region']
-MSGS_BUCKET_ORIGIN = f'https://{MSGS_BUCKET}.s3-{REGION}.amazonaws.com'
 ROLLBAR_TOKEN = os.environ['stello_rollbar_responder']  # Client token (not server) as public
+DOMAINS = os.environ['stello_domains'].split(' ') if os.environ['stello_domains'] else []
 
 
 # Setup Rollbar
@@ -76,9 +76,18 @@ def entry(api_event, context):
         _report_error(api_event)
         response = {'statusCode': 400}
 
+    # Determine if origin allowed
+    # NOTE Access-Control-Allow-Origin can only take one value, so must detect right one
+    domain = f'{MSGS_BUCKET}.s3-{REGION}.amazonaws.com'
+    if DOMAINS:
+        # Hosted setup -- domain must be a subdomain of one in list
+        parent_domain = api_event['requestContext']['domainName'].partition('.')[2]
+        if parent_domain in DOMAINS:
+            domain = api_event['requestContext']['domainName']
+
     # Add CORS headers
     response.setdefault('headers', {})
-    response['headers']['Access-Control-Allow-Origin'] = '*' if DEV else MSGS_BUCKET_ORIGIN
+    response['headers']['Access-Control-Allow-Origin'] = '*' if DEV else f'https://{domain}'
     # These two are required for pre-flight OPTIONS, but possibly not for actual requests
     response['headers']['Access-Control-Allow-Methods'] = 'GET,POST'
     response['headers']['Access-Control-Allow-Headers'] = '*'
