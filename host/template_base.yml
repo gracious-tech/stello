@@ -21,6 +21,14 @@ Parameters:
     InputSesArn:
         Type: String
 
+
+Globals:
+    Function:
+        Runtime: nodejs14.x
+        MemorySize: 128
+        Timeout: 10
+
+
 Resources:
 
     # BUCKETS
@@ -151,8 +159,6 @@ Resources:
             FunctionName: !Join ['', [!Ref AWS::StackName, -responder]]
             Runtime: python3.9
             Handler: responder.entry
-            Timeout: 5
-            MemorySize: 128
             CodeUri: responder/
             Events:
                 ApiEvent:
@@ -193,15 +199,13 @@ Resources:
         Type: AWS::Serverless::Function
         Properties:
             FunctionName: !Join ['', [!Ref AWS::StackName, -accounts-available]]
-            Runtime: nodejs14.x
             Handler: dist/handle_available.handler
-            Timeout: 5
-            MemorySize: 128
             CodeUri: accounts/
             Events:
                 ApiEvent:
                     Type: HttpApi
                     Properties:
+                        ApiId: !Ref Gateway  # Legit property, despite linter error
                         Method: POST
                         Path: /accounts/available
             Environment:
@@ -223,15 +227,13 @@ Resources:
         Type: AWS::Serverless::Function
         Properties:
             FunctionName: !Join ['', [!Ref AWS::StackName, -accounts-create]]
-            Runtime: nodejs14.x
             Handler: dist/handle_create.handler
-            Timeout: 5
-            MemorySize: 128
             CodeUri: accounts/
             Events:
                 ApiEvent:
                     Type: HttpApi
                     Properties:
+                        ApiId: !Ref Gateway  # Legit property, despite linter error
                         Method: POST
                         Path: /accounts/create
             Environment:
