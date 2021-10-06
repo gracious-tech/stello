@@ -3,16 +3,15 @@
 set -e
 cd "$(dirname "$(dirname "$0")")"
 
-
-# Do fresh build of displayer
-.bin/build_displayer
-
 # Load in env vars for deployment
 source deploy_host_${1:-dev}.env
 read -s -p "AWS_SECRET_ACCESS_KEY: "
 export AWS_SECRET_ACCESS_KEY="$REPLY"
 echo  # Password input doesn't look like it worked otherwise (as silenced)
 echo "Uploading..."
+
+# Do fresh build of displayer
+.bin/build_displayer
 
 # Upload assets
 cd displayer/dist_compressed
