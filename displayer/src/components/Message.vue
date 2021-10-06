@@ -37,9 +37,8 @@ import {request, report_http_failure} from '../services/utils/http'
 import {utf8_to_string, url64_to_buffer} from '../services/utils/coding'
 import {store} from '../services/store'
 import {PublishedCopy} from '../shared/shared_types'
-import {deployment_config} from '../services/deployment_config'
 import {respond_read} from '../services/responses'
-import {displayer_config} from '../services/displayer_config'
+import {displayer_config, MSGS_URL, USER} from '../services/displayer_config'
 import {GetAsset} from '@/services/types'
 
 
@@ -70,7 +69,7 @@ export default defineComponent({
             error.value = null
 
             // Try download the message
-            const url = `${deployment_config.url_msgs}copies/${current_msg.id}`
+            const url = `${MSGS_URL}messages/${USER}/copies/${current_msg.id}`
             let encrypted:ArrayBuffer|null
             try {
                 encrypted = await request(url, {}, 'arrayBuffer', 'throw_null403-4')
@@ -114,7 +113,7 @@ export default defineComponent({
             const assets_key = await import_key_sym(url64_to_buffer(msg_data.assets_key))
             get_asset.value = async (asset_id:string):Promise<ArrayBuffer|null> => {
                 const url =
-                    `${deployment_config.url_msgs}assets/${msg_data.base_msg_id}/${asset_id}`
+                    `${MSGS_URL}messages/${USER}/assets/${msg_data.base_msg_id}/${asset_id}`
                 let encrypted:ArrayBuffer|null = null
                 try {
                     encrypted = await request(url, {}, 'arrayBuffer', 'throw_null403-4')

@@ -2,27 +2,19 @@
 import {url64_to_buffer} from './utils/coding'
 import {import_key_asym} from './utils/crypt'
 import {report_http_failure, request_json} from './utils/http'
-import {deployment_config} from './deployment_config'
+import {DisplayerConfig} from '../shared/shared_types'
 
 
-interface DisplayConfigJson {
-    notify_include_contents:boolean
-    allow_replies:boolean
-    allow_reactions:boolean
-    allow_delete:boolean
-    allow_resend_requests:boolean
-    social_referral_ban:boolean
-    resp_key_public:string|CryptoKey  // CryptoKey so TS allows converting string -> CryptoKey
-    reaction_options:string[]
-}
+export const MSGS_URL = import.meta.env.VITE_HOSTED_MSGS_URL ?? '/'
+export const USER =
+    import.meta.env.VITE_HOSTED_MSGS_URL ? self.location.hostname.split('.')[0]! : '_user'
 
 
 async function download_displayer_config(name:string){
     // Download and parse displayer config
-    const url = `${deployment_config.url_msgs}disp_config_${name}`
-    let config:DisplayConfigJson
+    let config:DisplayerConfig
     try {
-        config = await request_json<DisplayConfigJson>(url)
+        config = await request_json<DisplayerConfig>(`${MSGS_URL}config/${USER}/config`)
     } catch (error){
         report_http_failure(error)
         return null  // Don't cause UI to fail
@@ -38,10 +30,12 @@ async function download_displayer_config(name:string){
 }
 
 
-class DisplayerConfig {
+class DisplayerConfigAccess {
     // Displayer config represented by a class for synchronous access with defaults
 
     // In the unexpected event of not being able to download config, default to featureless+secure
+    version = 'unknown'
+    responder = ''
     notify_include_contents = false
     allow_replies = false
     allow_reactions = false
@@ -86,4 +80,4 @@ class DisplayerConfig {
 
 
 // Export instance of config class so can import and use synchronously
-export const displayer_config = new DisplayerConfig()
+export const displayer_config = new DisplayerConfigAccess()
