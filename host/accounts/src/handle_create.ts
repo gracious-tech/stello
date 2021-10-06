@@ -101,7 +101,7 @@ export const handler = setup_handler<CreateInput>(async (raw_input, ip):Promise<
         Username: input.username,
         UserAttributes: [
             {Name: 'custom:hashed_email', Value: input.hashed_email},
-            {Name: 'dev:custom:hashed_email_original', Value: input.hashed_email},
+            {Name: 'dev:custom:hashed_email_orig', Value: input.hashed_email},
             {Name: 'dev:custom:ip', Value: ip},
             {Name: 'dev:custom:plan', Value: input.plan},
         ],

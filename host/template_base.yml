@@ -271,7 +271,7 @@ Resources:
                 -   Name: hashed_email
                     AttributeDataType: String
                 # Keep original hashed_email in case attacker changes and prevents account deletion
-                -   Name: hashed_email_original
+                -   Name: hashed_email_orig
                     AttributeDataType: String
                     Mutable: false
                     DeveloperOnlyAttribute: true
