@@ -1,5 +1,4 @@
 
-import {deployment_config} from './deployment_config'
 import {displayer_config} from './displayer_config'
 import {string_to_utf8} from './utils/coding'
 import {encrypt_asym} from './utils/crypt'
@@ -20,7 +19,7 @@ async function respond(type:string, data:any):Promise<boolean>{
 
     // Submit data
     try {
-        await request(`${deployment_config.url_responder}${type}`, {
+        await request(`${displayer_config.responder}${type}`, {
             mode: 'cors',
             method: 'POST',
             json: data,

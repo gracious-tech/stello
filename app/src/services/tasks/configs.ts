@@ -1,7 +1,7 @@
 
 import app_config from '@/app_config.json'
 import {Task} from './tasks'
-import {object_to_blob, buffer_to_url64} from '../utils/coding'
+import {buffer_to_url64} from '../utils/coding'
 import {export_key} from '../utils/crypt'
 
 
@@ -34,6 +34,7 @@ export async function configs_update(task:Task){
     if (!profile.host_state.displayer_config_uploaded){
         upload_displayer = storage.upload_displayer_config({
             version: app_config.version,  // Did not exist v0.7.2 and below
+            responder: `${profile.api}responder/`,
             notify_include_contents: profile.options.notify_include_contents,
             allow_replies: profile.options.allow_replies,
             allow_reactions: profile.options.allow_reactions,

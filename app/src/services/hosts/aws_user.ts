@@ -4,6 +4,7 @@ import {SNS} from '@aws-sdk/client-sns'
 import {IAM} from '@aws-sdk/client-iam'
 import {STS} from '@aws-sdk/client-sts'
 
+import {DisplayerConfig} from '@/shared/shared_types'
 import {HostCloud, HostCredentials, HostUser} from './types'
 import {StorageBaseAws} from './aws_common'
 import {enforce_range} from '../utils/numbers'
@@ -100,7 +101,7 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         return this._list_objects(this._bucket_resp_id, `responses/${this.user}/`, type)
     }
 
-    async upload_displayer_config(config:Record<string, unknown>):Promise<void>{
+    async upload_displayer_config(config:DisplayerConfig):Promise<void>{
         // Upload config for the displayer
         await this.s3.putObject({
             Bucket: this.bucket,
