@@ -66,24 +66,25 @@ SNS = boto3.client('sns', config=AWS_CONFIG)
 def entry(api_event, context):
     """Entrypoint that wraps main logic to add exception handling and CORS headers"""
 
+    # Determine expected domain and user
+    # NOTE Access-Control-Allow-Origin can only take one value, so must detect right one
+    domain = f'{MSGS_BUCKET}.s3-{REGION}.amazonaws.com'
+    user = '_user'
+    if DOMAINS:
+        # Hosted setup -- domain must be a subdomain of one in list
+        user, _, request_domain = api_event['requestContext']['domainName'].partition('.')
+        if request_domain in DOMAINS:
+            domain = api_event['requestContext']['domainName']
+
     # Process event and catch exceptions
     try:
-        response = _entry(api_event, context)
+        response = _entry(api_event, user)
     except Abort:
         response = {'statusCode': 400}
     except:
         # SECURITY Never reveal whether client or server error, just that it didn't work
         _report_error(api_event)
         response = {'statusCode': 400}
-
-    # Determine if origin allowed
-    # NOTE Access-Control-Allow-Origin can only take one value, so must detect right one
-    domain = f'{MSGS_BUCKET}.s3-{REGION}.amazonaws.com'
-    if DOMAINS:
-        # Hosted setup -- domain must be a subdomain of one in list
-        parent_domain = api_event['requestContext']['domainName'].partition('.')[2]
-        if parent_domain in DOMAINS:
-            domain = api_event['requestContext']['domainName']
 
     # Add CORS headers
     response.setdefault('headers', {})
@@ -95,7 +96,7 @@ def entry(api_event, context):
     return response
 
 
-def _entry(api_event, context):
+def _entry(api_event, user):
     """Main processing logic
     NOTE api_event format and response expected below
     https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-develop-integrations-lambda.html
@@ -124,7 +125,7 @@ def _entry(api_event, context):
     if api_event['requestContext']['http']['method'] == 'GET':
         query_params = api_event.get('queryStringParameters', {})
         if 'image' in query_params:
-            return get_invite_image(query_params)
+            return get_invite_image(user, query_params)
         # A number of companies crawl AWS services, submitting GET requests without params
         raise Abort()
 
@@ -138,7 +139,7 @@ def _entry(api_event, context):
     # Handle the event and then store it
     _general_validation(event)
     handler = globals()[f'handle_{event["type"]}']
-    handler(config, event)
+    handler(user, config, event)
     _put_resp(config, event, ip)
 
     # Report success
@@ -148,7 +149,7 @@ def _entry(api_event, context):
 # GET HANDLERS
 
 
-def get_invite_image(params):
+def get_invite_image(user, params):
     """Decrypt and return invite image
 
     WARN Do not prefix with `handle_` as then a user could trigger it with that event['type']
@@ -180,7 +181,7 @@ def get_invite_image(params):
 # POST HANDLERS
 
 
-def handle_read(config, event):
+def handle_read(user, config, event):
     """Delete message if reached max reads, otherwise increase read count
 
     SECURITY While an attacker could circumvent this or send fake msg ids, there isn't much risk
@@ -234,14 +235,14 @@ def handle_read(config, event):
         )
 
 
-def handle_reply(config, event):
+def handle_reply(user, config, event):
     """Notify user of replies to their messages"""
     if not config['allow_replies']:
         raise Abort()
     _send_notification(config, event)
 
 
-def handle_reaction(config, event):
+def handle_reaction(user, config, event):
     """Notify user of reactions to their messages"""
 
     # Shouldn't be getting reactions if disabled them
@@ -259,22 +260,22 @@ def handle_reaction(config, event):
     _send_notification(config, event)
 
 
-def handle_subscription(config, event):
+def handle_subscription(user, config, event):
     """Subscription modifications don't need any processing"""
 
 
-def handle_address(config, event):
+def handle_address(user, config, event):
     """Subscription address modifications don't need any processing"""
 
 
-def handle_resend(config, event):
+def handle_resend(user, config, event):
     """Handle resend requests"""
     if not config['allow_resend_requests']:
         raise Abort()
     _send_notification(config, event)
 
 
-def handle_delete(config, event):
+def handle_delete(user, config, event):
     # TODO Review this (event type currently disabled)
     """Handle a request to delete the recipient's copy of the message
 
