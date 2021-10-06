@@ -270,6 +270,11 @@ Resources:
                 # NOTE cognito:username is the attribute for the builtin username field
                 -   Name: hashed_email
                     AttributeDataType: String
+                # Keep original hashed_email in case attacker changes and prevents account deletion
+                -   Name: hashed_email_original
+                    AttributeDataType: String
+                    Mutable: false
+                    DeveloperOnlyAttribute: true
                 -   Name: ip
                     AttributeDataType: String
                     Mutable: false
