@@ -60,7 +60,6 @@ rollbar.events.add_payload_handler(_rollbar_add_context)
 # NOTE Important to set region to avoid unnecessary redirects for e.g. s3
 AWS_CONFIG = Config(region_name=REGION)
 S3 = boto3.client('s3', config=AWS_CONFIG)
-SNS = boto3.client('sns', config=AWS_CONFIG)
 
 
 def entry(api_event, context):
@@ -134,13 +133,13 @@ def _entry(api_event, user):
     event = json.loads(api_event['body'])
 
     # Load config (required to encrypt stored data, so can't do anything without)
-    config = _get_config()
+    config = _get_config(user)
 
     # Handle the event and then store it
     _general_validation(event)
     handler = globals()[f'handle_{event["type"]}']
     handler(user, config, event)
-    _put_resp(config, event, ip)
+    _put_resp(config, event, ip, user)
 
     # Report success
     return {'statusCode': 200}
@@ -157,7 +156,7 @@ def get_invite_image(user, params):
     """
     copy_id = params['image']
     secret = params['k']
-    bucket_key = f'invite_images/{copy_id}'
+    bucket_key = f'messages/{user}/invite_images/{copy_id}'
     try:
         obj = S3.get_object(Bucket=MSGS_BUCKET, Key=bucket_key)
     except:
@@ -206,7 +205,7 @@ def handle_read(user, config, event):
     try:
         resp = S3.get_object_tagging(
             Bucket=MSGS_BUCKET,
-            Key=f"copies/{event['copy_id']}",
+            Key=f"messages/{user}/copies/{event['copy_id']}",
         )
     except S3.exceptions.NoSuchKey:
         return  # If msg already deleted, no reason to do any further processing (still report resp)
@@ -219,11 +218,11 @@ def handle_read(user, config, event):
     tags['stello-reads'] = str(reads)
 
     # Either delete message or update reads
-    object_key = f"copies/{event['copy_id']}"
+    object_key = f"messages/{user}/copies/{event['copy_id']}"
     if reads >= max_reads:
         S3.delete_object(Bucket=MSGS_BUCKET, Key=object_key)
         # Also delete invite image
-        S3.delete_object(Bucket=MSGS_BUCKET, Key=f"invite_images/{event['copy_id']}")
+        S3.delete_object(Bucket=MSGS_BUCKET, Key=f"messages/{user}/invite_images/{event['copy_id']}")
     else:
         S3.put_object_tagging(
             Bucket=MSGS_BUCKET,
@@ -239,7 +238,7 @@ def handle_reply(user, config, event):
     """Notify user of replies to their messages"""
     if not config['allow_replies']:
         raise Abort()
-    _send_notification(config, event)
+    _send_notification(config, event, user)
 
 
 def handle_reaction(user, config, event):
@@ -257,7 +256,7 @@ def handle_reaction(user, config, event):
         if len(event['content']) > 25:
             raise Exception("Reaction content too long")
 
-    _send_notification(config, event)
+    _send_notification(config, event, user)
 
 
 def handle_subscription(user, config, event):
@@ -272,7 +271,7 @@ def handle_resend(user, config, event):
     """Handle resend requests"""
     if not config['allow_resend_requests']:
         raise Abort()
-    _send_notification(config, event)
+    _send_notification(config, event, user)
 
 
 def handle_delete(user, config, event):
@@ -290,7 +289,7 @@ def handle_delete(user, config, event):
     """
     copy_id = event['copy_id']
     with suppress(S3.exceptions.NoSuchKey):  # Already deleted is not a failure
-        S3.delete_object(Bucket=MSGS_BUCKET, Key=f'copies/{copy_id}')
+        S3.delete_object(Bucket=MSGS_BUCKET, Key=f'messages/{user}/copies/{copy_id}')
 
 
 # HELPERS
@@ -310,10 +309,9 @@ def _bytes_to_url64(bytes_data):
     return base64.urlsafe_b64encode(bytes_data).decode().replace('=', '~')
 
 
-def _get_config():
+def _get_config(user):
     """Download and parse responder config"""
-    # TODO Add prefix for multi-user buckets
-    data = S3.get_object(Bucket=RESP_BUCKET, Key='config')['Body'].read()
+    data = S3.get_object(Bucket=RESP_BUCKET, Key=f'config/{user}/config')['Body'].read()
     return json.loads(data)
 
 
@@ -367,7 +365,7 @@ def _report_error(api_event):
     rollbar.report_exc_info(payload_data=payload_data)
 
 
-def _put_resp(config, event, ip):
+def _put_resp(config, event, ip, user):
     """Save response object with encrypted data
 
     SECURITY Ensure objects can't be placed in other dirs which app would never download
@@ -377,7 +375,7 @@ def _put_resp(config, event, ip):
     # Work out object id
     # Timestamp prefix for order, uuid suffix for uniqueness
     resp_type = event['type']
-    object_id = f'responses/{resp_type}/{int(time())}_{uuid4()}'
+    object_id = f'responses/{user}/{resp_type}/{int(time())}_{uuid4()}'
 
     # Encode data
     data = json.dumps({
@@ -406,7 +404,7 @@ def _put_resp(config, event, ip):
     S3.put_object(Bucket=RESP_BUCKET, Key=object_id, Body=output.encode())
 
 
-def _count_resp_objects(resp_type):
+def _count_resp_objects(user, resp_type):
     """Return a count of stored objects for the given response type
 
     TODO Paginates at 1000, which may be a concern when counting reactions for popular users
@@ -414,12 +412,12 @@ def _count_resp_objects(resp_type):
     """
     resp = S3.list_objects_v2(
         Bucket=RESP_BUCKET,
-        Prefix=f'responses/{resp_type}/',
+        Prefix=f'responses/{user}/{resp_type}/',
     )
     return resp['KeyCount']
 
 
-def _send_notification(config, event):
+def _send_notification(config, event, user):
     """Notify user of replies/reactions/resends for their messages (if configured to)
 
     Notify modes: none, first_new_reply, replies, replies_and_reactions
@@ -459,8 +457,8 @@ def _send_notification(config, event):
         )
     else:
         # Work out counts
-        reply_count = _count_resp_objects('reply') + _count_resp_objects('resend')
-        reaction_count = _count_resp_objects('reaction')
+        reply_count = _count_resp_objects(user, 'reply') + _count_resp_objects(user, 'resend')
+        reaction_count = _count_resp_objects(user, 'reaction')
         if reaction:
             reaction_count += 1
         else:
@@ -494,4 +492,24 @@ def _send_notification(config, event):
     subject += f" ({MSGS_BUCKET})"
 
     # Send notification
-    SNS.publish(TopicArn=TOPIC_ARN, Subject=subject, Message=msg)
+    if not DEV:
+        if DOMAINS:
+            boto3.client('ses', config=AWS_CONFIG).send_email(
+                Source="Stello <response@stello.news>",
+                Destination={'ToAddresses': [config['email']]},
+                Message={
+                    'Subject': {
+                        'Data': subject,
+                        'Charset': 'UTF-8',
+                    },
+                    'Body': {
+                        'Text': {  # TODO Change to html
+                            'Data': msg,
+                            'Charset': 'UTF-8',
+                        },
+                    },
+                },
+            )
+        else:
+            boto3.client('sns', config=AWS_CONFIG).publish(
+                TopicArn=TOPIC_ARN, Subject=subject, Message=msg)
