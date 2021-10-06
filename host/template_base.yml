@@ -70,6 +70,12 @@ Resources:
                 ServerSideEncryptionConfiguration:
                     -   ServerSideEncryptionByDefault:
                             SSEAlgorithm: AES256
+            CorsConfiguration:
+                CorsRules:
+                    -   AllowedMethods: [GET]
+                        AllowedOrigins:
+                            -   !Join ['', ['*.', !Ref InputDomainGeneric]]
+                            -   !Join ['', ['*.', !Ref InputDomainBranded]]
             LifecycleConfiguration:
                 Rules: [
                     # Ensure max 2 year expiry can't be avoided by not including a lifespan tag
