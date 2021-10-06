@@ -5,7 +5,6 @@
         "stello_env": "development",
         "stello_version": "dev",
         "stello_msgs_bucket": "...",
-        "stello_resp_bucket": "...-stello-responses",
         "stello_topic_arn": "arn:aws:sns:...",
         "stello_region": "...",
         "stello_rollbar_responder": "..."

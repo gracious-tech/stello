@@ -23,7 +23,7 @@ export class StorageBaseAws {
     }
 
     get _bucket_resp_id():string{
-        return `${this.bucket}-stello-responses`
+        return `${this.bucket}-stello-resp`
     }
 
     get _bucket_resp_arn():string{

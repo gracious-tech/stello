@@ -37,7 +37,7 @@ ENV = os.environ['stello_env']
 DEV = ENV == 'development'
 VERSION = os.environ['stello_version']
 MSGS_BUCKET = os.environ['stello_msgs_bucket']
-RESP_BUCKET = os.environ['stello_resp_bucket']
+RESP_BUCKET = MSGS_BUCKET + '-stello-resp'
 TOPIC_ARN = os.environ['stello_topic_arn']
 REGION = os.environ['stello_region']
 MSGS_BUCKET_ORIGIN = f'https://{MSGS_BUCKET}.s3-{REGION}.amazonaws.com'

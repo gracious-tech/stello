@@ -30,21 +30,21 @@ import {validate_subdomain} from '@/services/hosts/common'
 @Component({})
 export default class extends Vue {
 
-    @Prop() manager:HostManager
+    @Prop({required: true}) manager!:HostManager
 
     bucket = ''
     bucket_dirty = false
-    bucket_available:boolean = null
-    region:string = null
+    bucket_available:boolean|null = null
+    region:string|null = null
     regions:{value:string, text:string}[] = []
 
     created(){
         // Fetch the regions
-        this.manager.list_regions().then(regions => {
+        void this.manager.list_regions().then(regions => {
             this.regions = regions.map(region => {
                 const obj = {value: region, text: region}
                 // Fetch region's name, and when done update the item's text
-                this.manager.get_region_name(region).then(name => {
+                void this.manager.get_region_name(region).then(name => {
                     obj.text = name
                 })
                 return obj
@@ -63,9 +63,10 @@ export default class extends Vue {
         return this.bucket_dirty && !this.error_msg && this.bucket_available === null
     }
 
-    get error_msg():string{
+    get error_msg():string|null{
         // An error string if bucket name invalid
-        return validate_subdomain(this.bucket, 3)
+        // NOTE Name must be short enough to add -stello-resp to, as will create that bucket too
+        return validate_subdomain(this.bucket, 3, 63 - '-stello-resp'.length)
     }
 
     get message(){
@@ -84,7 +85,7 @@ export default class extends Vue {
         this.bucket_dirty = true
         this.bucket_available = null
         if (!this.error_msg){  // TODO Sometimes old value here?
-            this.check_availability()
+            void this.check_availability()
         }
     }
 
