@@ -159,7 +159,7 @@ Resources:
             DomainName: !Join ['', ['api.', !Ref InputDomainGeneric]]
             Stage: !Ref Gateway.Stage
 
-    ResponderFunction:
+    ResponderRead:
         Type: AWS::Serverless::Function
         Properties:
             Runtime: python3.9
@@ -200,7 +200,7 @@ Resources:
                             Resource: !Ref InputSesArn
                             Action: ['ses:SendEmail']
 
-    AccountsAvailableFunction:
+    AccountsAvailable:
         Type: AWS::Serverless::Function
         Properties:
             Handler: dist/handle_available.handler
@@ -227,7 +227,7 @@ Resources:
                             Action:
                                 -   cognito-idp:AdminGetUser
 
-    AccountsCreateFunction:
+    AccountsCreate:
         Type: AWS::Serverless::Function
         Properties:
             Handler: dist/handle_create.handler
