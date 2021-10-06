@@ -65,15 +65,19 @@ S3 = boto3.client('s3', config=AWS_CONFIG)
 def entry(api_event, context):
     """Entrypoint that wraps main logic to add exception handling and CORS headers"""
 
-    # Determine expected domain and user
+    # Determine expected origin (and detect user)
     # NOTE Access-Control-Allow-Origin can only take one value, so must detect right one
-    domain = f'{MSGS_BUCKET}.s3-{REGION}.amazonaws.com'
-    user = '_user'
     if DOMAINS:
-        # Hosted setup -- domain must be a subdomain of one in list
-        user, _, request_domain = api_event['requestContext']['domainName'].partition('.')
-        if request_domain in DOMAINS:
-            domain = api_event['requestContext']['domainName']
+        # Hosted setup -- origin must be a subdomain of one of defined domains
+        user, _, root_origin = api_event['headers']['origin'].partition('//')[2].partition('.')
+        allowed_origin = f'https://{user}.{root_origin}' if root_origin in DOMAINS else None
+    else:
+        user = '_user'
+        allowed_origin = f'https://{MSGS_BUCKET}.s3-{REGION}.amazonaws.com'
+
+    # If origin not allowed, 403 to prevent further processing of the request
+    if not DEV and api_event['headers']['origin'] != allowed_origin:
+        return {'statusCode': 403}
 
     # Process event and catch exceptions
     try:
@@ -85,12 +89,12 @@ def entry(api_event, context):
         _report_error(api_event)
         response = {'statusCode': 400}
 
-    # Add CORS headers
+    # Add CORS headers so cross-domain request doesn't fail
     response.setdefault('headers', {})
-    response['headers']['Access-Control-Allow-Origin'] = '*' if DEV else f'https://{domain}'
-    # These two are required for pre-flight OPTIONS, but possibly not for actual requests
-    response['headers']['Access-Control-Allow-Methods'] = 'GET,POST'
-    response['headers']['Access-Control-Allow-Headers'] = '*'
+    response['headers']['Access-Control-Allow-Origin'] = '*' if DEV else allowed_origin
+    if api_event['requestContext']['http']['method'] == 'OPTIONS':
+        response['headers']['Access-Control-Allow-Methods'] = 'GET,POST'
+        response['headers']['Access-Control-Allow-Headers'] = '*'
 
     return response
 
