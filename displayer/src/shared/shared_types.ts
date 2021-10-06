@@ -114,11 +114,17 @@ export interface ResponseEventResend {
 }
 
 
-// OTHER
+// CONFIG
 
-
-export interface DeploymentConfig {
-    url_msgs:string
-    url_msgs_append_subdomain:boolean
-    url_responder:string
+export interface DisplayerConfig {
+    version:string
+    responder:string
+    notify_include_contents:boolean
+    allow_replies:boolean
+    allow_reactions:boolean
+    allow_delete:boolean
+    allow_resend_requests:boolean
+    social_referral_ban:boolean
+    resp_key_public:string
+    reaction_options:string[]
 }
