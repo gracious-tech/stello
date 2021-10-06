@@ -170,7 +170,7 @@ Resources:
                     Type: HttpApi
                     Properties:
                         ApiId: !Ref Gateway  # Legit property, despite linter error
-                        Method: POST
+                        Method: ANY  # Must support GET/POST/OPTIONS
                         Path: /responder
             Environment:
                 Variables:
