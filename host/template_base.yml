@@ -156,7 +156,6 @@ Resources:
     ResponderFunction:
         Type: AWS::Serverless::Function
         Properties:
-            FunctionName: !Join ['', [!Ref AWS::StackName, -responder]]
             Runtime: python3.9
             Handler: responder.entry
             CodeUri: responder/
@@ -198,7 +197,6 @@ Resources:
     AccountsAvailableFunction:
         Type: AWS::Serverless::Function
         Properties:
-            FunctionName: !Join ['', [!Ref AWS::StackName, -accounts-available]]
             Handler: dist/handle_available.handler
             CodeUri: accounts/
             Events:
@@ -226,7 +224,6 @@ Resources:
     AccountsCreateFunction:
         Type: AWS::Serverless::Function
         Properties:
-            FunctionName: !Join ['', [!Ref AWS::StackName, -accounts-create]]
             Handler: dist/handle_create.handler
             CodeUri: accounts/
             Events:
