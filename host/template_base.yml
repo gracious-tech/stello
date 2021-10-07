@@ -183,21 +183,27 @@ Resources:
             Policies:
                 -   Version: '2012-10-17'
                     Statement:
-                        # Allow getting/modifying tags and deleting objects (for applying max reads)
+                        # Get config and put responses
                         -   Effect: Allow
-                            Resource: !Join ['', [!GetAtt MessagesBucket.Arn, '/*']]
-                            Action: ['s3:GetObjectTagging', 's3:PutObjectTagging', 's3:DeleteObject']
-                        # Count responses, get config, and put responses
+                            Resource: !Join ['', [!GetAtt ResponsesBucket.Arn, '/config/*/config']]
+                            Action: ['s3:GetObject']
+                        -   Effect: Allow
+                            Resource: !Join ['', [!GetAtt ResponsesBucket.Arn, '/responses/*/*']]
+                            Action: ['s3:PutObject']
+                        # Needed to send notifications
                         -   Effect: Allow
                             Resource: !GetAtt ResponsesBucket.Arn
                             Action: ['s3:ListBucket']
                         -   Effect: Allow
-                            Resource: !Join ['', [!GetAtt ResponsesBucket.Arn, '/*']]
-                            Action: ['s3:GetObject', 's3:PutObject']
-                        # Send emails
-                        -   Effect: Allow
                             Resource: !Ref InputSesArn
                             Action: ['ses:SendEmail']
+                        # Needed for read response only
+                        -   Effect: Allow
+                            Resource: !Join ['', [!GetAtt MessagesBucket.Arn, '/messages/*/copies/*']]
+                            Action: ['s3:GetObjectTagging', 's3:PutObjectTagging', 's3:DeleteObject']
+                        -   Effect: Allow
+                            Resource: !Join ['', [!GetAtt MessagesBucket.Arn, '/messages/*/invite_images/*']]
+                            Action: ['s3:DeleteObject']
 
     AccountsAvailable:
         Type: AWS::Serverless::Function
