@@ -38,10 +38,10 @@ DEV = ENV == 'development'
 VERSION = os.environ['stello_version']
 MSGS_BUCKET = os.environ['stello_msgs_bucket']
 RESP_BUCKET = MSGS_BUCKET + '-stello-resp'
-TOPIC_ARN = os.environ['stello_topic_arn']
+TOPIC_ARN = os.environ.get('stello_topic_arn')  # Self-hosted only
 REGION = os.environ['stello_region']
 ROLLBAR_TOKEN = os.environ['stello_rollbar_responder']  # Client token (not server) as public
-DOMAINS = os.environ['stello_domains'].split(' ') if os.environ['stello_domains'] else []
+DOMAINS = os.environ['stello_domains'].split(' ') if os.environ.get('stello_domains') else []
 
 
 # Setup Rollbar
