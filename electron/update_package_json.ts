@@ -51,6 +51,11 @@ const new_contents:Metadata|PackageJsonMissing = {
         directories: {
             output: 'packaged',  // dist used for electron JS code (built from TS)
         },
+        protocols: [{
+            name: "Stello",
+            schemes: ['stello'],
+            role: 'Editor',  // Mac only
+        }],
         linux: {
             category: 'Office',
         },
