@@ -162,6 +162,7 @@ Resources:
     # RESPONDER
 
     ResponderOptions:
+        # Separate route for options as shouldn't have permissions
         Type: AWS::Serverless::Function
         Properties:
             Runtime: python3.9
