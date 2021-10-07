@@ -108,7 +108,6 @@ def _entry(api_event, user):
     SECURITY Never return anything back to recipient other than success status
 
     Event data is expected to be: {
-        'type': string,
         'encrypted': string,
         ...
     }
@@ -126,24 +125,31 @@ def _entry(api_event, user):
 
     # Handle GET requests
     if api_event['requestContext']['http']['method'] == 'GET':
-        query_params = api_event.get('queryStringParameters', {})
-        if 'image' in query_params:
+        if api_event['requestContext']['http']['path'] == '/inviter/image':
+            query_params = api_event.get('queryStringParameters', {})
             return get_invite_image(user, query_params)
-        # A number of companies crawl AWS services, submitting GET requests without params
+        # NOTE A number of companies crawl AWS services, so don't warn for invalid paths
         raise Abort()
 
     # Handle POST requests
     ip = api_event['requestContext']['http']['sourceIp']
     event = json.loads(api_event['body'])
 
+    # Must have encrypted key set
+    _ensure_type(event, 'encrypted', str)
+
     # Load config (required to encrypt stored data, so can't do anything without)
     config = _get_config(user)
 
+    # Get event type from path
+    resp_type = api_event['requestContext']['http']['path'].partition('/responder/')[2]
+    if resp_type not in VALID_TYPES:
+        raise Exception(f"Invalid value for response type: {resp_type}")
+
     # Handle the event and then store it
-    _general_validation(event)
-    handler = globals()[f'handle_{event["type"]}']
+    handler = globals()[f'handle_{resp_type}']
     handler(user, config, event)
-    _put_resp(config, event, ip, user)
+    _put_resp(config, resp_type, event, ip, user)
 
     # Report success
     return {'statusCode': 200}
@@ -155,10 +161,10 @@ def _entry(api_event, user):
 def get_invite_image(user, params):
     """Decrypt and return invite image
 
-    WARN Do not prefix with `handle_` as then a user could trigger it with that event['type']
+    WARN Do not prefix with `handle_` as then a user could trigger it with that response type
 
     """
-    copy_id = params['image']
+    copy_id = params['copy']
     secret = params['k']
     bucket_key = f'messages/{user}/invite_images/{copy_id}'
     try:
@@ -239,7 +245,7 @@ def handle_reply(user, config, event):
     """Notify user of replies to their messages"""
     if not config['allow_replies']:
         raise Abort()
-    _send_notification(config, event, user)
+    _send_notification(config, 'reply', event, user)
 
 
 def handle_reaction(user, config, event):
@@ -257,7 +263,7 @@ def handle_reaction(user, config, event):
         if len(event['content']) > 25:
             raise Exception("Reaction content too long")
 
-    _send_notification(config, event, user)
+    _send_notification(config, 'reaction', event, user)
 
 
 def handle_subscription(user, config, event):
@@ -272,7 +278,7 @@ def handle_resend(user, config, event):
     """Handle resend requests"""
     if not config['allow_resend_requests']:
         raise Abort()
-    _send_notification(config, event, user)
+    _send_notification(config, 'resend', event, user)
 
 
 def handle_delete(user, config, event):
@@ -332,18 +338,6 @@ def _ensure_valid_chars(event, key, valid_chars):
             raise Exception(f"Invalid character '{char}' in {key}")
 
 
-def _general_validation(event):
-    """Perform validation common to all event types"""
-
-    # Must have a valid type
-    _ensure_type(event, 'type', str)
-    if event['type'] not in VALID_TYPES:
-        raise Exception(f"Invalid value for event type: {event['type']}")
-
-    # Must have encrypted key set
-    _ensure_type(event, 'encrypted', str)
-
-
 def _report_error(api_event):
     """Report error"""
     print(format_exc())
@@ -366,7 +360,7 @@ def _report_error(api_event):
     rollbar.report_exc_info(payload_data=payload_data)
 
 
-def _put_resp(config, event, ip, user):
+def _put_resp(config, resp_type, event, ip, user):
     """Save response object with encrypted data
 
     SECURITY Ensure objects can't be placed in other dirs which app would never download
@@ -375,7 +369,6 @@ def _put_resp(config, event, ip, user):
 
     # Work out object id
     # Timestamp prefix for order, uuid suffix for uniqueness
-    resp_type = event['type']
     object_id = f'responses/{user}/{resp_type}/{int(time())}_{uuid4()}'
 
     # Encode data
@@ -418,7 +411,7 @@ def _count_resp_objects(user, resp_type):
     return resp['KeyCount']
 
 
-def _send_notification(config, event, user):
+def _send_notification(config, resp_type, event, user):
     """Notify user of replies/reactions/resends for their messages (if configured to)
 
     Notify modes: none, first_new_reply, replies, replies_and_reactions
@@ -428,7 +421,7 @@ def _send_notification(config, event, user):
 
     # Determine if a reaction or reply/resend
     # NOTE To keep things simple, resends are considered "replies" for purpose of notifications
-    reaction = event['type'] == 'reaction'
+    reaction = resp_type == 'reaction'
 
     # Do nothing if notifications disabled
     if config['notify_mode'] == 'none':

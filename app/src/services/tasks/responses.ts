@@ -4,10 +4,8 @@ import {Profile} from '../database/profiles'
 import {concurrent} from '../utils/async'
 import {url64_to_buffer, utf8_to_string} from '../utils/coding'
 import {decrypt_asym, decrypt_sym, generate_token} from '../utils/crypt'
-import {get_last} from '../utils/arrays'
 import {email_address_like} from '../utils/misc'
 import {HostUser} from '../hosts/types'
-import type {ResponseData} from '../../shared/shared_types'
 
 
 const RESP_TYPES_ASYNC = ['read', 'reply']  // Least priority -> greatest
@@ -41,12 +39,12 @@ export async function responses_receive(task:Task):Promise<void>{
             for (const key of await storage.list_responses()){
 
                 // Extract response type from key
-                const type = key.split('/')[1] ?? ''
+                const type = key.split('/')[2] ?? ''
 
                 // Create fn for downloading and processing the response
                 const fn = async () => {
                     try {
-                        await task.expected(download_response(profile, storage, key))
+                        await task.expected(download_response(profile, storage, key, type))
                     } catch (error){
                         // Don't throw so don't prevent processing of the rest of responses
                         deferred_throw = error
@@ -94,7 +92,7 @@ export async function responses_receive(task:Task):Promise<void>{
 }
 
 
-async function download_response(profile:Profile, storage:HostUser, object_key:string)
+async function download_response(profile:Profile, storage:HostUser, object_key:string, type:string)
         :Promise<void>{
     // Download a response and process it
     // NOTE Can generally allow throws, except sometimes may want to delete object if safe to do so
@@ -147,18 +145,18 @@ async function download_response(profile:Profile, storage:HostUser, object_key:s
     }
 
     // Get sent date from object key
-    const timestamp_seconds = Number(get_last(object_key.split('/')).split('_')[0])
+    const timestamp_seconds = Number(object_key.split('/').at(-1)!.split('_')[0])
     const sent = new Date(timestamp_seconds * 1000)
 
     // Process
-    await process_data(profile, data, sent)
+    await process_data(profile, type, data, sent)
 
     // Delete response object from bucket if processed successfully
     await storage.delete_response(object_key)
 }
 
 
-async function process_data(profile:Profile, data:ResponseData, sent:Date):Promise<void>{
+async function process_data(profile:Profile, type:string, data:any, sent:Date):Promise<void>{
     // Process and save data to db
     // SECURITY data contains untrusted user input and some responder function input
     // WARN Must await all tasks so that failure prevents response deletion from bucket
@@ -168,8 +166,8 @@ async function process_data(profile:Profile, data:ResponseData, sent:Date):Promi
     const resp_token = String(data.event.resp_token)
     const user_agent = String(data.event.user_agent)
 
-    if (data.event.type === 'reaction' || data.event.type === 'reply'){
-        const method = data.event.type === 'reply' ? 'reply_create' : 'reaction_create'
+    if (type === 'reaction' || type === 'reply'){
+        const method = type === 'reply' ? 'reply_create' : 'reaction_create'
         await self.app_db[method](
             data.event.content ? String(data.event.content) : null,
             sent,
@@ -181,10 +179,10 @@ async function process_data(profile:Profile, data:ResponseData, sent:Date):Promi
             user_agent,
         )
 
-    } else if (data.event.type === 'read'){
+    } else if (type === 'read'){
         await self.app_db.read_create(sent, resp_token, ip, user_agent)
 
-    } else if (data.event.type === 'subscription'){
+    } else if (type === 'subscription'){
         // NOTE Possible that no address available (if didn't use invite's URL) and copy deleted
         //      But so unlikely (as a timing issue) it is not worth worrying about
 
@@ -215,7 +213,7 @@ async function process_data(profile:Profile, data:ResponseData, sent:Date):Promi
             }
         }
 
-    } else if (data.event.type === 'address'){
+    } else if (type === 'address'){
         // NOTE Possible that no encrypted address available (if didn't use invite's URL)
         //      But so unlikely (as a timing issue) it is not worth worrying about
 
@@ -255,7 +253,7 @@ async function process_data(profile:Profile, data:ResponseData, sent:Date):Promi
             }
         }
 
-    } else if (data.event.type === 'resend'){
+    } else if (type === 'resend'){
 
         // Validate user input
         const reason = String(data.event.content)

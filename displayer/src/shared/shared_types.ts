@@ -67,10 +67,7 @@ export interface ResponseData {
 export type ResponseEvent = ResponseEventRead|ResponseEventReplaction|ResponseEventSubscription
     |ResponseEventAddress|ResponseEventResend
 
-export type ResponseType = ResponseEvent['type']
-
 export interface ResponseEventRead {
-    type:'read'
     user_agent:string
     resp_token:string
     copy_id:string  // Only for responder's use
@@ -78,7 +75,6 @@ export interface ResponseEventRead {
 }
 
 export interface ResponseEventReplaction {
-    type:'reply'|'reaction'
     user_agent:string
     resp_token:string
     content:string|null  // Reaction can be null to clear any previous
@@ -87,7 +83,6 @@ export interface ResponseEventReplaction {
 }
 
 export interface ResponseEventSubscription {
-    type:'subscription'
     user_agent:string
     resp_token:string
     subscribed:boolean
@@ -97,7 +92,6 @@ export interface ResponseEventSubscription {
 }
 
 export interface ResponseEventAddress {
-    type:'address'
     user_agent:string
     resp_token:string
     new_address:string
@@ -107,7 +101,6 @@ export interface ResponseEventAddress {
 }
 
 export interface ResponseEventResend {
-    type:'resend'
     user_agent:string
     resp_token:string
     content:string

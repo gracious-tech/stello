@@ -92,7 +92,6 @@ export class Sender {
     msg!:Message
     profile!:Profile
     host!:HostUser
-    responder_url!:string
     tmpl_variables!:TemplateVariables
     email_client!:EmailTask
 
@@ -159,9 +158,6 @@ export class Sender {
 
         // Init storage client for the message
         this.host = await self.app_db.new_host_user(this.profile)
-
-        // Get responder url from deployment config
-        this.responder_url = `${this.profile.api}responder/`
 
         // Generate values for dynamic content
         // NOTE Contact values set to null as will update per copy
@@ -340,7 +336,7 @@ export class Sender {
         }, '-')
         const url = this.profile.view_url(copy.id, await export_key(copy.secret))
         const secret_sse_url64 = buffer_to_url64(await export_key(copy.secret_sse))
-        const image = `${this.responder_url}?image=${copy.id}&k=${secret_sse_url64}`
+        const image = `${this.profile.api}inviter/image?copy=${copy.id}&k=${secret_sse_url64}`
         const address_buffer = string_to_utf8(JSON.stringify({address: copy.contact_address}))
         let encrypted_address:string|undefined = undefined
         if (!copy.contact_multiple){  // Don't show subscription links if multiple people
