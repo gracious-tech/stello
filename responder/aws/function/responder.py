@@ -69,10 +69,17 @@ def entry(api_event, context):
 
     # Handle GET requests (which don't send origin header so can't detect user)
     if api_event['requestContext']['http']['method'] == 'GET':
-        if api_event['requestContext']['http']['path'] == '/inviter/image':
-            return inviter_image(api_event)
-        # NOTE A number of companies crawl AWS services, so don't warn for invalid paths
-        raise Abort()
+        try:
+            if api_event['requestContext']['http']['path'] == '/inviter/image':
+                return inviter_image(api_event)
+            # NOTE A number of companies crawl AWS services, so don't warn for invalid paths
+            raise Abort()
+        except Abort:
+            return {'statusCode': 400}
+        except:
+            # SECURITY Never reveal whether client or server error, just that it didn't work
+            _report_error(api_event)
+            return {'statusCode': 400}
 
     # Determine expected origin (and detect user)
     # NOTE Access-Control-Allow-Origin can only take one value, so must detect right one
