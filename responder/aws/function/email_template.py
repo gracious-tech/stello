@@ -49,4 +49,4 @@ email_template = '''
 
 def generate_email(body):
     body = html.escape(body).replace('\n', '<br>')
-    return email_template.format({'body': body, 'image': base64_image})
+    return email_template.format(body=body, image=base64_image)
