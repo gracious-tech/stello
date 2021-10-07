@@ -17,6 +17,8 @@ from cryptography.hazmat.primitives.serialization import load_der_public_key
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.asymmetric.padding import OAEP, MGF1
 
+from email_template import generate_email
+
 
 # Constants
 VALID_TYPES = ('read', 'reply', 'reaction', 'subscription', 'address', 'resend')
@@ -443,12 +445,13 @@ def _send_notification(config, resp_type, event, user):
 
         subject = "Stello: New reaction" if reaction else "Stello: New reply"
         msg = f"Someone reacted with: {event['content']}" if reaction else event['content']
-        msg += "\n" * 10
-        msg += (
-            "#### MESSAGE END ####\n"
-            "Open Stello to reply and confirm author. Ignore storage provider's notes below."
-            "Instead, change notification settings in Stello."
-        )
+        if not DOMAINS:
+            msg += "\n" * 10
+            msg += (
+                "#### MESSAGE END ####\n"
+                "Open Stello to reply and confirm author. Ignore storage provider's notes below."
+                "Instead, change notification settings in Stello."
+            )
     else:
         # Work out counts
         reply_count = _count_resp_objects(user, 'reply') + _count_resp_objects(user, 'resend')
@@ -479,17 +482,18 @@ def _send_notification(config, resp_type, event, user):
 
         # Work out msg
         msg = f"You have {summary} to your Stello messages (open Stello to see them)"
-        msg += "\n" * 10
-        msg += "Ignore storage provider's notes below. Instead, change notification settings in Stello."
+        if not DOMAINS:
+            msg += "\n" * 10
+            msg += "Ignore storage provider's notes below. Instead, change notification settings in Stello."
 
     # In case multiple sending profiles, note the bucket name in the subject
-    subject += f" ({MSGS_BUCKET})"
+    subject += f" [{user if DOMAINS else MSGS_BUCKET}]"
 
     # Send notification
     if not DEV:
         if DOMAINS:
             boto3.client('ses', config=AWS_CONFIG).send_email(
-                Source="Stello <response@stello.news>",
+                Source="Stello <no-reply@stello.news>",
                 Destination={'ToAddresses': [config['email']]},
                 Message={
                     'Subject': {
@@ -497,8 +501,8 @@ def _send_notification(config, resp_type, event, user):
                         'Charset': 'UTF-8',
                     },
                     'Body': {
-                        'Text': {  # TODO Change to html
-                            'Data': msg,
+                        'Html': {
+                            'Data': generate_email(msg),
                             'Charset': 'UTF-8',
                         },
                     },
