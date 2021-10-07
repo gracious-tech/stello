@@ -177,7 +177,6 @@ Resources:
                     stello_env: !Ref InputEnv
                     stello_version: !Ref InputVersion
                     stello_msgs_bucket: !Ref AWS::StackName
-                    stello_topic_arn: ''  # Will use SES
                     stello_region: !Ref AWS::Region
                     stello_rollbar_responder: !Ref InputRollbarResponder
                     stello_domains: !Join [' ', [!Ref InputDomainGeneric, !Ref InputDomainBranded]]
