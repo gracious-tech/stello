@@ -205,12 +205,10 @@ def handle_read(user, config, event):
     if not event['has_max_reads']:
         return
 
-    # Get object's tags
+    # Get copies's tags
+    copy_key = f"messages/{user}/copies/{event['copy_id']}"
     try:
-        resp = S3.get_object_tagging(
-            Bucket=MSGS_BUCKET,
-            Key=f"messages/{user}/copies/{event['copy_id']}",
-        )
+        resp = S3.get_object_tagging(Bucket=MSGS_BUCKET, Key=copy_key)
     except S3.exceptions.NoSuchKey:
         return  # If msg already deleted, no reason to do any further processing (still report resp)
     tags = {d['Key']: d['Value'] for d in resp['TagSet']}
@@ -222,15 +220,14 @@ def handle_read(user, config, event):
     tags['stello-reads'] = str(reads)
 
     # Either delete message or update reads
-    object_key = f"messages/{user}/copies/{event['copy_id']}"
     if reads >= max_reads:
-        S3.delete_object(Bucket=MSGS_BUCKET, Key=object_key)
+        S3.delete_object(Bucket=MSGS_BUCKET, Key=copy_key)
         # Also delete invite image
         S3.delete_object(Bucket=MSGS_BUCKET, Key=f"messages/{user}/invite_images/{event['copy_id']}")
     else:
         S3.put_object_tagging(
             Bucket=MSGS_BUCKET,
-            Key=object_key,
+            Key=copy_key,
             Tagging={
                 # WARN MUST preserve other tags (like stello-lifespan!)
                 'TagSet': [{'Key': k, 'Value': v} for k, v in tags.items()],
