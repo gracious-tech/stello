@@ -5,6 +5,7 @@ Transform: AWS::Serverless-2016-10-31
 Parameters:
     InputEnv:
         Type: String
+        AllowedValues: [production, deployed_dev, development]
     InputVersion:
         Type: String
         Default: INPUT_VERSION

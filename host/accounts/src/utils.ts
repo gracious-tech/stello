@@ -79,6 +79,7 @@ export class Abort extends CustomError {}
 
 const rollbar = Rollbar.init({
     // Setup Rollbar
+    transmit: !config.dev,
     environment: config.env,
     accessToken: config.rollbar,
     captureUncaught: true,

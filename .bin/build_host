@@ -11,7 +11,7 @@ accounts/node_modules/.bin/esbuild accounts/src/*.ts --platform=node --format=cj
 
 # Build functions using SAM
 # NOTE SAM is smart enough to not rebuild functions that use same code
-sam build --config-file template_input.toml
+sam build
 
 # Remove hidden files (contain dev credentials)
 find .aws-sam/build -type f -name ".dev_env*" -delete

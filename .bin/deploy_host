@@ -22,7 +22,7 @@ echo "Deploying..."
 
 # Deploy services
 cd host
-sam deploy --no-fail-on-empty-changeset --config-file template_input.toml
+sam deploy --no-fail-on-empty-changeset --config-file template_input.toml --config-env deployed_dev
 
 
 # SetPrincipalTagAttributeMap not supported by CloudFormation yet
