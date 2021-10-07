@@ -34,8 +34,27 @@ export function username_valid(username:string){
 
 export function username_allowed(username:string){
     // Whether username is allowed or not (even if valid chars)
-    const forbidden_patterns = [/^releases$/, /gracious.*tech/, /stello/, /official/, /help/,
-        /support/, /www/]
+
+    const forbidden = [
+        // Used internally already
+        'releases', 'official', 'mail',
+        // Could be used in future, or could trick users to believe they belong to Stello/GT
+        'www', 'smtp', 'pop', 'imap', 'ftp',
+        'api', 'admin', 'dev', 'beta', 'secure', 'update',
+        'login', 'signin', 'signup', 'payment', 'donate', 'account', 'billing', 'pay',
+        'help', 'support', 'blog', 'news', 'about', 'info', 'contact', 'search',
+    ]
+
+    // Forbidden patterns (for very specific words)
+    const forbidden_patterns = [
+        // Could trick users
+        /gracious.*tech/, /stello/,
+    ]
+
+    // Tests
+    if (forbidden.includes(username)){
+        return false
+    }
     for (const pattern of forbidden_patterns){
         if (pattern.test(username)){
             return false
