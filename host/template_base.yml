@@ -190,13 +190,6 @@ Resources:
                         -   Effect: Allow
                             Resource: !Join ['', [!GetAtt ResponsesBucket.Arn, '/responses/*/*']]
                             Action: ['s3:PutObject']
-                        # Needed to send notifications
-                        -   Effect: Allow
-                            Resource: !GetAtt ResponsesBucket.Arn
-                            Action: ['s3:ListBucket']
-                        -   Effect: Allow
-                            Resource: !Ref InputSesArn
-                            Action: ['ses:SendEmail']
                         # Needed for read response only
                         -   Effect: Allow
                             Resource: !Join ['', [!GetAtt MessagesBucket.Arn, '/messages/*/copies/*']]
@@ -204,6 +197,187 @@ Resources:
                         -   Effect: Allow
                             Resource: !Join ['', [!GetAtt MessagesBucket.Arn, '/messages/*/invite_images/*']]
                             Action: ['s3:DeleteObject']
+
+    ResponderReply:
+        Type: AWS::Serverless::Function
+        Properties:
+            Runtime: python3.9
+            Handler: responder.entry
+            CodeUri: responder/
+            Events:
+                ApiEvent:
+                    Type: HttpApi
+                    Properties:
+                        ApiId: !Ref Gateway
+                        Method: POST
+                        Path: /responder/reply
+            Environment:
+                Variables:
+                    stello_env: !Ref InputEnv
+                    stello_version: !Ref InputVersion
+                    stello_msgs_bucket: !Ref AWS::StackName
+                    stello_region: !Ref AWS::Region
+                    stello_rollbar_responder: !Ref InputRollbarResponder
+                    stello_domains: !Join [' ', [!Ref InputDomainGeneric, !Ref InputDomainBranded]]
+            Policies:
+                -   Version: '2012-10-17'
+                    Statement:
+                        # Get config and put responses
+                        -   Effect: Allow
+                            Resource: !Join ['', [!GetAtt ResponsesBucket.Arn, '/config/*/config']]
+                            Action: ['s3:GetObject']
+                        -   Effect: Allow
+                            Resource: !Join ['', [!GetAtt ResponsesBucket.Arn, '/responses/*/*']]
+                            Action: ['s3:PutObject']
+                        # Needed to send notifications
+                        -   Effect: Allow
+                            Resource: !GetAtt ResponsesBucket.Arn
+                            Action: ['s3:ListBucket']
+                        -   Effect: Allow
+                            Resource: !Ref InputSesArn
+                            Action: ['ses:SendEmail']
+
+    ResponderReaction:
+        Type: AWS::Serverless::Function
+        Properties:
+            Runtime: python3.9
+            Handler: responder.entry
+            CodeUri: responder/
+            Events:
+                ApiEvent:
+                    Type: HttpApi
+                    Properties:
+                        ApiId: !Ref Gateway
+                        Method: POST
+                        Path: /responder/reaction
+            Environment:
+                Variables:
+                    stello_env: !Ref InputEnv
+                    stello_version: !Ref InputVersion
+                    stello_msgs_bucket: !Ref AWS::StackName
+                    stello_region: !Ref AWS::Region
+                    stello_rollbar_responder: !Ref InputRollbarResponder
+                    stello_domains: !Join [' ', [!Ref InputDomainGeneric, !Ref InputDomainBranded]]
+            Policies:
+                -   Version: '2012-10-17'
+                    Statement:
+                        # Get config and put responses
+                        -   Effect: Allow
+                            Resource: !Join ['', [!GetAtt ResponsesBucket.Arn, '/config/*/config']]
+                            Action: ['s3:GetObject']
+                        -   Effect: Allow
+                            Resource: !Join ['', [!GetAtt ResponsesBucket.Arn, '/responses/*/*']]
+                            Action: ['s3:PutObject']
+                        # Needed to send notifications
+                        -   Effect: Allow
+                            Resource: !GetAtt ResponsesBucket.Arn
+                            Action: ['s3:ListBucket']
+                        -   Effect: Allow
+                            Resource: !Ref InputSesArn
+                            Action: ['ses:SendEmail']
+
+    ResponderSubscription:
+        Type: AWS::Serverless::Function
+        Properties:
+            Runtime: python3.9
+            Handler: responder.entry
+            CodeUri: responder/
+            Events:
+                ApiEvent:
+                    Type: HttpApi
+                    Properties:
+                        ApiId: !Ref Gateway
+                        Method: POST
+                        Path: /responder/subscription
+            Environment:
+                Variables:
+                    stello_env: !Ref InputEnv
+                    stello_version: !Ref InputVersion
+                    stello_msgs_bucket: !Ref AWS::StackName
+                    stello_region: !Ref AWS::Region
+                    stello_rollbar_responder: !Ref InputRollbarResponder
+                    stello_domains: !Join [' ', [!Ref InputDomainGeneric, !Ref InputDomainBranded]]
+            Policies:
+                -   Version: '2012-10-17'
+                    Statement:
+                        # Get config and put responses
+                        -   Effect: Allow
+                            Resource: !Join ['', [!GetAtt ResponsesBucket.Arn, '/config/*/config']]
+                            Action: ['s3:GetObject']
+                        -   Effect: Allow
+                            Resource: !Join ['', [!GetAtt ResponsesBucket.Arn, '/responses/*/*']]
+                            Action: ['s3:PutObject']
+
+    ResponderAddress:
+        Type: AWS::Serverless::Function
+        Properties:
+            Runtime: python3.9
+            Handler: responder.entry
+            CodeUri: responder/
+            Events:
+                ApiEvent:
+                    Type: HttpApi
+                    Properties:
+                        ApiId: !Ref Gateway
+                        Method: POST
+                        Path: /responder/address
+            Environment:
+                Variables:
+                    stello_env: !Ref InputEnv
+                    stello_version: !Ref InputVersion
+                    stello_msgs_bucket: !Ref AWS::StackName
+                    stello_region: !Ref AWS::Region
+                    stello_rollbar_responder: !Ref InputRollbarResponder
+                    stello_domains: !Join [' ', [!Ref InputDomainGeneric, !Ref InputDomainBranded]]
+            Policies:
+                -   Version: '2012-10-17'
+                    Statement:
+                        # Get config and put responses
+                        -   Effect: Allow
+                            Resource: !Join ['', [!GetAtt ResponsesBucket.Arn, '/config/*/config']]
+                            Action: ['s3:GetObject']
+                        -   Effect: Allow
+                            Resource: !Join ['', [!GetAtt ResponsesBucket.Arn, '/responses/*/*']]
+                            Action: ['s3:PutObject']
+
+    ResponderResend:
+        Type: AWS::Serverless::Function
+        Properties:
+            Runtime: python3.9
+            Handler: responder.entry
+            CodeUri: responder/
+            Events:
+                ApiEvent:
+                    Type: HttpApi
+                    Properties:
+                        ApiId: !Ref Gateway
+                        Method: POST
+                        Path: /responder/resend
+            Environment:
+                Variables:
+                    stello_env: !Ref InputEnv
+                    stello_version: !Ref InputVersion
+                    stello_msgs_bucket: !Ref AWS::StackName
+                    stello_region: !Ref AWS::Region
+                    stello_rollbar_responder: !Ref InputRollbarResponder
+                    stello_domains: !Join [' ', [!Ref InputDomainGeneric, !Ref InputDomainBranded]]
+            Policies:
+                -   Version: '2012-10-17'
+                    Statement:
+                        # Get config and put responses
+                        -   Effect: Allow
+                            Resource: !Join ['', [!GetAtt ResponsesBucket.Arn, '/config/*/config']]
+                            Action: ['s3:GetObject']
+                        -   Effect: Allow
+                            Resource: !Join ['', [!GetAtt ResponsesBucket.Arn, '/responses/*/*']]
+                            Action: ['s3:PutObject']
+                        # Needed to send notifications
+                        -   Effect: Allow
+                            Resource: !GetAtt ResponsesBucket.Arn
+                            Action: ['s3:ListBucket']
+                        -   Effect: Allow
+                            Resource: !Ref InputSesArn
+                            Action: ['ses:SendEmail']
 
     AccountsAvailable:
         Type: AWS::Serverless::Function
