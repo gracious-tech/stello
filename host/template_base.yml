@@ -161,6 +161,35 @@ Resources:
 
     # RESPONDER
 
+    InviterImage:
+        # NOTE For simpler deployment, inviter code is embedded in responder
+        Type: AWS::Serverless::Function
+        Properties:
+            Runtime: python3.9
+            Handler: responder.entry
+            CodeUri: responder/
+            Events:
+                ApiEvent:
+                    Type: HttpApi
+                    Properties:
+                        ApiId: !Ref Gateway
+                        Method: GET
+                        Path: /inviter/image
+            Environment:
+                Variables:
+                    stello_env: !Ref InputEnv
+                    stello_version: !Ref InputVersion
+                    stello_msgs_bucket: !Ref AWS::StackName
+                    stello_region: !Ref AWS::Region
+                    stello_rollbar_responder: !Ref InputRollbarResponder
+                    stello_domains: !Join [' ', [!Ref InputDomainGeneric, !Ref InputDomainBranded]]
+            Policies:
+                -   Version: '2012-10-17'
+                    Statement:
+                        -   Effect: Allow
+                            Resource: !Join ['', [!GetAtt MessagesBucket.Arn, '/messages/*/invite_images/*']]
+                            Action: ['s3:GetObject']
+
     ResponderRead:
         Type: AWS::Serverless::Function
         Properties:
