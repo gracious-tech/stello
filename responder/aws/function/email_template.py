@@ -12,7 +12,7 @@ email_template = '''
     <body style='margin: 0; padding: 24px; padding-bottom: 150px; background-color: #222222;'>
         <div style='border-radius: 12px; max-width: 600px; margin: 0 auto; background-color: #eeeeee; color: #000000;'>
             <a href='stello://responses'>
-                <img src='{image}' height='1' width='4' style='border-radius: 12px 12px 0 0; width: 100%; height: auto; border-bottom: 1px solid #cccccc;max-height: 150px; background-color: #ddeeff'>
+                <img src='data:image/jpeg;base64,{image}' height='1' width='4' style='border-radius: 12px 12px 0 0; width: 100%; height: auto; border-bottom: 1px solid #cccccc;max-height: 150px; background-color: #ddeeff'>
             </a>
             <div style='padding: 24px;'>
                 {body}
@@ -37,7 +37,7 @@ email_template = '''
         <hr style='border-style: none;'>
         <p>&nbsp;</p>
 
-        <p style='text-align: center; color: #aaaaaa;'>
+        <p style='text-align: center; color: #aaaaaa; max-width: 600px; margin: 0 auto;'>
             <small style="font-size: 0.8em;">
                 Open <a href="https://stello.news/" style="color: #aaaaaa;">Stello</a> to customise your notification settings. If you've lost access to your account, or shouldn't be receiving these, <a href="https://gracious.tech/support/" style="color: #aaaaaa;">let us know</a>.
             </small>
