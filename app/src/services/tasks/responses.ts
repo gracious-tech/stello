@@ -39,7 +39,7 @@ export async function responses_receive(task:Task):Promise<void>{
             for (const key of await storage.list_responses()){
 
                 // Extract response type from key
-                const type = key.split('/')[2] ?? ''
+                const type = key.split('/')[0] ?? ''
 
                 // Create fn for downloading and processing the response
                 const fn = async () => {
