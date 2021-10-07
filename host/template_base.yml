@@ -170,8 +170,8 @@ Resources:
                     Type: HttpApi
                     Properties:
                         ApiId: !Ref Gateway  # Legit property, despite linter error
-                        Method: ANY  # Must support GET/POST/OPTIONS
-                        Path: /responder
+                        Method: POST
+                        Path: /responder/read
             Environment:
                 Variables:
                     stello_env: !Ref InputEnv
