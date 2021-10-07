@@ -145,7 +145,7 @@ Resources:
                     ViewerProtocolPolicy: https-only
                     CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6  # CachingOptimized
 
-    # FUNCTIONS
+    # GATEWAY
 
     Gateway:
         Type: AWS::Serverless::HttpApi
@@ -158,6 +158,8 @@ Resources:
             ApiId: !Ref Gateway
             DomainName: !Join ['', ['api.at.', !Ref InputDomainGeneric]]
             Stage: !Ref Gateway.Stage
+
+    # RESPONDER
 
     ResponderRead:
         Type: AWS::Serverless::Function
@@ -378,6 +380,8 @@ Resources:
                         -   Effect: Allow
                             Resource: !Ref InputSesArn
                             Action: ['ses:SendEmail']
+
+    # ACCOUNTS
 
     AccountsAvailable:
         Type: AWS::Serverless::Function
