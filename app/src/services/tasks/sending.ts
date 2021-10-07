@@ -336,7 +336,8 @@ export class Sender {
         }, '-')
         const url = this.profile.view_url(copy.id, await export_key(copy.secret))
         const secret_sse_url64 = buffer_to_url64(await export_key(copy.secret_sse))
-        const image = `${this.profile.api}inviter/image?copy=${copy.id}&k=${secret_sse_url64}`
+        const image =
+            `${this.profile.api}inviter/image?user=${this.profile.user}&copy=${copy.id}&k=${secret_sse_url64}`
         const address_buffer = string_to_utf8(JSON.stringify({address: copy.contact_address}))
         let encrypted_address:string|undefined = undefined
         if (!copy.contact_multiple){  // Don't show subscription links if multiple people

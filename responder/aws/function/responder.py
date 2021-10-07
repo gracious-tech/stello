@@ -67,6 +67,13 @@ S3 = boto3.client('s3', config=AWS_CONFIG)
 def entry(api_event, context):
     """Entrypoint that wraps main logic to add exception handling and CORS headers"""
 
+    # Handle GET requests (which don't send origin header so can't detect user)
+    if api_event['requestContext']['http']['method'] == 'GET':
+        if api_event['requestContext']['http']['path'] == '/inviter/image':
+            return inviter_image(api_event)
+        # NOTE A number of companies crawl AWS services, so don't warn for invalid paths
+        raise Abort()
+
     # Determine expected origin (and detect user)
     # NOTE Access-Control-Allow-Origin can only take one value, so must detect right one
     if DOMAINS:
@@ -125,14 +132,6 @@ def _entry(api_event, user):
     if api_event['requestContext']['http']['method'] == 'OPTIONS':
         return {'statusCode': 200}
 
-    # Handle GET requests
-    if api_event['requestContext']['http']['method'] == 'GET':
-        if api_event['requestContext']['http']['path'] == '/inviter/image':
-            query_params = api_event.get('queryStringParameters', {})
-            return get_invite_image(user, query_params)
-        # NOTE A number of companies crawl AWS services, so don't warn for invalid paths
-        raise Abort()
-
     # Handle POST requests
     ip = api_event['requestContext']['http']['sourceIp']
     event = json.loads(api_event['body'])
@@ -155,38 +154,6 @@ def _entry(api_event, user):
 
     # Report success
     return {'statusCode': 200}
-
-
-# GET HANDLERS
-
-
-def get_invite_image(user, params):
-    """Decrypt and return invite image
-
-    WARN Do not prefix with `handle_` as then a user could trigger it with that response type
-
-    """
-    copy_id = params['copy']
-    secret = params['k']
-    bucket_key = f'messages/{user}/invite_images/{copy_id}'
-    try:
-        obj = S3.get_object(Bucket=MSGS_BUCKET, Key=bucket_key)
-    except:
-        body = EXPIRED_IMAGE
-    else:
-        encrypted = obj['Body'].read()
-        decryptor = AESGCM(_url64_to_bytes(secret))
-        decrypted = decryptor.decrypt(encrypted[:SYM_IV_BYTES], encrypted[SYM_IV_BYTES:], None)
-        body = base64.b64encode(decrypted).decode()
-    return {
-        'statusCode': 200,
-        'headers': {
-            'Content-Type': 'image/jpeg',
-            'Cache-Control': 'no-store',
-        },
-        'isBase64Encoded': True,
-        'body': body,
-    }
 
 
 # POST HANDLERS
@@ -511,3 +478,33 @@ def _send_notification(config, resp_type, event, user):
         else:
             boto3.client('sns', config=AWS_CONFIG).publish(
                 TopicArn=TOPIC_ARN, Subject=subject, Message=msg)
+
+
+# INVITER
+
+
+def inviter_image(api_event):
+    """Decrypt and respond with invite image"""
+    params = api_event.get('queryStringParameters', {})
+    user = params['user']
+    copy_id = params['copy']
+    secret = params['k']
+    bucket_key = f'messages/{user}/invite_images/{copy_id}'
+    try:
+        obj = S3.get_object(Bucket=MSGS_BUCKET, Key=bucket_key)
+    except:
+        body = EXPIRED_IMAGE
+    else:
+        encrypted = obj['Body'].read()
+        decryptor = AESGCM(_url64_to_bytes(secret))
+        decrypted = decryptor.decrypt(encrypted[:SYM_IV_BYTES], encrypted[SYM_IV_BYTES:], None)
+        body = base64.b64encode(decrypted).decode()
+    return {
+        'statusCode': 200,
+        'headers': {
+            'Content-Type': 'image/jpeg',
+            'Cache-Control': 'no-store',
+        },
+        'isBase64Encoded': True,
+        'body': body,
+    }

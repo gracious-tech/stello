@@ -219,6 +219,13 @@ export class Profile implements RecordProfile {
         return this.host.cloud === 'gt' ? import.meta.env.VITE_HOSTED_API : this.host.api
     }
 
+    get user():string{
+        // Get host user
+        if (!this.host)
+            throw new Error('impossible')
+        return this.host.cloud === 'gt' ? this.host.username : '_user'
+    }
+
     get view_domain():string{
         // The domain messages will be viewed at
         if (this.host?.cloud === 'gt'){
