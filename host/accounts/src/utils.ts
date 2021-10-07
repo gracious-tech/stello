@@ -37,12 +37,12 @@ export function username_allowed(username:string){
 
     const forbidden = [
         // Used internally already
-        'releases', 'official', 'mail',
+        'releases', 'at', 'mail',
         // Could be used in future, or could trick users to believe they belong to Stello/GT
         'www', 'smtp', 'pop', 'imap', 'ftp',
         'api', 'admin', 'dev', 'beta', 'secure', 'update',
         'login', 'signin', 'signup', 'payment', 'donate', 'account', 'billing', 'pay',
-        'help', 'support', 'blog', 'news', 'about', 'info', 'contact', 'search',
+        'help', 'support', 'blog', 'news', 'about', 'info', 'contact', 'search', 'official',
     ]
 
     // Forbidden patterns (for very specific words)
