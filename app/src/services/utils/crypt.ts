@@ -8,6 +8,7 @@ import {buffer_to_url64, url64_to_buffer} from './coding'
 const SYM_IV_BYTES = 12
 const SYM_TAG_BITS = 128
 const SYM_KEY_BITS = 256  // The max for AES
+const SYM_KEY_BITS_SHORT = 128  // Still offers strong protection, but only use when necessary
 
 
 // See https://developer.mozilla.org/en-US/docs/Web/API/RsaHashedKeyGenParams
@@ -18,10 +19,11 @@ const ASYM_PUBLIC_EXPONENT = new Uint8Array([0x01, 0x00, 0x01])  // 65537 (commo
 // KEYS
 
 
-export function generate_key_sym(extractable=false, modes:KeyUsage[]=['encrypt'])
+export function generate_key_sym(extractable=false, modes:KeyUsage[]=['encrypt'], short=false)
         :Promise<CryptoKey>{
     // Return a new key for encrypting data (optionally extractable)
-    const algorithm:AesKeyGenParams = {name: 'AES-GCM', length: SYM_KEY_BITS}
+    const algorithm:AesKeyGenParams = {name: 'AES-GCM',
+        length: short ? SYM_KEY_BITS_SHORT : SYM_KEY_BITS}
     return crypto.subtle.generateKey(algorithm, extractable, modes)
 }
 
