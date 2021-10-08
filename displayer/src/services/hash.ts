@@ -1,13 +1,11 @@
 
-import {url64_to_buffer} from './utils/coding'
 import {validate_chars} from './utils/exceptions'
-import {import_key_sym} from './utils/crypt'
 
 
 interface HashData {
     config_secret_url64:string
     msg_id:string|null
-    msg_secret:CryptoKey|null
+    msg_secret_url64:string|null
     action:string|null
     action_arg:string|null
 }
@@ -28,7 +26,8 @@ export async function decode_hash(hash:string):Promise<HashData|null>{
     hash = decodeURIComponent(hash)
 
     // Extract fields from the hash
-    const [config_secret_url64, msg_id, secret_url64, action, action_arg] = hash.slice(1).split(',')
+    const [config_secret_url64, msg_id, msg_secret_url64, action, action_arg]
+        = hash.slice(1).split(',')
     if (!config_secret_url64){
         return null  // At minimum every hash has config secret
     }
@@ -38,15 +37,11 @@ export async function decode_hash(hash:string):Promise<HashData|null>{
         So important to validate values and restrict to expected chars at very least
     */
     const url64_chars = 'a-zA-Z0-9\\_\\-\\~'
-    let msg_secret:CryptoKey|null = null
     try {
         validate_chars(config_secret_url64, url64_chars)
-        if (msg_id && secret_url64){
+        if (msg_id && msg_secret_url64){
             validate_chars(msg_id, url64_chars)
-            validate_chars(secret_url64, url64_chars)
-            // Decode the secret and contain within a restrictive CryptoKey instance
-            // NOTE Must allow extracting so can later generate response token
-            msg_secret = await import_key_sym(url64_to_buffer(secret_url64), true)
+            validate_chars(msg_secret_url64, url64_chars)
         }
         if (action){
             validate_chars(action, 'a-z\\_')
@@ -62,7 +57,7 @@ export async function decode_hash(hash:string):Promise<HashData|null>{
     return {
         config_secret_url64,  // Not parsed as will later send url64 form in responses
         msg_id: msg_id || null,
-        msg_secret,
+        msg_secret_url64: msg_secret_url64 || null,
         action: action || null,
         action_arg: action_arg || null,
     }

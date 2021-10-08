@@ -57,9 +57,6 @@ export default defineComponent({
         const fix_desc = ref<string|null>(null)
         const get_asset = ref<GetAsset>()
 
-        // Access to secret that ignores fact is readonly due to store (stop TS complaining)
-        const secret = current_msg.secret as CryptoKey
-
         // Provides
         provide('get_asset', get_asset)
 
@@ -93,6 +90,7 @@ export default defineComponent({
             // Try to decrypt the message
             let decrypted:ArrayBuffer
             try {
+                const secret = await import_key_sym(url64_to_buffer(current_msg.secret_url64))
                 decrypted = await decrypt_sym(encrypted, secret)
             } catch {
                 error.value = 'corrupted'
@@ -140,7 +138,7 @@ export default defineComponent({
             // Save the metadata in db
             void store.save_message_meta({
                 id: current_msg.id,
-                secret: secret,
+                secret_url64: current_msg.secret_url64,
                 title: msg.value.title,
                 published: new Date(msg.value.published),
             })

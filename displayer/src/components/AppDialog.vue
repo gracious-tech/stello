@@ -26,7 +26,7 @@ export default defineComponent({
         })
 
         return {dialog, close}
-    }
+    },
 })
 
 </script>

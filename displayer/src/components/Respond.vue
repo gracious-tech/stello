@@ -131,7 +131,7 @@ export default defineComponent({
 
                 // Record in db
                 replies.value.push(new Date())
-                database.reply_add(current_msg.id, section, subsection)
+                void database.reply_add(current_msg.id, section, subsection)
 
                 // Blur focus so popup disappears (if not hovered)
                 // @ts-ignore blur is a valid method
@@ -188,9 +188,10 @@ export default defineComponent({
             if (result){
                 // Request successful so can update db
                 if (type === null){
-                    database.reaction_remove(subsect_id.value)
+                    void database.reaction_remove(subsect_id.value)
                 } else {
-                    database.reaction_set(current_msg.id, props.section.id, props.subsection, type)
+                    void database.reaction_set(current_msg.id, props.section.id, props.subsection,
+                        type)
                 }
             } else {
                 // Request failed so revert state to old value
@@ -212,7 +213,7 @@ export default defineComponent({
             react_with, reaction_options, chosen_reaction, react_popup_visible,
             last_sent_contents, replies,
         }
-    }
+    },
 })
 
 </script>

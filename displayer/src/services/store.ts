@@ -9,8 +9,8 @@ import {displayer_config} from './displayer_config'
 import {decode_hash} from './hash'
 import {respond_subscription} from './responses'
 import {remove_value} from './utils/arrays'
-import {buffer_to_url64} from './utils/coding'
-import {export_key, generate_hash} from './utils/crypt'
+import {buffer_to_url64, url64_to_buffer} from './utils/coding'
+import {generate_hash} from './utils/crypt'
 import {check_webp_support} from './webp'
 
 
@@ -34,7 +34,7 @@ export interface StoreState {
 
 export interface MessageAccess {
     id:string
-    secret:CryptoKey
+    secret_url64:string
     resp_token:string
     title:string|null  // Only provided when viewing old messages
     published:Date|null  // Only provided when viewing old messages
@@ -101,7 +101,7 @@ export class DisplayerStore {
                 return item.id === this._state.dict.last_read
             })
             if (record){
-                void this.change_current_msg(record.id, record.secret, record.title,
+                void this.change_current_msg(record.id, record.secret_url64, record.title,
                     record.published)
             }
         }
@@ -133,8 +133,8 @@ export class DisplayerStore {
         }
 
         // Load msg if valid
-        if (hash?.msg_id && hash.msg_secret){
-            await this.change_current_msg(hash.msg_id, hash.msg_secret, null, null)
+        if (hash?.msg_id && hash.msg_secret_url64){
+            await this.change_current_msg(hash.msg_id, hash.msg_secret_url64, null, null)
 
             // Handle action if any, and account not disabled
             if (displayer_config.responder){
@@ -147,15 +147,15 @@ export class DisplayerStore {
         }
     }
 
-    async change_current_msg(id:string, secret:CryptoKey, title:string|null, published:Date|null)
-            :Promise<void>{
+    async change_current_msg(id:string, secret_url64:string, title:string|null,
+            published:Date|null):Promise<void>{
         // Change the current message and generate resp_token for it
         this._state.current_msg = {
             id,
-            secret,
+            secret_url64,
             title,
             published,
-            resp_token: buffer_to_url64(await generate_hash(await export_key(secret), 0)),
+            resp_token: buffer_to_url64(await generate_hash(url64_to_buffer(secret_url64), 0)),
         }
         // Reset page title when changing message
         self.document.title = title || "Message Viewer"
@@ -179,7 +179,7 @@ export class DisplayerStore {
         this._state.transition = transition
     }
 
-    dialog_open(component:Component, props:Record<string, any>={}):void{
+    dialog_open(component:Component, props:Record<string, unknown>={}):void{
         // Open a dialog with the given contents
         // NOTE markRaw prevents making already-reactive component reactive
         this._state.dialog = {component: markRaw(component), props}

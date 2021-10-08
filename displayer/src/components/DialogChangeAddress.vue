@@ -58,7 +58,7 @@ export default defineComponent({
 
         // Expose
         return {close, change, address, progress, error, valid}
-    }
+    },
 })
 
 </script>

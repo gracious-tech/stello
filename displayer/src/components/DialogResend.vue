@@ -42,8 +42,7 @@ export default defineComponent({
         const textarea = ref<HTMLTextAreaElement>()
         const reason = ref(''
             + `Hi, could you please send me a new copy of ${title}?`
-            + `\n\nI'd like access again because ${ph_reason}\n\n${ph_name}`
-        )
+            + `\n\nI'd like access again because ${ph_reason}\n\n${ph_name}`)
         const progress = ref(false)
         const error = ref(false)
 
@@ -74,7 +73,7 @@ export default defineComponent({
 
         // Expose
         return {close, send, reason, progress, error, textarea, valid}
-    }
+    },
 })
 
 </script>

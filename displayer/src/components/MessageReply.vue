@@ -86,20 +86,20 @@ export default defineComponent({
             if (success.value){
                 last_sent_contents.value = cached_text
                 text.value = ''
-                database.reply_add(current_msg.id, null, null)
+                void database.reply_add(current_msg.id, null, null)
                 replies.value.push(new Date())
             }
         }
 
         // Fetch previous replies
-        database.reply_list(current_msg.id, null, null).then(dates => {
+        void database.reply_list(current_msg.id, null, null).then(dates => {
             replies.value = dates
         })
 
         // Expose
         return {textarea, text, send_reply, waiting, success, allow_replies, replies,
             last_sent_contents}
-    }
+    },
 })
 
 </script>

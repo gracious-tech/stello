@@ -46,7 +46,8 @@ export default defineComponent({
                 date: item.published.toLocaleDateString(),
                 load: () => {
                     store.change_transition('prev')
-                    store.change_current_msg(item.id, item.secret, item.title, item.published)
+                    void store.change_current_msg(item.id, item.secret_url64, item.title,
+                        item.published)
                 },
             }
         })
@@ -61,14 +62,15 @@ export default defineComponent({
                 date: item.published.toLocaleDateString(),
                 load: () => {
                     store.change_transition('next')
-                    store.change_current_msg(item.id, item.secret, item.title, item.published)
+                    void store.change_current_msg(item.id, item.secret_url64, item.title,
+                        item.published)
                 },
             }
         })
 
         // Expose
         return {prev, next}
-    }
+    },
 })
 
 </script>

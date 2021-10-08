@@ -47,7 +47,7 @@ export interface DisplayerDatabaseSchema extends DBSchema {
 
 export interface MessageRecord {
     id:string
-    secret:CryptoKey
+    secret_url64:string  // Safari is buggy when storing CryptoKey in db, so store as string
     title:string
     published:Date
 }
