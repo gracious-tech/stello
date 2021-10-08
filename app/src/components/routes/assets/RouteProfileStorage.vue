@@ -34,11 +34,16 @@ div
                             label="The Bible is our ultimate authority on knowing God and his will")
                     v-radio(value='other' label="Other" color='accent')
 
+                hr
+
                 h2(class='text-subtitle-2 text--secondary') Why Christian causes?
                 p(class='body-2 text--secondary')
                     | Gracious Tech is a Christian organisation and Stello was originally created
                     | to promote Christian causes, so we ourselves fund their use of Stello.
                     | However, other use cases are also currently free too.
+
+                h2(class='text-subtitle-2 text--secondary') Two year limit
+                p(class='body-2 text--secondary') All sent messages will expire after two years (or less), however they will not expire from Stello itself and can be resent at any time.
 
         v-expansion-panel
             v-expansion-panel-header(class='app-bg-primary-relative')
