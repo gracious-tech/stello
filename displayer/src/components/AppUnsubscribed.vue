@@ -1,10 +1,14 @@
 
 <template lang='pug'>
 
-div.unsubscribed(v-if='unsubscribed' class='ui')
+div.unsubscribed(class='ui')
     div.alert
-        | You've unsubscribed
-        a(@click='undo') Undo
+
+        template(v-if='responder === null') Network issue detected
+        template(v-else-if='responder === false') This account is no longer active
+        template(v-else-if='unsubscribed') You've unsubscribed
+
+        a(v-if='unsubscribed' @click='undo') Undo
 
 </template>
 
@@ -13,16 +17,18 @@ div.unsubscribed(v-if='unsubscribed' class='ui')
 
 import {computed, defineComponent} from 'vue'
 
-import {store} from '../services/store'
+import {store} from '@/services/store'
+import {displayer_config} from '@/services/displayer_config'
 
 
 export default defineComponent({
     setup(){
         return {
+            responder: computed(() => displayer_config.responder),
             unsubscribed: computed(() => store.unsubscribed),
-            undo: () => {store.update_subscribed(true)},
+            undo: () => {void store.update_subscribed(true)},
         }
-    }
+    },
 })
 
 </script>

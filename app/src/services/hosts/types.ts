@@ -1,7 +1,6 @@
 
 import {Task} from '@/services/tasks/tasks'
 import {CustomError} from '../utils/exceptions'
-import {DisplayerConfig} from '@/shared/shared_types'
 
 
 export const HostStorageVersion = 11  // Bump whenever an update to storage services needed
@@ -115,10 +114,16 @@ export declare class HostUser {
     list_responses(type?:string):Promise<string[]>
 
     // Upload config for the displayer
-    upload_displayer_config(config:DisplayerConfig):Promise<void>
+    upload_displayer_config(config:ArrayBuffer):Promise<void>
 
     // Upload config for responder function
-    upload_responder_config(config:Record<string, unknown>):Promise<void>
+    upload_responder_config(config:ArrayBuffer):Promise<void>
+
+    // Update email address
+    update_email(address:string):Promise<void>
+
+    // Delete own account
+    delete_account():Promise<void>
 }
 
 

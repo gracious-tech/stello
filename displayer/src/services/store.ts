@@ -19,7 +19,7 @@ import {check_webp_support} from './webp'
 export interface StoreStateDict {
     dark:boolean
     last_read:string|null
-    prev_config_name:string|null
+    config_secret:string|null
     unsubscribed:string[]  // Array of response tokens
 }
 
@@ -29,7 +29,7 @@ export interface StoreState {
     current_msg:MessageAccess|null
     webp_supported:boolean
     transition:'none'|'prev'|'next'
-    dialog:null|{component:Component, props:Record<string, any>}
+    dialog:null|{component:Component, props:Record<string, unknown>}
 }
 
 export interface MessageAccess {
@@ -69,7 +69,7 @@ export class DisplayerStore {
             dict: {
                 dark: os_dark,
                 last_read: null,
-                prev_config_name: null,
+                config_secret: null,
                 unsubscribed: [],
                 ...await database.dict_get_all(),  // Override defaults with any saved values
             },
@@ -89,8 +89,9 @@ export class DisplayerStore {
         self.addEventListener('hashchange', event => {
             // Don't trigger when hash has been cleared by previous `process_hash` call
             // Also don't process if just reacting to a failure restoring the hash to the url
-            if (self.location.hash !== '' && (!self.app_failed || self.location.hash !== self.app_hash)){
-                this.process_hash()
+            if (self.location.hash !== ''
+                    && (!self.app_failed || self.location.hash !== self.app_hash)){
+                void this.process_hash()
             }
         })
 
@@ -100,7 +101,8 @@ export class DisplayerStore {
                 return item.id === this._state.dict.last_read
             })
             if (record){
-                this.change_current_msg(record.id, record.secret, record.title, record.published)
+                void this.change_current_msg(record.id, record.secret, record.title,
+                    record.published)
             }
         }
     }
@@ -120,22 +122,27 @@ export class DisplayerStore {
         }
 
         // Update displayer config (do for every hash in case changed)
-        const name_that_worked = await displayer_config.load(hash?.disp_config_name,
-            this._state.dict.prev_config_name)
-        if (name_that_worked && name_that_worked === hash?.disp_config_name){
-            this._state.dict.prev_config_name = hash.disp_config_name
-            database.dict_set('prev_config_name', hash.disp_config_name)
+        if (this._state.dict.config_secret){
+            await displayer_config.safe_load(this._state.dict.config_secret)
+        } else if (hash?.config_secret_url64){
+            if (await displayer_config.safe_load(hash.config_secret_url64)){
+                // Config loaded successfully with the hash's config secret
+                this._state.dict.config_secret = hash.config_secret_url64
+                void database.dict_set('config_secret', hash.config_secret_url64)
+            }
         }
 
         // Load msg if valid
-        if (hash){
+        if (hash?.msg_id && hash.msg_secret){
             await this.change_current_msg(hash.msg_id, hash.msg_secret, null, null)
 
-            // Handle action if any
-            if (hash.action === 'unsub'){
-                this.update_subscribed(false, hash.action_arg)
-            } else if (hash.action === 'address'){
-                this.dialog_open(DialogChangeAddress, {encrypted_address: hash.action_arg})
+            // Handle action if any, and account not disabled
+            if (displayer_config.responder){
+                if (hash.action === 'unsub'){
+                    void this.update_subscribed(false, hash.action_arg)
+                } else if (hash.action === 'address'){
+                    this.dialog_open(DialogChangeAddress, {encrypted_address: hash.action_arg})
+                }
             }
         }
     }
@@ -164,7 +171,7 @@ export class DisplayerStore {
     toggle_dark():void{
         // Toggle dark mode
         this._state.dict.dark = !this._state.dict.dark
-        database.dict_set('dark', this._state.dict.dark)
+        void database.dict_set('dark', this._state.dict.dark)
     }
 
     change_transition(transition:'prev'|'next'):void{
@@ -196,11 +203,11 @@ export class DisplayerStore {
         }
 
         // Save to db and store
-        database.dict_set('unsubscribed', unsubscribed)
+        await database.dict_set('unsubscribed', unsubscribed)
         this._state.dict.unsubscribed = unsubscribed
 
         // Send response
-        respond_subscription(resp_token, subscribed, encrypted_address)
+        await respond_subscription(resp_token, subscribed, encrypted_address)
     }
 }
 

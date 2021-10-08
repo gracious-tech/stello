@@ -1,3 +1,4 @@
+# TODO Update regarding encrypted config and change of paths
 
 import sys
 import json

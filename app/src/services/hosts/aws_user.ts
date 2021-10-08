@@ -4,7 +4,6 @@ import {SNS} from '@aws-sdk/client-sns'
 import {IAM} from '@aws-sdk/client-iam'
 import {STS} from '@aws-sdk/client-sts'
 
-import {DisplayerConfig} from '@/shared/shared_types'
 import {HostCloud, HostCredentials, HostUser} from './types'
 import {StorageBaseAws} from './aws_common'
 import {enforce_range} from '../utils/numbers'
@@ -101,30 +100,28 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         return this._list_objects(this._bucket_resp_id, `responses/${this.user}/`, type)
     }
 
-    async upload_displayer_config(config:DisplayerConfig):Promise<void>{
+    async upload_displayer_config(config:ArrayBuffer):Promise<void>{
         // Upload config for the displayer
         await this.s3.putObject({
             Bucket: this.bucket,
             Key: `config/${this.user}/config`,
-            ContentType: 'application/json',
-            Body: JSON.stringify(config),
+            ContentType: 'application/octet-stream',
+            Body: new Uint8Array(config),
         })
     }
 
-    async upload_responder_config(config:{email:string, [k:string]:unknown}):Promise<void>{
+    async upload_responder_config(config:ArrayBuffer):Promise<void>{
         // Upload config for the responder function
         await this.s3.putObject({
             Bucket: this._bucket_resp_id,
             Key: `config/${this.user}/config`,
-            ContentType: 'application/json',
-            Body: JSON.stringify(config),
+            ContentType: 'application/octet-stream',
+            Body: new Uint8Array(config),
         })
+    }
 
-        // If no user then relying on SNS for notifications and need to ensure subscribed to it
-        // NOTE Skip subscribing if not production as would send real emails to do so
-        if (this.user || import.meta.env.MODE !== 'production'){
-            return
-        }
+    async update_email(address:string){
+        // Subscribe user to notifications for responses
 
         // Remove existing subscription if any
         const account_id = await this._get_account_id()
@@ -134,7 +131,7 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         })
         for (const sub of list_resp.Subscriptions ?? []){
             // NOTE Expecting only one subscription in this loop at most
-            if (sub.Endpoint === config.email){
+            if (sub.Endpoint === address){
                 // Already subscribed so just finish
                 return
             }
@@ -150,7 +147,7 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         await this.sns.subscribe({
             TopicArn: topic_arn,
             Protocol: 'email',
-            Endpoint: config.email,
+            Endpoint: address,
         })
     }
 

@@ -124,6 +124,7 @@ def _entry(api_event, user):
     SECURITY Never return anything back to recipient other than success status
 
     Event data is expected to be: {
+        'config_secret': string,
         'encrypted': string,
         ...
     }
@@ -143,11 +144,12 @@ def _entry(api_event, user):
     ip = api_event['requestContext']['http']['sourceIp']
     event = json.loads(api_event['body'])
 
-    # Must have encrypted key set
+    # These keys are required for all responses
+    _ensure_type(event, 'config_secret', str)
     _ensure_type(event, 'encrypted', str)
 
     # Load config (required to encrypt stored data, so can't do anything without)
-    config = _get_config(user)
+    config = _get_config(user, event['config_secret'])
 
     # Get event type from path
     resp_type = api_event['requestContext']['http']['path'].partition('/responder/')[2]
@@ -292,10 +294,12 @@ def _bytes_to_url64(bytes_data):
     return base64.urlsafe_b64encode(bytes_data).decode().replace('=', '~')
 
 
-def _get_config(user):
-    """Download and parse responder config"""
-    data = S3.get_object(Bucket=RESP_BUCKET, Key=f'config/{user}/config')['Body'].read()
-    return json.loads(data)
+def _get_config(user, secret):
+    """Download, decrypt and parse responder config"""
+    encrypted = S3.get_object(Bucket=RESP_BUCKET, Key=f'config/{user}/config')['Body'].read()
+    decryptor = AESGCM(_url64_to_bytes(secret))
+    decrypted = decryptor.decrypt(encrypted[:SYM_IV_BYTES], encrypted[SYM_IV_BYTES:], None)
+    return json.loads(decrypted)
 
 
 def _ensure_type(event, key, type_):

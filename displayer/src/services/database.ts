@@ -5,7 +5,7 @@ import {DisplayerDatabaseSchema, upgrade_database, MessageRecord} from './databa
 import {generate_token} from './utils/crypt'
 
 
-const DATABASE_VERSION = 3
+const DATABASE_VERSION = 1
 
 
 class DisplayerDatabase {

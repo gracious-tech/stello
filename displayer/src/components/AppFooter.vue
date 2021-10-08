@@ -4,8 +4,7 @@
 //- Show credit only when message decrypted (hide origins from unauthenticated viewers)
 div.footer(v-if='msg' class='ui')
 
-    //- NOTE permission_subscription/contact_address did not exist until after v0.6.2
-    div(v-if='msg.permission_subscription ?? true')
+    div(v-if='can_change_subscription')
         a(@click='toggle_subscription' :class='{unsubscribed}') {{ toggle_label }}
         template(v-if='msg.contact_address ?? true')
             |
@@ -29,19 +28,28 @@ import app_config from '../app_config.json'
 import DialogChangeAddress from './DialogChangeAddress.vue'
 import {PublishedCopy} from '../shared/shared_types'
 import {store} from '../services/store'
+import {displayer_config} from '@/services/displayer_config'
 
 
 export default defineComponent({
     props: {
-        msg: {type: Object as PropType<PublishedCopy|undefined>, required: false},
+        msg: {
+            type: Object as PropType<PublishedCopy|undefined>,
+            required: false,
+            default: undefined,
+        },
     },
     setup(props){
 
         const unsubscribed = computed(() => store.unsubscribed)
         const toggle_label = computed(() => store.unsubscribed ? "Resubscribe" : "Unsubscribe")
+        const can_change_subscription = computed(() => {
+            // NOTE permission_subscription/contact_address did not exist until after v0.6.2
+            return displayer_config.responder && (props.msg!.permission_subscription ?? true)
+        })
 
         const toggle_subscription = () => {
-            store.update_subscribed(store.unsubscribed)
+            void store.update_subscribed(store.unsubscribed)
         }
 
         const change_address = () => {
@@ -54,8 +62,9 @@ export default defineComponent({
             toggle_subscription,
             toggle_label,
             change_address,
+            can_change_subscription,
         }
-    }
+    },
 })
 
 </script>

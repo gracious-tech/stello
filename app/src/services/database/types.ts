@@ -99,9 +99,9 @@ export interface RecordProfileHostGracious {
 }
 
 export interface RecordProfileHostState {
-    secret:CryptoKey  // A secret unique to profile while not attached to any particular message
-    resp_key:CryptoKeyPair
-    disp_config_name:string
+    secret:CryptoKey  // Private to user; used to send and get back data without revealing contents
+    shared_secret:CryptoKey  // Private to user & readers; for protecting non-message data
+    resp_key:CryptoKeyPair  // Private to user; used to receive data without interception
     displayer_config_uploaded:boolean  // False when it needs updating
     responder_config_uploaded:boolean  // False when it needs updating
 }

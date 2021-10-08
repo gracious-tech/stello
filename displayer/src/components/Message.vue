@@ -2,6 +2,7 @@
 <template lang='pug'>
 
 div
+    //- NOTE AppUnsubscribed Also used to show when account disabled
     AppUnsubscribed
 
     MessageContents(v-if='msg' :msg='msg')
@@ -129,7 +130,9 @@ export default defineComponent({
             msg.value = msg_data
 
             // Report that message has been read/opened
-            void respond_read(current_msg.resp_token, current_msg.id, msg_data.has_max_reads)
+            if (displayer_config.responder){
+                void respond_read(current_msg.resp_token, current_msg.id, msg_data.has_max_reads)
+            }
 
             // Update the page title
             self.document.title = msg_data.title

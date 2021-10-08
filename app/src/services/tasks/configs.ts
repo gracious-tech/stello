@@ -1,8 +1,9 @@
 
 import app_config from '@/app_config.json'
+import {DisplayerConfig} from '@/shared/shared_types'
+import {buffer_to_url64, string_to_utf8} from '@/services/utils/coding'
+import {export_key, encrypt_sym} from '@/services/utils/crypt'
 import {Task} from './tasks'
-import {buffer_to_url64} from '../utils/coding'
-import {export_key} from '../utils/crypt'
 
 
 export async function configs_update(task:Task){
@@ -32,7 +33,7 @@ export async function configs_update(task:Task){
 
     // Upload displayer config
     if (!profile.host_state.displayer_config_uploaded){
-        upload_displayer = storage.upload_displayer_config({
+        const config:DisplayerConfig = {
             version: app_config.version,  // Did not exist v0.7.2 and below
             responder: `${profile.api}responder/`,
             notify_include_contents: profile.options.notify_include_contents,
@@ -43,12 +44,16 @@ export async function configs_update(task:Task){
             social_referral_ban: profile.options.social_referral_ban,
             resp_key_public,
             reaction_options: profile.options.reaction_options,
-        })
+        }
+        upload_displayer = encrypt_sym(
+            string_to_utf8(JSON.stringify(config)),
+            profile.host_state.shared_secret,
+        ).then(encrypted => storage.upload_displayer_config(encrypted))
     }
 
     // Upload responder config
     if (!profile.host_state.responder_config_uploaded){
-        upload_responder = storage.upload_responder_config({
+        const config = {
             version: app_config.version,  // Did not exist v0.7.2 and below
             notify_mode: profile.options.notify_mode,
             notify_include_contents: profile.options.notify_include_contents,
@@ -58,7 +63,11 @@ export async function configs_update(task:Task){
             allow_resend_requests: profile.options.allow_resend_requests,
             resp_key_public,
             email: profile.email,
-        })
+        }
+        upload_responder = encrypt_sym(
+            string_to_utf8(JSON.stringify(config)),
+            profile.host_state.shared_secret,
+        ).then(encrypted => storage.upload_responder_config(encrypted))
     }
 
     // Wait till both uploads complete

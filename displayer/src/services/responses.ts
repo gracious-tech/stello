@@ -1,4 +1,5 @@
 
+import {store} from '@/services/store'
 import {displayer_config} from './displayer_config'
 import {string_to_utf8} from './utils/coding'
 import {encrypt_asym} from './utils/crypt'
@@ -8,6 +9,14 @@ import {report_http_failure, request} from './utils/http'
 async function respond(type:string, data:any):Promise<boolean>{
     // Send a response and return success boolean
     // SECURITY Only success boolean is returned, for error info rely on lambda's own reporting
+
+    // Respond functions should never get called if config not loaded
+    if (!displayer_config.responder){
+        throw new Error("Config not loaded")
+    }
+
+    // Attach config secret so responder can decrypt user's responder config
+    data.config_secret = store.state.dict.config_secret
 
     // Add user agent to encrypted object
     // SECURITY This can always be spoofed so no advantage to doing serverside over clientside

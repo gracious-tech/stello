@@ -241,13 +241,13 @@ export class Profile implements RecordProfile {
         throw new Error('impossible')
     }
 
-    view_url(copy_id:string, secret:ArrayBuffer, action?:string){
+    view_url(config_secret64:string, copy_id:string, secret:ArrayBuffer, action?:string){
         // Return URL for viewing the given copy
+        const domain = this.view_domain
         const path = this.host?.cloud === 'gt' ? '/' : '/_'
-        const config_name = this.host_state.disp_config_name
         const secret64 = buffer_to_url64(secret)
         action = action ? `,${action}` : ''
-        return `https://${this.view_domain}${path}#${config_name},${copy_id},${secret64}${action}`
+        return `https://${domain}${path}#${config_secret64},${copy_id},${secret64}${action}`
     }
 }
 
@@ -287,8 +287,9 @@ export class DatabaseProfiles {
             host: null,
             host_state: {
                 secret: await generate_key_sym(false, ['encrypt', 'decrypt']),
+                // SECURITY short key as only for configs and better to keep URL short if possible
+                shared_secret: await generate_key_sym(true, ['encrypt'], true),
                 resp_key: await generate_key_asym(),
-                disp_config_name: generate_token(),
                 displayer_config_uploaded: false,
                 responder_config_uploaded: false,
             },

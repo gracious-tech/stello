@@ -94,6 +94,7 @@ export class Sender {
     host!:HostUser
     tmpl_variables!:TemplateVariables
     email_client!:EmailTask
+    shared_secret_64!:string
 
     get sender_name():string{
         // Get sender name, accounting for inheritance from profile
@@ -191,6 +192,10 @@ export class Sender {
 
         // Check if aborted before uploading copies
         task.check_aborted()
+
+        // Encode shared secret for use in URLs
+        this.shared_secret_64 = buffer_to_url64(
+            await export_key(this.profile.host_state.shared_secret))
 
         // Init email sender
         this.email_client = new_email_task(this.profile.smtp_settings)
@@ -334,7 +339,8 @@ export class Sender {
             contact_name: {value: copy.contact_name},
             msg_max_reads: {value: msg_max_reads_value(max_reads)},
         }, '-')
-        const url = this.profile.view_url(copy.id, await export_key(copy.secret))
+        const url = this.profile.view_url(this.shared_secret_64, copy.id,
+            await export_key(copy.secret))
         const secret_sse_url64 = buffer_to_url64(await export_key(copy.secret_sse))
         const image =
             `${this.profile.api}inviter/image?user=${this.profile.user}&copy=${copy.id}&k=${secret_sse_url64}`
