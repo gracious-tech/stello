@@ -29,6 +29,7 @@ module.exports = {
         'plugin:vue/vue3-recommended',
     ],
     rules: {
+
         // Enable as errors
         'no-promise-executor-return': 'error',
         'no-template-curly-in-string': 'error',
@@ -36,6 +37,7 @@ module.exports = {
         'no-constructor-return': 'error',
         'eqeqeq': 'error',
         'no-eval': 'error',
+
         // Enable as warnings
         'max-len': ['warn', {code: 100, ignoreUrls: true, ignoreTemplateLiterals: true}],
         'indent': ['warn', 4, {
@@ -47,6 +49,7 @@ module.exports = {
         'comma-dangle': ['warn', 'always-multiline'],
         'semi': ['warn', 'never', {beforeStatementContinuationChars: 'always'}],
         'no-console': ['warn', {allow: ['warn', 'error', 'info', 'debug']}],  // Non-log allowed
+
         // Disable as are not problems at all
         '@typescript-eslint/no-extra-semi': 'off',  // Conflicts with 'semi' rule
         '@typescript-eslint/no-empty-interface': 'off',  // Empty interfaces may be expanded later
@@ -54,8 +57,10 @@ module.exports = {
         '@typescript-eslint/require-await': 'off',  // Some fns async to match spec or await later
         '@typescript-eslint/no-empty-function': 'off',  // Empty fns may be used to match a spec
         '@typescript-eslint/explicit-module-boundary-types': 'off',  // TS auto detect saves time
+
         // Disable as already covered by other audits (such as tsc)
         'import/no-unresolved': 'off',  // Vite imports complex and already handled by tsc
+
         // Default to error but should be warnings
         'no-empty': 'warn',
         '@typescript-eslint/no-unsafe-call': 'warn',
@@ -67,7 +72,9 @@ module.exports = {
         '@typescript-eslint/ban-types': 'warn',
         // TODO revert below to error once 'any' type cases dealt with, as also checks invalid code
         '@typescript-eslint/restrict-template-expressions': 'warn',
+
         // Need customisation
+        'vue/prop-name-casing': ['warn', 'snake_case'],  // Not camel case
         'no-constant-condition': ['error', {checkLoops: false}],  // while (true) useful at times
         'prefer-const': ['warn', {destructuring: 'all'}],  // Allows `let [a, b]` if only `a` const
         '@typescript-eslint/no-unused-vars': ['warn', {args: 'none'}],  // Unused args (eg event) ok
