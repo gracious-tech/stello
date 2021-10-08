@@ -85,8 +85,8 @@ class DisplayerDatabase {
         return result ? result.content : null
     }
 
-    async reaction_set(message:string, section:string, subsection:string|null, content:string,
-            ):Promise<void>{
+    async reaction_set(message:string, section:string, subsection:string|null,
+            content:string):Promise<void>{
         // Save a reaction
         await this._conn.put('reactions', {
             id: subsection ?? section,
