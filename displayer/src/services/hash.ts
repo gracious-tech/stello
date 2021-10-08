@@ -29,8 +29,8 @@ export async function decode_hash(hash:string){
         So important to validate values and restrict to expected chars at very least
         (as, for example, disp_config_name is directly inserted into URLs later)
     */
-   // NOTE While technically disp_config_name and msg_id are also url64 encoded
-   //      they are never used in bytes form, as their url64 form is their official form
+    // NOTE While technically disp_config_name and msg_id are also url64 encoded
+    //      they are never used in bytes form, as their url64 form is their official form
     const url64_chars = 'a-zA-Z0-9\\_\\-\\~'
     try {
         validate_chars(disp_config_name, url64_chars)
