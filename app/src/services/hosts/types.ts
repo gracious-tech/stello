@@ -52,7 +52,7 @@ export declare class HostManager {
     bucket_available(bucket:string):Promise<boolean>
 
     // Create new storage and return credentials for it
-    new_storage(bucket:string, region:string, overwrite:boolean):Promise<HostStorageCredentials>
+    new_storage(bucket:string, region:string):Promise<HostStorageCredentials>
 }
 
 

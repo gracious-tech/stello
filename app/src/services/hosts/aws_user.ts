@@ -1,6 +1,7 @@
 
 import untar from 'js-untar'
 import {waitUntilBucketExists} from '@aws-sdk/client-s3'
+import {waitUntilRoleExists} from '@aws-sdk/client-iam'
 import {GetFunctionCommandOutput, UpdateFunctionConfigurationCommandInput,
     waitUntilFunctionExists} from '@aws-sdk/client-lambda'
 
@@ -10,15 +11,9 @@ import {HostUser} from '@/services/hosts/types'
 import {Task} from '@/services/tasks/tasks'
 import {buffer_to_hex} from '@/services/utils/coding'
 import {sleep} from '@/services/utils/async'
-import {waitUntilUserExists, waitUntilRoleExists} from './aws_common'
 import {displayer_asset_type} from './common'
 import {HostStorageVersion, HostPermissionError} from './types'
-
-
-// Standard wait time
-// NOTE Occasionally hit timeout for bucket creation when set to 30 seconds, so doubled to 60
-// NOTE casing matches property casing allowing easier insertion
-const maxWaitTime = 60
+import {maxWaitTime} from '@/services/hosts/aws_common'
 
 
 export class HostUserAws extends HostUserAwsBase implements HostUser {
@@ -155,18 +150,6 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
 
 
     // PRIVATE (setup)
-
-    async _setup_bucket_create():Promise<void>{
-        // Ensure bucket has been created
-        try {
-            await this.s3.headBucket({Bucket: this.bucket})
-        } catch (error){
-            if (error.name !== 'NotFound'){
-                throw error
-            }
-            await this.s3.createBucket({Bucket: this.bucket})
-        }
-    }
 
     async _setup_displayer():Promise<void>{
         // Upload displayer, configured with deployment config
@@ -328,71 +311,6 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
             ServerSideEncryptionConfiguration: {
                 Rules: [{ApplyServerSideEncryptionByDefault: {SSEAlgorithm: 'AES256'}}],
             },
-        })
-    }
-
-    async _setup_user_create():Promise<void>{
-        // Ensure iam user exists
-        try {
-            await this.iam.createUser({
-                UserName: this._user_id,
-                Path: `/stello/${this.region}/`,
-                Tags: [{Key: 'stello', Value: this.bucket}],
-            })
-        } catch (error){
-            if (error.name !== 'EntityAlreadyExists'){
-                throw error
-            }
-        }
-    }
-
-    async _setup_user_configure():Promise<void>{
-        // Ensure iam user has correct permissions
-
-        // May need to wait if still creating user
-        await waitUntilUserExists({client: this.iam, maxWaitTime}, {UserName: this._user_id})
-
-        // Define permissions
-        const statements = [
-
-            // Main bucket
-            // NOTE ListBucket applies to bucket, where as others apply to objects (/*)
-            {Effect: 'Allow', Resource: this._bucket_arn,
-                Action: ['s3:ListBucket']},
-            // SECURITY tags could be used for other reasons in an AWS account
-            //      So must ensure user can only set the stello-lifespan tag
-            //      NOTE Tags can be set via PutObject (not just PutObjectTagging)
-            {Effect: 'Allow', Resource: `${this._bucket_arn}/*`,
-                Action: ['s3:GetObject', 's3:PutObject', 's3:PutObjectTagging', 's3:DeleteObject'],
-                // Condition to ensure if any tag specified, can only be stello ones
-                // ForAllValues:StringLike means for every value in s3:RequestObjectTagKeys
-                //      ensure it is included in given array
-                // See https://docs.aws.amazon.com/IAM/latest/UserGuide
-                //          /reference_policies_multi-value-conditions.html
-                Condition: {'ForAllValues:StringLike': {'s3:RequestObjectTagKeys':
-                    ['stello-lifespan', 'stello-reads', 'stello-max-reads']}}},
-
-            // Responses bucket
-            {Effect: 'Allow', Resource: this._bucket_resp_arn,
-                Action: ['s3:ListBucket']},
-            {Effect: 'Allow', Resource: `${this._bucket_resp_arn}/*`,
-                Action: ['s3:GetObject', 's3:DeleteObject']},
-            {Effect: 'Allow', Resource: `${this._bucket_resp_arn}/config`,
-                Action: ['s3:PutObject']},
-
-            // Manage SNS subscriptions
-            // SECURITY Unlike s3, region is important here for not creating in multiple regions
-            {Effect: 'Allow', Resource: await this._get_topic_arn(),
-                Action: ['sns:ListSubscriptionsByTopic', 'sns:Subscribe', 'sns:Unsubscribe'],
-                // SECURITY Only allow email subscriptions (others may cost or cause issues)
-                Condition: {StringEqualsIfExists: {'sns:Protocol': 'email'}}},
-        ]
-
-        // Put the permissions policy
-        await this.iam.putUserPolicy({
-            UserName: this._user_id,
-            PolicyName: 'stello',
-            PolicyDocument: JSON.stringify({Version: '2012-10-17', Statement: statements}),
         })
     }
 
