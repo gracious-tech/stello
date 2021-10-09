@@ -1,7 +1,24 @@
 
+import untar from 'js-untar'
+import {waitUntilBucketExists} from '@aws-sdk/client-s3'
+import {GetFunctionCommandOutput, UpdateFunctionConfigurationCommandInput,
+    waitUntilFunctionExists} from '@aws-sdk/client-lambda'
+
+import app_config from '@/app_config.json'
 import {HostUserAwsBase} from '@/services/hosts/aws_user_base'
 import {HostUser} from '@/services/hosts/types'
 import {Task} from '@/services/tasks/tasks'
+import {buffer_to_hex} from '@/services/utils/coding'
+import {sleep} from '@/services/utils/async'
+import {waitUntilUserExists, waitUntilRoleExists} from './aws_common'
+import {displayer_asset_type} from './common'
+import {HostStorageVersion, HostPermissionError} from './types'
+
+
+// Standard wait time
+// NOTE Occasionally hit timeout for bucket creation when set to 30 seconds, so doubled to 60
+// NOTE casing matches property casing allowing easier insertion
+const maxWaitTime = 60
 
 
 export class HostUserAws extends HostUserAwsBase implements HostUser {
@@ -103,14 +120,6 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
 
     // PRIVATE (generic)
 
-    async _get_account_id():Promise<string|undefined>{
-        // Some requests strictly require the account id to be specified
-        if (!this._account_id_cache){
-            this._account_id_cache = (await this.sts.getCallerIdentity({})).Account
-        }
-        return this._account_id_cache
-    }
-
     async _get_topic_arn():Promise<string>{
         // SNS always requires the account id in topic arns
         const account_id = await this._get_account_id()
@@ -164,8 +173,7 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
 
         // Get list of files in displayer tar
         // WARN js-untar is unmaintained and readAsString() is buggy so not using
-        interface TarFile {name:string, type:string, buffer:ArrayBuffer}
-        const files:TarFile[] = await untar(await self.app_native.read_file('displayer.tar'))
+        const files = await untar(await self.app_native.read_file('displayer.tar'))
 
         // Start uploading displayer assets and collect promises that resolve with their path
         const uploads:Promise<string>[] = []

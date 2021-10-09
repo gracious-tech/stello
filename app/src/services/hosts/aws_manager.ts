@@ -1,32 +1,13 @@
 // Management of sets of storage services
 // NOTE Must be reuseable outside of Stello app as well (e.g. automation of new users)
 
-import untar from 'js-untar'
 import {SSM} from '@aws-sdk/client-ssm'
 import {IAM} from '@aws-sdk/client-iam'
 import {EC2} from '@aws-sdk/client-ec2'
-import {SNS} from '@aws-sdk/client-sns'
-import {STS} from '@aws-sdk/client-sts'
-import {ApiGatewayV2} from '@aws-sdk/client-apigatewayv2'
-import {ResourceGroupsTaggingAPI} from '@aws-sdk/client-resource-groups-tagging-api'
-import {S3, waitUntilBucketExists} from '@aws-sdk/client-s3'
-import {GetFunctionCommandOutput, Lambda, UpdateFunctionConfigurationCommandInput,
-    waitUntilFunctionExists} from '@aws-sdk/client-lambda'
+import {S3} from '@aws-sdk/client-s3'
 
-import app_config from '@/app_config.json'
-import {buffer_to_hex} from '@/services/utils/coding'
-import {sleep} from '@/services/utils/async'
-import {Task} from '@/services/tasks/tasks'
-import {StorageBaseAws, waitUntilUserExists, waitUntilRoleExists} from './aws_common'
-import {HostCloud, HostCredentials, HostManager, HostManagerStorage, HostPermissionError,
-    HostStorageCredentials, HostStorageVersion} from './types'
-import {displayer_asset_type} from './common'
-
-
-// Standard wait time
-// NOTE Occasionally hit timeout for bucket creation when set to 30 seconds, so doubled to 60
-// NOTE casing matches property casing allowing easier insertion
-const maxWaitTime = 60
+import {HostCloud, HostCredentials, HostManager, HostPermissionError, HostStorageCredentials}
+    from './types'
 
 
 export class HostManagerAws implements HostManager {
@@ -66,13 +47,13 @@ export class HostManagerAws implements HostManager {
         })
     }
 
-    async list_storages():Promise<HostManagerStorageAws[]>{
+    async list_storages(){
         // Get list of instances of HostManagerStorageAws for all detected in host account
         // NOTE Returns instances for any remaining Stello users, regardless if other services exist
         //      Should therefore remove user last, when deleting storage, to ensure full deletion
 
         // Get all Stello users
-        const storages = []
+        const storages:{bucket:string, region:string, version:string}[] = []
         let marker
         while (true){
 
@@ -89,7 +70,7 @@ export class HostManagerAws implements HostManager {
                 const tags = await this.iam.listUserTags({UserName: user.UserName})
                 let v = parseInt(tags.Tags.find(t => t.Key === 'stello-version')?.Value, 10)
                 v = Number.isNaN(v) ? undefined : v
-                return new HostManagerStorageAws(this.credentials, bucket, region, v)
+                return {bucket, region, version: v}
             }))
 
             // Handle pagination
@@ -122,14 +103,14 @@ export class HostManagerAws implements HostManager {
         const regions_resp = await this.ec2.describeRegions({
             Filters: [{Name: 'opt-in-status', Values: ['opt-in-not-required', 'opted-in']}],
         })
-        return regions_resp.Regions.map(region => region.RegionName)
+        return regions_resp.Regions!.map(region => region.RegionName!)
     }
 
     async get_region_name(region:string):Promise<string>{
         // Return human name for given region
         const path = `/aws/service/global-infrastructure/regions/${region}/longName`
         const resp = await this.ssm.getParameter({Name: path})
-        return resp.Parameter.Value
+        return resp.Parameter!.Value!
     }
 
     async bucket_available(bucket:string):Promise<boolean>{
