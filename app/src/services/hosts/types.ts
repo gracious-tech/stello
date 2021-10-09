@@ -51,28 +51,8 @@ export declare class HostManager {
     // NOTE Returns false if taken (whether by own account or third party)
     bucket_available(bucket:string):Promise<boolean>
 
-    // Create an instance for a new storage set of services (without actually doing anything yet)
-    new_storage(bucket:string, region:string):HostManagerStorage
-}
-
-
-export declare class HostManagerStorage {
-    // Management access to a single set of storage services
-
-    cloud:HostCloud
-    credentials:HostCredentials
-    bucket:string
-    region:string
-    version:number
-
-    // NOTE version may not be provided if not known or needed (e.g. when deleting services)
-    constructor(credentials:HostCredentials, bucket:string, region:string, version?:number)
-
-    // Whether storage services are up to date
-    get up_to_date():boolean
-
-    // Generate new credentials for the storage (and remove existing)
-    new_credentials():Promise<HostStorageCredentials>
+    // Create new storage and return credentials for it
+    new_storage(bucket:string, region:string, overwrite:boolean):Promise<HostStorageCredentials>
 }
 
 
@@ -116,7 +96,7 @@ export declare class HostUser {
     update_email(address:string):Promise<void>
 
     // Ensure host services setup properly
-    setup_services(task:Task):Promise<void>
+    update_services(task:Task):Promise<void>
 
     // Delete services
     delete_services(task:Task):Promise<void>
