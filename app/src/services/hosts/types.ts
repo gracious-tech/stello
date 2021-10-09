@@ -77,9 +77,6 @@ export declare class HostManagerStorage {
 
     // Generate new credentials for the storage (and remove existing)
     new_credentials():Promise<HostStorageCredentials>
-
-    // Delete services for this storage set
-    delete_services(task:Task):Promise<void>
 }
 
 
@@ -122,8 +119,8 @@ export declare class HostUser {
     // Update email address
     update_email(address:string):Promise<void>
 
-    // Delete own account
-    delete_account():Promise<void>
+    // Delete services
+    delete_services(task:Task):Promise<void>
 }
 
 

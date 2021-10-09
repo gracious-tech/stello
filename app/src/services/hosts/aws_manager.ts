@@ -269,27 +269,6 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
         }
     }
 
-    async delete_services(task:Task):Promise<void>{
-        // Delete services for this storage set
-        task.upcoming(7)
-
-        // Delete services
-        await task.expected(
-            // Buckets
-            this._delete_bucket(this.bucket),
-            this._delete_bucket(this._bucket_resp_id),
-            // Other
-            this._get_api_id().then(api_id => api_id && this.gateway.deleteApi({ApiId: api_id})),
-            no404(this.lambda.deleteFunction({FunctionName: this._lambda_id})),
-            no404(this.sns.deleteTopic({TopicArn: await this._get_topic_arn()})),
-            no404(this.iam.deleteRolePolicy({RoleName: this._lambda_role_id, PolicyName: 'stello'}))
-                .then(() => no404(this.iam.deleteRole({RoleName: this._lambda_role_id}))),
-        )
-
-        // Delete user last, as a consistant way of knowing if all services deleted
-        await task.expected(this._delete_user(this._user_id))
-    }
-
     // PRIVATE METHODS
 
     async _get_account_id():Promise<string|undefined>{
@@ -298,21 +277,6 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
             this._account_id_cache = (await this.sts.getCallerIdentity({})).Account
         }
         return this._account_id_cache
-    }
-
-    async _get_api_id():Promise<string|undefined>{
-        // Get the id for API gateway (null if doesn't exist)
-        if (!this._gateway_id_cache){
-            // NOTE ResourceTypeFilters does not work (seems to be an AWS bug) so manually filtering
-            const resp = await this.tagging.getResources({
-                TagFilters: [{Key: 'stello', Values: [this.bucket]}]})
-            const arn = (resp.ResourceTagMappingList ?? [])
-                .map(i => i.ResourceARN?.split(':') ?? [])  // Get ARN parts
-                .filter(i => i[2] === 'apigateway')[0]  // Only match API gateway
-                // Should only be one if any `[0]`
-            this._gateway_id_cache = arn?.[5]?.split('/')[2]  // Extract gateway id part
-        }
-        return this._gateway_id_cache
     }
 
     async _get_topic_arn():Promise<string>{
@@ -778,77 +742,4 @@ export class HostManagerStorageAws extends StorageBaseAws implements HostManager
             }
         }
     }
-
-    async _delete_bucket(bucket:string):Promise<void>{
-        // Delete a bucket
-        await this._empty_bucket(bucket)
-        await no404(this.s3.deleteBucket({Bucket: bucket}))
-    }
-
-    async _empty_bucket(bucket:string):Promise<void>{
-        // Delete all the objects in a bucket
-
-        // Keep listing objects until none remain (don't need true pagination in that sense)
-        while (true){
-
-            // List any/all objects
-            const list_resp = await no404(this.s3.listObjectsV2({Bucket: bucket}))
-            if (!list_resp?.Contents?.length){
-                return
-            }
-
-            // Delete the objects listed
-            const delete_resp = await this.s3.deleteObjects({
-                Bucket: bucket,
-                Delete: {
-                    Objects: list_resp.Contents.map(object => {
-                        return {Key: object.Key}
-                    }),
-                    Quiet: true,  // Don't bother returning success data
-                },
-            })
-
-            // Delete request may still have errors, even if doesn't throw itself
-            if (delete_resp.Errors?.length){
-                throw new Error("Could not delete all objects")
-            }
-        }
-    }
-
-    async _delete_user(user_id:string):Promise<void>{
-        // Completely delete a user
-
-        // User's policy must first be deleted
-        await no404(this.iam.deleteUserPolicy({UserName: user_id, PolicyName: 'stello'}))
-
-        // Must also first delete any keys
-        await this._delete_user_keys(user_id)
-
-        // Can now finally delete the user
-        await no404(this.iam.deleteUser({UserName: user_id}))
-    }
-
-    async _delete_user_keys(user_id:string):Promise<void>{
-        // Delete all user's access keys
-        const existing = await no404(this.iam.listAccessKeys({UserName: user_id}))
-        if (!existing){
-            return
-        }
-        await Promise.all(existing.AccessKeyMetadata.map(key => {
-            return this.iam.deleteAccessKey({
-                UserName: user_id,
-                AccessKeyId: key.AccessKeyId,
-            })
-        }))
-    }
-}
-
-
-async function no404(request:Promise<any>):Promise<any>{
-    // Helper for ignoring 404 errors (which usually signify already deleted)
-    return request.catch(error => {
-        if (error.$metadata.httpStatusCode !== 404){
-            throw error
-        }
-    })
 }

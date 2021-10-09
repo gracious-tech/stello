@@ -3,6 +3,9 @@ import {S3, paginateListObjectsV2} from '@aws-sdk/client-s3'
 import {SNS} from '@aws-sdk/client-sns'
 import {IAM} from '@aws-sdk/client-iam'
 import {STS} from '@aws-sdk/client-sts'
+import {Lambda} from '@aws-sdk/client-lambda'
+import {ApiGatewayV2} from '@aws-sdk/client-apigatewayv2'
+import {ResourceGroupsTaggingAPI} from '@aws-sdk/client-resource-groups-tagging-api'
 
 import {HostCloud, HostCredentials} from './types'
 import {StorageBaseAws} from './aws_common'
@@ -22,6 +25,9 @@ export class HostUserAwsBase extends StorageBaseAws {
     sns:SNS
     iam:IAM
     sts:STS
+    lambda:Lambda
+    gateway:ApiGatewayV2
+    tagging:ResourceGroupsTaggingAPI
 
     constructor(credentials:HostCredentials, bucket:string, region:string, user:string|null){
         super()
@@ -42,6 +48,10 @@ export class HostUserAwsBase extends StorageBaseAws {
         this.sns = new SNS({apiVersion: '2010-03-31', credentials: aws_creds, region})
         this.iam = new IAM({apiVersion: '2010-05-08', credentials: aws_creds, region})
         this.sts = new STS({apiVersion: '2011-06-15', credentials: aws_creds, region})
+        this.lambda = new Lambda({apiVersion: '2015-03-31', credentials: aws_creds, region})
+        this.gateway = new ApiGatewayV2({apiVersion: '2018-11-29', credentials: aws_creds, region})
+        this.tagging = new ResourceGroupsTaggingAPI({apiVersion: '2017-01-26',
+            credentials: aws_creds, region})
     }
 
     async upload_file(path:string, data:Blob|ArrayBuffer, lifespan=Infinity,
@@ -117,37 +127,6 @@ export class HostUserAwsBase extends StorageBaseAws {
             Key: `config/${this.user}/config`,
             ContentType: 'application/octet-stream',
             Body: new Uint8Array(config),
-        })
-    }
-
-    async update_email(address:string){
-        // Subscribe user to notifications for responses
-
-        // Remove existing subscription if any
-        const account_id = await this._get_account_id()
-        const topic_arn = `arn:aws:sns:${this.region}:${account_id}:${this._topic_id}`
-        const list_resp = await this.sns.listSubscriptionsByTopic({
-            TopicArn: topic_arn,
-        })
-        for (const sub of list_resp.Subscriptions ?? []){
-            // NOTE Expecting only one subscription in this loop at most
-            if (sub.Endpoint === address){
-                // Already subscribed so just finish
-                return
-            }
-            if (!sub.SubscriptionArn?.startsWith('arn:')){
-                // ARN value is "PendingConfirmation" when haven't confirmed yet
-                continue  // Can't unsubscribe if haven't confirmed it yet
-            }
-            await this.sns.unsubscribe({SubscriptionArn: sub.SubscriptionArn})
-        }
-
-        // Create subscription
-        // NOTE Still create even if mode 'none' so don't have to confirm email later if change
-        await this.sns.subscribe({
-            TopicArn: topic_arn,
-            Protocol: 'email',
-            Endpoint: address,
         })
     }
 
