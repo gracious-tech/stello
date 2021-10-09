@@ -4,14 +4,14 @@ import {SNS} from '@aws-sdk/client-sns'
 import {IAM} from '@aws-sdk/client-iam'
 import {STS} from '@aws-sdk/client-sts'
 
-import {HostCloud, HostCredentials, HostUser} from './types'
+import {HostCloud, HostCredentials} from './types'
 import {StorageBaseAws} from './aws_common'
 import {enforce_range} from '../utils/numbers'
 import {stream_to_buffer} from '../utils/coding'
 import {sort} from '../utils/arrays'
 
 
-export class HostUserAws extends StorageBaseAws implements HostUser {
+export class HostUserAwsBase extends StorageBaseAws {
     // User access to host's API for sending messages etc
 
     cloud:HostCloud = 'aws'
