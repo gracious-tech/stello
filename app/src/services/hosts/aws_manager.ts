@@ -2,10 +2,11 @@
 // NOTE Must be reuseable outside of Stello app as well (e.g. automation of new users)
 
 import {SSM} from '@aws-sdk/client-ssm'
-import {IAM} from '@aws-sdk/client-iam'
+import {IAM, waitUntilUserExists} from '@aws-sdk/client-iam'
 import {EC2} from '@aws-sdk/client-ec2'
 import {S3} from '@aws-sdk/client-s3'
 
+import {maxWaitTime, StorageBaseAws} from '@/services/hosts/aws_common'
 import {HostCloud, HostCredentials, HostManager, HostPermissionError, HostStorageCredentials}
     from './types'
 
@@ -136,80 +137,4 @@ export class HostManagerAws implements HostManager {
             throw error
         }
     }
-
-    new_storage(bucket:string, region:string):HostManagerStorageAws{
-        // Create instance for a new storage set of services (without actually doing anything yet)
-        return new HostManagerStorageAws(this.credentials, bucket, region)
-    }
-}
-
-
-export class HostManagerStorageAws extends StorageBaseAws implements HostManagerStorage {
-
-    cloud:HostCloud = 'aws'
-    credentials:HostCredentials
-    version:number
-
-    tagging:ResourceGroupsTaggingAPI
-    iam:IAM
-    s3:S3
-    gateway:ApiGatewayV2
-    lambda:Lambda
-    sns:SNS
-    sts:STS
-
-    _account_id_cache:string|undefined = undefined
-    _gateway_id_cache:string|undefined = undefined
-
-    constructor(credentials:HostCredentials, bucket:string, region:string, version?:number){
-        super()
-
-        // Store args
-        this.credentials = credentials
-        this.bucket = bucket
-        this.region = region
-        this.version = version
-
-        // Init services
-        const aws_creds = {accessKeyId: credentials.key_id, secretAccessKey: credentials.key_secret}
-        this.tagging = new ResourceGroupsTaggingAPI({apiVersion: '2017-01-26',
-            credentials: aws_creds, region})
-        this.iam = new IAM({apiVersion: '2010-05-08', credentials: aws_creds, region})
-        this.s3 = new S3({apiVersion: '2006-03-01', credentials: aws_creds, region})
-        this.gateway = new ApiGatewayV2({apiVersion: '2018-11-29', credentials: aws_creds, region})
-        this.lambda = new Lambda({apiVersion: '2015-03-31', credentials: aws_creds, region})
-        this.sns = new SNS({apiVersion: '2010-03-31', credentials: aws_creds, region})
-        this.sts = new STS({apiVersion: '2011-06-15', credentials: aws_creds, region})
-    }
-
-    get up_to_date():boolean{
-        // Whether storage's services are up to date
-        return this.version >= HostStorageVersion
-    }
-
-    async new_credentials():Promise<HostStorageCredentials>{
-        // Generate the credentials the user needs to have to access the storage (remove existing)
-        // NOTE AWS only allows 2 keys to exist per user
-
-        // First delete existing keys
-        await this._delete_user_keys(this._user_id)
-
-        // Create new key
-        const user_key = await this.iam.createAccessKey({UserName: this._user_id})
-
-        // Get api id
-        const api_id = await this._get_api_id()
-
-        // Return credentials
-        return {
-            credentials: {
-                key_id: user_key.AccessKey!.AccessKeyId!,
-                key_secret: user_key.AccessKey!.SecretAccessKey!,
-            },
-            api: `https://${api_id!}.execute-api.${this.region}.amazonaws.com/`,
-        }
-    }
-
-    // PRIVATE METHODS
-
 }
