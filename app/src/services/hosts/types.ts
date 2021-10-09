@@ -36,10 +36,10 @@ export declare class HostManager {
 
     constructor(credentials:HostCredentials)
 
-    // Get list of instances of HostManagerStorage for all detected in host account
+    // Get list of storage ids for all detected in host account
     // NOTE Will return instances detected in any relevant services (not just storage service)
     //      So that partially deleted services can be detected and fully deleted or fixed
-    list_storages():Promise<HostManagerStorage[]>
+    list_storages():Promise<string[]>
 
     // List regions that are available
     list_regions():Promise<string[]>
