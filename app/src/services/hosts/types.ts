@@ -71,10 +71,6 @@ export declare class HostManagerStorage {
     // Whether storage services are up to date
     get up_to_date():boolean
 
-    // Ensure host services setup properly (sets up all services, not just storage)
-    // NOTE Will create if storage doesn't exist, or fail if storage id taken by third party
-    setup_services(task:Task):Promise<void>
-
     // Generate new credentials for the storage (and remove existing)
     new_credentials():Promise<HostStorageCredentials>
 }
@@ -118,6 +114,9 @@ export declare class HostUser {
 
     // Update email address
     update_email(address:string):Promise<void>
+
+    // Ensure host services setup properly
+    setup_services(task:Task):Promise<void>
 
     // Delete services
     delete_services(task:Task):Promise<void>
