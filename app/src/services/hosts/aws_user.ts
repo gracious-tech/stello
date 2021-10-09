@@ -44,8 +44,8 @@ export class HostUserAws extends StorageBaseAws implements HostUser {
         this.sts = new STS({apiVersion: '2011-06-15', credentials: aws_creds, region})
     }
 
-    async upload_file(path:string, data:Blob|ArrayBuffer, lifespan=Infinity, max_reads=Infinity,
-            ):Promise<void>{
+    async upload_file(path:string, data:Blob|ArrayBuffer, lifespan=Infinity,
+            max_reads=Infinity):Promise<void>{
         // Upload a message file into the storage
 
         // Determine tags
