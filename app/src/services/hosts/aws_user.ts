@@ -39,7 +39,7 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
         })
     }
 
-    async setup_services(task:Task):Promise<void>{
+    async update_services(task:Task):Promise<void>{
         // Ensure host services setup properly (sets up all services, not just storage)
         // NOTE Will create if storage doesn't exist, or fail if storage id taken by third party
         task.upcoming(11)
