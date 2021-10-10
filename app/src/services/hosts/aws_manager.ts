@@ -1,10 +1,12 @@
 // Management of sets of storage services
 // NOTE Must be reuseable outside of Stello app as well (e.g. automation of new users)
 
+import {STS} from '@aws-sdk/client-sts'
 import {SSM} from '@aws-sdk/client-ssm'
 import {IAM, waitUntilUserExists} from '@aws-sdk/client-iam'
 import {EC2} from '@aws-sdk/client-ec2'
 import {S3} from '@aws-sdk/client-s3'
+import {ApiGatewayV2} from '@aws-sdk/client-apigatewayv2'
 
 import {maxWaitTime, StorageBaseAws} from '@/services/hosts/aws_common'
 import {HostCloud, HostCredentials, HostManager, HostPermissionError, HostStorageCredentials}
@@ -17,11 +19,15 @@ export class HostManagerAws implements HostManager {
     cloud:HostCloud = 'aws'
     credentials:HostCredentials
 
+    sts:STS
     ssm:SSM
     s3:S3
     iam:IAM
     ec2:EC2  // Used only to get available regions
-    s3_accessible = true
+    gateway:ApiGatewayV2
+
+    _account_id:string|undefined
+    _s3_accessible = true
 
     constructor(credentials:HostCredentials){
         // Requires key with either root access or all necessary permissions for managing users
@@ -32,10 +38,12 @@ export class HostManagerAws implements HostManager {
 
         // Init services
         const aws_creds = {accessKeyId: credentials.key_id, secretAccessKey: credentials.key_secret}
+        this.sts = new STS({apiVersion: '2011-06-15', credentials: aws_creds, region})
         this.ssm = new SSM({apiVersion: '2014-11-06', credentials: aws_creds, region})
         this.s3 = new S3({apiVersion: '2006-03-01', credentials: aws_creds, region})
         this.iam = new IAM({apiVersion: '2010-05-08', credentials: aws_creds, region})
         this.ec2 = new EC2({apiVersion: '2016-11-15', credentials: aws_creds, region})
+        this.gateway = new ApiGatewayV2({apiVersion: '2018-11-29', credentials: aws_creds, region})
 
         // Give best guess as to whether have permission to head/create buckets or not
         // Used to determine if forbidden errors due to someone else owning bucket or not
@@ -44,7 +52,7 @@ export class HostManagerAws implements HostManager {
             // If forbidden then don't have s3:ListAllMyBuckets permission
             // Then assume also don't have permission to headBucket, so can't know if exists or not
             // TODO `error.name` is buggy https://github.com/aws/aws-sdk-js-v3/issues/1596
-            this.s3_accessible = error.$metadata.httpStatusCode !== 403
+            this._s3_accessible = error.$metadata.httpStatusCode !== 403
         })
     }
 
@@ -128,7 +136,7 @@ export class HostManagerAws implements HostManager {
                 return false  // Bucket exists in a different region to the request
             } else if (error.$metadata.httpStatusCode === 403){
                 // Was not allowed to access the bucket
-                if (this.s3_accessible){
+                if (this._s3_accessible){
                     return false  // Can access S3 so bucket must be owned by someone else
                 }
                 throw new HostPermissionError(error)  // Should have been allowed but wasn't
