@@ -56,19 +56,10 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
         // NOTE Will create if storage doesn't exist, or fail if storage id taken by third party
         task.upcoming(11)
         try {
-            // Ensure bucket created, as everything else pointless if can't create
-            // NOTE Don't need to wait for ready state though, can work on other tasks without that
-            await task.expected(this._setup_bucket_create())
-
-            // Ensure user created first, as detecting storages depends on it
-            // NOTE May need to manually resolve if bucket created but nothing else (can't detect)
-            await task.expected(this._setup_user_create())
-
             // Run rest of tasks in parallel
             await task.expected(
                 this._setup_bucket_configure(),
                 this._setup_resp_bucket(),
-                this._setup_user_configure(),
                 this._setup_lambda_role().then(async () => {
                     await task.expected(this._setup_lambda())  // Relies on lambda role
                     await task.expected(this._setup_gateway())  // Relies on lambda
@@ -101,11 +92,14 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
             this._delete_bucket(this.bucket),
             this._delete_bucket(this._bucket_resp_id),
             // Other
-            this._get_api_id().then(api_id => api_id && this.gateway.deleteApi({ApiId: api_id})),
+            this._get_api_id().then(
+                (api_id):unknown => api_id && this.gateway.deleteApi({ApiId: api_id})),
             no404(this.lambda.deleteFunction({FunctionName: this._lambda_id})),
             no404(this.sns.deleteTopic({TopicArn: await this._get_topic_arn()})),
             no404(this.iam.deleteRolePolicy({RoleName: this._lambda_role_id, PolicyName: 'stello'}))
-                .then(() => no404(this.iam.deleteRole({RoleName: this._lambda_role_id}))),
+                .then(() => no404(this.iam.deleteRole({RoleName: this._lambda_role_id})))
+                .then(async () => no404(
+                    this.iam.deletePolicy({PolicyArn: await this._get_lambda_boundary_arn()}))),
         )
 
         // Delete user last, as a consistant way of knowing if all services deleted
@@ -131,6 +125,12 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
         // Arn with account required when creating lambda
         const account_id = await this._get_account_id()
         return `arn:aws:iam::${account_id}:role/${this._lambda_role_id}`
+    }
+
+    async _get_lambda_boundary_arn():Promise<string>{
+        // Arn with account required when creating lambda role
+        const account_id = await this._get_account_id()
+        return `arn:aws:iam::${account_id}:policy/${this._lambda_boundary_id}`
     }
 
     async _get_api_id():Promise<string|undefined>{
@@ -202,7 +202,7 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
                 Bucket: this.bucket,
                 Prefix: 'displayer/',
             })
-            const old_assets = list_resp.Contents?.filter(item => !upload_paths.includes(item.Key))
+            const old_assets = list_resp.Contents?.filter(item => !upload_paths.includes(item.Key!))
             if (!old_assets?.length){
                 return
             }
@@ -290,7 +290,7 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
         try {
             await this.s3.headBucket({Bucket: this._bucket_resp_id})
         } catch (error){
-            if (error.name !== 'NotFound'){
+            if (!(error instanceof Error) || error.name !== 'NotFound'){
                 throw error
             }
             await this.s3.createBucket({Bucket: this._bucket_resp_id})
@@ -315,21 +315,6 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
     }
 
     async _setup_gateway():Promise<void>{
-        // Create API Gateway and connect it to lambda
-        if (! await this._get_api_id()){
-            // Gateway doesn't exist yet, so create
-            const resp = await this.gateway.createApi({
-                Tags: {stello: this.bucket},
-                Name: `stello ${this.bucket}`,  // Not used programatically, just for UI
-                ProtocolType: 'HTTP',
-                // Setting target auto-creates stage/integration/route
-                // NOTE Should still use normal paths /responder/type as responder will check path
-                // NOTE Since only one user, only one fn/policy for simplicity (unlike host setup)
-                Target: await this._get_lambda_arn(),
-            })
-            this._gateway_id_cache = resp.ApiId
-        }
-
         // Tell lambda that gateway has permission to invoke it
         const account_id = await this._get_account_id()
         const api_id = await this._get_api_id()
@@ -358,6 +343,7 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
             await this.iam.createRole({
                 RoleName: this._lambda_role_id,
                 Tags: [{Key: 'stello', Value: this.bucket}],
+                PermissionsBoundary: await this._get_lambda_boundary_arn(),
                 AssumeRolePolicyDocument: JSON.stringify({
                     Version: '2012-10-17',
                     Statement: [
@@ -406,7 +392,7 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
         await sleep(12000)
     }
 
-    _setup_lambda_config_has_changed(fn_config:Record<string, any>,
+    _setup_lambda_config_has_changed(fn_config:Record<string, unknown>,
             fn_config_env:UpdateFunctionConfigurationCommandInput['Environment'],
             resp:GetFunctionCommandOutput):boolean{
         // Return boolean for whether function config has changed since last updated
@@ -480,7 +466,7 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
         }
 
         // May need to wait for function still if recently created
-        if (resp.Configuration.StateReasonCode === 'Creating'){
+        if (resp.Configuration!.StateReasonCode === 'Creating'){
             await waitUntilFunctionExists(
                 {client: this.lambda, maxWaitTime},
                 {FunctionName: this._lambda_id},
@@ -497,7 +483,7 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
 
         // See if need to update the function's code
         const code_digest = buffer_to_hex(await crypto.subtle.digest('SHA-256', fn_code))
-        if (resp.Configuration.CodeSha256 !== code_digest){
+        if (resp.Configuration!.CodeSha256 !== code_digest){
             await this.lambda.updateFunctionCode({
                 FunctionName: this._lambda_id,
                 ZipFile: fn_code,
