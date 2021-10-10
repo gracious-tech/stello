@@ -158,6 +158,7 @@ export class HostManagerAws implements HostManager {
         const account_id = await this._get_account_id()
         const lambda_arn = `arn:aws:lambda:${region}:${account_id}:function:${ids._lambda_id}`
         const lambda_role_arn = `arn:aws:iam::${account_id}:role/${ids._lambda_role_id}`
+        const lambda_boundary_arn = `arn:aws:iam::${account_id}:policy/${ids._lambda_boundary_id}`
 
         // Create the messages bucket to secure its id
         try {
@@ -236,26 +237,44 @@ export class HostManagerAws implements HostManager {
             PolicyDocument: JSON.stringify({
                 Version: '2012-10-17',
                 Statement: [
+
+                    // Non-IAM resources
                     full_access_resources,
+
                     // Can manage the lambda's role as long as permissions boundary attached
                     // SECURITY Otherwise could grant lambda more permissions than user has
                     {
                         Effect: 'Allow',
                         Resource: lambda_role_arn,
-                        Action: ['iam:CreateRole', 'iam:UpdateRole', 'iam:DeleteRole'],
+                        Action: ['iam:CreateRole', 'iam:UpdateRole'],
                         Condition: {
                             StringEquals: {
-                                'iam:PermissionsBoundary':
-                                    `arn:aws:iam::${account_id}:policy/${ids._lambda_boundary_id}`,
+                                'iam:PermissionsBoundary': lambda_boundary_arn,
                             },
                         },
                     },
-                    // Only allowed to pass single role so can't give any other to the lambda
-                    // SECURITY Otherwise could give lambda a preset admin role etc
+
+                    // Can allow the lambda to assume the role, and can also delete the role
+                    // SECURITY Don't allow passing any other role, otherwise lambda could be admin
                     {
                         Effect: 'Allow',
-                        Action: 'iam:PassRole',
                         Resource: lambda_role_arn,
+                        Action: ['iam:PassRole', 'iam:DeleteRole'],
+                    },
+
+                    // Allow user to delete themself
+                    {
+                        Effect: 'Allow',
+                        Resource: `arn:aws:iam::${account_id}:user/${ids._user_id}`,
+                        Action: ['iam:DeleteUser'],
+                    },
+
+                    // Allow user to delete permissions boundary (to clean up entire services set)
+                    // SECURITY Not a security issue as lambda role can't exist/create without it
+                    {
+                        Effect: 'Allow',
+                        Resource: lambda_boundary_arn,
+                        Action: ['iam:DeletePolicy'],
                     },
                 ],
             }),
