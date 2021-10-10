@@ -30,7 +30,7 @@ export class HostUserAwsBase extends StorageBaseAws {
     tagging:ResourceGroupsTaggingAPI
 
     constructor(credentials:HostCredentials, bucket:string, region:string, user:string|null){
-        super()
+        super(bucket, region)
 
         // Store args
         this.credentials = credentials

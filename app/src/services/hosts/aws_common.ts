@@ -38,6 +38,10 @@ export class StorageBaseAws {
     get _lambda_role_id():string{
         return `stello-${this.bucket}-lambda`
     }
+
+    get _lambda_boundary_id():string{
+        return `stello-${this.bucket}-lambda-boundary`
+    }
 }
 
 
