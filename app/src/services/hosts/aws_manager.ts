@@ -129,16 +129,17 @@ export class HostManagerAws implements HostManager {
             await this.s3.headBucket({Bucket: bucket})
             return false  // Bucket exists and we own it, so not available
         } catch (error){
-            if (error.name === 'NotFound'){
+            const aws_error = error as AwsError
+            if (aws_error?.name === 'NotFound'){
                 return true  // Bucket doesn't exist, so is available
-            } else if (error.$metadata.httpStatusCode === 301){
+            } else if (aws_error?.$metadata?.httpStatusCode === 301){
                 return false  // Bucket exists in a different region to the request
-            } else if (error.$metadata.httpStatusCode === 403){
+            } else if (aws_error?.$metadata?.httpStatusCode === 403){
                 // Was not allowed to access the bucket
                 if (this._s3_accessible){
                     return false  // Can access S3 so bucket must be owned by someone else
                 }
-                throw new HostPermissionError(error)  // Should have been allowed but wasn't
+                throw new HostPermissionError(aws_error?.message)  // Should have been allowed
             }
             // Error not a permissions issue, so reraise
             throw error
