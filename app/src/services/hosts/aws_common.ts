@@ -60,3 +60,14 @@ interface _AwsError extends Error {
 }
 
 export type AwsError = _AwsError|null  // Null in case not actually an AWS error
+
+
+export async function no404<T>(request:Promise<T>):Promise<T|undefined>{
+    // Helper for ignoring 404 errors (which usually signify already deleted)
+    return request.catch((error:AwsError) => {
+        if (error?.$metadata?.httpStatusCode === 404){
+            return undefined  // Ignoring 404s
+        }
+        throw error
+    })
+}

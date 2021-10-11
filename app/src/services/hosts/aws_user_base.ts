@@ -8,7 +8,7 @@ import {ApiGatewayV2} from '@aws-sdk/client-apigatewayv2'
 import {ResourceGroupsTaggingAPI} from '@aws-sdk/client-resource-groups-tagging-api'
 
 import {HostCloud, HostCredentials} from './types'
-import {StorageBaseAws} from './aws_common'
+import {StorageBaseAws, no404} from './aws_common'
 import {enforce_range} from '../utils/numbers'
 import {stream_to_buffer} from '../utils/coding'
 import {sort} from '../utils/arrays'
@@ -157,5 +157,35 @@ export class HostUserAwsBase extends StorageBaseAws {
         }
         sort(objects, 'date')
         return objects.map(obj => obj.key)
+    }
+
+    async _delete_objects(bucket:string, prefix=''):Promise<void>{
+        // Delete all the objects in a bucket
+
+        // Keep listing objects until none remain (don't need true pagination in that sense)
+        while (true){
+
+            // List any/all objects
+            const list_resp = await no404(this.s3.listObjectsV2({Bucket: bucket, Prefix: prefix}))
+            if (!list_resp?.Contents?.length){
+                return
+            }
+
+            // Delete the objects listed
+            const delete_resp = await this.s3.deleteObjects({
+                Bucket: bucket,
+                Delete: {
+                    Objects: list_resp.Contents.map(object => {
+                        return {Key: object.Key}
+                    }),
+                    Quiet: true,  // Don't bother returning success data
+                },
+            })
+
+            // Delete request may still have errors, even if doesn't throw itself
+            if (delete_resp.Errors?.length){
+                throw new Error("Could not delete all objects")
+            }
+        }
     }
 }

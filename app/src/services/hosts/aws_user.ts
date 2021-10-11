@@ -12,7 +12,7 @@ import {buffer_to_hex} from '@/services/utils/coding'
 import {sleep} from '@/services/utils/async'
 import {displayer_asset_type, HostPermissionError} from './common'
 import {HostStorageVersion} from './types'
-import {maxWaitTime, AwsError} from '@/services/hosts/aws_common'
+import {maxWaitTime, AwsError, no404} from '@/services/hosts/aws_common'
 
 
 export class HostUserAws extends HostUserAwsBase implements HostUser {
@@ -506,38 +506,8 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
 
     async _delete_bucket(bucket:string):Promise<void>{
         // Delete a bucket
-        await this._empty_bucket(bucket)
+        await this._delete_objects(bucket)
         await no404(this.s3.deleteBucket({Bucket: bucket}))
-    }
-
-    async _empty_bucket(bucket:string):Promise<void>{
-        // Delete all the objects in a bucket
-
-        // Keep listing objects until none remain (don't need true pagination in that sense)
-        while (true){
-
-            // List any/all objects
-            const list_resp = await no404(this.s3.listObjectsV2({Bucket: bucket}))
-            if (!list_resp?.Contents?.length){
-                return
-            }
-
-            // Delete the objects listed
-            const delete_resp = await this.s3.deleteObjects({
-                Bucket: bucket,
-                Delete: {
-                    Objects: list_resp.Contents.map(object => {
-                        return {Key: object.Key}
-                    }),
-                    Quiet: true,  // Don't bother returning success data
-                },
-            })
-
-            // Delete request may still have errors, even if doesn't throw itself
-            if (delete_resp.Errors?.length){
-                throw new Error("Could not delete all objects")
-            }
-        }
     }
 
     async _delete_user(user_id:string):Promise<void>{
@@ -566,15 +536,4 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
             })
         }))
     }
-}
-
-
-async function no404<T>(request:Promise<T>):Promise<T|undefined>{
-    // Helper for ignoring 404 errors (which usually signify already deleted)
-    return request.catch((error:AwsError) => {
-        if (error?.$metadata?.httpStatusCode === 404){
-            return undefined  // Ignoring 404s
-        }
-        throw error
-    })
 }
