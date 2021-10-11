@@ -45,7 +45,7 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 import DialogManagerSettings from '@/components/dialogs/DialogManagerSettings.vue'
 import DialogStorageCreate from '@/components/dialogs/DialogStorageCreate.vue'
 import DialogCredentials from '@/components/dialogs/DialogCredentials.vue'
-import {HostCloud, HostManagerStorage} from '@/services/hosts/types'
+import {HostCloud, StorageProps} from '@/services/hosts/types'
 import {get_host_manager} from '@/services/hosts/hosts'
 
 
@@ -54,7 +54,7 @@ export default class extends Vue {
 
     @Prop({required: true}) cloud!:HostCloud
 
-    storages:HostManagerStorage[] = []
+    storages:StorageProps[] = []
     scanning = false
     have_scanned = false
 
@@ -63,11 +63,11 @@ export default class extends Vue {
         return !!this.key_id && !!this.key_secret
     }
 
-    get key_id(){
+    get key_id():string{
         return this.$store.state[`manager_${this.cloud}_key_id`]
     }
 
-    get key_secret(){
+    get key_secret():string{
         return this.$store.state.tmp[`manager_${this.cloud}_key_secret`]
     }
 
@@ -108,17 +108,17 @@ export default class extends Vue {
 
     async new_storage(){
         // Show dialog for choosing a bucket id and create services if accepted
-        const resp = await this.$store.dispatch('show_dialog', {
+        const resp = (await this.$store.dispatch('show_dialog', {
             component: DialogStorageCreate,
             props: {manager: this.manager},
-        })
+        })) as {bucket:string, region:string}
         if (resp){
             const storage = this.manager.new_storage(resp.bucket, resp.region)
             void this.setup_services(storage)
         }
     }
 
-    async new_credentials(storage:HostManagerStorage){
+    async new_credentials(storage:StorageProps){
         // Show dialog for generating new credentials
         void this.$store.dispatch('show_dialog', {
             component: DialogCredentials,
@@ -127,7 +127,7 @@ export default class extends Vue {
         })
     }
 
-    async setup_services(storage:HostManagerStorage){
+    async setup_services(storage:StorageProps){
         // Setup services for given storage (force update)
         const task = await this.$tm.start('hosts_storage_setup',
             [this.cloud, storage.credentials, storage.bucket, storage.region])
@@ -135,7 +135,7 @@ export default class extends Vue {
         void this.scan()
     }
 
-    async delete_services(storage:HostManagerStorage){
+    async delete_services(storage:StorageProps){
         // Delete services for the given storage
         // TODO Show a confirmation dialog before deleting for safety
         const task = await this.$tm.start('hosts_storage_delete',

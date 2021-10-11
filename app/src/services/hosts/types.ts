@@ -2,9 +2,6 @@
 import {Task} from '@/services/tasks/tasks'
 
 
-export const HostStorageVersion = 11  // Bump whenever an update to storage services needed
-
-
 // SIMPLE TYPES
 
 
@@ -24,6 +21,14 @@ export interface HostStorageCredentials {
 }
 
 
+export interface StorageProps {
+    // The properties provided when listing storages
+    bucket:string
+    region:string
+    version:number|undefined
+}
+
+
 // CLASSES
 
 
@@ -36,7 +41,7 @@ export declare class HostManager {
     constructor(credentials:HostCredentials)
 
     // Get list of storage ids for all detected in host account
-    list_storages():Promise<{bucket:string, region:string, version:number|undefined}[]>
+    list_storages():Promise<StorageProps[]>
 
     // List regions that are available
     list_regions():Promise<string[]>

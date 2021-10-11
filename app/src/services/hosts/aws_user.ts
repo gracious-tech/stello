@@ -10,8 +10,7 @@ import {HostCloud, HostUser} from '@/services/hosts/types'
 import {Task} from '@/services/tasks/tasks'
 import {buffer_to_hex} from '@/services/utils/coding'
 import {sleep} from '@/services/utils/async'
-import {displayer_asset_type, HostPermissionError} from './common'
-import {HostStorageVersion} from './types'
+import {displayer_asset_type, HostPermissionError, HostStorageVersion} from './common'
 import {maxWaitTime, AwsError, no404} from '@/services/hosts/aws_common'
 
 

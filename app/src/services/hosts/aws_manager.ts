@@ -11,8 +11,8 @@ import {ResourceGroupsTaggingAPI} from '@aws-sdk/client-resource-groups-tagging-
 
 import {HostPermissionError} from '@/services/hosts/common'
 import {maxWaitTime, StorageBaseAws, AwsError} from '@/services/hosts/aws_common'
-import {HostCloud, HostCredentials, HostManager, HostStorageCredentials}
-    from './types'
+import {HostCloud, HostCredentials, HostManager, HostStorageCredentials, StorageProps}
+    from '@/services/hosts/types'
 
 
 export class HostManagerAws implements HostManager {
@@ -65,7 +65,7 @@ export class HostManagerAws implements HostManager {
         // Get list of storage ids for all detected in host account
 
         // Collect list of promises
-        const storages:Promise<{bucket:string, region:string, version:number|undefined}>[] = []
+        const storages:Promise<StorageProps>[] = []
 
         // Get only users under the /stello/ path
         const paginator = paginateListUsers({client: this.iam}, {PathPrefix: '/stello/'})
