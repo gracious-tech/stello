@@ -7,8 +7,13 @@ div
         v-toolbar-title Storage Manager
 
     app-content(class='pa-5')
-        p(class='error--text') This is an advanced feature, and mistakes may result in loss of data or security breaches.
-        p This tool allows you to host your own storage for Stello messages. You can also create storages for sharing with other users who do not have their own cloud account.
+        p(class='error--text')
+            | This is an advanced feature,
+            | and mistakes may result in loss of data or security breaches.
+        p
+            | This tool allows you to host your own storage for Stello messages.
+            | You can also create storages for sharing with other users
+            | who do not have their own cloud account.
 
         v-btn-toggle.host(v-model='cloud' color='accent' mandatory)
             v-btn(value='aws') Amazon Web Services
