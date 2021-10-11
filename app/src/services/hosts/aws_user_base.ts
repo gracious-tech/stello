@@ -7,8 +7,7 @@ import {Lambda} from '@aws-sdk/client-lambda'
 import {ApiGatewayV2} from '@aws-sdk/client-apigatewayv2'
 import {ResourceGroupsTaggingAPI} from '@aws-sdk/client-resource-groups-tagging-api'
 
-import {HostCloud, HostCredentials} from './types'
-import {StorageBaseAws, no404} from './aws_common'
+import {StorageBaseAws, no404, HostStorageGeneratedAws} from '@/services/hosts/aws_common'
 import {enforce_range} from '../utils/numbers'
 import {stream_to_buffer} from '../utils/coding'
 import {sort} from '../utils/arrays'
@@ -17,7 +16,7 @@ import {sort} from '../utils/arrays'
 export class HostUserAwsBase extends StorageBaseAws {
     // User access to host's API for sending messages etc
 
-    credentials:HostCredentials
+    generated:HostStorageGeneratedAws
     user:string
 
     s3:S3
@@ -28,29 +27,24 @@ export class HostUserAwsBase extends StorageBaseAws {
     gateway:ApiGatewayV2
     tagging:ResourceGroupsTaggingAPI
 
-    constructor(credentials:HostCredentials, bucket:string, region:string, user:string|null){
+    constructor(generated:HostStorageGeneratedAws, bucket:string, region:string, user:string|null){
         super(bucket, region)
 
         // Store args
-        this.credentials = credentials
+        this.generated = generated
         this.bucket = bucket
         this.region = region
         this.user = user ?? '_user'
 
         // Init AWS clients
-        const aws_creds = {
-            accessKeyId: credentials.key_id,
-            secretAccessKey: credentials.key_secret,
-            sessionToken: credentials.key_session!,
-        }
-        this.s3 = new S3({apiVersion: '2006-03-01', credentials: aws_creds, region})
-        this.sns = new SNS({apiVersion: '2010-03-31', credentials: aws_creds, region})
-        this.iam = new IAM({apiVersion: '2010-05-08', credentials: aws_creds, region})
-        this.sts = new STS({apiVersion: '2011-06-15', credentials: aws_creds, region})
-        this.lambda = new Lambda({apiVersion: '2015-03-31', credentials: aws_creds, region})
-        this.gateway = new ApiGatewayV2({apiVersion: '2018-11-29', credentials: aws_creds, region})
-        this.tagging = new ResourceGroupsTaggingAPI({apiVersion: '2017-01-26',
-            credentials: aws_creds, region})
+        const credentials = generated.credentials
+        this.s3 = new S3({apiVersion: '2006-03-01', credentials, region})
+        this.sns = new SNS({apiVersion: '2010-03-31', credentials, region})
+        this.iam = new IAM({apiVersion: '2010-05-08', credentials, region})
+        this.sts = new STS({apiVersion: '2011-06-15', credentials, region})
+        this.lambda = new Lambda({apiVersion: '2015-03-31', credentials, region})
+        this.gateway = new ApiGatewayV2({apiVersion: '2018-11-29', credentials, region})
+        this.tagging = new ResourceGroupsTaggingAPI({apiVersion: '2017-01-26', credentials, region})
     }
 
     async upload_file(path:string, data:Blob|ArrayBuffer, lifespan=Infinity,

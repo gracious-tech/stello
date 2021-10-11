@@ -8,16 +8,10 @@ import {Task} from '@/services/tasks/tasks'
 export type HostCloud = 'aws'|'gracious'  //|'google'|'azure'
 
 
-export interface HostCredentials {
-    key_id:string
-    key_secret:string
-    key_session?:string
-}
-
-
-export interface HostStorageCredentials {
-    credentials:HostCredentials
-    api:string  // Dynamically generated so convenient to pair with also-dynamic credentials
+export interface HostStorageGenerated {
+    // Credentials and other data that is generated when creating a new storage
+    credentials:unknown
+    // ... and other props specific to host type
 }
 
 
@@ -36,9 +30,9 @@ export declare class HostManager {
     // Management access to host's API for creating and managing sets of storage services
 
     cloud:HostCloud
-    credentials:HostCredentials
+    credentials:unknown
 
-    constructor(credentials:HostCredentials)
+    constructor(credentials:unknown)
 
     // Get list of storage ids for all detected in host account
     list_storages():Promise<StorageProps[]>
@@ -54,7 +48,7 @@ export declare class HostManager {
     bucket_available(bucket:string):Promise<boolean>
 
     // Create new storage and return credentials for it
-    new_storage(bucket:string, region:string):Promise<HostStorageCredentials>
+    new_storage(bucket:string, region:string):Promise<HostStorageGenerated>
 }
 
 
@@ -62,12 +56,12 @@ export declare class HostUser {
     // User access to host's API for sending messages etc
 
     cloud:HostCloud
-    credentials:HostCredentials
+    generated:HostStorageGenerated
     bucket:string
     region:string
     user:string|null
 
-    constructor(credentials:HostCredentials, bucket:string, region:string, user:string)
+    constructor(generated:HostStorageGenerated, bucket:string, region:string, user:string)
 
     // Upload a file into the storage
     upload_file(path:string, data:Blob|ArrayBuffer, lifespan?:number, max_reads?:number)

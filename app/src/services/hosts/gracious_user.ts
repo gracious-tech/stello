@@ -127,8 +127,8 @@ export async function new_credentials(federated_id:string, id_token:string){
         },
     })
     return {
-        key_id: resp.Credentials!.AccessKeyId!,
-        key_secret: resp.Credentials!.SecretKey!,
-        key_session: resp.Credentials!.SessionToken!,
+        accessKeyId: resp.Credentials!.AccessKeyId!,
+        secretAccessKey: resp.Credentials!.SecretKey!,
+        sessionToken: resp.Credentials!.SessionToken!,
     }
 }

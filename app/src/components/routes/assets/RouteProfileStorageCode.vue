@@ -12,7 +12,6 @@ div
 <script lang='ts'>
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
-import {clamp} from 'lodash'
 
 import {get_clipboard_text} from '@/services/utils/misc'
 import {decrypt_sym, import_key_sym} from '@/services/utils/crypt'
@@ -22,6 +21,7 @@ import {RecordProfileHost} from '@/services/database/types'
 import {HostCredentialsPackage} from '@/components/types_ui'
 import {report_http_failure, request} from '@/services/utils/http'
 import {ensure_string} from '@/services/utils/exceptions'
+import {HostStorageGeneratedAws} from '@/services/hosts/aws_common'
 
 
 @Component({})
@@ -87,24 +87,25 @@ export default class extends Vue {
             return "Could not decrypt the credentials (did you miss any characters?)"
         }
 
+        // Curretly only support AWS
+        const generated = data.generated as HostStorageGeneratedAws
+
         // Extract the data
         // NOTE Use values that have been validated already if possible
         // WARN Don't set values on actual profile until all validated
         let host:RecordProfileHost
         try {
             host = {
-                cloud: cloud,
-                bucket: bucket,
+                cloud: cloud,  // Already verified
+                bucket: bucket,  // Already verified
                 region: ensure_string(data.region),
-                api: ensure_string(data.api),
-                credentials: {
-                    key_id: ensure_string(data.credentials.key_id),
-                    key_secret: ensure_string(data.credentials.key_secret),
+                generated: {
+                    credentials: {
+                        accessKeyId: ensure_string(generated.credentials.accessKeyId),
+                        secretAccessKey: ensure_string(generated.credentials.secretAccessKey),
+                    },
+                    api_id: ensure_string(generated.api_id),
                 },
-                // max_lifespan must always be <= 2 years (or Infinity) otherwise tag won't match
-                // NOTE JSON encodes Infinity as null
-                max_lifespan: data.max_lifespan ? clamp(Math.floor(data.max_lifespan), 1, 365*2)
-                    : Infinity,
             }
         } catch {
             return "There is something wrong with the credentials"

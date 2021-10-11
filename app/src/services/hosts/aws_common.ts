@@ -1,4 +1,17 @@
 
+export interface HostCredentialsAws {
+    accessKeyId:string
+    secretAccessKey:string
+    sessionToken?:string
+}
+
+
+export interface HostStorageGeneratedAws {
+    credentials:HostCredentialsAws
+    api_id?:string|undefined  // Present for 'aws' but not 'gracious'
+}
+
+
 export class StorageBaseAws {
 
     constructor(public bucket:string, public region:string){}

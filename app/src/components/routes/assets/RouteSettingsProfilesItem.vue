@@ -25,7 +25,7 @@ import {Profile} from '@/services/database/profiles'
 @Component({})
 export default class extends Vue {
 
-    @Prop() profile:Profile
+    @Prop({required: true}) profile!:Profile
 
     get route(){
         return {name: 'profile', params: {profile_id: this.profile.id}}

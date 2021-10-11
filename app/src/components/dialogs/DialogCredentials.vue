@@ -37,7 +37,6 @@ v-card
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
-import {HostManagerStorage, HostStorageCredentials} from '@/services/hosts/types'
 import {HostCredentialsPackage} from '@/components/types_ui'
 import {encrypt_sym, generate_key_sym} from '@/services/utils/crypt'
 import {string_to_utf8, buffer_to_url64} from '@/services/utils/coding'
@@ -64,7 +63,6 @@ export default class extends Vue {
             region: this.storage.region,
             api: this.storage_credentials.api,
             credentials: this.storage_credentials.credentials,
-            max_lifespan: this.$store.state.manager_aws_max_lifespan,
         }
     }
 
@@ -93,7 +91,6 @@ export default class extends Vue {
             bucket: this.storage.bucket,
             api: this.storage_credentials!.api,
             credentials: this.storage_credentials!.credentials,
-            max_lifespan: Infinity,
         }
         await self.app_db.profiles.set(profile)
         void this.$router.push({name: 'profile', params: {profile_id: profile.id}})

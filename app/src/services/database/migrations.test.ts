@@ -42,11 +42,9 @@ test.describe('migrate', async () => {
     test('to_13', async () => {
         let db = await open_db('to_13', 12, to_12_from_0)
         await db.put('state', {key: 'manager_aws_key_secret', value: 'value'})
-        await db.put('profiles', {id: 'id', host: {}} as any)
         db.close()
         db = await open_db('to_13', 13, to_13)
         expect(await db.get('state', 'manager_aws_key_secret')).toBe(undefined)
-        expect((await db.get('profiles', 'id'))!.host.max_lifespan).toBe(Infinity)
     })
 
 })

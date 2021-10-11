@@ -10,16 +10,16 @@ import {ApiGatewayV2} from '@aws-sdk/client-apigatewayv2'
 import {ResourceGroupsTaggingAPI} from '@aws-sdk/client-resource-groups-tagging-api'
 
 import {HostPermissionError} from '@/services/hosts/common'
-import {maxWaitTime, StorageBaseAws, AwsError} from '@/services/hosts/aws_common'
-import {HostCloud, HostCredentials, HostManager, HostStorageCredentials, StorageProps}
-    from '@/services/hosts/types'
+import {maxWaitTime, StorageBaseAws, AwsError, HostCredentialsAws, HostStorageGeneratedAws}
+    from '@/services/hosts/aws_common'
+import {HostCloud, HostManager, StorageProps} from '@/services/hosts/types'
 
 
 export class HostManagerAws implements HostManager {
     // Management access to host's API for setting up new users
 
     cloud:HostCloud = 'aws'
-    credentials:HostCredentials
+    credentials:HostCredentialsAws
 
     sts:STS
     ssm:SSM
@@ -32,7 +32,7 @@ export class HostManagerAws implements HostManager {
     _account_id:string|undefined
     _s3_accessible = true
 
-    constructor(credentials:HostCredentials){
+    constructor(credentials:HostCredentialsAws){
         // Requires key with either root access or all necessary permissions for managing users
         this.credentials = credentials
 
@@ -40,15 +40,13 @@ export class HostManagerAws implements HostManager {
         const region = 'us-west-2'
 
         // Init services
-        const aws_creds = {accessKeyId: credentials.key_id, secretAccessKey: credentials.key_secret}
-        this.sts = new STS({apiVersion: '2011-06-15', credentials: aws_creds, region})
-        this.ssm = new SSM({apiVersion: '2014-11-06', credentials: aws_creds, region})
-        this.s3 = new S3({apiVersion: '2006-03-01', credentials: aws_creds, region})
-        this.iam = new IAM({apiVersion: '2010-05-08', credentials: aws_creds, region})
-        this.ec2 = new EC2({apiVersion: '2016-11-15', credentials: aws_creds, region})
-        this.gateway = new ApiGatewayV2({apiVersion: '2018-11-29', credentials: aws_creds, region})
-        this.tagging = new ResourceGroupsTaggingAPI({apiVersion: '2017-01-26',
-            credentials: aws_creds, region})
+        this.sts = new STS({apiVersion: '2011-06-15', credentials, region})
+        this.ssm = new SSM({apiVersion: '2014-11-06', credentials, region})
+        this.s3 = new S3({apiVersion: '2006-03-01', credentials, region})
+        this.iam = new IAM({apiVersion: '2010-05-08', credentials, region})
+        this.ec2 = new EC2({apiVersion: '2016-11-15', credentials, region})
+        this.gateway = new ApiGatewayV2({apiVersion: '2018-11-29', credentials, region})
+        this.tagging = new ResourceGroupsTaggingAPI({apiVersion: '2017-01-26', credentials, region})
 
         // Give best guess as to whether have permission to head/create buckets or not
         // Used to determine if forbidden errors due to someone else owning bucket or not
@@ -146,7 +144,7 @@ export class HostManagerAws implements HostManager {
         }
     }
 
-    async new_storage(bucket:string, region:string):Promise<HostStorageCredentials>{
+    async new_storage(bucket:string, region:string):Promise<HostStorageGeneratedAws>{
         // Create user with access to a set of storage resources and return credentials
 
         // Define arns needed for permissions and setup
@@ -279,13 +277,13 @@ export class HostManagerAws implements HostManager {
         // Create key for the user
         const user_key = await this.iam.createAccessKey({UserName: ids._user_id})
 
-        // Return credentials
+        // Return generated data
         return {
             credentials: {
-                key_id: user_key.AccessKey!.AccessKeyId!,
-                key_secret: user_key.AccessKey!.SecretAccessKey!,
+                accessKeyId: user_key.AccessKey!.AccessKeyId!,
+                secretAccessKey: user_key.AccessKey!.SecretAccessKey!,
             },
-            api: `https://${api_id}.execute-api.${region}.amazonaws.com/`,
+            api_id,
         }
     }
 

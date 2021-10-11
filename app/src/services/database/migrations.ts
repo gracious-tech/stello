@@ -91,10 +91,4 @@ export async function to_13(transaction:VersionChangeTransaction){
 
     // Removed manager_aws_key_secret from state store
     await transaction.objectStore('state').delete('manager_aws_key_secret')
-
-    // Added max_lifespan to profiles
-    for await (const cursor of transaction.objectStore('profiles')){
-        cursor.value.host.max_lifespan = Infinity
-        await cursor.update(cursor.value)
-    }
 }

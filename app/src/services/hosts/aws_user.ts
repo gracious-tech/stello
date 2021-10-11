@@ -18,8 +18,6 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
 
     cloud:HostCloud = 'aws'
 
-    _gateway_id_cache:string|undefined = undefined
-
     async update_email(address:string){
         // Subscribe user to notifications for responses
 
@@ -135,8 +133,9 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
     }
 
     async _get_api_id():Promise<string|undefined>{
-        // Get the id for API gateway (null if doesn't exist)
-        if (!this._gateway_id_cache){
+        // Get the id for API gateway
+        // NOTE May be provided already in generated prop, otherwise auto-detect
+        if (!this.generated.api_id){
             // NOTE ResourceTypeFilters does not work (seems to be an AWS bug) so manually filtering
             const resp = await this.tagging.getResources({
                 TagFilters: [{Key: 'stello', Values: [this.bucket]}]})
@@ -144,9 +143,9 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
                 .map(i => i.ResourceARN?.split(':') ?? [])  // Get ARN parts
                 .filter(i => i[2] === 'apigateway')[0]  // Only match API gateway
                 // Should only be one if any `[0]`
-            this._gateway_id_cache = arn?.[5]?.split('/')[2]  // Extract gateway id part
+            this.generated.api_id = arn?.[5]?.split('/')[2]  // Extract gateway id part
         }
-        return this._gateway_id_cache
+        return this.generated.api_id
     }
 
 
@@ -262,9 +261,6 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
             Expiration: {Days: 1},
             Filter: {Tag: {Key: 'stello-lifespan', Value: '0'}},
         })
-
-        // Include hard limit if configured to
-        // TODO Implement max_lifespan config
 
         // Set expiry policies
         await this.s3.putBucketLifecycleConfiguration({

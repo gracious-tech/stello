@@ -1,4 +1,5 @@
 
+import {HostStorageGeneratedAws} from '@/services/hosts/aws_common'
 import {IDBPDatabase, DBSchema, IDBPTransaction, StoreNames} from 'idb'
 
 
@@ -84,9 +85,7 @@ export interface RecordProfileHostAws {
     cloud:'aws'
     bucket:string
     region:string
-    api:string
-    credentials:HostCredentials
-    max_lifespan:number
+    generated:HostStorageGeneratedAws
 }
 
 export interface RecordProfileHostGracious {
@@ -104,11 +103,6 @@ export interface RecordProfileHostState {
     resp_key:CryptoKeyPair  // Private to user; used to receive data without interception
     displayer_config_uploaded:boolean  // False when it needs updating
     responder_config_uploaded:boolean  // False when it needs updating
-}
-
-export interface HostCredentials {
-    key_id:string
-    key_secret:string
 }
 
 export interface RecordProfileSmtp {

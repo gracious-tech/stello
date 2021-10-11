@@ -205,18 +205,16 @@ export class Profile implements RecordProfile {
     }
 
     get max_lifespan():number{
-        // Get max lifespan for messages
-        if (!this.host){
-            return Infinity
-        }
-        return this.host.cloud === 'gracious' ? 365 * 2 : this.host.max_lifespan
+        // Get max lifespan for messages (gracious has 2 year limit)
+        return this.host?.cloud === 'gracious' ? 365 * 2 : Infinity
     }
 
     get api():string{
         // Get URL for api
         if (!this.host)
             throw new Error('impossible')
-        return this.host.cloud === 'gracious' ? import.meta.env.VITE_HOSTED_API : this.host.api
+        return this.host.cloud === 'gracious' ? import.meta.env.VITE_HOSTED_API :
+            `https://${this.host.generated.api_id!}.execute-api.${this.host.region}.amazonaws.com/`
     }
 
     get user():string{

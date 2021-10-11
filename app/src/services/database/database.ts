@@ -2,7 +2,7 @@
 import {openDB} from 'idb/with-async-ittr.js'
 
 import {AppDatabaseSchema, AppDatabaseConnection, RecordReplaction, RecordSectionContent,
-    RecordDraft, RecordDraftPublished, HostCredentials} from './types'
+    RecordDraft, RecordDraftPublished} from './types'
 import {DatabaseState} from './state'
 import {DatabaseContacts} from './contacts'
 import {DatabaseGroups} from './groups'
@@ -26,6 +26,7 @@ import {generate_example_data} from './example'
 import {HostUser} from '@/services/hosts/types'
 import {get_host_user} from '@/services/hosts/hosts'
 import {new_credentials, new_login} from '@/services/hosts/gracious_user'
+import {HostStorageGeneratedAws} from '@/services/hosts/aws_common'
 
 
 export async function open_db():Promise<AppDatabaseConnection>{
@@ -334,7 +335,7 @@ export class Database {
 
     async new_host_user(profile:Profile):Promise<HostUser>{
         // Return new instance of correct host class with profile's host settings
-        let credentials:HostCredentials
+        let generated:HostStorageGeneratedAws
         let bucket:string
         let region:string
         let user:string|null
@@ -353,16 +354,19 @@ export class Database {
             }
 
             // Get new aws credentials
-            credentials = await new_credentials(profile.host.federated_id, profile.host.id_token)
+            generated = {
+                credentials: await new_credentials(profile.host.federated_id,
+                    profile.host.id_token),
+            }
         } else {
-            credentials = profile.host!.credentials
+            generated = profile.host!.generated
             bucket = profile.host!.bucket
             region = profile.host!.region
             user = null
         }
 
         const host_user_class = get_host_user(profile.host!.cloud)
-        return new host_user_class(credentials, bucket, region, user)
+        return new host_user_class(generated, bucket, region, user)
     }
 
     async read_create(sent:Date, resp_token:string, ip:string,

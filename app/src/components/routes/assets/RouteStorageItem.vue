@@ -75,8 +75,8 @@ export default class extends Vue {
         // Get a new manager instance whenever key changes (since doesn't store state etc)
         const cls = get_host_manager(this.cloud)
         return new cls({
-            key_id: this.key_id,
-            key_secret: this.key_secret,
+            accessKeyId: this.key_id,
+            secretAccessKey: this.key_secret,
         })
     }
 
