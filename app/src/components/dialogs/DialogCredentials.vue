@@ -2,7 +2,7 @@
 <template lang='pug'>
 
 v-card
-    v-card-title Credentials for {{ storage.bucket }}
+    v-card-title Credentials for {{ bucket }}
 
     v-card-text(class='mt-4 text-center')
         template(v-if='sharing_key')
@@ -16,7 +16,7 @@ v-card
             app-textarea(:value='sharing_key' readonly rows=2)
         template(v-else-if='waiting')
             v-progress-circular(indeterminate color='accent')
-        template(v-else-if='storage_credentials')
+        template(v-else-if='storage_generated')
             p New credentials created
             div
                 app-btn(@click='create_profile') Create profile
@@ -41,28 +41,39 @@ import {HostCredentialsPackage} from '@/components/types_ui'
 import {encrypt_sym, generate_key_sym} from '@/services/utils/crypt'
 import {string_to_utf8, buffer_to_url64} from '@/services/utils/coding'
 import {get_host_user} from '@/services/hosts/hosts'
+import {HostManager, HostStorageGenerated} from '@/services/hosts/types'
+import {HostStorageGeneratedAws} from '@/services/hosts/aws_common'
 
 
 @Component({})
 export default class extends Vue {
 
-    @Prop({required: true}) storage!:HostManagerStorage
+    @Prop({required: true}) manager!:HostManager
+    @Prop({type: String, required: true}) bucket!:string
+    @Prop({type: String, required: true}) region!:string
+    @Prop({type: Boolean, default: false}) autogen!:boolean
 
-    storage_credentials:HostStorageCredentials|null = null
+    storage_generated:HostStorageGenerated|null = null
     waiting = false
     sharing_key:string|null = null
-    sharing_lifespan = 30
+    sharing_lifespan = 30  // TODO Not enforced until bucket setup with lifecycle rules
+
+    created(){
+        // Automatically start generating new storage if set to
+        if (this.autogen){
+            void this.generate()
+        }
+    }
 
     get credentials_package():HostCredentialsPackage|null{
         // Return credentials package for passing to a sending profile
-        if (!this.storage_credentials)
+        if (!this.storage_generated)
             return null
         return {
-            cloud: this.storage.cloud,
-            bucket: this.storage.bucket,
-            region: this.storage.region,
-            api: this.storage_credentials.api,
-            credentials: this.storage_credentials.credentials,
+            cloud: this.manager.cloud,
+            bucket: this.bucket,
+            region: this.region,
+            generated: this.storage_generated,
         }
     }
 
@@ -70,7 +81,7 @@ export default class extends Vue {
         // Generate new credentials
         this.waiting = true
         try {
-            this.storage_credentials = await this.storage.new_credentials()
+            this.storage_generated = await this.manager.new_storage(this.bucket, this.region)
         } catch (error){
             // Handle situation where old keys still waiting to be deleted
             if ((error as {code:string})?.code !== 'LimitExceeded'){
@@ -86,11 +97,10 @@ export default class extends Vue {
         // Create a profile with the new credentials
         const profile = await self.app_db.profiles.create()
         profile.host = {
-            cloud: this.storage.cloud,
-            region: this.storage.region,
-            bucket: this.storage.bucket,
-            api: this.storage_credentials!.api,
-            credentials: this.storage_credentials!.credentials,
+            cloud: this.manager.cloud as 'aws',  // 'gracious' not supported
+            region: this.region,
+            bucket: this.bucket,
+            generated: this.storage_generated as HostStorageGeneratedAws,
         }
         await self.app_db.profiles.set(profile)
         void this.$router.push({name: 'profile', params: {profile_id: profile.id}})
@@ -106,10 +116,10 @@ export default class extends Vue {
         const encrypted = await encrypt_sym(data, key)
 
         // Upload to the bucket
-        const host_user_class = get_host_user(this.storage.cloud)
+        const host_user_class = get_host_user(this.manager.cloud)
         const user_storage = new host_user_class(
             // NOTE Use manager credentials since new access keys can take some seconds to work
-            this.storage.credentials,
+            this.credentials_package!.generated as HostStorageGeneratedAws,
             this.credentials_package!.bucket,
             this.credentials_package!.region,
             null,
@@ -126,7 +136,7 @@ export default class extends Vue {
 
         // Display sharing key and copy to clipboard
         const url64_key = buffer_to_url64(await crypto.subtle.exportKey('raw', key))
-        this.sharing_key = `stello:${this.storage.cloud}:${this.storage.bucket}:${url64_key}`
+        this.sharing_key = `stello:${this.manager.cloud}:${this.bucket}:${url64_key}`
         void self.navigator.clipboard.writeText(this.sharing_key)
     }
 

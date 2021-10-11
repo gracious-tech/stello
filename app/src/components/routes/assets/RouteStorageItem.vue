@@ -113,16 +113,20 @@ export default class extends Vue {
             props: {manager: this.manager},
         })) as {bucket:string, region:string}
         if (resp){
-            const storage = this.manager.new_storage(resp.bucket, resp.region)
-            void this.setup_services(storage)
+            void this.new_credentials({...resp, version: undefined}, true)
         }
     }
 
-    async new_credentials(storage:StorageProps){
+    async new_credentials(storage:StorageProps, autogen=false){
         // Show dialog for generating new credentials
         void this.$store.dispatch('show_dialog', {
             component: DialogCredentials,
-            props: {storage},
+            props: {
+                manager: this.manager,
+                bucket: storage.bucket,
+                region: storage.region,
+                autogen,
+            },
             persistent: true,
         })
     }
