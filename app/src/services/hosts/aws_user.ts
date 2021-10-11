@@ -11,8 +11,8 @@ import {HostUser} from '@/services/hosts/types'
 import {Task} from '@/services/tasks/tasks'
 import {buffer_to_hex} from '@/services/utils/coding'
 import {sleep} from '@/services/utils/async'
-import {displayer_asset_type} from './common'
-import {HostStorageVersion, HostPermissionError} from './types'
+import {displayer_asset_type, HostPermissionError} from './common'
+import {HostStorageVersion} from './types'
 import {maxWaitTime, AwsError} from '@/services/hosts/aws_common'
 
 

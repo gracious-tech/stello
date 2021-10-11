@@ -9,8 +9,9 @@ import {S3} from '@aws-sdk/client-s3'
 import {ApiGatewayV2} from '@aws-sdk/client-apigatewayv2'
 import {ResourceGroupsTaggingAPI} from '@aws-sdk/client-resource-groups-tagging-api'
 
+import {HostPermissionError} from '@/services/hosts/common'
 import {maxWaitTime, StorageBaseAws, AwsError} from '@/services/hosts/aws_common'
-import {HostCloud, HostCredentials, HostManager, HostPermissionError, HostStorageCredentials}
+import {HostCloud, HostCredentials, HostManager, HostStorageCredentials}
     from './types'
 
 

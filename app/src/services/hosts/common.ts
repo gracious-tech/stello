@@ -1,5 +1,8 @@
 
-import {get_last} from "../utils/arrays"
+import {CustomError} from '@/services/utils/exceptions'
+
+
+export class HostPermissionError extends CustomError {}
 
 
 export function validate_subdomain(subdomain:string, min=1, max=63):string|null{
@@ -16,7 +19,7 @@ export function validate_subdomain(subdomain:string, min=1, max=63):string|null{
 
 export function displayer_asset_type(path:string):string{
     // Return the mime type of a displayer asset based on its path
-    const ext = get_last(path.split('.'))!.toLowerCase()
+    const ext = path.split('.').at(-1)!.toLowerCase()
     switch (ext){
         case 'html':
             return 'text/html'

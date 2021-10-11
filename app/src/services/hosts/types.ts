@@ -1,6 +1,5 @@
 
 import {Task} from '@/services/tasks/tasks'
-import {CustomError} from '../utils/exceptions'
 
 
 export const HostStorageVersion = 11  // Bump whenever an update to storage services needed
@@ -99,9 +98,3 @@ export declare class HostUser {
     // Delete services
     delete_services(task:Task):Promise<void>
 }
-
-
-// ERRORS (real thing, not just types)
-
-
-export class HostPermissionError extends CustomError {}
