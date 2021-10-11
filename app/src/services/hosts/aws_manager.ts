@@ -3,7 +3,7 @@
 
 import {STS} from '@aws-sdk/client-sts'
 import {SSM} from '@aws-sdk/client-ssm'
-import {IAM, waitUntilUserExists} from '@aws-sdk/client-iam'
+import {IAM, waitUntilUserExists, paginateListUsers} from '@aws-sdk/client-iam'
 import {EC2} from '@aws-sdk/client-ec2'
 import {S3} from '@aws-sdk/client-s3'
 import {ApiGatewayV2} from '@aws-sdk/client-apigatewayv2'
@@ -61,37 +61,31 @@ export class HostManagerAws implements HostManager {
     }
 
     async list_storages(){
-        // Get list of instances of HostManagerStorageAws for all detected in host account
-        // NOTE Returns instances for any remaining Stello users, regardless if other services exist
-        //      Should therefore remove user last, when deleting storage, to ensure full deletion
+        // Get list of storage ids for all detected in host account
 
-        // Get all Stello users
-        const storages:{bucket:string, region:string, version:string}[] = []
-        let marker
-        while (true){
+        // Collect list of promises
+        const storages:Promise<{bucket:string, region:string, version:number|undefined}>[] = []
 
-            // Get only users under the /stello/ path
-            const params = {PathPrefix: '/stello/', Marker: marker}
-            const resp = await this.iam.listUsers(params)
+        // Get only users under the /stello/ path
+        const paginator = paginateListUsers({client: this.iam}, {PathPrefix: '/stello/'})
+        for await (const resp of paginator){
 
-            // Extract bucket/region from user's name/path and use to init HostManagerStorageAws
-            storages.push(...resp.Users.map(async user => {
-                const bucket = user.UserName.slice('stello-'.length)  // 'stello-{id}'
-                const region = user.Path.split('/')[2]  // '/stello/{region}/'
+            // Process each user async
+            storages.push(...(resp.Users ?? []).map(async user => {
+
+                // Extract bucket/region from user's name/path
+                const bucket = user.UserName!.slice('stello-'.length)  // 'stello-{id}'
+                const region = user.Path!.split('/')[2]!  // '/stello/{region}/'
+
                 // Fetch completed setup version (else undefined)
                 // NOTE Despite mentioning it, listUsers does NOT include tags in results itself
                 const tags = await this.iam.listUserTags({UserName: user.UserName})
-                let v = parseInt(tags.Tags.find(t => t.Key === 'stello-version')?.Value, 10)
-                v = Number.isNaN(v) ? undefined : v
-                return {bucket, region, version: v}
-            }))
+                const v = tags.Tags?.find(t => t.Key === 'stello-version')?.Value
 
-            // Handle pagination
-            marker = resp.Marker
-            if (!resp.IsTruncated){
-                break
-            }
+                return {bucket, region, version: v ? parseInt(v, 10) : undefined}
+            }))
         }
+
         return Promise.all(storages)
     }
 

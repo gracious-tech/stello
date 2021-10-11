@@ -37,9 +37,7 @@ export declare class HostManager {
     constructor(credentials:HostCredentials)
 
     // Get list of storage ids for all detected in host account
-    // NOTE Will return instances detected in any relevant services (not just storage service)
-    //      So that partially deleted services can be detected and fully deleted or fixed
-    list_storages():Promise<{bucket:string, region:string, version:string}[]>
+    list_storages():Promise<{bucket:string, region:string, version:number|undefined}[]>
 
     // List regions that are available
     list_regions():Promise<string[]>
