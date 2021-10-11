@@ -2,8 +2,7 @@
 import untar from 'js-untar'
 import {waitUntilBucketExists} from '@aws-sdk/client-s3'
 import {waitUntilRoleExists} from '@aws-sdk/client-iam'
-import {GetFunctionCommandOutput, UpdateFunctionConfigurationCommandInput,
-    waitUntilFunctionExists} from '@aws-sdk/client-lambda'
+import {GetFunctionCommandOutput, waitUntilFunctionExists} from '@aws-sdk/client-lambda'
 
 import app_config from '@/app_config.json'
 import {HostUserAwsBase} from '@/services/hosts/aws_user_base'
@@ -326,7 +325,7 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
                 Action: 'lambda:InvokeFunction',
                 Principal: 'apigateway.amazonaws.com',
                 // NOTE Special ARN for executing gateway (has separate arn for regular config)
-                SourceArn: `arn:aws:execute-api:${this.region}:${account_id}:${api_id}/*`,
+                SourceArn: `arn:aws:execute-api:${this.region}:${account_id}:${api_id!}/*`,
             })
         } catch (error){
             if (error instanceof Error && error.name === 'ResourceConflictException'){
@@ -394,20 +393,19 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
     }
 
     _setup_lambda_config_has_changed(fn_config:Record<string, unknown>,
-            fn_config_env:UpdateFunctionConfigurationCommandInput['Environment'],
-            resp:GetFunctionCommandOutput):boolean{
+            fn_config_env:Record<string, string>, resp:GetFunctionCommandOutput):boolean{
         // Return boolean for whether function config has changed since last updated
 
         // Compare simple config values
         for (const key in fn_config){
-            if (resp.Configuration[key] !== fn_config[key]){
+            if ((resp.Configuration as Record<string, unknown>)?.[key] !== fn_config[key]){
                 return true
             }
         }
 
         // Compare env vars
-        for (const key in fn_config_env.Variables){
-            if (resp.Configuration?.Environment?.Variables?.[key] !== fn_config_env.Variables[key]){
+        for (const key in fn_config_env){
+            if (resp.Configuration?.Environment?.Variables?.[key] !== fn_config_env[key]){
                 return true
             }
         }
@@ -432,15 +430,13 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
             MemorySize: 128,  // Smallest possible
         }
         const fn_config_env = {
-            Variables: {
-                stello_env: 'production',
-                stello_version: app_config.version,
-                stello_msgs_bucket: this.bucket,
-                stello_topic_arn: await this._get_topic_arn(),
-                stello_region: this.region,
-                stello_rollbar_responder: import.meta.env.VITE_ROLLBAR_RESPONDER,
-                stello_domains: '',  // Only needed for hosted setup
-            },
+            stello_env: 'production',
+            stello_version: app_config.version,
+            stello_msgs_bucket: this.bucket,
+            stello_topic_arn: await this._get_topic_arn(),
+            stello_region: this.region,
+            stello_rollbar_responder: import.meta.env.VITE_ROLLBAR_RESPONDER,
+            stello_domains: '',  // Only needed for hosted setup
         }
 
         // Try get current function's config, else create function
@@ -452,7 +448,7 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
                 // Function doesn't exist, so create and return when done
                 await this.lambda.createFunction({
                     ...fn_config,
-                    Environment: {...fn_config_env},
+                    Environment: {Variables: fn_config_env},
                     Code: {ZipFile: fn_code},
                     Tags: {stello: this.bucket},
                 })
@@ -478,7 +474,7 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
         if (this._setup_lambda_config_has_changed(fn_config, fn_config_env, resp)){
             await this.lambda.updateFunctionConfiguration({
                 ...fn_config,
-                Environment: {...fn_config_env},
+                Environment: {Variables: fn_config_env},
             })
         }
 
