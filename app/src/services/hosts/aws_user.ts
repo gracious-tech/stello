@@ -6,7 +6,7 @@ import {GetFunctionCommandOutput, waitUntilFunctionExists} from '@aws-sdk/client
 
 import app_config from '@/app_config.json'
 import {HostUserAwsBase} from '@/services/hosts/aws_user_base'
-import {HostUser} from '@/services/hosts/types'
+import {HostCloud, HostUser} from '@/services/hosts/types'
 import {Task} from '@/services/tasks/tasks'
 import {buffer_to_hex} from '@/services/utils/coding'
 import {sleep} from '@/services/utils/async'
@@ -16,6 +16,8 @@ import {maxWaitTime, AwsError, no404} from '@/services/hosts/aws_common'
 
 
 export class HostUserAws extends HostUserAwsBase implements HostUser {
+
+    cloud:HostCloud = 'aws'
 
     _gateway_id_cache:string|undefined = undefined
 

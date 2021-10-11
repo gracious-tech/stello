@@ -1,11 +1,12 @@
 // Generic factory functions for getting correct class for given cloud value
 
 import {HostCloud} from './types'
-import {HostManagerAws, HostManagerStorageAws} from './aws_manager'
+import {HostManagerAws} from './aws_manager'
 import {HostUserAws} from './aws_user'
+import {HostUserGracious} from '@/services/hosts/gracious_user'
 
 
-export function get_host_manager(cloud:HostCloud):typeof HostManagerAws{
+export function get_host_manager(cloud:HostCloud){
     if (cloud === 'aws'){
         return HostManagerAws
     }
@@ -13,17 +14,11 @@ export function get_host_manager(cloud:HostCloud):typeof HostManagerAws{
 }
 
 
-export function get_host_manager_storage(cloud:HostCloud):typeof HostManagerStorageAws{
-    if (cloud === 'aws'){
-        return HostManagerStorageAws
-    }
-    throw new Error('impossible')
-}
-
-
-export function get_host_user(cloud:HostCloud):typeof HostUserAws{
+export function get_host_user(cloud:HostCloud){
     if (cloud === 'aws'){
         return HostUserAws
+    } else if (cloud === 'gracious'){
+        return HostUserGracious
     }
     throw new Error('impossible')
 }

@@ -24,7 +24,7 @@ import {Component, Vue, Watch, Prop} from 'vue-property-decorator'
 import * as punycode from 'punycode/'
 
 import {debounce_method} from '@/services/misc'
-import {username_available} from '@/services/hosts/aws_hosted'
+import {username_available} from '@/services/hosts/gracious_user'
 
 
 // Define alphabet for safe case conversion

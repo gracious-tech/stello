@@ -17,7 +17,6 @@ import {sort} from '../utils/arrays'
 export class HostUserAwsBase extends StorageBaseAws {
     // User access to host's API for sending messages etc
 
-    cloud:HostCloud = 'aws'
     credentials:HostCredentials
     user:string
 

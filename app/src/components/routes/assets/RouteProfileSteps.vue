@@ -131,7 +131,7 @@ import DialogEmailSettings from '@/components/dialogs/reuseable/DialogEmailSetti
 import RouteProfileIdentity from '@/components/routes/assets/RouteProfileIdentity.vue'
 import {Profile} from '@/services/database/profiles'
 import {OAuthIssuer, oauth_pretask_new_usage} from '@/services/tasks/oauth'
-import {AccountsCreateError, create_account} from '@/services/hosts/aws_hosted'
+import {AccountsCreateError, create_account} from '@/services/hosts/gracious_user'
 import {MustReconnect} from '@/services/utils/exceptions'
 
 
@@ -297,7 +297,7 @@ export default class extends Vue {
                 const result = await create_account(
                     this.username_choice!, this.profile.email, this.plan_choice!)
                 this.profile.host = {
-                    cloud: 'gt',
+                    cloud: 'gracious',
                     username: this.username_choice!,
                     password: result.password,
                     federated_id: result.federated_id,

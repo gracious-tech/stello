@@ -117,7 +117,7 @@ export class Profile implements RecordProfile {
         // Return string for displaying host bucket/user
         if (!this.host)
             return "New Account"
-        return this.host.cloud === 'gt' ? this.host.username : this.host.bucket
+        return this.host.cloud === 'gracious' ? this.host.username : this.host.bucket
     }
 
     get email_domain():string|null{
@@ -209,26 +209,26 @@ export class Profile implements RecordProfile {
         if (!this.host){
             return Infinity
         }
-        return this.host.cloud === 'gt' ? 365 * 2 : this.host.max_lifespan
+        return this.host.cloud === 'gracious' ? 365 * 2 : this.host.max_lifespan
     }
 
     get api():string{
         // Get URL for api
         if (!this.host)
             throw new Error('impossible')
-        return this.host.cloud === 'gt' ? import.meta.env.VITE_HOSTED_API : this.host.api
+        return this.host.cloud === 'gracious' ? import.meta.env.VITE_HOSTED_API : this.host.api
     }
 
     get user():string{
         // Get host user
         if (!this.host)
             throw new Error('impossible')
-        return this.host.cloud === 'gt' ? this.host.username : '_user'
+        return this.host.cloud === 'gracious' ? this.host.username : '_user'
     }
 
     get view_domain():string{
         // The domain messages will be viewed at
-        if (this.host?.cloud === 'gt'){
+        if (this.host?.cloud === 'gracious'){
             const user = this.host.username
             const parent = this.options.generic_domain ? import.meta.env.VITE_HOSTED_DOMAIN_GENERIC
                 : import.meta.env.VITE_HOSTED_DOMAIN_BRANDED
@@ -244,7 +244,7 @@ export class Profile implements RecordProfile {
     view_url(config_secret64:string, copy_id:string, secret:ArrayBuffer, action?:string){
         // Return URL for viewing the given copy
         const domain = this.view_domain
-        const path = this.host?.cloud === 'gt' ? '/' : '/_'
+        const path = this.host?.cloud === 'gracious' ? '/' : '/_'
         const secret64 = buffer_to_url64(secret)
         action = action ? `,${action}` : ''
         return `https://${domain}${path}#${config_secret64},${copy_id},${secret64}${action}`

@@ -25,7 +25,7 @@ import {get_final_recipients} from '../misc/recipients'
 import {generate_example_data} from './example'
 import {HostUser} from '@/services/hosts/types'
 import {get_host_user} from '@/services/hosts/hosts'
-import {new_credentials, new_login} from '@/services/hosts/aws_hosted'
+import {new_credentials, new_login} from '@/services/hosts/gracious_user'
 
 
 export async function open_db():Promise<AppDatabaseConnection>{
@@ -334,14 +334,12 @@ export class Database {
 
     async new_host_user(profile:Profile):Promise<HostUser>{
         // Return new instance of correct host class with profile's host settings
-        let cloud:'aws'
         let credentials:HostCredentials
         let bucket:string
         let region:string
         let user:string|null
 
-        if (profile.host?.cloud === 'gt'){
-            cloud = 'aws'
+        if (profile.host?.cloud === 'gracious'){
             bucket = import.meta.env.VITE_HOSTED_BUCKET
             region = import.meta.env.VITE_HOSTED_REGION
             user = profile.host.username
@@ -357,14 +355,13 @@ export class Database {
             // Get new aws credentials
             credentials = await new_credentials(profile.host.federated_id, profile.host.id_token)
         } else {
-            cloud = profile.host!.cloud
             credentials = profile.host!.credentials
             bucket = profile.host!.bucket
             region = profile.host!.region
             user = null
         }
 
-        const host_user_class = get_host_user(cloud)
+        const host_user_class = get_host_user(profile.host!.cloud)
         return new host_user_class(credentials, bucket, region, user)
     }
 
