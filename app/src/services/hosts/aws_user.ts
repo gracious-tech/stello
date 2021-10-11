@@ -78,7 +78,8 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
 
         } catch (error){
             // Convert permission errors into a generic form so app can handle differently
-            throw error?.name === 'Forbidden' ? new HostPermissionError(error) : error
+            throw (error as AwsError)?.name === 'Forbidden'
+                ? new HostPermissionError((error as AwsError)?.message) : error
         }
     }
 
@@ -356,7 +357,7 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
                 }),
             })
         } catch (error){
-            if (error.name !== 'EntityAlreadyExists'){
+            if ((error as AwsError)?.name !== 'EntityAlreadyExists'){
                 throw error
             }
         }
@@ -406,7 +407,7 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
 
         // Compare env vars
         for (const key in fn_config_env.Variables){
-            if (resp.Configuration.Environment.Variables[key] !== fn_config_env.Variables[key]){
+            if (resp.Configuration?.Environment?.Variables?.[key] !== fn_config_env.Variables[key]){
                 return true
             }
         }
@@ -447,7 +448,7 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
         try {
             resp = await this.lambda.getFunction({FunctionName: this._lambda_id})
         } catch (error){
-            if (error.name === 'ResourceNotFoundException'){
+            if ((error as AwsError)?.name === 'ResourceNotFoundException'){
                 // Function doesn't exist, so create and return when done
                 await this.lambda.createFunction({
                     ...fn_config,
@@ -499,7 +500,7 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
                 Tags: [{Key: 'stello', Value: this.bucket}],
             })
         } catch (error){
-            if (error.name !== 'EntityAlreadyExists'){
+            if ((error as AwsError)?.name !== 'EntityAlreadyExists'){
                 throw error
             }
         }
