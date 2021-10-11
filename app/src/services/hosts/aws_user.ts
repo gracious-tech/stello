@@ -13,7 +13,7 @@ import {buffer_to_hex} from '@/services/utils/coding'
 import {sleep} from '@/services/utils/async'
 import {displayer_asset_type} from './common'
 import {HostStorageVersion, HostPermissionError} from './types'
-import {maxWaitTime} from '@/services/hosts/aws_common'
+import {maxWaitTime, AwsError} from '@/services/hosts/aws_common'
 
 
 export class HostUserAws extends HostUserAwsBase implements HostUser {
@@ -572,17 +572,10 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
 }
 
 
-interface AwsError extends Error {
-    $metadata?:{
-        httpStatusCode?:number
-    }
-}
-
-
 async function no404<T>(request:Promise<T>):Promise<T|undefined>{
     // Helper for ignoring 404 errors (which usually signify already deleted)
-    return request.catch(error => {
-        if (error instanceof Error && (error as AwsError).$metadata?.httpStatusCode === 404){
+    return request.catch((error:AwsError) => {
+        if (error?.$metadata?.httpStatusCode === 404){
             return undefined  // Ignoring 404s
         }
         throw error

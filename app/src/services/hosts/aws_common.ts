@@ -49,3 +49,14 @@ export class StorageBaseAws {
 // NOTE Occasionally hit timeout for bucket creation when set to 30 seconds, so doubled to 60
 // NOTE casing matches property casing allowing easier insertion
 export const maxWaitTime = 60
+
+
+interface _AwsError extends Error {
+    // The error object usually thrown by AWS SDK
+    // NOTE All props optional in case not actually an AWS error
+    $metadata?:{
+        httpStatusCode?:number
+    }
+}
+
+export type AwsError = _AwsError|null  // Null in case not actually an AWS error

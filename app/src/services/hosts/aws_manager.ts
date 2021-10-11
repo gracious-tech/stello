@@ -9,7 +9,7 @@ import {S3} from '@aws-sdk/client-s3'
 import {ApiGatewayV2} from '@aws-sdk/client-apigatewayv2'
 import {ResourceGroupsTaggingAPI} from '@aws-sdk/client-resource-groups-tagging-api'
 
-import {maxWaitTime, StorageBaseAws} from '@/services/hosts/aws_common'
+import {maxWaitTime, StorageBaseAws, AwsError} from '@/services/hosts/aws_common'
 import {HostCloud, HostCredentials, HostManager, HostPermissionError, HostStorageCredentials}
     from './types'
 
@@ -52,11 +52,11 @@ export class HostManagerAws implements HostManager {
         // Give best guess as to whether have permission to head/create buckets or not
         // Used to determine if forbidden errors due to someone else owning bucket or not
         // NOTE Done early on to speed up `bucket_available` results
-        this.s3.listBuckets({}).catch(error => {
+        this.s3.listBuckets({}).catch((error:AwsError) => {
             // If forbidden then don't have s3:ListAllMyBuckets permission
             // Then assume also don't have permission to headBucket, so can't know if exists or not
             // TODO `error.name` is buggy https://github.com/aws/aws-sdk-js-v3/issues/1596
-            this._s3_accessible = error.$metadata.httpStatusCode !== 403
+            this._s3_accessible = error?.$metadata?.httpStatusCode !== 403
         })
     }
 
