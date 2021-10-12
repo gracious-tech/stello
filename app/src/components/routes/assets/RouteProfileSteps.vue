@@ -104,7 +104,7 @@ v-stepper(:value='setup_step' @change='change_step')
             app-security-alert(class='my-12') Personalize so recipients trust it's you,
                 |  but don't include anything sensitive as this info will not expire
             route-profile-identity(:profile='profile' steps)
-                route-profile-username(v-if='!profile.host || profile.host.cloud === "gt"'
+                route-profile-username(v-if='!profile.host || profile.host.cloud === "gracious"'
                     :generic_domain='profile.options.generic_domain'
                     @available='username_choice = $event')
             div.nav
