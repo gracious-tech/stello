@@ -9,7 +9,8 @@ v-list-item(:to='route')
             v-chip(v-if='is_incomplete' small class='ml-3 app-bg-primary-relative') incomplete
     v-list-item-action
         app-menu-more
-            app-list-item(@click='make_default' :disabled='is_default || is_incomplete') Make default
+            app-list-item(@click='make_default' :disabled='is_default || is_incomplete')
+                | Make default
             app-list-item(@click='remove' color='error') Delete
 
 </template>
@@ -20,6 +21,7 @@ v-list-item(:to='route')
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
 import {Profile} from '@/services/database/profiles'
+import {Task} from '@/services/tasks/tasks'
 
 
 @Component({})
@@ -43,15 +45,23 @@ export default class extends Vue {
         this.$store.commit('dict_set', ['default_profile', this.profile.id])
     }
 
-    remove(){
-        // Remove from db
-        self.app_db.profiles.remove(this.profile.id)
-        // Clear the default if this was it, so another can take it
-        if (this.is_default){
-            this.$store.commit('dict_set', ['default_profile', null])
+    async remove(){
+        void this.$store.dispatch('show_waiting', "Deleting account...")
+        try {
+            // Remove services
+            const host_user = await self.app_db.new_host_user(this.profile)
+            await host_user.delete_services(new Task('', [], []))
+            // Remove from db
+            void self.app_db.profiles.remove(this.profile.id)
+            // Clear the default if this was it, so another can take it
+            if (this.is_default){
+                this.$store.commit('dict_set', ['default_profile', null])
+            }
+            // Notify parent that this profile has been removed
+            this.$emit('removed', this.profile.id)
+        } finally {
+            void this.$store.dispatch('close_dialog')
         }
-        // Notify parent that this profile has been removed
-        this.$emit('removed', this.profile.id)
     }
 
 }
