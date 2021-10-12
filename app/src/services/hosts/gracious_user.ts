@@ -2,14 +2,23 @@
 import {CognitoIdentity} from '@aws-sdk/client-cognito-identity'
 import {CognitoIdentityProvider} from '@aws-sdk/client-cognito-identity-provider'
 
+import {Task} from '@/services/tasks/tasks'
+import {HostCloud, HostUser} from '@/services/hosts/types'
+import {HostUserAwsBase} from '@/services/hosts/aws_user_base'
 import {request_json} from '../utils/http'
 import {generate_hash} from '../utils/crypt'
 import {string_to_utf8, buffer_to_url64, jwt_to_object} from '../utils/coding'
 import {CustomError} from '@/services/utils/exceptions'
+import {HostCredentialsAws} from '@/services/hosts/aws_common'
 
 
 // Types
 export type AccountPlan = 'christian'|'other'
+export interface HostStorageGeneratedGracious {
+    credentials:HostCredentialsAws
+    username:string
+    password:string
+}
 
 
 // Constants
@@ -19,6 +28,38 @@ const USER_POOL_CLIENT = import.meta.env.VITE_HOSTED_USER_POOL_CLIENT
 const USER_POOL_PROVIDER = `cognito-idp.${REGION}.amazonaws.com/${USER_POOL}`
 const IDENTITY_POOL = import.meta.env.VITE_HOSTED_IDENTITY_POOL
 const API_URL = import.meta.env.VITE_HOSTED_API
+
+
+export class HostUserGracious extends HostUserAwsBase implements HostUser {
+
+    cloud:HostCloud = 'gracious'
+    declare generated:HostStorageGeneratedGracious
+
+    async update_email(address:string){
+        // Change the email hash stored in the user object
+        const login = await new_login(this.generated.username, this.generated.password)
+        const user_pools = new CognitoIdentityProvider({region: REGION})
+        await user_pools.updateUserAttributes({
+            AccessToken: login.AccessToken,
+            UserAttributes: [{
+                Name: 'hashed_email',
+                Value: buffer_to_url64(await generate_hash(string_to_utf8(address))),
+            }],
+        })
+    }
+
+    async update_services(task:Task):Promise<void>{
+        // Not needed
+    }
+
+    async delete_services(task:Task):Promise<void>{
+        // Delete all objects belonging to user
+        await this._delete_objects(this.bucket, `messages/${this.user}/`)
+        await this.s3.deleteObject({Bucket: this.bucket, Key: `config/${this.user}/config`})
+        await this._delete_objects(this._bucket_resp_id, `responses/${this.user}/`)
+        await this.s3.deleteObject({Bucket: this._bucket_resp_id, Key: `config/${this.user}/config`})
+    }
+}
 
 
 export async function username_available(username:string){
@@ -76,20 +117,6 @@ export async function create_account(username:string, email:string, plan:Account
         id_token: login.IdToken!,
         id_token_expires: login.id_token_expires,
     }
-}
-
-
-export async function change_email(username:string, password:string, email:string):Promise<void>{
-    // Change the email hash stored in the user object
-    const login = await new_login(username, password)
-    const user_pools = new CognitoIdentityProvider({region: REGION})
-    await user_pools.updateUserAttributes({
-        AccessToken: login.AccessToken,
-        UserAttributes: [{
-            Name: 'hashed_email',
-            Value: buffer_to_url64(await generate_hash(string_to_utf8(email))),
-        }],
-    })
 }
 
 

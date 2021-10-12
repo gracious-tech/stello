@@ -25,8 +25,8 @@ import {get_final_recipients} from '../misc/recipients'
 import {generate_example_data} from './example'
 import {HostUser} from '@/services/hosts/types'
 import {get_host_user} from '@/services/hosts/hosts'
-import {new_credentials, new_login} from '@/services/hosts/gracious_user'
-import {HostStorageGeneratedAws} from '@/services/hosts/aws_common'
+import {HostStorageGeneratedGracious, new_credentials, new_login}
+    from '@/services/hosts/gracious_user'
 
 
 export async function open_db():Promise<AppDatabaseConnection>{
@@ -335,7 +335,7 @@ export class Database {
 
     async new_host_user(profile:Profile):Promise<HostUser>{
         // Return new instance of correct host class with profile's host settings
-        let generated:HostStorageGeneratedAws
+        let generated
         let bucket:string
         let region:string
         let user:string|null
@@ -357,7 +357,9 @@ export class Database {
             generated = {
                 credentials: await new_credentials(profile.host.federated_id,
                     profile.host.id_token),
-            }
+                username: profile.host.username,
+                password: profile.host.password,
+            } as HostStorageGeneratedGracious
         } else {
             generated = profile.host!.generated
             bucket = profile.host!.bucket

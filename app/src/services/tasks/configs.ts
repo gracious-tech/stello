@@ -67,10 +67,15 @@ export async function configs_update(task:Task){
         upload_responder = encrypt_sym(
             string_to_utf8(JSON.stringify(config)),
             profile.host_state.shared_secret,
-        ).then(encrypted => storage.upload_responder_config(encrypted))
+        ).then(async encrypted => {
+            await storage.upload_responder_config(encrypted)
+            // Also update email with host (may not have changed, but should be quick anyway)
+            const host_user = await self.app_db.new_host_user(profile!)
+            await host_user.update_email(profile!.email)
+        })
     }
 
-    // Wait till both uploads complete
+    // Wait till promises complete
     await task.add(upload_displayer, upload_responder)
 
     // Update profile state

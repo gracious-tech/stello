@@ -11,12 +11,13 @@ import {Task} from '@/services/tasks/tasks'
 import {buffer_to_hex} from '@/services/utils/coding'
 import {sleep} from '@/services/utils/async'
 import {displayer_asset_type, HostPermissionError, HostStorageVersion} from './common'
-import {maxWaitTime, AwsError, no404} from '@/services/hosts/aws_common'
+import {maxWaitTime, AwsError, no404, HostStorageGeneratedAws} from '@/services/hosts/aws_common'
 
 
 export class HostUserAws extends HostUserAwsBase implements HostUser {
 
     cloud:HostCloud = 'aws'
+    declare generated:HostStorageGeneratedAws
 
     async update_email(address:string){
         // Subscribe user to notifications for responses
