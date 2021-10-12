@@ -53,7 +53,8 @@ div
         //-             p(v-t='"auto_exclude.p3"')
         //-         app-switch(:value='auto_exclude' @input='toggle_auto_exclude'
         //-             v-bind='$t("auto_exclude_switch")' disabled)
-        //-         app-integer(v-model='auto_exclude_threshold' v-bind='$t("auto_exclude_threshold")'
+        //-         app-integer(v-model='auto_exclude_threshold'
+        //-             v-bind='$t("auto_exclude_threshold")'
         //-             :min='1' :max='100' :disabled='!auto_exclude' style='max-width: 400px')
         //-         app-select(v-model='auto_exclude_exempt_groups' :items='groups_ui' multiple
         //-             v-bind='$t("auto_exclude_exempt_groups")' :disabled='!auto_exclude')
@@ -82,11 +83,14 @@ div
 const i18n = {
     // Email
     email: {
-        p1: "Stello uses your email address to send messages and receive notifications about replies.",
+        p1: `Stello uses your email address to send messages
+            and receive notifications about replies.`,
     },
     // Identity
     identity: {
-        p1: "How emails and other notifications identify you prior to opening messages. Unlike messages, this information does not expire and will remain in recipients' inboxes, likely for all eternity.",
+        p1: `How emails and other notifications identify you prior to opening messages.
+            Unlike messages, this information does not expire
+            and will remain in recipients' inboxes, likely for all eternity.`,
     },
     // Replies
     allow_replies: {
@@ -106,7 +110,9 @@ const i18n = {
     },
     notify_include_contents: {
         label: "Include contents of replies in emails",
-        hint: "When Stello notifies you of a new reply it will include the actual contents of the reply in the email notification. This means the contents, while still private, is not end-to-end encrypted.",
+        hint: `When Stello notifies you of a new reply it will include the actual contents
+            of the reply in the email notification.
+            This means the contents, while still private, is not end-to-end encrypted.`,
     },
     // Message expiry
     msg_lifespan: {
@@ -115,7 +121,8 @@ const i18n = {
     },
     msg_max_reads: {
         label: "Lose access after opening",
-        hint: "The default number of times each recipient can open a message before they lose access",
+        hint: `The default number of times each recipient can open a message
+            before they lose access`,
         suffix: "times",
     },
     allow_delete: {
@@ -124,13 +131,20 @@ const i18n = {
     },
     allow_resend_requests: {
         label: "Allow resend requests",
-        hint: "Allow recipients to request that you resend a message that has expired before they could read it. You still must approve any such requests.",
+        hint: `Allow recipients to request that you resend a message that has expired
+            before they could read it. You still must approve any such requests.`,
     },
     // Auto-exclude
     auto_exclude: {
         p1: "Automatically stop sending messages to contacts who aren't reading them.",
-        p2: "Some contacts may be too polite to unsubscribe, and some may even opt to send your messages to spam instead. In which case it is best to stop sending messages to those who aren't reading them.",
-        p3: "If enabled, contacts will be auto-excluded at the time of sending, even if they are still members of the group being sent to (the same as if they had unsubscribed). This will not affect contacts who are added individually as recipients though, only when part of a group.",
+        p2: `Some contacts may be too polite to unsubscribe,
+            and some may even opt to send your messages to spam instead.
+            In which case it is best to stop sending messages to those who aren't reading them.`,
+        p3: `If enabled, contacts will be auto-excluded at the time of sending,
+            even if they are still members of the group being sent to
+            (the same as if they had unsubscribed).
+            This will not affect contacts who are added individually as recipients though,
+            only when part of a group.`,
     },
     auto_exclude_switch: {
         label: "Enable",
@@ -142,12 +156,14 @@ const i18n = {
     },
     auto_exclude_exempt_groups: {
         label: "Don't apply to contacts in groups",
-        hint: "Auto-exclude will never apply to any contacts in these groups (e.g. groups for your family or financial supporters)",
+        hint: `Auto-exclude will never apply to any contacts in these groups
+            (e.g. groups for your family or financial supporters)`,
     },
     // Additional security
     generic_domain: {
         label: "Don't mention Stello in message links",
-        hint: "This makes it less obvious you're using newsletter software linked to a Christian organisation",
+        hint: `This makes it less obvious you're using newsletter software linked
+            to a Christian organisation`,
     },
 }
 
