@@ -9,10 +9,13 @@ export async function resume_tasks():Promise<void>{
     // Start or resume tasks that are due to be completed and schedule repeats
     // WARN Should only run once on startup
 
-    // Upload configs if they failed to update earlier
+    // Update configs/services if needed
     for (const profile of await self.app_db.profiles.list()){
         if (profile.configs_need_uploading){
-            task_manager.start_configs_update(profile.id)
+            void task_manager.start_configs_update(profile.id)
+        }
+        if (profile.host_needs_update){
+            void task_manager.start_hosts_storage_update(profile.id)
         }
     }
 
@@ -21,7 +24,7 @@ export async function resume_tasks():Promise<void>{
 
     // Check for new responses now and routinely
     setIntervalPlus(15, 'm', true, () => {
-        task_manager.start_responses_receive()
+        void task_manager.start_responses_receive()
     })
 
     // See if contacts need syncing and schedule regular checks
@@ -30,7 +33,7 @@ export async function resume_tasks():Promise<void>{
         for (const oauth of await self.app_db.oauths.list()){
             const last = oauth.contacts_sync_last
             if (oauth.contacts_sync && (!last || differenceInHours(now, last) >= 12)){
-                task_manager.start_contacts_sync(oauth.id)
+                void task_manager.start_contacts_sync(oauth.id)
             }
         }
     })

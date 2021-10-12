@@ -20,6 +20,7 @@ import {gen_variable_items, update_template_values, TemplateVariables, msg_max_r
     from '../misc/templates'
 import {EmailTask, new_email_task} from '../email/email'
 import {configs_update} from './configs'
+import {hosts_storage_update} from '@/services/tasks/hosts'
 
 
 export async function send_oauth_setup(task:Task):Promise<void>{
@@ -133,13 +134,21 @@ export class Sender {
         task.abortable = true
         task.label = `Sending message "${this.msg.display}"`
 
-        // Ensure configs are up-to-date
-        await configs_update(new Task('configs_update', [this.msg.draft.profile], []))
-
         // Get the profile
         this.profile = await self.app_db.profiles.get(this.msg.draft.profile) as Profile
         if (!this.profile){
             throw task.abort("Sending account no longer exists")
+        }
+
+        // Ensure services are up-to-date
+        if (this.profile.host_needs_update){
+            await hosts_storage_update(
+                new Task('hosts_storage_update', [this.msg.draft.profile], []))
+        }
+
+        // Ensure configs are up-to-date
+        if (this.profile.configs_need_uploading){
+            await configs_update(new Task('configs_update', [this.msg.draft.profile], []))
         }
 
         // Provide fix options (will detect appropriate one to use in failure dialog)

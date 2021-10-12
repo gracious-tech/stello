@@ -11,7 +11,7 @@ import {contacts_oauth_setup, contacts_sync, contacts_change_property, contacts_
 import {send_oauth_setup, send_message} from './sending'
 import {CustomError, MustReauthenticate, MustReconfigure, MustReconnect, MustWait}
     from '../utils/exceptions'
-import {hosts_storage_setup, hosts_storage_delete} from './hosts'
+import {hosts_storage_update, hosts_storage_delete} from './hosts'
 import {retract_message} from './management'
 
 
@@ -29,7 +29,7 @@ const TASKS:Record<string, TaskFunction> = Object.fromEntries([
     send_oauth_setup, send_message,
     configs_update,
     responses_receive,
-    hosts_storage_setup, hosts_storage_delete,
+    hosts_storage_update, hosts_storage_delete,
     retract_message,
 ].map(fn => [fn.name, fn]))
 
@@ -268,7 +268,7 @@ export class TaskManager {
         this.data.finished = task
     }
 
-    // Start methods for sake of tying expected arguments to task names
+    // Start methods for sake of typing expected arguments to task names
 
     start_contacts_sync(oauth_id:string):Promise<Task>{
         return this.start('contacts_sync', [oauth_id])
@@ -290,6 +290,10 @@ export class TaskManager {
 
     start_configs_update(profile_id:string):Promise<Task>{
         return this.start('configs_update', [profile_id])
+    }
+
+    start_hosts_storage_update(profile_id:string):Promise<Task>{
+        return this.start('hosts_storage_update', [profile_id])
     }
 
     start_send_message(msg_id:string):Promise<Task>{

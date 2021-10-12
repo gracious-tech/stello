@@ -1,5 +1,6 @@
 
 import {HostCredentialsAws} from '@/services/hosts/aws_common'
+import {HOST_STORAGE_VERSION} from '@/services/hosts/common'
 import {get_host_user} from '../hosts/hosts'
 import {HostCloud} from '../hosts/types'
 import {Task} from './tasks'
@@ -17,4 +18,28 @@ export async function hosts_storage_delete(task:Task):Promise<void>{
     // Do delete
     const host_user_class = get_host_user(cloud)
     await new host_user_class({credentials}, bucket, region, null).delete_services(task)
+}
+
+
+export async function hosts_storage_update(task:Task):Promise<void>{
+    // Task for updating storage services
+
+    // Get profile from params
+    const [profile_id] = task.params as [string]
+    let profile = await self.app_db.profiles.get(profile_id)
+    if (!profile){
+        throw task.abort("Sending account no longer exists")
+    }
+
+    task.label = `Updating storage "${profile.display_host}"`
+    task.show_count = true
+
+    // Do update
+    const host_user_class = await self.app_db.new_host_user(profile)
+    await host_user_class.update_services(task)
+
+    // Update storage version in profile
+    profile = (await self.app_db.profiles.get(profile_id))!
+    profile.host_state.version = HOST_STORAGE_VERSION
+    await self.app_db.profiles.set(profile)
 }

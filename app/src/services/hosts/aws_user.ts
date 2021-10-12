@@ -10,7 +10,7 @@ import {HostCloud, HostUser} from '@/services/hosts/types'
 import {Task} from '@/services/tasks/tasks'
 import {buffer_to_hex} from '@/services/utils/coding'
 import {sleep} from '@/services/utils/async'
-import {displayer_asset_type, HostPermissionError, HostStorageVersion} from './common'
+import {displayer_asset_type, HostPermissionError, HOST_STORAGE_VERSION} from './common'
 import {maxWaitTime, AwsError, no404, HostStorageGeneratedAws} from '@/services/hosts/aws_common'
 
 
@@ -72,7 +72,7 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
             // Update setup version tag on user to mark setup as completing successfully
             await task.expected(this.iam.tagUser({
                 UserName: this._user_id,
-                Tags: [{Key: 'stello-version', Value: `${HostStorageVersion}`}],
+                Tags: [{Key: 'stello-version', Value: `${HOST_STORAGE_VERSION}`}],
             }))
 
         } catch (error){

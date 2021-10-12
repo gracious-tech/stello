@@ -323,8 +323,14 @@ export default class extends Vue {
 
     @Watch('$tm.data.finished') async watch_tm_finished(task:Task):Promise<void>{
         // Listen to task completions and adjust state as needed
-        if (task.name === 'send_oauth_setup' && task.params[1] === this.profile.id){
-            // Reload profile to get latest email related settings
+        const affect_profile:Record<string, number> = {
+            send_oauth_setup: 1,  // Index of profile_id param
+            configs_update: 0,
+            hosts_storage_update: 0,
+        }
+        if (task.name in affect_profile
+                && task.params[affect_profile[task.name]!] === this.profile.id){
+            // Reload profile from db
             this.profile = (await self.app_db.profiles.get(this.profile.id))!
         }
     }

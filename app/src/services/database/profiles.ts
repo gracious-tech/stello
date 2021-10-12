@@ -6,6 +6,7 @@ import {buffer_to_url64} from '@/services/utils/coding'
 import {OAUTH_SUPPORTED} from '@/services/tasks/oauth'
 import {email_address_like} from '../utils/misc'
 import {partition} from '../utils/strings'
+import {HOST_STORAGE_VERSION} from '@/services/hosts/common'
 
 
 export interface SmtpProvider {
@@ -204,6 +205,14 @@ export class Profile implements RecordProfile {
         )
     }
 
+    get host_needs_update(){
+        // Whether host services need updating before can send again
+        if (this.host!.cloud === 'gracious'){
+            return false
+        }
+        return this.host_state.version !== HOST_STORAGE_VERSION
+    }
+
     get max_lifespan():number{
         // Get max lifespan for messages (gracious has 2 year limit)
         return this.host?.cloud === 'gracious' ? 365 * 2 : Infinity
@@ -284,6 +293,7 @@ export class DatabaseProfiles {
             setup_step: 0,
             host: null,
             host_state: {
+                version: null,
                 secret: await generate_key_sym(false, ['encrypt', 'decrypt']),
                 // SECURITY short key as only for configs and better to keep URL short if possible
                 shared_secret: await generate_key_sym(true, ['encrypt'], true),
