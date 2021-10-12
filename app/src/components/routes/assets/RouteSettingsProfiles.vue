@@ -43,12 +43,15 @@ export default class extends Vue {
     async create(){
         // Create a new profile and go to it
         void this.$store.dispatch('show_waiting', "Creating new sending account...")
-        const profile = await self.app_db.profiles.create()
-        void this.$store.dispatch('close_dialog')
-        void this.$router.push({
-            name: 'profile',
-            params: {profile_id: profile.id},
-        })
+        try {
+            const profile = await self.app_db.profiles.create()
+            void this.$router.push({
+                name: 'profile',
+                params: {profile_id: profile.id},
+            })
+        } finally {
+            void this.$store.dispatch('close_dialog')
+        }
     }
 
     removed(profile_id:string){
