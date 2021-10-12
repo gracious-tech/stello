@@ -15,13 +15,13 @@ div
         v-list-item(v-for='storage of storages' :key='storage.bucket')
             v-list-item-title
                 | {{ storage.bucket }}
-                v-chip(v-if='!storage.up_to_date' small color='error' class='ml-4')
+                v-chip(v-if='outdated(storage.version)' small color='error' class='ml-4')
                     | {{ storage.version === undefined ? 'incomplete' : 'outdated' }}
             v-list-item-action
                 app-menu-more
                     app-list-item(@click='() => new_credentials(storage)'
                         :disabled='storage.version === undefined') Get new credentials
-                    app-list-item(@click='() => setup_services(storage)')
+                    app-list-item(@click='() => update_services(storage)')
                         | {{ storage.version === undefined ? "Fix" : "Update" }}
                     app-list-item(@click='() => delete_services(storage)' color='error') Delete
 
@@ -47,6 +47,8 @@ import DialogStorageCreate from '@/components/dialogs/DialogStorageCreate.vue'
 import DialogCredentials from '@/components/dialogs/DialogCredentials.vue'
 import {HostCloud, StorageProps} from '@/services/hosts/types'
 import {get_host_manager} from '@/services/hosts/hosts'
+import {HOST_STORAGE_VERSION} from '@/services/hosts/common'
+import DialogGenericConfirm from '@/components/dialogs/generic/DialogGenericConfirm.vue'
 
 
 @Component({})
@@ -71,13 +73,25 @@ export default class extends Vue {
         return this.$store.state.tmp[`manager_${this.cloud}_key_secret`]
     }
 
+    get credentials(){
+        if (this.cloud === 'aws'){
+            return {
+                accessKeyId: this.key_id,
+                secretAccessKey: this.key_secret,
+            }
+        }
+        throw new Error('impossible')
+    }
+
     get manager(){
         // Get a new manager instance whenever key changes (since doesn't store state etc)
         const cls = get_host_manager(this.cloud)
-        return new cls({
-            accessKeyId: this.key_id,
-            secretAccessKey: this.key_secret,
-        })
+        return new cls(this.credentials)
+    }
+
+    outdated(version:number|undefined){
+        // Whether given version is outdated or not defined
+        return version !== HOST_STORAGE_VERSION
     }
 
     async settings(){
@@ -131,19 +145,31 @@ export default class extends Vue {
         })
     }
 
-    async setup_services(storage:StorageProps){
-        // Setup services for given storage (force update)
-        const task = await this.$tm.start('hosts_storage_setup',
-            [this.cloud, storage.credentials, storage.bucket, storage.region])
+    async update_services(storage:StorageProps){
+        // Update services for given storage (force update)
+        const task = await this.$tm.start('hosts_manager_update',
+            [this.cloud, storage.bucket], [storage.region, this.credentials])
         await task.done
         void this.scan()
     }
 
     async delete_services(storage:StorageProps){
         // Delete services for the given storage
-        // TODO Show a confirmation dialog before deleting for safety
-        const task = await this.$tm.start('hosts_storage_delete',
-            [this.cloud, storage.credentials, storage.bucket, storage.region])
+
+        const confirmed = (await this.$store.dispatch('show_dialog', {
+            component: DialogGenericConfirm,
+            props: {
+                title: `This will permanently delete storage "${storage.bucket}"`,
+                confirm: "Delete",
+                confirm_danger: true,
+            },
+        })) as boolean
+        if (!confirmed){
+            return
+        }
+
+        const task = await this.$tm.start('hosts_manager_delete',
+            [this.cloud, storage.bucket], [storage.region, this.credentials])
         await task.done
         void this.scan()
     }
@@ -151,12 +177,13 @@ export default class extends Vue {
     async update_all():Promise<void>{
         // Update all listed storages (only if needed)
         for (const storage of this.storages){
-            if (!storage.up_to_date){
-                const task = await this.$tm.start('hosts_storage_setup',
-                    [this.cloud, storage.credentials, storage.bucket, storage.region])
+            if (this.outdated(storage.version)){
+                const task = await this.$tm.start('hosts_manager_update',
+                    [this.cloud, storage.bucket], [storage.region, this.credentials])
                 await task.done  // Avoid throttling issues by doing sequentially
             }
         }
+        void this.scan()
     }
 }
 
