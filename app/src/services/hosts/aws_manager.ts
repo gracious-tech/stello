@@ -159,10 +159,10 @@ export class HostManagerAws implements HostManager {
             await this.s3.headBucket({Bucket: bucket})
         } catch (error){
             if (error instanceof Error && error.name === 'NotFound'){
-                await this.s3.createBucket({
-                    Bucket: bucket,
-                    CreateBucketConfiguration: {LocationConstraint: region},
-                })
+                // Must recreate S3 client to change region
+                await new S3({apiVersion: '2006-03-01', credentials: this.credentials, region})
+                    .createBucket({Bucket: bucket,
+                        CreateBucketConfiguration: {LocationConstraint: region}})
             } else {
                 throw error
             }
@@ -171,7 +171,10 @@ export class HostManagerAws implements HostManager {
         // Setup an API for the user (user can't self-setup since id is random & needed for IAM)
         let api_id = await this._get_api_id(bucket)
         if (!api_id){
-            api_id = (await this.gateway.createApi({
+            // Must recreate gateway client to change region
+            const regioned_gateway = new ApiGatewayV2({apiVersion: '2018-11-29',
+                credentials: this.credentials, region})
+            api_id = (await regioned_gateway.createApi({
                 Tags: {stello: bucket},
                 Name: `stello ${bucket}`,  // Not used programatically, just for UI
                 ProtocolType: 'HTTP',
