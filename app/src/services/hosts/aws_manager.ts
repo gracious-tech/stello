@@ -256,7 +256,8 @@ export class HostManagerAws implements HostManager {
                     {
                         Effect: 'Allow',
                         Resource: lambda_role_arn,
-                        Action: ['iam:PassRole', 'iam:DeleteRole'],
+                        Action: ['iam:GetRole', 'iam:PutRolePolicy', 'iam:PassRole',
+                            'iam:DeleteRole', 'iam:TagRole'],
                     },
 
                     // Allow user to delete themself
