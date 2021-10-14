@@ -17,10 +17,13 @@ v-card
         template(v-else-if='waiting')
             v-progress-circular(indeterminate color='accent')
         template(v-else-if='storage_generated')
-            p New credentials created
+            p
+                | New credentials created. You can use them yourself or share them
+                | and provide storage for another user.
             div
-                app-btn(@click='create_profile') Create profile
-                app-btn(@click='upload') Upload and share
+                app-btn(@click='create_profile') Use
+                span(class='px-2') |
+                app-btn(@click='upload') Share
         template(v-else)
             p(class='error--text text-left')
                 | Generating new credentials will delete any old ones,
