@@ -7,7 +7,8 @@ import {IAM, waitUntilUserExists, paginateListUsers} from '@aws-sdk/client-iam'
 import {EC2} from '@aws-sdk/client-ec2'
 import {S3} from '@aws-sdk/client-s3'
 import {ApiGatewayV2} from '@aws-sdk/client-apigatewayv2'
-import {ResourceGroupsTaggingAPI} from '@aws-sdk/client-resource-groups-tagging-api'
+import {ResourceGroupsTaggingAPI, paginateGetResources}
+    from '@aws-sdk/client-resource-groups-tagging-api'
 
 import {HostPermissionError} from '@/services/hosts/common'
 import {maxWaitTime, StorageBaseAws, AwsError, HostCredentialsAws, HostStorageGeneratedAws}
@@ -21,13 +22,11 @@ export class HostManagerAws implements HostManager {
     cloud:HostCloud = 'aws'
     credentials:HostCredentialsAws
 
-    sts:STS
-    ssm:SSM
-    s3:S3
     iam:IAM
+    s3:S3
+    sts:STS  // Used to get account id for use in ARNs
     ec2:EC2  // Used only to get available regions
-    gateway:ApiGatewayV2
-    tagging:ResourceGroupsTaggingAPI
+    ssm:SSM  // Used to get human name for regions
 
     _account_id:string|undefined
     _s3_accessible = true
@@ -39,14 +38,12 @@ export class HostManagerAws implements HostManager {
         // Set a default region as some services require it (just to list resources, not create)
         const region = 'us-west-2'
 
-        // Init services
-        this.sts = new STS({apiVersion: '2011-06-15', credentials, region})
-        this.ssm = new SSM({apiVersion: '2014-11-06', credentials, region})
-        this.s3 = new S3({apiVersion: '2006-03-01', credentials, region})
+        // Init non-regional services
         this.iam = new IAM({apiVersion: '2010-05-08', credentials, region})
+        this.s3 = new S3({apiVersion: '2006-03-01', credentials, region})
+        this.sts = new STS({apiVersion: '2011-06-15', credentials, region})
         this.ec2 = new EC2({apiVersion: '2016-11-15', credentials, region})
-        this.gateway = new ApiGatewayV2({apiVersion: '2018-11-29', credentials, region})
-        this.tagging = new ResourceGroupsTaggingAPI({apiVersion: '2017-01-26', credentials, region})
+        this.ssm = new SSM({apiVersion: '2014-11-06', credentials, region})
 
         // Give best guess as to whether have permission to head/create buckets or not
         // Used to determine if forbidden errors due to someone else owning bucket or not
@@ -62,30 +59,45 @@ export class HostManagerAws implements HostManager {
     async list_storages(){
         // Get list of storage ids for all detected in host account
 
-        // Collect list of promises
-        const storages:Promise<StorageProps>[] = []
+        // Collect storages meta data
+        const storages:Record<string, StorageProps> = {}
+        const regions = new Set<string>()
 
         // Get only users under the /stello/ path
-        const paginator = paginateListUsers({client: this.iam}, {PathPrefix: '/stello/'})
-        for await (const resp of paginator){
+        const users_paginator = paginateListUsers({client: this.iam}, {PathPrefix: '/stello/'})
+        for await (const resp of users_paginator){
 
             // Process each user async
-            storages.push(...(resp.Users ?? []).map(async user => {
+            for (const user of resp.Users ?? []){
 
                 // Extract bucket/region from user's name/path
                 const bucket = user.UserName!.slice('stello-'.length)  // 'stello-{id}'
                 const region = user.Path!.split('/')[2]!  // '/stello/{region}/'
+                regions.add(region)
 
-                // Fetch completed setup version (else undefined)
-                // NOTE Despite mentioning it, listUsers does NOT include tags in results itself
-                const tags = await this.iam.listUserTags({UserName: user.UserName})
-                const v = tags.Tags?.find(t => t.Key === 'stello-version')?.Value
-
-                return {bucket, region, version: v ? parseInt(v, 10) : undefined}
-            }))
+                storages[bucket] = {bucket, region, version: undefined}
+            }
         }
 
-        return Promise.all(storages)
+        // Detect storage versions for users
+        for (const region of regions){
+            const tags_paginator = paginateGetResources({
+                client: new ResourceGroupsTaggingAPI(
+                    {apiVersion: '2017-01-26', credentials: this.credentials, region}),
+            }, {
+                TagFilters: [{Key: 'stello-version'}]})
+            for await (const resp of tags_paginator){
+                for (const bucket_tags of (resp.ResourceTagMappingList ?? [])){
+                    const bucket = bucket_tags.Tags?.find(item => item.Key === 'stello')?.Value
+                    if (bucket && bucket in storages){
+                        const v = bucket_tags.Tags?.find(i => i.Key === 'stello-version')?.Value
+                        storages[bucket]!.version = v ? parseInt(v, 10) : undefined
+                    }
+                }
+            }
+        }
+
+        return Object.values(storages)
     }
 
     async list_regions():Promise<string[]>{
@@ -155,13 +167,14 @@ export class HostManagerAws implements HostManager {
         const lambda_boundary_arn = `arn:aws:iam::${account_id}:policy/${ids._lambda_boundary_id}`
 
         // Create the messages bucket to secure its id
+        const regioned_s3 = new S3(
+            {apiVersion: '2006-03-01', credentials: this.credentials, region})
         try {
-            await this.s3.headBucket({Bucket: bucket})
+            await regioned_s3.headBucket({Bucket: bucket})
         } catch (error){
             if (error instanceof Error && error.name === 'NotFound'){
                 // Must recreate S3 client to change region
-                await new S3({apiVersion: '2006-03-01', credentials: this.credentials, region})
-                    .createBucket({Bucket: bucket,
+                await regioned_s3.createBucket({Bucket: bucket,
                         CreateBucketConfiguration: {LocationConstraint: region}})
             } else {
                 throw error
@@ -169,7 +182,7 @@ export class HostManagerAws implements HostManager {
         }
 
         // Setup an API for the user (user can't self-setup since id is random & needed for IAM)
-        let api_id = await this._get_api_id(bucket)
+        let api_id = await this._get_api_id(bucket, region)
         if (!api_id){
             // Must recreate gateway client to change region
             const regioned_gateway = new ApiGatewayV2({apiVersion: '2018-11-29',
@@ -217,6 +230,7 @@ export class HostManagerAws implements HostManager {
 
         // Create a policy for use as permissions boundary for lambda role
         // SECURITY This prevents circumventing restrictions via the lambda role
+        try {
         await this.iam.createPolicy({
             PolicyName: ids._lambda_boundary_id,
             Tags: [{Key: 'stello', Value: bucket}],
@@ -225,6 +239,11 @@ export class HostManagerAws implements HostManager {
                 Statement: [full_access_resources],
             }),
         })
+        } catch (error){
+            if ((error as AwsError)?.name !== 'EntityAlreadyExists'){
+                throw error
+            }
+        }
 
         // Grant the user permissions for all resources and to create the role for the lambda
         // SECURITY Unlike other resources, self-management of lambda role requires extra care
@@ -301,10 +320,12 @@ export class HostManagerAws implements HostManager {
         return this._account_id
     }
 
-    async _get_api_id(bucket:string):Promise<string|undefined>{
+    async _get_api_id(bucket:string, region:string):Promise<string|undefined>{
         // Get the id for API gateway (null if doesn't exist)
         // NOTE ResourceTypeFilters does not work (seems to be an AWS bug) so manually filtering
-        const resp = await this.tagging.getResources({
+        const tagging = new ResourceGroupsTaggingAPI(
+            {apiVersion: '2017-01-26', credentials: this.credentials, region})
+        const resp = await tagging.getResources({
             TagFilters: [{Key: 'stello', Values: [bucket]}]})
         const arn = (resp.ResourceTagMappingList ?? [])
             .map(i => i.ResourceARN?.split(':') ?? [])  // Get ARN parts
