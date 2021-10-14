@@ -124,18 +124,14 @@ export class Task {
     async expected<T>(...promises:Promise<T>[]):Promise<T[]>
     async expected<T>(...promises:Promise<T>[]):Promise<T|T[]>{
         // Track the completion of subtasks that are already expected (counted)
-        /* WARN Wrapping promises with this can lead to uncaught rejections
-            Especially if promises are stored (e.g in array) and dealt with after already rejecting
-            Browsers will consider uncaught if there's no handling attached at the time of rejection
-            For some reason this method can confuse browsers, so should be wrapped around catch
-                YES: task.expected(promise.catch(() => {}))
-                NO:  task.expected(promise).catch(() => {})
-        */
 
         // Increase done count when subtasks complete
         for (const promise of promises){
             promise.finally(() => {
                 this.subtasks_done += 1
+            }).catch(() => {
+                // WARN Must catch otherwise browser will throw uncaught error and trigger error bar
+                // Because calling finally() returns original promise's value|reason, not own value
             })
         }
 
