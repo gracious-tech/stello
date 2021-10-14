@@ -69,10 +69,13 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
             // Setup displayer last since relies on bucket creation finishing and gateway existing
             await task.expected(this._setup_displayer())
 
-            // Update setup version tag on user to mark setup as completing successfully
-            await task.expected(this.iam.tagUser({
-                UserName: this._user_id,
-                Tags: [{Key: 'stello-version', Value: `${HOST_STORAGE_VERSION}`}],
+            // Update setup version tag on bucket to mark setup as completing successfully
+            await task.expected(this.s3.putBucketTagging({
+                Bucket: this.bucket,
+                Tagging: {TagSet: [
+                    {Key: 'stello', Value: this.bucket},  // To not overwrite existing
+                    {Key: 'stello-version', Value: `${HOST_STORAGE_VERSION}`},
+                ]},
             }))
 
         } catch (error){
