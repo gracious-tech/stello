@@ -283,12 +283,12 @@ export class DatabaseProfiles {
         await this._conn.put('profiles', profile)
     }
 
-    async create():Promise<Profile>{
-        // Create a new profile
+    async create_object():Promise<Profile>{
+        // Create a new profile object
         // NOTE Defaults are for 'very_high' security category
         const default_invite_image = new Blob(
             [await self.app_native.read_file('default_invite_image.jpg')], {type: 'image/jpeg'})
-        const profile = new Profile({
+        return new Profile({
             id: generate_token(),
             setup_step: 0,
             host: null,
@@ -346,8 +346,12 @@ export class DatabaseProfiles {
                 max_reads: 3,
             },
         })
-        await this._conn.add('profiles', profile)
+    }
 
+    async create():Promise<Profile>{
+        // Create a new profile (and save to db)
+        const profile = await this.create_object()
+        await this._conn.add('profiles', profile)
         return profile
     }
 
