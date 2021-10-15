@@ -1,5 +1,6 @@
 
 import {openDB} from 'idb/with-async-ittr.js'
+import {cloneDeep} from 'lodash'
 
 import {AppDatabaseSchema, AppDatabaseConnection, RecordReplaction, RecordSectionContent,
     RecordDraft, RecordDraftPublished} from './types'
@@ -83,6 +84,25 @@ export class Database {
     // NOTE Transactions are only necessary for the writes of a method, not the reads
 
 
+    async profile_copy(original:Profile):Promise<Profile>{
+        // Create a new profile from an existing one (without host settings)
+
+        // Generate new profile
+        const copy = await this.profiles.create_object()
+
+        // Only copy fields known to be safe to copy (exclude host settings especially)
+        copy.email = original.email
+        copy.smtp = cloneDeep(original.smtp)
+        copy.options = cloneDeep(original.options)
+        copy.msg_options_identity = cloneDeep(original.msg_options_identity)
+        copy.msg_options_security = cloneDeep(original.msg_options_security)
+
+        // Save the copy to the database and return
+        await this.profiles.set(copy)
+        return copy
+    }
+
+
     async draft_copy(draft_or_id:Draft|string, template?:boolean):Promise<Draft>{
         // Create a new draft from existing one, identified by id or object (can be from a msg too)
 
@@ -122,7 +142,7 @@ export class Database {
         }) as ([string]|[string, string])[]
 
         // Save the copy to the database and return
-        void this.drafts.set(copy)
+        await this.drafts.set(copy)
         return copy
     }
 
