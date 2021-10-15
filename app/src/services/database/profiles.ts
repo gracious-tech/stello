@@ -1,4 +1,6 @@
 
+import {cloneDeep} from 'lodash'
+
 import {AppDatabaseConnection, RecordProfile, RecordProfileHost, RecordProfileSmtp,
     RecordProfileOptions, RecordProfileHostState} from './types'
 import {generate_token, generate_key_asym, generate_key_sym} from '@/services/utils/crypt'
@@ -353,6 +355,24 @@ export class DatabaseProfiles {
         const profile = await this.create_object()
         await this._conn.add('profiles', profile)
         return profile
+    }
+
+    async copy(original:Profile):Promise<Profile>{
+        // Create a new profile from an existing one (without host settings)
+
+        // Generate new profile
+        const copy = await this.create_object()
+
+        // Only copy fields known to be safe to copy (exclude host settings especially)
+        copy.email = original.email
+        copy.smtp = cloneDeep(original.smtp)
+        copy.options = cloneDeep(original.options)
+        copy.msg_options_identity = cloneDeep(original.msg_options_identity)
+        copy.msg_options_security = cloneDeep(original.msg_options_security)
+
+        // Save the copy to the database and return
+        await this.set(copy)
+        return copy
     }
 
     async remove(id:string):Promise<void>{
