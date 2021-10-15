@@ -231,14 +231,14 @@ export class HostManagerAws implements HostManager {
         // Create a policy for use as permissions boundary for lambda role
         // SECURITY This prevents circumventing restrictions via the lambda role
         try {
-        await this.iam.createPolicy({
-            PolicyName: ids._lambda_boundary_id,
-            Tags: [{Key: 'stello', Value: bucket}],
-            PolicyDocument: JSON.stringify({
-                Version: '2012-10-17',
-                Statement: [full_access_resources],
-            }),
-        })
+            await this.iam.createPolicy({
+                PolicyName: ids._lambda_boundary_id,
+                Tags: [{Key: 'stello', Value: bucket}],
+                PolicyDocument: JSON.stringify({
+                    Version: '2012-10-17',
+                    Statement: [full_access_resources],
+                }),
+            })
         } catch (error){
             if ((error as AwsError)?.name !== 'EntityAlreadyExists'){
                 throw error
@@ -296,6 +296,15 @@ export class HostManagerAws implements HostManager {
                 ],
             }),
         })
+
+        // Revoke any existing keys
+        const existing_keys = await this.iam.listAccessKeys({UserName: ids._user_id})
+        for (const key of existing_keys.AccessKeyMetadata ?? []){
+            await this.iam.deleteAccessKey({
+                UserName: ids._user_id,
+                AccessKeyId: key.AccessKeyId,
+            })
+        }
 
         // Create key for the user
         const user_key = await this.iam.createAccessKey({UserName: ids._user_id})
