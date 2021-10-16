@@ -17,8 +17,8 @@ div
                 h1(class='text-h6 mb-0') What's new
                 h1(class='text-subtitle-2 opacity-secondary mt-0') Version {{ version }}
                 ul
-                    li Sending is up to 100% faster
-                    li Sending easier to troubleshoot
+                    li Easier account setup
+                    li Additional security measures
                 p(class='text-body-2') plus many other improvements
 
         div(class='notes')
