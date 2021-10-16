@@ -50,24 +50,28 @@ export default class extends Vue {
     async remove(){
 
         // Confirm before deleting
-        const confirmed = await this.$store.dispatch('show_dialog', {
-            component: DialogGenericConfirm,
-            props: {
-                title: `Really delete account "${this.profile.display}"?`,
-                text: "Recipients will lose access to all sent messages",
-                confirm: "Delete",
-                confirm_danger: true,
-            },
-        })
-        if (!confirmed){
-            return
+        if (this.profile.setup_complete){
+            const confirmed = await this.$store.dispatch('show_dialog', {
+                component: DialogGenericConfirm,
+                props: {
+                    title: `Really delete account "${this.profile.display}"?`,
+                    text: "Recipients will lose access to all sent messages",
+                    confirm: "Delete",
+                    confirm_danger: true,
+                },
+            })
+            if (!confirmed){
+                return
+            }
         }
 
         void this.$store.dispatch('show_waiting', "Deleting account...")
         try {
             // Remove services
-            const host_user = await self.app_db.new_host_user(this.profile)
-            await host_user.delete_services(new Task('', [], []))
+            if (this.profile.setup_complete){
+                const host_user = await self.app_db.new_host_user(this.profile)
+                await host_user.delete_services(new Task('', [], []))
+            }
             // Remove from db
             void self.app_db.profiles.remove(this.profile.id)
             // Clear the default if this was it, so another can take it
