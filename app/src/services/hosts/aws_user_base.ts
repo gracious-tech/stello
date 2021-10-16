@@ -73,12 +73,15 @@ export class HostUserAwsBase extends StorageBaseAws {
 
     async delete_file(path:string):Promise<void>{
         // Delete a message file that was uploaded into storage
-        await this.s3.deleteObject({Bucket: this.bucket, Key: `messages/${this.user}/${path}`})
+        await this.s3.deleteObject({Bucket: this.bucket,
+            Key: this.generated.old_beta ? path : `messages/${this.user}/${path}`,
+        })
     }
 
     async list_files(prefix=''):Promise<string[]>{
         // List uploaded message files (useful for deleting old messages if app lost state)
-        return this._list_objects(this.bucket, `messages/${this.user}/`, prefix)
+        return this._list_objects(this.bucket,
+            this.generated.old_beta ? '' : `messages/${this.user}/`, prefix)
     }
 
     async download_response(path:string):Promise<ArrayBuffer>{
