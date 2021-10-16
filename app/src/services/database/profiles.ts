@@ -111,6 +111,11 @@ export class Profile implements RecordProfile {
         return this.setup_step === null
     }
 
+    get old_beta(){
+        // TODO rm once old profiles purged from db
+        return 'disp_config_name' in this.host_state
+    }
+
     get display():string{
         // Return string for displaying profile (that will never be blank)
         return this.display_host
@@ -209,6 +214,9 @@ export class Profile implements RecordProfile {
 
     get host_needs_update(){
         // Whether host services need updating before can send again
+        if (!this.setup_complete){
+            return false
+        }
         if (this.host!.cloud === 'gracious'){
             return false
         }

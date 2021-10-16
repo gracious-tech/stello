@@ -91,4 +91,25 @@ export async function to_13(transaction:VersionChangeTransaction){
 
     // Removed manager_aws_key_secret from state store
     await transaction.objectStore('state').delete('manager_aws_key_secret')
+
+    for await (const cursor of transaction.objectStore('profiles')){
+        // Deal with old profiles
+        // Update properties that can be copied to a new profile, but don't bother with others
+
+        // Just delete profiles that still aren't setup yet
+        if (cursor.value.setup_step !== null){
+            await cursor.delete()
+            continue
+        }
+
+        // Added generic_domain property to profiles
+        cursor.value.options.generic_domain = true
+
+        // Effectively disable old accounts by setting setup_step to 0 (and UI blocks editing)
+        cursor.value.setup_step = 0
+
+        // Save changes
+        await cursor.update(cursor.value)
+    }
+
 }

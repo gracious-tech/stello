@@ -4,6 +4,8 @@
 div
     app-content(class='pa-6')
 
+        RouteRootOld
+
         RouteRootAddressRequests
 
         RouteRootResendRequests
@@ -41,12 +43,13 @@ import {Component, Vue} from 'vue-property-decorator'
 
 import app_config from '@/app_config.json'
 import ReallyFree from '@/components/reuseable/ReallyFree.vue'
+import RouteRootOld from './assets/RouteRootOld.vue'
 import RouteRootAddressRequests from './assets/RouteRootAddressRequests.vue'
 import RouteRootResendRequests from './assets/RouteRootResendRequests.vue'
 
 
 @Component({
-    components: {RouteRootAddressRequests, RouteRootResendRequests, ReallyFree},
+    components: {RouteRootAddressRequests, RouteRootResendRequests, ReallyFree, RouteRootOld},
 })
 export default class extends Vue {
 

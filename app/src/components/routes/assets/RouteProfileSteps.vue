@@ -83,6 +83,15 @@ v-stepper(:value='setup_step' @change='change_step')
             h2(class='text-h6 my-6') How important is security to you?
             p(class='text--secondary body-2 mb-8') These can be customised in more detail later on.
             v-list
+                //- Option to skip selection if already setup
+                v-list-item(v-if='security_prev_done' class='noselect'
+                        :disabled='security_choice !== null'
+                        :class='{"v-list-item--active": security_choice === null}')
+                    v-list-item-icon
+                        app-svg(
+                            :name='`icon_radio_${security_choice === null ? "" : "un"}checked`')
+                    v-list-item-content
+                        v-list-item-title Keep existing settings
                 //- Choice only mandatory after first choice (so nothing selected initially)
                 v-list-item-group(v-model='security_choice' :mandatory='security_choice !== null')
                     v-list-item(v-for='(option, i) of security_options' :key='option.code')
@@ -95,7 +104,8 @@ v-stepper(:value='setup_step' @change='change_step')
                             v-list-item-subtitle {{ option.subtitle2 }}
             div.nav
                 app-btn(@click='prev_step' raised color='') Prev
-                app-btn(@click='next_step' :disabled='security_choice === null' raised) Next
+                app-btn(@click='next_step' raised
+                    :disabled='security_choice === null && !security_prev_done') Next
 
         v-stepper-content(:step='4')
             img.decor(src='@/assets/decor/setup_id.png')
@@ -106,7 +116,7 @@ v-stepper(:value='setup_step' @change='change_step')
             route-profile-identity(:profile='profile' steps)
                 route-profile-username(v-if='!profile.host || profile.host.cloud === "gracious"'
                     :generic_domain='profile.options.generic_domain'
-                    @available='username_choice = $event')
+                    @available='username_choice = $event' class='my-6')
             div.nav
                 app-btn(@click='prev_step' raised color='') Prev
                 div.done
@@ -145,6 +155,7 @@ export default class extends Vue {
     plan_choice:'christian'|'other'|null = null
     username_choice:string|null = null
     security_choice:number|null = null
+    security_prev_done = false
     account_create_error:string|null = null
 
     security_options = [
@@ -207,6 +218,13 @@ export default class extends Vue {
             },
         },
     ]
+
+    created(){
+        // Guess whether security step already previously done
+        // So can allow skipping security selection as would wipe out previous settings
+        this.security_prev_done =
+            !!this.profile.msg_options_identity.sender_name || this.setup_step > 3
+    }
 
     get setup_step():number{
         // Access to setup_step that correctly excludes null as a possibility (this comp won't show)
@@ -353,6 +371,11 @@ export default class extends Vue {
             }
         }
 
+        // Start host update task
+        if (this.profile.host.cloud !== 'gracious'){
+            void this.$tm.start_hosts_storage_update(this.profile.id)
+        }
+
         return true
     }
 
@@ -438,6 +461,11 @@ export default class extends Vue {
         display: flex
         flex-direction: column
         align-items: flex-end
+
+
+.v-list-item__icon
+    align-self: center
+
 
 .v-list-item--active
     &.v-list-item--link:before

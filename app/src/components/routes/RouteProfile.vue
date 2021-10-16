@@ -8,6 +8,11 @@ div
 
     app-content(v-if='!profile' class='text-center pt-10')
         h1(class='text--secondary text-h6') Sending account does not exist
+    app-content(v-else-if='profile.old_beta' class='text-center pt-10')
+        h1(class='text--secondary text-h6')
+            | This is an old beta account and cannot be modified,
+            | but can receive replies still.
+            | It will automatically get deleted after 1 Feb 2022.
     route-profile-steps(v-else-if='!profile.setup_complete' :profile='profile')
     app-content(v-else class='pa-3')
 
