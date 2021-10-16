@@ -30,9 +30,10 @@ div
                     li Encrypted videos
                 p plus many many more...
                 app-btn(href='https://give.gracious.tech' color='#fa5788' raised small)
-                    | Help fund improvements
-        div.really
-            really-free
+                    | Funding progress
+        //- TODO
+        //- div.really
+        //-     really-free
 
 </template>
 
