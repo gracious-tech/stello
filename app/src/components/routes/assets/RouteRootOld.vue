@@ -93,6 +93,14 @@ export default class extends Vue {
 
             // Copy to new profile
             const new_profile = await self.app_db.profiles.copy(profile)
+
+            // Copy unsubscribes
+            for (const unsub of await self.app_db.unsubscribes.list_for_profile(profile.id)){
+                unsub.profile = new_profile.id
+                void self.app_db.unsubscribes.set(unsub)
+            }
+
+            // Go to new profile
             void this.$router.push({name: 'profile', params: {profile_id: new_profile.id}})
         } finally {
             void this.$store.dispatch('close_dialog')
