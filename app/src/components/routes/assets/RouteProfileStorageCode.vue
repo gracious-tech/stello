@@ -64,7 +64,7 @@ export default class extends Vue {
         let encrypted:ArrayBuffer|null
         try {
             if (cloud === 'aws'){
-                const url = `https://${bucket}.s3.amazonaws.com/credentials`
+                const url = `https://${bucket}.s3.amazonaws.com/messages/_user/credentials`
                 encrypted = await request(url, {}, 'arrayBuffer', 'throw_null403-4')
             } else {
                 return "Cloud provider not supported"

@@ -47,6 +47,7 @@ import {get_host_user} from '@/services/hosts/hosts'
 import {HostManager, HostStorageGenerated} from '@/services/hosts/types'
 import {HostStorageGeneratedAws} from '@/services/hosts/aws_common'
 import {MustReconnect} from '@/services/utils/exceptions'
+import {Task} from '@/services/tasks/tasks'
 
 
 @Component({})
@@ -60,7 +61,7 @@ export default class extends Vue {
     storage_generated:HostStorageGenerated|null = null
     waiting = false
     sharing_key:string|null = null
-    sharing_lifespan = 30  // TODO Not enforced until bucket setup with lifecycle rules
+    sharing_lifespan = 30
 
     created(){
         // Automatically start generating new storage if set to
@@ -124,13 +125,15 @@ export default class extends Vue {
         const host_user_class = get_host_user(this.manager.cloud)
         const user_storage = new host_user_class(
             // NOTE Use manager credentials since new access keys can take some seconds to work
-            this.credentials_package!.generated as HostStorageGeneratedAws,
+            {credentials: this.manager.credentials} as HostStorageGeneratedAws,
             this.credentials_package!.bucket,
             this.credentials_package!.region,
             null,
         )
         this.waiting = true
         try {
+            // Setup services so bucket has public access and expiry
+            await user_storage.update_services(new Task('', [], []))
             await user_storage.upload_file('credentials', encrypted, this.sharing_lifespan)
         } catch (error) {
             this.$network_error(error)
