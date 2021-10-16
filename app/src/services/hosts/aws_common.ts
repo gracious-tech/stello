@@ -9,6 +9,7 @@ export interface HostCredentialsAws {
 export interface HostStorageGeneratedAws {
     credentials:HostCredentialsAws
     api_id?:string|undefined  // Present for 'aws' but not 'gracious'
+    old_beta?:boolean
 }
 
 

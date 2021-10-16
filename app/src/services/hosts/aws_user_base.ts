@@ -84,8 +84,8 @@ export class HostUserAwsBase extends StorageBaseAws {
     async download_response(path:string):Promise<ArrayBuffer>{
         // Download a response file
         const resp = await this.s3.getObject({
-            Bucket: this._bucket_resp_id,
-            Key: `responses/${this.user}/${path}`,
+            Bucket: this.generated.old_beta ? `${this.bucket}-stello-responses` : this._bucket_resp_id,
+            Key: this.generated.old_beta ? `responses/${path}` : `responses/${this.user}/${path}`,
         })
         return stream_to_buffer(resp.Body as ReadableStream)  // ReadableStream when in browser
     }
@@ -93,14 +93,18 @@ export class HostUserAwsBase extends StorageBaseAws {
     async delete_response(path:string):Promise<void>{
         // Delete a response file
         await this.s3.deleteObject({
-            Bucket: this._bucket_resp_id,
-            Key: `responses/${this.user}/${path}`,
+            Bucket: this.generated.old_beta ? `${this.bucket}-stello-responses` : this._bucket_resp_id,
+            Key: this.generated.old_beta ? `responses/${path}` : `responses/${this.user}/${path}`,
         })
     }
 
     async list_responses(type=''):Promise<string[]>{
         // List responses
-        return this._list_objects(this._bucket_resp_id, `responses/${this.user}/`, type)
+        return this._list_objects(
+            this.generated.old_beta ? `${this.bucket}-stello-responses` : this._bucket_resp_id,
+            this.generated.old_beta ? `responses/` : `responses/${this.user}/`,
+            type,
+        )
     }
 
     async upload_displayer_config(config:ArrayBuffer):Promise<void>{

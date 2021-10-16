@@ -362,6 +362,17 @@ export class Database {
             } as HostStorageGeneratedGracious
         } else {
             generated = profile.host!.generated
+            if (profile.old_beta){
+                generated = {
+                    old_beta: true,
+                    credentials: {
+                        // @ts-ignore credentials exist for old beta
+                        accessKeyId: profile.host.credentials.key_id,
+                        // @ts-ignore credentials exist for old beta
+                        secretAccessKey: profile.host.credentials.key_secret,
+                    },
+                }
+            }
             bucket = profile.host!.bucket
             region = profile.host!.region
             user = null
