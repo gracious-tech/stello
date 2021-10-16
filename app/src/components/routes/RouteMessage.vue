@@ -21,7 +21,10 @@ div
                 div(class='text-center')
                     strong {{ num_copies_read }} of {{ copies.length }} opened
 
-                div(v-if='sending_task' class='text-center accent--text mt-3')
+                div(v-if='!profile || profile.old_beta' class='text-center error--text mt-3')
+                    | The account used to send this no longer exists
+
+                div(v-else-if='sending_task' class='text-center accent--text mt-3')
                     | Sending
                     v-progress-circular(indeterminate width='2' size='20' color='accent'
                         class='ml-6 mr-3')

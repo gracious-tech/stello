@@ -5,6 +5,7 @@ v-list-item
 
     v-list-item-action
         app-btn(v-if='copy.status === "manual"' @click='copy_invite_and_mark' :icon='status_icon'
+            :disabled='!profile || profile.old_beta'
             data-tip="Copy invite and mark as sent")
         app-btn(v-else-if='copy.status === "error"' :to='to' :icon='status_icon' color='error'
             data-tip="Change email address")
@@ -17,7 +18,7 @@ v-list-item
     v-list-item-action(title='Number of times opened' class='noselect') {{ reads.length }}
 
     v-list-item-action(class='ml-0')
-        app-menu-more
+        app-menu-more(v-if='profile && !profile.old_beta')
             app-list-item(@click='copy_invite' :disabled='copy.expired') Copy invite
             app-list-item(@click='retract' :disabled='copy.expired' color='error') Retract
 
@@ -94,12 +95,7 @@ export default class extends Vue {
 
     async retract(){
         // Retract the copy
-        if (!this.profile){
-            void this.$store.dispatch('show_snackbar',
-                "Cannot retract message as no longer have access to the sending account")
-            return
-        }
-        const host_user = await self.app_db.new_host_user(this.profile)
+        const host_user = await self.app_db.new_host_user(this.profile!)
         await host_user.delete_file(`copies/${this.copy.id}`)
         await host_user.delete_file(`invite_images/${this.copy.id}`)
 
