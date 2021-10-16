@@ -46,6 +46,7 @@ import {string_to_utf8, buffer_to_url64} from '@/services/utils/coding'
 import {get_host_user} from '@/services/hosts/hosts'
 import {HostManager, HostStorageGenerated} from '@/services/hosts/types'
 import {HostStorageGeneratedAws} from '@/services/hosts/aws_common'
+import {MustReconnect} from '@/services/utils/exceptions'
 
 
 @Component({})
@@ -87,11 +88,12 @@ export default class extends Vue {
             this.storage_generated = await this.manager.new_storage(this.bucket, this.region)
         } catch (error){
             // Handle situation where old keys still waiting to be deleted
-            if ((error as {code:string})?.code !== 'LimitExceeded'){
-                throw error
+            if (error instanceof MustReconnect){
+                void this.$store.dispatch('show_snackbar', "Could not connect")
+            } else {
+                self.app_report_error(error)
+                void this.$store.dispatch('show_snackbar', "Failed to create new credentials")
             }
-            void this.$store.dispatch('show_snackbar',
-                "Old keys still waiting to be deleted (try again soon)")
         }
         this.waiting = false
     }
