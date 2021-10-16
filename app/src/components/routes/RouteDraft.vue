@@ -161,7 +161,7 @@ export default class extends Vue {
 
     get profile():Profile|undefined{
         // Get profile record for draft (if it exists)
-        return this.profiles.find(p => p.id === this.draft!.profile)
+        return this.profiles.find(p => p.id === this.draft!.profile && p.setup_complete)
     }
 
     get final_recipients(){
@@ -268,7 +268,7 @@ export default class extends Vue {
 
     async create_profile(){
         // Create new profile (or resume setting up an in progress one)
-        const profile_in_progress = this.profiles.find(p => !p.setup_complete)
+        const profile_in_progress = this.profiles.find(p => !p.setup_complete && !p.old_beta)
         const profile = profile_in_progress ?? await self.app_db.profiles.create()
         void this.$router.push({
             name: 'profile',
