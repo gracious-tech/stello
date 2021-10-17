@@ -1,7 +1,7 @@
 
 import {HostCredentialsAws} from '@/services/hosts/aws_common'
 import {HOST_STORAGE_VERSION} from '@/services/hosts/common'
-import {get_host_manager} from '../hosts/hosts'
+import {get_host_manager, get_host_user} from '../hosts/hosts'
 import {HostCloud} from '../hosts/types'
 import {Task} from './tasks'
 
