@@ -305,11 +305,11 @@ export default class extends Vue {
     async done(){
         // Finish setting up profile
 
+        // Prevent user interaction until creation done
+        void this.$store.dispatch('show_waiting', "Finishing account setup...")
+
         // Create account if hosting with GT
         if (!this.profile.host){
-
-            // Prevent user interaction until done
-            void this.$store.dispatch('show_waiting', "Finishing account setup...")
 
             try {
                 const result = await create_account(
@@ -352,6 +352,14 @@ export default class extends Vue {
                 // Ensure waiting dialog always closes, otherwise can't interact anymore
                 void this.$store.dispatch('close_dialog')
             }
+        } else {
+            // Ensure services setup before continuing as configs_update task relies on it
+            try {
+                const task = await this.$tm.start_hosts_storage_update(this.profile.id)
+                await task.done
+            } finally {
+                void this.$store.dispatch('close_dialog')
+            }
         }
 
         // Complete steps (reveals normal profile settings UI)
@@ -369,11 +377,6 @@ export default class extends Vue {
                 draft.profile = this.profile.id
                 await self.app_db.drafts.set(draft)
             }
-        }
-
-        // Start host update task
-        if (this.profile.host.cloud !== 'gracious'){
-            void this.$tm.start_hosts_storage_update(this.profile.id)
         }
 
         return true
