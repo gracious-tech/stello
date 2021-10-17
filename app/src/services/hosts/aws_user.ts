@@ -96,17 +96,19 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
             this._delete_bucket(this._bucket_resp_id),
             // Other
             this._get_api_id().then(
-                (api_id):unknown => api_id && this.gateway.deleteApi({ApiId: api_id})),
+                (api_id):unknown => api_id && no404(this.gateway.deleteApi({ApiId: api_id}))),
             no404(this.lambda.deleteFunction({FunctionName: this._lambda_id})),
             no404(this.sns.deleteTopic({TopicArn: await this._get_topic_arn()})),
             no404(this.iam.deleteRolePolicy({RoleName: this._lambda_role_id, PolicyName: 'stello'}))
-                .then(() => no404(this.iam.deleteRole({RoleName: this._lambda_role_id})))
-                .then(async () => no404(
-                    this.iam.deletePolicy({PolicyArn: await this._get_lambda_boundary_arn()}))),
+                .then(() => no404(this.iam.deleteRole({RoleName: this._lambda_role_id}))),
         )
 
-        // Delete user last, as a consistant way of knowing if all services deleted
-        await task.expected(this._delete_user(this._user_id))
+        // Once deleted everything (except user and permissions boundary), revoke own access
+        // NOTE May not exist if this method is being called by HostManager
+        await no404(this.iam.deleteAccessKey({
+            UserName: this._user_id,
+            AccessKeyId: this.generated.credentials.accessKeyId,
+        }))
     }
 
 
@@ -509,32 +511,5 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
         // Delete a bucket
         await this._delete_objects(bucket)
         await no404(this.s3.deleteBucket({Bucket: bucket}))
-    }
-
-    async _delete_user(user_id:string):Promise<void>{
-        // Completely delete a user
-
-        // User's policy must first be deleted
-        await no404(this.iam.deleteUserPolicy({UserName: user_id, PolicyName: 'stello'}))
-
-        // Must also first delete any keys
-        await this._delete_user_keys(user_id)
-
-        // Can now finally delete the user
-        await no404(this.iam.deleteUser({UserName: user_id}))
-    }
-
-    async _delete_user_keys(user_id:string):Promise<void>{
-        // Delete all user's access keys
-        const existing = await no404(this.iam.listAccessKeys({UserName: user_id}))
-        if (!existing){
-            return
-        }
-        await Promise.all((existing.AccessKeyMetadata ?? []).map(key => {
-            return this.iam.deleteAccessKey({
-                UserName: user_id,
-                AccessKeyId: key.AccessKeyId,
-            })
-        }))
     }
 }

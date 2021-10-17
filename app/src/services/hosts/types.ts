@@ -49,6 +49,9 @@ export declare class HostManager {
 
     // Create new storage and return credentials for it
     new_storage(bucket:string, region:string):Promise<HostStorageGenerated>
+
+    // Delete storage
+    delete_storage(task:Task, bucket:string, region:string):Promise<void>
 }
 
 

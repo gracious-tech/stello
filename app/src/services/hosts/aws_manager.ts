@@ -11,9 +11,11 @@ import {ResourceGroupsTaggingAPI, paginateGetResources}
     from '@aws-sdk/client-resource-groups-tagging-api'
 
 import {HostPermissionError} from '@/services/hosts/common'
-import {maxWaitTime, StorageBaseAws, AwsError, HostCredentialsAws, HostStorageGeneratedAws}
+import {maxWaitTime, StorageBaseAws, AwsError, HostCredentialsAws, HostStorageGeneratedAws, no404}
     from '@/services/hosts/aws_common'
 import {HostCloud, HostManager, StorageProps} from '@/services/hosts/types'
+import {HostUserAws} from '@/services/hosts/aws_user'
+import {Task} from '@/services/tasks/tasks'
 
 
 export class HostManagerAws implements HostManager {
@@ -198,7 +200,8 @@ export class HostManagerAws implements HostManager {
                 Target: lambda_arn,
             })).ApiId!
         }
-        const gateway_arn = `arn:aws:apigateway:${region}:${account_id}:/apis/${api_id}`
+        // NOTE For some reason adding account id invalidates the arn
+        const gateway_arn = `arn:aws:apigateway:${region}::/apis/${api_id}`
 
         // Create user who will have permissions to setup rest of services
         try {
@@ -282,32 +285,18 @@ export class HostManagerAws implements HostManager {
                             'iam:PutRolePolicy', 'iam:DeleteRolePolicy'],
                     },
 
-                    // Allow user to delete themself
+                    // Allow user to delete their own key
                     {
                         Effect: 'Allow',
-                        Resource: `arn:aws:iam::${account_id}:user/${ids._user_id}`,
-                        Action: ['iam:DeleteUser'],
-                    },
-
-                    // Allow user to delete permissions boundary (to clean up entire services set)
-                    // SECURITY Not a security issue as lambda role can't exist/create without it
-                    {
-                        Effect: 'Allow',
-                        Resource: lambda_boundary_arn,
-                        Action: ['iam:DeletePolicy'],
+                        Resource: `arn:aws:iam::${account_id}:user/stello/${region}/${ids._user_id}`,
+                        Action: ['iam:DeleteAccessKey'],
                     },
                 ],
             }),
         })
 
         // Revoke any existing keys
-        const existing_keys = await this.iam.listAccessKeys({UserName: ids._user_id})
-        for (const key of existing_keys.AccessKeyMetadata ?? []){
-            await this.iam.deleteAccessKey({
-                UserName: ids._user_id,
-                AccessKeyId: key.AccessKeyId,
-            })
-        }
+        await this._delete_user_keys(ids._user_id)
 
         // Create key for the user
         const user_key = await this.iam.createAccessKey({UserName: ids._user_id})
@@ -320,6 +309,32 @@ export class HostManagerAws implements HostManager {
             },
             api_id,
         }
+    }
+
+    async delete_storage(task:Task, bucket:string, region:string):Promise<void>{
+        // Delete storage services and user
+
+        // Delete services user has access to
+        const host_user = new HostUserAws({credentials: this.credentials}, bucket, region, null)
+        await host_user.delete_services(task)
+
+        // Delete services user can't access
+
+        // Delete permission boundary
+        const account_id = await host_user._get_account_id()
+        await no404(this.iam.deletePolicy({
+            PolicyArn: `arn:aws:iam::${account_id}:policy/${host_user._lambda_boundary_id}`,
+        }))
+
+        // User's policy must be deleted before user can be
+        await no404(this.iam.deleteUserPolicy({UserName: host_user._user_id, PolicyName: 'stello'}))
+
+        // Must also first delete any keys
+        await this._delete_user_keys(host_user._user_id)
+
+        // Can now finally delete the user
+        // NOTE Delete user last, as a consistant way of knowing if all services deleted
+        await no404(this.iam.deleteUser({UserName: host_user._user_id}))
     }
 
     // PRIVATE
@@ -344,5 +359,19 @@ export class HostManagerAws implements HostManager {
             .filter(i => i[2] === 'apigateway')[0]  // Only match API gateway
             // Should only be one if any `[0]`
         return arn?.[5]?.split('/')[2]  // Extract gateway id part
+    }
+
+    async _delete_user_keys(user_id:string):Promise<void>{
+        // Delete all user's access keys
+        const existing = await no404(this.iam.listAccessKeys({UserName: user_id}))
+        if (!existing){
+            return
+        }
+        await Promise.all((existing.AccessKeyMetadata ?? []).map(key => {
+            return this.iam.deleteAccessKey({
+                UserName: user_id,
+                AccessKeyId: key.AccessKeyId,
+            })
+        }))
     }
 }
