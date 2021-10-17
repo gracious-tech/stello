@@ -40,11 +40,32 @@ test.describe('migrate', async () => {
     test('to_12_from_11', to_12_from_11)
 
     test('to_13', async () => {
+
+        // Setup
         let db = await open_db('to_13', 12, to_12_from_0)
         await db.put('state', {key: 'manager_aws_key_secret', value: 'value'})
+        await db.put('profiles', {id: 'incomplete', setup_step: 3} as any)
+        await db.put('profiles', {id: 'complete', setup_step: null, options: {}} as any)
+
+        // Confirm setup correct
+        expect(await db.get('state', 'manager_aws_key_secret')).not.toBe(undefined)
+        expect(await db.get('profiles', 'incomplete')).not.toBe(undefined)
+        expect(await db.get('profiles', 'complete')).not.toBe(undefined)
+
+        // Migrate
         db.close()
         db = await open_db('to_13', 13, to_13)
+
+        // manager_aws_key_secret has been deleted
         expect(await db.get('state', 'manager_aws_key_secret')).toBe(undefined)
+
+        // Incomplete profiles have been deleted
+        expect(await db.get('profiles', 'incomplete')).toBe(undefined)
+
+        // Complete profiles have generic_domain option added, and revert to incomplete setup
+        const complete_profile = await db.get('profiles', 'complete')
+        expect(complete_profile!.options.generic_domain).toBe(true)
+        expect(complete_profile!.setup_step).toBe(0)
     })
 
 })
