@@ -165,6 +165,7 @@ export class HostManagerAws implements HostManager {
         const lambda_arn = `arn:aws:lambda:${region}:${account_id}:function:${ids._lambda_id}`
         const lambda_role_arn = `arn:aws:iam::${account_id}:role/${ids._lambda_role_id}`
         const lambda_boundary_arn = `arn:aws:iam::${account_id}:policy/${ids._lambda_boundary_id}`
+        const topic_arn = `arn:aws:sns:${region}:${account_id}:${ids._topic_id}`
 
         // Create the messages bucket to secure its id
         const regioned_s3 = new S3(
@@ -197,6 +198,7 @@ export class HostManagerAws implements HostManager {
                 Target: lambda_arn,
             })).ApiId!
         }
+        const gateway_arn = `arn:aws:apigateway:${region}:${account_id}:/apis/${api_id}`
 
         // Create user who will have permissions to setup rest of services
         try {
@@ -223,8 +225,9 @@ export class HostManagerAws implements HostManager {
                 ids._bucket_resp_arn,
                 ids._bucket_resp_arn + '/*',
                 lambda_arn,
-                `arn:aws:apigateway:${region}:${account_id}:/apis/${api_id}`,
-                `arn:aws:sns:${region}:${account_id}:${ids._topic_id}`,
+                gateway_arn,
+                gateway_arn + '/*',
+                topic_arn,
             ],
         }
 
