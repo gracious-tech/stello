@@ -1,5 +1,5 @@
 
-import {HostStorageGeneratedAws} from '@/services/hosts/aws_common'
+import {HostStorageGeneratedAws} from '../../services/hosts/aws_common'
 import {IDBPDatabase, DBSchema, IDBPTransaction, StoreNames} from 'idb'
 
 
