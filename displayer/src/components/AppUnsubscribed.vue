@@ -1,7 +1,7 @@
 
 <template lang='pug'>
 
-div.unsubscribed(class='ui')
+div.unsubscribed(v-if='unsubscribed || !responder' class='ui')
     div.alert
 
         template(v-if='responder === null') Network issue detected
