@@ -1,7 +1,7 @@
 
 import {HostCredentialsAws} from '@/services/hosts/aws_common'
 import {HOST_STORAGE_VERSION} from '@/services/hosts/common'
-import {get_host_user} from '../hosts/hosts'
+import {get_host_manager} from '../hosts/hosts'
 import {HostCloud} from '../hosts/types'
 import {Task} from './tasks'
 
@@ -16,8 +16,8 @@ export async function hosts_manager_delete(task:Task):Promise<void>{
     task.show_count = true
 
     // Do delete
-    const host_user_class = get_host_user(cloud)
-    await new host_user_class({credentials}, bucket, region, null).delete_services(task)
+    const manager_class = get_host_manager(cloud)
+    await new manager_class(credentials).delete_storage(task, bucket, region)
 }
 
 
