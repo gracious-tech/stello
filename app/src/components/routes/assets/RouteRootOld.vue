@@ -11,7 +11,7 @@ v-alert(v-if='need_migrating.length' color='warning' light)
         | and will be deleted after 1 Feb 2022.
     h3 Old accounts
     v-list(class='mb-8')
-        v-list-item(v-for='profile of need_migrating')
+        v-list-item(v-for='profile of need_migrating' :key='profile.id')
             v-list-item-content
                 v-list-item-title {{ profile.display }}
             v-list-item-action
