@@ -24,6 +24,7 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 import DialogGenericConfirm from '@/components/dialogs/generic/DialogGenericConfirm.vue'
 import {Profile} from '@/services/database/profiles'
 import {Task} from '@/services/tasks/tasks'
+import {MustReconnect} from '@/services/utils/exceptions'
 
 
 @Component({})
@@ -59,30 +60,64 @@ export default class extends Vue {
                     confirm: "Delete",
                     confirm_danger: true,
                 },
-            })
+            }) as boolean
             if (!confirmed){
                 return
             }
         }
 
-        void this.$store.dispatch('show_waiting', "Deleting account...")
-        try {
-            // Remove services
-            if (this.profile.setup_complete){
+        // Remove services
+        if (this.profile.host){
+            void this.$store.dispatch('show_waiting', "Deleting account...")
+            try {
                 const host_user = await self.app_db.new_host_user(this.profile)
                 await host_user.delete_services(new Task('', [], []))
+            } catch (error){
+
+                // Close waiting dialog so can show another
+                await this.$store.dispatch('close_dialog')
+
+                // Fail if no network connection
+                if (error instanceof MustReconnect){
+                    void this.$store.dispatch('show_snackbar', "Could not connect")
+                    return
+                }
+
+                // Report as shouldn't happen
+                self.app_report_error(error)
+
+                // Confirm if want to delete profile locally even if account remains
+                const confirmed = await this.$store.dispatch('show_dialog', {
+                    component: DialogGenericConfirm,
+                    props: {
+                        title: `Unable to confirm account deleted`,
+                        text: `Something went wrong in deleting the account.
+                            This may be because it was already deleted, or there may
+                            still be messages remaining.`,
+                        confirm: "Assume deleted",
+                        confirm_danger: true,
+                    },
+                }) as boolean
+                if (!confirmed){
+                    return
+                }
+
+            } finally {
+                // Ensure waiting dialog always closed
+                void this.$store.dispatch('close_dialog')
             }
-            // Remove from db
-            void self.app_db.profiles.remove(this.profile.id)
-            // Clear the default if this was it, so another can take it
-            if (this.is_default){
-                this.$store.commit('dict_set', ['default_profile', null])
-            }
-            // Notify parent that this profile has been removed
-            this.$emit('removed', this.profile.id)
-        } finally {
-            void this.$store.dispatch('close_dialog')
         }
+
+        // Remove from db
+        void self.app_db.profiles.remove(this.profile.id)
+
+        // Clear the default if this was it, so another can take it
+        if (this.is_default){
+            this.$store.commit('dict_set', ['default_profile', null])
+        }
+
+        // Notify parent that this profile has been removed
+        this.$emit('removed', this.profile.id)
     }
 
 }

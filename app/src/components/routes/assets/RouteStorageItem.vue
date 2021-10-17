@@ -19,8 +19,7 @@ div
                     | {{ storage.version === undefined ? 'incomplete' : 'outdated' }}
             v-list-item-action
                 app-menu-more
-                    app-list-item(@click='() => new_credentials(storage)'
-                        :disabled='storage.version === undefined') Get new credentials
+                    app-list-item(@click='() => new_credentials(storage)') Get new credentials
                     app-list-item(@click='() => update_services(storage)')
                         | {{ storage.version === undefined ? "Fix" : "Update" }}
                     app-list-item(@click='() => delete_services(storage)' color='error') Delete
