@@ -422,13 +422,16 @@ def _send_notification(config, resp_type, event, user):
             return
 
         subject = "Stello: New reaction" if reaction else "Stello: New reply"
-        msg = f"Someone reacted with: {event['content']}" if reaction else event['content']
+        heading = "Someone reacted with:" if reaction else "Someone replied with:"
+        msg = event['content']
         if not DOMAINS:
             msg += "\n" * 10
             msg += (
                 "#### MESSAGE END ####\n"
-                "Open Stello to reply and confirm author. Ignore storage provider's notes below."
-                "Instead, change notification settings in Stello."
+                "Open Stello to identify the author of this message and to reply"
+                " (not possible via email for security reasons)."
+                " Ignore storage provider's notes below."
+                " Instead, change notification settings in Stello."
             )
     else:
         # Work out counts
@@ -455,12 +458,14 @@ def _send_notification(config, resp_type, event, user):
         if reaction_count:
             summary += f"{reaction_count} new {reaction_s}"
 
-        # Work out subject
+        # Work out subject and heading
         subject = "Stello: " + summary
+        heading = f"You have {summary} to your messages"
 
         # Work out msg
-        msg = f"You have {summary} to your Stello messages (open Stello to see them)"
+        msg = ""
         if not DOMAINS:
+            msg += "Open Stello to see them"
             msg += "\n" * 10
             msg += "Ignore storage provider's notes below. Instead, change notification settings in Stello."
 
@@ -480,7 +485,7 @@ def _send_notification(config, resp_type, event, user):
                     },
                     'Body': {
                         'Html': {
-                            'Data': generate_email(msg),
+                            'Data': generate_email(heading, msg),
                             'Charset': 'UTF-8',
                         },
                     },
@@ -488,7 +493,7 @@ def _send_notification(config, resp_type, event, user):
             )
         else:
             boto3.client('sns', config=AWS_CONFIG).publish(
-                TopicArn=TOPIC_ARN, Subject=subject, Message=msg)
+                TopicArn=TOPIC_ARN, Subject=subject, Message=f'{heading}\n\n\n{msg}')
 
 
 # INVITER
