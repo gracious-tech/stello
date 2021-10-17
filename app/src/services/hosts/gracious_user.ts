@@ -42,7 +42,7 @@ export class HostUserGracious extends HostUserAwsBase implements HostUser {
         await user_pools.updateUserAttributes({
             AccessToken: login.AccessToken,
             UserAttributes: [{
-                Name: 'hashed_email',
+                Name: 'custom:hashed_email',
                 Value: buffer_to_url64(await generate_hash(string_to_utf8(address))),
             }],
         })
