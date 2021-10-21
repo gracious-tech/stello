@@ -13,3 +13,5 @@ cd ../displayer
 "$@"
 cd ../electron
 "$@"
+cd ../host/accounts
+"$@"
