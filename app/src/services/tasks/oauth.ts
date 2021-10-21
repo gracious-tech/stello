@@ -104,7 +104,7 @@ export const OAUTH_SUPPORTED:Record<OAuthIssuer, IssuerConfig> = {
     google: {
         // https://developers.google.com/identity/protocols/oauth2/native-app
         endpoint: 'https://accounts.google.com/',
-        client_id: '1063868460974-iq39c1ajf4he8gn0d1d4s9snv9pkhqv3.apps.googleusercontent.com',
+        client_id: import.meta.env.VITE_OAUTH_ID_GOOGLE,
         // SECURITY Google for some reason requires client_secret even for Desktop apps
         // They state it can't/doesn't need to be confidential, and will be in compiled app
         // See https://stackoverflow.com/questions/59416326/
@@ -126,7 +126,7 @@ export const OAUTH_SUPPORTED:Record<OAuthIssuer, IssuerConfig> = {
         // https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow
         // NOTE `common` tenant in path allows both personal and work accounts to login
         endpoint: 'https://login.microsoftonline.com/common/v2.0',
-        client_id: '532be7c2-7273-44d0-85b3-c094f90f07f8',
+        client_id: import.meta.env.VITE_OAUTH_ID_MICROSOFT,
         client_secret: '',  // Empty string since a URL param, not JSON
         scopes: {
             always: ['offline_access'],  // Request refresh tokens (like Google's `access_type`)

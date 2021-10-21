@@ -59,6 +59,8 @@ jobs:
                     VITE_ROLLBAR_DISPLAYER: ${{ secrets.ROLLBAR_DISPLAYER }}
             -   run: .bin/build_app
                 env:
+                    VITE_OAUTH_ID_GOOGLE: ${{ secrets.OAUTH_ID_GOOGLE }}
+                    VITE_OAUTH_ID_MICROSOFT: ${{ secrets.OAUTH_ID_MICROSOFT }}
                     VITE_OAUTH_SECRET_GOOGLE: ${{ secrets.OAUTH_SECRET_GOOGLE }}
                     VITE_ROLLBAR_APP: ${{ secrets.ROLLBAR_APP }}
                     VITE_ROLLBAR_RESPONDER: ${{ secrets.ROLLBAR_RESPONDER }}

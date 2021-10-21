@@ -69,6 +69,8 @@ declare module 'Custom' {
                 PROD:boolean,
                 DEV:boolean,
                 VITE_DEV_HOST_SETTINGS:string,
+                VITE_OAUTH_ID_GOOGLE:string,
+                VITE_OAUTH_ID_MICROSOFT:string,
                 VITE_OAUTH_SECRET_GOOGLE:string,
                 VITE_ROLLBAR_APP:string,
                 VITE_ROLLBAR_RESPONDER:string,
