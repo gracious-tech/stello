@@ -1,7 +1,7 @@
 {
     "name": "stello",
     "version": "0.8.3",
-    "description": "A new way to send newsletters that are secure & interactive",
+    "description": "A new way to send newsletters that are secure and interactive",
     "homepage": "https://stello.news/",
     "author": {
         "name": "Gracious Tech",
@@ -36,6 +36,15 @@
         "directories": {
             "output": "packaged"
         },
+        "protocols": [
+            {
+                "name": "Stello",
+                "schemes": [
+                    "stello"
+                ],
+                "role": "Editor"
+            }
+        ],
         "linux": {
             "category": "Office"
         },
