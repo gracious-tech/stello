@@ -57,7 +57,7 @@
         "afterSign": "./macos_notarize.js",
         "publish": {
             "provider": "s3",
-            "bucket": "releases-stello-news",
+            "bucket": "stello-releases",
             "region": "us-west-2",
             "path": "electron_proposed/",
             "acl": null

@@ -5,8 +5,8 @@ cd "$(dirname "$(dirname "$0")")"
 
 
 # Config
-BUCKET="releases-stello-news"
-CF_DIST="E2UW2QQ9J75P8G"
+BUCKET="stello-releases"
+CF_DIST="E3BA5K555JRNHM"
 
 
 # Move proposed assets into official dir, overwriting existing

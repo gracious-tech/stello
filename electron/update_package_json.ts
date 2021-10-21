@@ -81,7 +81,7 @@ const new_contents:Metadata|PackageJsonMissing = {
         publish: {
             // NOTE Different settings used in Electron script to access via CloudFront instead
             provider: 's3',
-            bucket: 'releases-stello-news',
+            bucket: 'stello-releases',
             region: 'us-west-2',
             path: 'electron_proposed/',
             acl: null,  // So don't have to grant CI ACL permissions
