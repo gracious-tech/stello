@@ -368,7 +368,7 @@ export default class extends Vue {
 
         // Make this the default profile if none yet
         const default_profile:Profile|null|undefined = this.$store.state.default_profile
-            && self.app_db.profiles.get(this.$store.state.default_profile)
+            && await self.app_db.profiles.get(this.$store.state.default_profile)
         if (!default_profile || !default_profile.setup_complete){
             this.$store.commit('dict_set', ['default_profile', this.profile.id])
         }
