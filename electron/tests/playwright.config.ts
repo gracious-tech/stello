@@ -73,8 +73,7 @@ const test_interface_electron = test.extend<ElectronTestFixtures, ElectronWorker
         attach_js_error_handler(electron_page)
         // Auto click through the welcome splashes
         await electron_page.click('button:has-text("continue")')
-        await electron_page.click('.v-input--checkbox')
-        await electron_page.click('button:has-text("continue")')
+        await electron_page.click('button:has-text("agree")')
         // Run the test
         await run(electron_page)
         // Close page/window when done so that session data is reset (app will auto reopen)
@@ -117,8 +116,7 @@ const test_interface_port = test.extend<{gotohash:(path:string)=>Promise<Respons
         // Click through welcome splashes
         await page.goto('http://localhost:8000')
         await page.click('button:has-text("continue")')
-        await page.click('.v-input--checkbox')
-        await page.click('button:has-text("continue")')
+        await page.click('button:has-text("agree")')
         // Run test
         await run(page)
     },
