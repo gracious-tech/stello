@@ -435,7 +435,7 @@ def _send_notification(config, resp_type, event, user):
             msg += "\n" * 10
             msg += (
                 "#### MESSAGE END ####\n"
-                "Open Stello to identify the author of this message and to reply"
+                "Open Stello to identify who responded and to reply to them"
                 " (not possible via email for security reasons)."
                 " Ignore storage provider's notes below."
                 " Instead, change notification settings in Stello."
