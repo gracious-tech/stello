@@ -39,11 +39,11 @@ email_template = '''
 
         <p style='text-align: center; color: #aaaaaa; max-width: 600px; margin: 0 auto;'>
             <small style="font-size: 0.8em;">
+                Open Stello to identify who responded and to reply to them
+                (not possible via email for security reasons).
+                <br>
+                <br>
                 Open <a href="https://stello.news/" style="color: #aaaaaa;">Stello</a> to customise your notification settings. If you've lost access to your account, or shouldn't be receiving these, <a href="https://gracious.tech/support/stello/" style="color: #aaaaaa;">let us know</a>.
-                <br>
-                <br>
-                Open Stello to identify the author of this message and to reply
-                (not possible via email for security reasons)."
             </small>
         </p>
 
