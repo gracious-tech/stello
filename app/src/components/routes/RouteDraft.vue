@@ -112,9 +112,11 @@ export default class extends Vue {
                     this.draft!.profile = this.$store.state.default_profile
                 }
                 // If default didn't work, try first in list
-                const first_profile = this.profiles.filter(p => p.setup_complete)[0]
-                if (first_profile){
-                    this.draft!.profile = first_profile.id
+                if (!this.profile){
+                    const first_profile = this.profiles.filter(p => p.setup_complete)[0]
+                    if (first_profile){
+                        this.draft!.profile = first_profile.id
+                    }
                 }
             }
         })
