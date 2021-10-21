@@ -183,7 +183,8 @@ Resources:
                     stello_msgs_bucket: !Ref AWS::StackName
                     stello_region: !Ref AWS::Region
                     stello_rollbar_responder: !Ref InputRollbarResponder
-                    stello_domains: !Join [' ', [!Ref InputDomainGeneric, !Ref InputDomainBranded]]
+                    stello_domain_branded: !Ref InputDomainBranded
+                    stello_domain_generic: !Ref InputDomainGeneric
 
     InviterImage:
         # NOTE For simpler deployment, inviter code is embedded in responder
@@ -206,7 +207,8 @@ Resources:
                     stello_msgs_bucket: !Ref AWS::StackName
                     stello_region: !Ref AWS::Region
                     stello_rollbar_responder: !Ref InputRollbarResponder
-                    stello_domains: !Join [' ', [!Ref InputDomainGeneric, !Ref InputDomainBranded]]
+                    stello_domain_branded: !Ref InputDomainBranded
+                    stello_domain_generic: !Ref InputDomainGeneric
             Policies:
                 -   Version: '2012-10-17'
                     Statement:
@@ -234,7 +236,8 @@ Resources:
                     stello_msgs_bucket: !Ref AWS::StackName
                     stello_region: !Ref AWS::Region
                     stello_rollbar_responder: !Ref InputRollbarResponder
-                    stello_domains: !Join [' ', [!Ref InputDomainGeneric, !Ref InputDomainBranded]]
+                    stello_domain_branded: !Ref InputDomainBranded
+                    stello_domain_generic: !Ref InputDomainGeneric
             Policies:
                 -   Version: '2012-10-17'
                     Statement:
@@ -273,7 +276,8 @@ Resources:
                     stello_msgs_bucket: !Ref AWS::StackName
                     stello_region: !Ref AWS::Region
                     stello_rollbar_responder: !Ref InputRollbarResponder
-                    stello_domains: !Join [' ', [!Ref InputDomainGeneric, !Ref InputDomainBranded]]
+                    stello_domain_branded: !Ref InputDomainBranded
+                    stello_domain_generic: !Ref InputDomainGeneric
             Policies:
                 -   Version: '2012-10-17'
                     Statement:
@@ -312,7 +316,8 @@ Resources:
                     stello_msgs_bucket: !Ref AWS::StackName
                     stello_region: !Ref AWS::Region
                     stello_rollbar_responder: !Ref InputRollbarResponder
-                    stello_domains: !Join [' ', [!Ref InputDomainGeneric, !Ref InputDomainBranded]]
+                    stello_domain_branded: !Ref InputDomainBranded
+                    stello_domain_generic: !Ref InputDomainGeneric
             Policies:
                 -   Version: '2012-10-17'
                     Statement:
@@ -351,7 +356,8 @@ Resources:
                     stello_msgs_bucket: !Ref AWS::StackName
                     stello_region: !Ref AWS::Region
                     stello_rollbar_responder: !Ref InputRollbarResponder
-                    stello_domains: !Join [' ', [!Ref InputDomainGeneric, !Ref InputDomainBranded]]
+                    stello_domain_branded: !Ref InputDomainBranded
+                    stello_domain_generic: !Ref InputDomainGeneric
             Policies:
                 -   Version: '2012-10-17'
                     Statement:
@@ -383,7 +389,8 @@ Resources:
                     stello_msgs_bucket: !Ref AWS::StackName
                     stello_region: !Ref AWS::Region
                     stello_rollbar_responder: !Ref InputRollbarResponder
-                    stello_domains: !Join [' ', [!Ref InputDomainGeneric, !Ref InputDomainBranded]]
+                    stello_domain_branded: !Ref InputDomainBranded
+                    stello_domain_generic: !Ref InputDomainGeneric
             Policies:
                 -   Version: '2012-10-17'
                     Statement:
@@ -415,7 +422,8 @@ Resources:
                     stello_msgs_bucket: !Ref AWS::StackName
                     stello_region: !Ref AWS::Region
                     stello_rollbar_responder: !Ref InputRollbarResponder
-                    stello_domains: !Join [' ', [!Ref InputDomainGeneric, !Ref InputDomainBranded]]
+                    stello_domain_branded: !Ref InputDomainBranded
+                    stello_domain_generic: !Ref InputDomainGeneric
             Policies:
                 -   Version: '2012-10-17'
                     Statement:

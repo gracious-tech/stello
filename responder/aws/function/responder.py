@@ -40,10 +40,16 @@ DEV = ENV == 'development'
 VERSION = os.environ['stello_version']
 MSGS_BUCKET = os.environ['stello_msgs_bucket']
 RESP_BUCKET = MSGS_BUCKET + '-stello-resp'
-TOPIC_ARN = os.environ.get('stello_topic_arn')  # Self-hosted only
 REGION = os.environ['stello_region']
 ROLLBAR_TOKEN = os.environ['stello_rollbar_responder']  # Client token (not server) as public
-DOMAINS = os.environ['stello_domains'].split(' ') if os.environ.get('stello_domains') else []
+
+# Optional config
+SELF_HOSTED = not os.environ.get('stello_domain_branded')
+if SELF_HOSTED:
+    TOPIC_ARN = os.environ['stello_topic_arn']
+else:
+    DOMAIN_BRANDED = os.environ['stello_domain_branded']
+    DOMAIN_GENERIC = os.environ['stello_domain_generic']
 
 
 # Setup Rollbar
@@ -83,13 +89,14 @@ def entry(api_event, context):
 
     # Determine expected origin (and detect user)
     # NOTE Access-Control-Allow-Origin can only take one value, so must detect right one
-    if DOMAINS:
-        # Hosted setup -- origin must be a subdomain of one of defined domains
-        user, _, root_origin = api_event['headers']['origin'].partition('//')[2].partition('.')
-        allowed_origin = f'https://{user}.{root_origin}' if root_origin in DOMAINS else None
-    else:
+    if SELF_HOSTED:
         user = '_user'
         allowed_origin = f'https://{MSGS_BUCKET}.s3-{REGION}.amazonaws.com'
+    else:
+        # Hosted setup -- origin must be a subdomain of one of defined domains
+        user, _, root_origin = api_event['headers']['origin'].partition('//')[2].partition('.')
+        allowed_root = DOMAIN_GENERIC if root_origin == DOMAIN_GENERIC else DOMAIN_BRANDED
+        allowed_origin = f'https://{user}.{allowed_root}'
 
     # If origin not allowed, 403 to prevent further processing of the request
     if not DEV and api_event['headers']['origin'] != allowed_origin:
@@ -424,7 +431,7 @@ def _send_notification(config, resp_type, event, user):
         subject = "Stello: New reaction" if reaction else "Stello: New reply"
         heading = "Someone reacted with:" if reaction else "Someone replied with:"
         msg = event['content']
-        if not DOMAINS:
+        if SELF_HOSTED:
             msg += "\n" * 10
             msg += (
                 "#### MESSAGE END ####\n"
@@ -464,19 +471,22 @@ def _send_notification(config, resp_type, event, user):
 
         # Work out msg
         msg = ""
-        if not DOMAINS:
+        if SELF_HOSTED:
             msg += "Open Stello to see them"
             msg += "\n" * 10
             msg += "Ignore storage provider's notes below. Instead, change notification settings in Stello."
 
     # In case multiple sending profiles, note the bucket name in the subject
-    subject += f" [{user if DOMAINS else MSGS_BUCKET}]"
+    subject += f" [{MSGS_BUCKET if SELF_HOSTED else user}]"
 
     # Send notification
     if not DEV:
-        if DOMAINS:
+        if SELF_HOSTED:
+            boto3.client('sns', config=AWS_CONFIG).publish(
+                TopicArn=TOPIC_ARN, Subject=subject, Message=f'{heading}\n\n\n{msg}')
+        else:
             boto3.client('ses', config=AWS_CONFIG).send_email(
-                Source="Stello <no-reply@stello.news>",
+                Source=f"Stello <no-reply@{DOMAIN_BRANDED}>",
                 Destination={'ToAddresses': [config['email']]},
                 Message={
                     'Subject': {
@@ -491,9 +501,6 @@ def _send_notification(config, resp_type, event, user):
                     },
                 },
             )
-        else:
-            boto3.client('sns', config=AWS_CONFIG).publish(
-                TopicArn=TOPIC_ARN, Subject=subject, Message=f'{heading}\n\n\n{msg}')
 
 
 # INVITER

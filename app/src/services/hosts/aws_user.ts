@@ -439,7 +439,6 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
             stello_topic_arn: await this._get_topic_arn(),
             stello_region: this.region,
             stello_rollbar_responder: import.meta.env.VITE_ROLLBAR_RESPONDER,
-            stello_domains: '',  // Only needed for hosted setup
         }
 
         // Try get current function's config, else create function

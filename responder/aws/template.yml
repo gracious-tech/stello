@@ -13,12 +13,3 @@ Resources:
             Events:
                 ApiEvent:
                     Type: HttpApi
-            Environment:
-                Variables:
-                    stello_env: development
-                    stello_version: dev
-                    stello_msgs_bucket: ''
-                    stello_topic_arn: ''
-                    stello_region: ''
-                    stello_rollbar_responder: ''
-                    stello_domains: ''

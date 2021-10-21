@@ -7,7 +7,6 @@
         "stello_msgs_bucket": "...",
         "stello_topic_arn": "arn:aws:sns:...",
         "stello_region": "...",
-        "stello_rollbar_responder": "...",
-        "stello_domains": ""
+        "stello_rollbar_responder": "..."
     }
 }
