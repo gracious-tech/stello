@@ -105,9 +105,17 @@ export default class extends Vue {
         // Load profiles (so know if need to create or select existing)
         void self.app_db.profiles.list().then(profiles => {
             this.profiles = profiles
-            // Auto assign default if no account selected yet
-            if (!this.profile && this.$store.state.default_profile){
-                this.draft!.profile = this.$store.state.default_profile
+            // Auto assign profile if doesn't exist and one is available
+            if (!this.profile){
+                // First try default
+                if (this.$store.state.default_profile){
+                    this.draft!.profile = this.$store.state.default_profile
+                }
+                // If default didn't work, try first in list
+                const first_profile = this.profiles.filter(p => p.setup_complete)[0]
+                if (first_profile){
+                    this.draft!.profile = first_profile.id
+                }
             }
         })
 
