@@ -64,6 +64,14 @@ jobs:
                     VITE_OAUTH_SECRET_GOOGLE: ${{ secrets.OAUTH_SECRET_GOOGLE }}
                     VITE_ROLLBAR_APP: ${{ secrets.ROLLBAR_APP }}
                     VITE_ROLLBAR_RESPONDER: ${{ secrets.ROLLBAR_RESPONDER }}
+                    VITE_HOSTED_REGION: us-west-2
+                    VITE_HOSTED_USER_POOL: us-west-2_35JlR4J4Y
+                    VITE_HOSTED_USER_POOL_CLIENT: 6go9el36qqr5egm92s20b8fuer
+                    VITE_HOSTED_IDENTITY_POOL: us-west-2:457eead7-c848-47d1-8f09-81cb85f818d0
+                    VITE_HOSTED_BUCKET: stello-hosted
+                    VITE_HOSTED_API: https://api.at.message.quest/
+                    VITE_HOSTED_DOMAIN_GENERIC: message.quest
+                    VITE_HOSTED_DOMAIN_BRANDED: stello.news
             -   if: github.event.inputs.run_tests != 'false'
                 name: .bin/audit_e2e_displayer
                 run: |
