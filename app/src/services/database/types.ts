@@ -173,7 +173,7 @@ export interface RecordSection<TContent extends RecordSectionContent=RecordSecti
 }
 
 export type RecordSectionContent =
-    ContentText|ContentImages|ContentArticle|ContentVideo|ContentFile
+    ContentText|ContentImages|ContentVideo  // |ContentFile|ContentArticle
 
 export interface ContentText {
     type:'text'

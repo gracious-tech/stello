@@ -118,6 +118,8 @@ export default class extends Vue {
                         this.draft!.profile = first_profile.id
                     }
                 }
+                // Save changes
+                void this.save()
             }
         })
 
@@ -142,7 +144,7 @@ export default class extends Vue {
             }
 
             // Get the section's data and add to `this.sections`
-            const section_data = await self.app_db.sections.get(section_id)
+            const section_data = (await self.app_db.sections.get(section_id))!
             Vue.set(this.sections, section_id, section_data)
 
             // If just created a new section, open modify dialog straight away (unless text)
@@ -210,7 +212,7 @@ export default class extends Vue {
     set title(value){
         // Set draft's title
         this.draft!.title = value
-        void self.app_db.drafts.set(this.draft!)
+        void this.save()
     }
 
     get dark_message(){
@@ -224,7 +226,7 @@ export default class extends Vue {
     get sender_name(){
         // Get sender name, accounting for inheritance
         return this.draft!.options_identity.sender_name
-            || this.profile.msg_options_identity.sender_name
+            || this.profile!.msg_options_identity.sender_name
     }
 
     get contacts_included_desc(){
@@ -265,15 +267,20 @@ export default class extends Vue {
     get lifespan_desc():string{
         // Get desc of lifespan, accounting for inheritance
         const lifespan = this.draft!.options_security.lifespan
-            ?? this.profile.msg_options_security.lifespan
+            ?? this.profile!.msg_options_security.lifespan
         return lifespan_days_to_text(lifespan)
     }
 
     get max_reads_desc():string{
         // Get desc of max reads, accounting for inheritance
         const max_reads = this.draft!.options_security.max_reads
-            ?? this.profile.msg_options_security.max_reads
+            ?? this.profile!.msg_options_security.max_reads
         return max_reads === Infinity ? "" : `${max_reads} opens`
+    }
+
+    async save(){
+        // Save changes to draft
+        await self.app_db.drafts.set(this.draft!)
     }
 
     async create_profile(){
@@ -288,11 +295,11 @@ export default class extends Vue {
 
     load_contacts(){
         // Load contacts related
-        self.app_db.groups.list().then(groups => {
+        void self.app_db.groups.list().then(groups => {
             sort(groups, 'name')
             this.groups = groups
         })
-        self.app_db.contacts.list().then(contacts => {
+        void self.app_db.contacts.list().then(contacts => {
             sort(contacts, 'name')
             this.contacts = contacts
         })
@@ -308,7 +315,7 @@ export default class extends Vue {
 
     show_profile_dialog(){
         // Open dialog for modifying draft's sending profile and related settings
-        this.$store.dispatch('show_dialog', {
+        void this.$store.dispatch('show_dialog', {
             component: DialogDraftProfile,
             props: {draft: this.draft, profiles: this.profiles},
         })
@@ -316,7 +323,7 @@ export default class extends Vue {
 
     show_recipients_dialog(){
         // Open dialog for modifying draft's recipients
-        this.$store.dispatch('show_dialog', {
+        void this.$store.dispatch('show_dialog', {
             component: DialogDraftRecipients,
             props: {
                 draft: this.draft,
@@ -329,7 +336,7 @@ export default class extends Vue {
 
     show_security_dialog(){
         // Open dialog for modifying draft's security settings
-        this.$store.dispatch('show_dialog', {
+        void this.$store.dispatch('show_dialog', {
             component: DialogDraftSecurity,
             props: {draft: this.draft, profile: this.profile},
         })

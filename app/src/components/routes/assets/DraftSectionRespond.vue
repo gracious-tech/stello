@@ -26,8 +26,8 @@ import SharedRespondReact from '@/shared/SharedRespondReact.vue'
 })
 export default class extends Vue {
 
-    @Prop() profile:Profile
-    @Prop() section:Section
+    @Prop({required: true}) section!:Section
+    @Prop({default: undefined}) profile:Profile|undefined
 
     get respondable_final():boolean{
         // Quick access to respondable_final
@@ -47,7 +47,7 @@ export default class extends Vue {
     toggle_respondable():void{
         // Toggle, resolving null to opposite of whatever is current final (can't go back to null)
         this.section.respondable = !this.respondable_final
-        self.app_db.sections.set(this.section)
+        void self.app_db.sections.set(this.section)
     }
 
 }

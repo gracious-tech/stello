@@ -44,9 +44,9 @@ import {blob_image_size} from '@/services/utils/image'
 })
 export default class extends Vue {
 
-    @Prop() draft:Draft
-    @Prop() profile:Profile
-    @Prop() section:Section
+    @Prop({required: true}) draft!:Draft
+    @Prop({required: true}) section!:Section
+    @Prop({default: undefined}) profile:Profile|undefined
 
     images_aspect:[number, number]|null = null
 
@@ -80,7 +80,7 @@ export default class extends Vue {
     }
     set text_html(html){
         ;(this.content as ContentText).html = html
-        self.app_db.sections.set(this.section)
+        void self.app_db.sections.set(this.section)
     }
 
     modify(){
@@ -90,7 +90,7 @@ export default class extends Vue {
 
     remove(){
         // Remove this section (and cause this component to be destroyed)
-        self.app_db.draft_section_remove(this.draft, this.section)
+        void self.app_db.draft_section_remove(this.draft, this.section)
     }
 
     focus_editor(){
@@ -104,7 +104,7 @@ export default class extends Vue {
     @Watch('content.images', {immediate: true}) async watch_images(){
         // Recalculate the aspect ratio for images section based on the first image
         if (this.content.type === 'images' && this.content.images.length){
-            const size = await blob_image_size(this.content.images[0].data)
+            const size = await blob_image_size(this.content.images[0]!.data)
             this.images_aspect = [size.width, size.height]
         } else {
             this.images_aspect = null  // Reset if had one before

@@ -41,9 +41,9 @@ import {Profile} from '@/services/database/profiles'
 })
 export default class extends Vue {
 
-    @Prop() draft:Draft
-    @Prop() profile:Profile
-    @Prop() sections:{[id:string]: Section}
+    @Prop({required: true}) draft!:Draft
+    @Prop({required: true}) sections!:{[id:string]: Section}
+    @Prop({default: undefined}) profile:Profile|undefined
 
     modify_dialogs = {
         text: DialogSectionText,
@@ -66,7 +66,7 @@ export default class extends Vue {
     modify_section(section:Section){
         // Open the appropriate modify dialog for this section's type
         // NOTE This method is also accessed by the parent component
-        this.$store.dispatch('show_dialog', {
+        void this.$store.dispatch('show_dialog', {
             component: this.modify_dialogs[section.content.type],
             props: {section},
         })
