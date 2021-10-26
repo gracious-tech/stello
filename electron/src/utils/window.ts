@@ -80,7 +80,9 @@ export async function open_window(){
             // The only valid action for internal nav is to reload upon error
             // NOTE Reload file so nav to root in case displaying current page causes the error
             load_index()
-        } else {
+        } else if (url.startsWith('https://') || url.startsWith('http://')){
+            // SECURITY Don't allow opening any protocols other than HTTP
+            //     as could then open any app on user's computer and possibly trigger harmful events
             void shell.openExternal(url)
         }
     }
