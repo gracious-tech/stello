@@ -26,7 +26,8 @@ v-card
         div.range
             app-text(:value='static_start' @input='start_changed' :rules='[validate_time]'
                 :disabled='!content.format' label="Start" placeholder="hh:mm:ss")
-            app-text(:value='can_end_early ? static_end : ""' @input='end_changed' :rules='[validate_time]'
+            app-text(:value='can_end_early ? static_end : ""' @input='end_changed'
+                :rules='[validate_time]'
                 :disabled='!content.format || !can_end_early' label="End" placeholder="hh:mm:ss")
 
     v-card-actions
@@ -45,7 +46,7 @@ import {ContentVideo} from '@/services/database/types'
 import {debounce_method} from '@/services/misc'
 
 
-function secs_to_hms(secs:number):string{
+function secs_to_hms(secs:number|null):string{
     // Convert seconds as a number to a string of hours:minutes:seconds
     if (secs === null){
         return ''
@@ -68,7 +69,7 @@ function secs_to_hms(secs:number):string{
 }
 
 
-function hms_to_secs(hms:string):number{
+function hms_to_secs(hms:string):number|null{
     // Convert an hours:minutes:seconds string to number of total seconds
 
     // Separate parts
@@ -78,7 +79,7 @@ function hms_to_secs(hms:string):number{
     }
 
     // Convert to numbers
-    const secs = parseInt(parts.pop(), 10)
+    const secs = parseInt(parts.pop()!, 10)
     const mins = parseInt(parts.pop() ?? '0', 10)
     const hours = parseInt(parts.pop() ?? '0', 10)
     if ([secs, mins, hours].includes(NaN)){
@@ -95,11 +96,11 @@ function hms_to_secs(hms:string):number{
 })
 export default class extends Vue {
 
-    @Prop() section:Section<ContentVideo>
+    @Prop({required: true}) section!:Section<ContentVideo>
 
     show_help = false
-    static_start:string = null
-    static_end:string = null
+    static_start:string|null = null
+    static_end:string|null = null
 
     created(){
         // Set initial range values (not updated unless video source changed)
@@ -124,10 +125,10 @@ export default class extends Vue {
     set caption(value){
         // Change the caption of this video
         this.content.caption = value
-        self.app_db.sections.set(this.section)
+        void self.app_db.sections.set(this.section)
     }
 
-    parse_url(input:string):{format:'iframe_youtube'|'iframe_vimeo', id:string}{
+    parse_url(input:string):{format:'iframe_youtube'|'iframe_vimeo', id:string}|null{
         // Parse url and return format and id if valid
         let url:URL
         try {
@@ -138,17 +139,17 @@ export default class extends Vue {
         if (url.hostname.endsWith('youtube.com')){
             return {
                 format: 'iframe_youtube',
-                id: url.searchParams.get('v'),
+                id: url.searchParams.get('v') ?? '',
             }
         } else if (url.hostname.endsWith('youtu.be')){
             return {
                 format: 'iframe_youtube',
-                id: url.pathname.split('/')[1],
+                id: url.pathname.split('/')[1] ?? '',
             }
         } else if (url.hostname.endsWith('vimeo.com')){
             return {
                 format: 'iframe_vimeo',
-                id: url.pathname.split('/')[1],
+                id: url.pathname.split('/')[1] ?? '',
             }
         }
         return null
@@ -208,7 +209,7 @@ export default class extends Vue {
 
     save(){
         // Save changes to db
-        self.app_db.sections.set(this.section)
+        void self.app_db.sections.set(this.section)
     }
 
     dismiss(){
