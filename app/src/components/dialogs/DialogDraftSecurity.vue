@@ -6,7 +6,7 @@ v-card
 
     v-card-text
         app-select(v-bind='$t("lifespan")' v-model='lifespan' :items='lifespan_options'
-            :placeholder='inherit_lifespan')
+            :placeholder='inherit_lifespan' persistent-placeholder)
         app-integer(v-bind='$t("max_reads")' v-model='max_reads' :min='1' infinity
             :inherit='inherit_max_reads')
 
