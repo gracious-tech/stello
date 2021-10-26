@@ -39,7 +39,8 @@ export function nested_objects_set(container:unknown, keys:MinOne<string>, value
 }
 
 
-export function nested_objects_update(base:Record<string, any>, update:Record<string, any>):void{
+export function nested_objects_update(base:Record<string, unknown>, update:Record<string, unknown>)
+        :void{
     // Do a deep update of a base object by merging in values from the given update object
     // Update can be partial but can't add new keys, and can't change structure of base
     // Intended use case is merging in changes from an API response
@@ -49,12 +50,12 @@ export function nested_objects_update(base:Record<string, any>, update:Record<st
     for (const [key, new_val] of Object.entries(update)){
 
         // Don't allow adding new keys (bad practice, and Vue won't detect changes)
-        const old_val = base[key]
-        if (old_val === undefined){
+        if (! {}.hasOwnProperty.call(base, key)){
             throw new NestedKeyMissing(key)
         }
 
         // Skip if value hasn't changed
+        const old_val = base[key]
         if (new_val === old_val){
             continue
         }
@@ -69,7 +70,10 @@ export function nested_objects_update(base:Record<string, any>, update:Record<st
         // Go deeper if an object, otherwise update the value
         // NOTE Arrays are simply replaced, as too complicated to merge
         if (old_type === 'object'){
-            nested_objects_update(base[key], update[key])
+            nested_objects_update(
+                base[key] as Record<string, unknown>,
+                update[key] as Record<string, unknown>,
+            )
         } else {
             base[key] = new_val
         }
