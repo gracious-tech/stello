@@ -11,6 +11,7 @@ html
 
         //- SECURITY
         //- Only allow requests to self to guard against compromised dependencies etc
+        //- All requests that require 3rd party are to use native method that isn't impacted by CORS
         //- NOTE Can't set as HTTP header due to using file protocol, so meta tag instead
         //- NOTE 'unsafe-inline' required for dynamic styling (e.g. bg image) but limited to self
         //- NOTE Youtube/Vimeo required in frames for video previews
