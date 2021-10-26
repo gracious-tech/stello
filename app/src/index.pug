@@ -9,9 +9,16 @@ html
         //- Prevent error messages for favicon that can break tests
         link(rel='icon' href='data:,')
 
-        //- Security
-        //- Only allow resources from own host (can't set as HTTP header for file protocol)
-        //- TODO meta(http-equiv='Content-Security-Policy' content="default-src 'self' 'unsafe-inline'")
+        //- SECURITY
+        //- Only allow requests to self to guard against compromised dependencies etc
+        //- NOTE Can't set as HTTP header due to using file protocol, so meta tag instead
+        //- NOTE 'unsafe-inline' required for dynamic styling (e.g. bg image) but limited to self
+        //- NOTE Youtube/Vimeo required in frames for video previews
+        meta(http-equiv='Content-Security-Policy' content="
+            default-src 'self';
+            style-src 'self' 'unsafe-inline';
+            frame-src https://www.youtube-nocookie.com/ https://player.vimeo.com/;
+        ")
 
         //- Meta data
         title Stello
