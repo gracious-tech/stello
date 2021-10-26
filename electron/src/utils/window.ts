@@ -39,7 +39,6 @@ export async function open_window(){
         backgroundColor: '#000000',  // Avoid white flash before first paint
         webPreferences: {
             preload: get_path('preload.js'),
-            webSecurity: false,  // TODO Remove when alternative for CORS issues implemented
             session: window_session,
             nativeWindowOpen: true,  // Will be the default in future (set to silence warning)
         },
