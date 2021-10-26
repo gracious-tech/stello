@@ -5,4 +5,4 @@ cd "$(dirname "$(dirname "$0")")"
 
 
 cd app
-./node_modules/.bin/vite preview --port 8001
+./node_modules/.bin/vite preview --port 8000
