@@ -145,6 +145,30 @@ Resources:
                     TargetOriginId: primary
                     ViewerProtocolPolicy: https-only
                     CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6  # CachingOptimized
+                    FunctionAssociations:
+                        -   EventType: viewer-response
+                            FunctionARN: !GetAtt DisplayerCloudfrontFunction.FunctionMetadata.FunctionARN
+
+    DisplayerCloudfrontFunction:
+        Type: AWS::CloudFront::Function
+        Properties:
+            Name: viewer_response
+            AutoPublish: true
+            FunctionConfig:
+                Runtime: cloudfront-js-1.0
+                Comment: ''
+            FunctionCode: !Sub |
+                function handler(event){
+                    event.response.headers['referrer-policy'] = {value: 'no-referrer'}
+                    event.response.headers['x-robots-tag'] = {value: 'none'}
+                    event.response.headers['content-security-policy'] = {
+                        value: "default-src 'self';"
+                            + "style-src 'self' 'unsafe-inline';"
+                            + "connect-src 'self' https://api.at.${InputDomainGeneric};"
+                            + "frame-src https://www.youtube-nocookie.com/ https://player.vimeo.com/;",
+                    }
+                    return event.response
+                }
 
     # GATEWAY
 
