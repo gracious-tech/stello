@@ -101,13 +101,16 @@ export async function open_window(){
 
     // Disable CORS so renderer can request responses from any URL (security still handled by CSP)
     window.webContents.session.webRequest.onHeadersReceived((details, callback) => {
-        callback({
-            responseHeaders: {
-                ...details.responseHeaders,
-                // Ensure every response says any origin is allowed
-                'access-control-allow-origin': ['*'],
-            },
-        })
+
+        // Must first convert all header keys to lowercase to prevent duplication when adding
+        const headers = Object.fromEntries(Object.entries(details.responseHeaders ?? {}).map(
+            ([k, v]) => [k.toLowerCase(), v],
+        ))
+
+        // Ensure every response says any origin is allowed
+        headers['access-control-allow-origin'] = ['*']
+
+        callback({responseHeaders: headers})
     })
 
     return window
