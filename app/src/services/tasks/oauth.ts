@@ -103,7 +103,7 @@ const REDIRECT_URI = `http://127.0.0.1:${REDIRECT_PORT}/oauth`
 export const OAUTH_SUPPORTED:Record<OAuthIssuer, IssuerConfig> = {
     google: {
         // https://developers.google.com/identity/protocols/oauth2/native-app
-        endpoint: 'https://accounts.google.com/',
+        endpoint: 'https://accounts.google.com',
         client_id: import.meta.env.VITE_OAUTH_ID_GOOGLE,
         // SECURITY Google for some reason requires client_secret even for Desktop apps
         // They state it can't/doesn't need to be confidential, and will be in compiled app
