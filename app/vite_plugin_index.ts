@@ -56,7 +56,7 @@ export default function(template_path:string):Plugin{
                                 sourceMap: config.isProduction ? false : 'index_sass.map',
                                 sourceMapEmbed: true,
                                 sourceMapContents: true,
-                                ...options
+                                ...options,
                             }).css.toString()
                         },
 
@@ -91,7 +91,7 @@ export default function(template_path:string):Plugin{
                                 target: config.isProduction ? 'es2015' : 'esnext',
                                 ...options,
                             }).outputFiles[0]?.text
-                        }
+                        },
 
                     },
                 })()
