@@ -180,12 +180,12 @@ Resources:
                         {value: 'max-age=63072000; includeSubDomains; preload'}
                     event.response.headers['content-security-policy'] = {
                         value: "default-src 'none'; frame-ancestors 'none'; form-action 'none';"
-                            + "img-src 'self';"
-                            + "script-src-elem 'self';"
-                            + "style-src-elem 'self';"
+                            + "img-src 'self' data:;"
+                            + "script-src-elem 'self' 'sha256-Suz7knHBav40+YObLJzbKQuKbIXf2Z6blcKiOItb5h8=' 'sha256-8O1dt9vKhSiPlbdI97h/qFxiw7RATM49YgIuvTafdwg=';"
+                            + "style-src-elem 'self' 'sha256-ZtAi/ysjZm0xsuCDCNS2IFcwQkmxUd12Cy5r4DuHrME=';"
                             + "style-src-attr 'self' 'unsafe-inline';"
                             + "connect-src 'self' https://api.at.${InputDomainGeneric};"
-                            + "frame-src https://www.youtube-nocookie.com/ https://player.vimeo.com/;"
+                            + "frame-src https://www.youtube-nocookie.com https://player.vimeo.com;"
                     }
                     return event.response
                 }
