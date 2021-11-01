@@ -35,7 +35,7 @@ Stello is end-to-end encrypted in the sense that the platform that stores and tr
 
 ## Browser support
 
-The displayer of messages currently supports all browsers that have implemented the Subtle Crypto API, as well as all ES2015 features and CSS grid (since most have when crypto supported).
+The displayer of messages currently supports all browsers that have implemented the Subtle Crypto API, as well as all ES2015 features, Content Security Policy 2, and CSS grid (since most have when crypto supported).
 
  - Chrome 57+
  - Edge 79+
