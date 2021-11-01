@@ -94,7 +94,7 @@ export default function(template_path:string):Plugin{
                         },
 
                     },
-                })()
+                })(config.env)  // Expose same env vars Vue does in templates
             },
         },
 
