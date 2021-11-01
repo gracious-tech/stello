@@ -16,9 +16,14 @@ html
         //- NOTE 'unsafe-inline' required for dynamic styling (e.g. bg image) but limited to self
         //- NOTE Youtube/Vimeo required in frames for video previews
         meta(http-equiv='Content-Security-Policy' content=`
-            default-src 'self';
+            form-action 'none';
+            default-src 'none';
+            script-src 'self';
+            connect-src 'self';
             style-src 'self' 'unsafe-inline';
-            frame-src https://www.youtube-nocookie.com/ https://player.vimeo.com/;
+            img-src 'self' blob: data:;
+            font-src 'self';
+            frame-src https://www.youtube-nocookie.com https://player.vimeo.com;
         `)
 
         //- Meta data
