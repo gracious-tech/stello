@@ -17,8 +17,8 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 @Component({})
 export default class extends Vue {
 
-    @Prop({type: String}) accept:string
-    @Prop({type: Boolean, default: false}) multiple:boolean
+    @Prop({type: String, default: ''}) accept!:string
+    @Prop({type: Boolean, default: false}) multiple!:boolean
 
     get label_classes():string[]{
         // Return appropriate classes for label to make it look like a button
@@ -32,7 +32,7 @@ export default class extends Vue {
     changed(event:Event):void{
         // Pass on the file/files
         // NOTE Don't emit if no files provided (happens when cancel file dialog)
-        const files = (event.target as HTMLInputElement).files
+        const files = (event.target as HTMLInputElement).files ?? []
         if (files.length){
             this.$emit('input', this.multiple ? Array.from(files) : files[0])
         }

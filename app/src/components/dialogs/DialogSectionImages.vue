@@ -27,7 +27,6 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 import DialogSectionImagesItem from './assets/DialogSectionImagesItem.vue'
 import {resize_bitmap} from '@/services/utils/image'
 import {generate_token} from '@/services/utils/crypt'
-import {request_blob} from '@/services/utils/http'
 import {bitmap_to_canvas, canvas_to_blob} from '@/services/utils/coding'
 import {get_clipboard_blobs} from '@/services/utils/misc'
 import {SECTION_IMAGE_WIDTH} from '@/services/misc'
@@ -40,7 +39,7 @@ import {ContentImages} from '@/services/database/types'
 })
 export default class extends Vue {
 
-    @Prop() section:Section<ContentImages>
+    @Prop({required: true}) section!:Section<ContentImages>
 
     get content(){
         return this.section.content
@@ -55,7 +54,7 @@ export default class extends Vue {
     }
     set crop(value){
         this.content.crop = value
-        self.app_db.sections.set(this.section)
+        void self.app_db.sections.set(this.section)
     }
 
     async handle_blob(blob:Blob){
@@ -86,18 +85,18 @@ export default class extends Vue {
             data: blob,
             caption: '',
         })
-        self.app_db.sections.set(this.section)
+        void self.app_db.sections.set(this.section)
 
         return true
     }
 
-    async add_files(files){
+    async add_files(files:File[]){
         // Add files selected by the user
         const results = files.map(async file => this.handle_blob(file))
         // Warn if not all files processed successfully
         const all_added = (await Promise.all(results)).every(i => i)
         if (!all_added){
-            this.$store.dispatch('show_snackbar', "Some files could not be added")
+            void this.$store.dispatch('show_snackbar', "Some files could not be added")
         }
     }
 
@@ -105,31 +104,13 @@ export default class extends Vue {
         // Add any images currently in clipboard, either as URLs or actual image data
 
         // Get clipboard data as list of blobs
-        const blobs = await get_clipboard_blobs(['image/', 'text/'])
-
-        const results = blobs.map(async blob => {
-
-            // If a text blob, see if it is a URL
-            if (blob.type === 'text/plain'){
-                const text = (await blob.text()).trim()
-                if (text.startsWith('http://') || text.startsWith('https://')){
-                    // Replace the blob with the URL's response
-                    try {
-                        blob = await request_blob(text)
-                    } catch {
-                        return false
-                    }
-                }
-            }
-
-            return this.handle_blob(blob)
-        })
+        const blobs = await get_clipboard_blobs(['image/'])
+        const results = blobs.map(blob => this.handle_blob(blob))
 
         // Wait till all have been processed and notify user if none succeeded
         const some_added = (await Promise.all(results)).some(i => i)
         if (!some_added){
-            this.$store.dispatch('show_snackbar',
-                "No image found (first copy an image or a link to one)")
+            void this.$store.dispatch('show_snackbar', "No image found (first copy an image)")
         }
     }
 

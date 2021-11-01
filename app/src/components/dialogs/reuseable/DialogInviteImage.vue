@@ -36,7 +36,6 @@ v-card(class='pt-6')
 import Croppr from 'croppr'
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
-import {request_blob} from '@/services/utils/http'
 import {bitmap_to_canvas, canvas_to_blob} from '@/services/utils/coding'
 import {get_clipboard_blobs} from '@/services/utils/misc'
 import {INVITE_HTML_MAX_WIDTH} from '@/services/misc/invites'
@@ -45,10 +44,10 @@ import {INVITE_HTML_MAX_WIDTH} from '@/services/misc/invites'
 @Component({})
 export default class extends Vue {
 
-    @Prop({type: Array, default: () => []}) suggestions:Blob[]
+    @Prop({type: Array, default: () => []}) suggestions!:Blob[]
 
-    image:Blob = null
-    croppr:Croppr = null
+    image:Blob|null = null
+    croppr:Croppr|null = null
 
     get image_url():string{
         return URL.createObjectURL(this.image)
@@ -91,42 +90,25 @@ export default class extends Vue {
     async upload(file:File){
         // Use file selected by the user
         if (! await this.handle_blob(file)){
-            this.$store.dispatch('show_snackbar', "Selected file was not an image")
+            void this.$store.dispatch('show_snackbar', "Selected file was not an image")
         }
     }
 
     async paste():Promise<void>{
         // Get an image from clipboard
-        for (let blob of await get_clipboard_blobs(['image/', 'text/'])){
-
-            // If a text blob, see if it is a URL
-            if (blob.type === 'text/plain'){
-                const text = (await blob.text()).trim()
-                if (text.startsWith('http://') || text.startsWith('https://')){
-                    // Replace the blob with the URL's response
-                    try {
-                        blob = await request_blob(text)
-                    } catch {
-                        continue
-                    }
-                }
-            }
-
+        for (const blob of await get_clipboard_blobs(['image/'])){
             if (await this.handle_blob(blob)){
                 return  // Success
             }
         }
-
-        // None succeeded, so tell user
-        this.$store.dispatch('show_snackbar',
-            "No image found (first copy an image or a link to one)")
+        void this.$store.dispatch('show_snackbar', "No image found (first copy an image)")
     }
 
     async done(){
         // Crop and resize based on the user's preference
-        const val = this.croppr.getValue()
+        const val = this.croppr!.getValue()
         const output_width = INVITE_HTML_MAX_WIDTH * 2  // Even laptops now have DPR of 2+
-        const bitmap = await createImageBitmap(this.image, val.x, val.y, val.width, val.height, {
+        const bitmap = await createImageBitmap(this.image!, val.x, val.y, val.width, val.height, {
             resizeQuality: 'high',
             resizeWidth: output_width,
             resizeHeight: output_width / 3,

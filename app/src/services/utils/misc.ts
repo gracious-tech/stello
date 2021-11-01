@@ -1,7 +1,7 @@
 // Utils that are too hard to categorise
 
 
-export async function get_clipboard_blobs(preferred=[]):Promise<Blob[]>{
+export async function get_clipboard_blobs(preferred:string[]=[]):Promise<Blob[]>{
     // Return clipboard's contents as blobs
     // NOTE May be multiple clipboard items, so an array is returned
 
@@ -10,7 +10,9 @@ export async function get_clipboard_blobs(preferred=[]):Promise<Blob[]>{
     const items:ClipboardItem[] = []
     try {
         items.push(...await self.navigator.clipboard.read())
-    } catch {}
+    } catch {
+        return []
+    }
 
     // Choose preferred format for each item
     // NOTE Each item may be in multiple formats (e.g. Chrome copy image = [text/html, image/png])
@@ -36,8 +38,9 @@ export async function get_clipboard_text():Promise<string|null>{
     // A simpler version of `get_clipboard_blobs` (only returns one item which must be text/plain)
     try {
         return self.navigator.clipboard.readText()
-    } catch {}
-    return null
+    } catch {
+        return null
+    }
 }
 
 
