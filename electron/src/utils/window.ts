@@ -100,6 +100,15 @@ export async function open_window(){
     })
 
     // Disable CORS so renderer can request responses from any URL (security still handled by CSP)
+    window.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
+        for (const header of Object.keys(details.requestHeaders)){
+            if (header.toLowerCase() === 'origin'){
+                // Don't send origin header as may trigger origin mismatch (e.g. Microsoft OAuth)
+                delete details.requestHeaders[header]
+            }
+        }
+        callback({requestHeaders: details.requestHeaders})
+    })
     window.webContents.session.webRequest.onHeadersReceived((details, callback) => {
 
         // Must first convert all header keys to lowercase to prevent duplication when adding
@@ -110,7 +119,16 @@ export async function open_window(){
         // Ensure every response says any origin is allowed
         headers['access-control-allow-origin'] = ['*']
 
-        callback({responseHeaders: headers})
+        if (details.method === 'OPTIONS'){
+            // OPTIONS requests expect extra CORS headers
+            headers['access-control-allow-headers'] = ['*']
+            headers['access-control-allow-methods'] = ['*']
+            // Preflight OPTIONS request may get rejected (e.g. if server doesn't support CORS)
+            // So ignore any errors and always return success so actual request still gets sent
+            callback({responseHeaders: headers, statusLine: '200 OK'})
+        } else {
+            callback({responseHeaders: headers})
+        }
     })
 
     return window
