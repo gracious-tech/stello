@@ -446,7 +446,7 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
         try {
             resp = await this.lambda.getFunction({FunctionName: this._lambda_id})
         } catch (error){
-            if ((error as AwsError)?.name === 'ResourceNotFoundException'){
+            if ((error as AwsError)?.$metadata?.httpStatusCode === 404){
                 // Function doesn't exist, so create and return when done
                 await this.lambda.createFunction({
                     ...fn_config,
