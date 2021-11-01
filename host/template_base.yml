@@ -158,28 +158,34 @@ Resources:
                 Runtime: cloudfront-js-1.0
                 Comment: ''
             # SECURITY headers (must be lowercase)
+            # access-control-allow-origin: defined only so can use require-corp without issue
             # referrer-policy: Ensure linked sites cannot identify user via displayer domain
             # x-robots-tag: Ensure search engines never index displayer and reveal it publicly
             # x-content-type-options: Protect against content type manipulation
             # cross-origin-opener-policy: Prevent sites from opening displayer and controlling it
             # cross-origin-resource-policy: Prevent other sites from loading displayer's assets
             # cross-origin-embedder-policy: Require CORP/CORS for all resources (no exceptions)
+            # strict-transport-security: Tell browsers to only ever use HTTPS for future requests
             # content-security-policy: Prevent requests to other origins & inline attacks etc
-            # strict-transport-security: Not relevant as all links use https & manual entry unlikely
             FunctionCode: !Sub |
                 function handler(event){
+                    event.response.headers['access-control-allow-origin'] = {value: '*'}
                     event.response.headers['referrer-policy'] = {value: 'no-referrer'}
                     event.response.headers['x-robots-tag'] = {value: 'none'}
                     event.response.headers['x-content-type-options'] = {value: 'nosniff'}
                     event.response.headers['cross-origin-opener-policy'] = {value: 'same-origin'}
                     event.response.headers['cross-origin-resource-policy'] = {value: 'same-origin'}
                     event.response.headers['cross-origin-embedder-policy'] = {value: 'require-corp'}
+                    event.response.headers['strict-transport-security'] =
+                        {value: 'max-age=63072000; includeSubDomains; preload'}
                     event.response.headers['content-security-policy'] = {
                         value: "default-src 'none'; frame-ancestors 'none'; form-action 'none';"
-                            + "style-src 'self' 'unsafe-inline';"
+                            + "img-src 'self';"
+                            + "script-src-elem 'self';"
+                            + "style-src-elem 'self';"
+                            + "style-src-attr 'self' 'unsafe-inline';"
                             + "connect-src 'self' https://api.at.${InputDomainGeneric};"
                             + "frame-src https://www.youtube-nocookie.com/ https://player.vimeo.com/;"
-                            + "sandbox;"
                     }
                     return event.response
                 }
