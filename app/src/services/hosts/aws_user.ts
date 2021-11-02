@@ -330,10 +330,9 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
                 SourceArn: `arn:aws:execute-api:${this.region}:${account_id}:${api_id!}/*`,
             })
         } catch (error){
-            if (error instanceof Error && error.name === 'ResourceConflictException'){
-                return  // Already exists
+            if ((error as AwsError)?.$metadata?.httpStatusCode !== 409){
+                throw error
             }
-            throw error
         }
     }
 
