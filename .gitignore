@@ -3,6 +3,7 @@
 node_modules/
 
 /.bin/deploy_host_*.env
+/.bin/build_electron.env
 
 /.venv/
 

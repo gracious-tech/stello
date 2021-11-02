@@ -106,6 +106,7 @@ jobs:
             -   run: .bin/build_electron
                 env:
                     ROLLBAR_ELECTRON: ${{ secrets.ROLLBAR_ELECTRON }}
+                    HOSTED_API: https://api.at.message.quest/
             -   uses: actions/download-artifact@v2
                 with:
                     name: app_base

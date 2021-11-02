@@ -4,6 +4,12 @@ set -e
 cd "$(dirname "$(dirname "$0")")"
 
 
+# Optionally load env from a file
+if [[ -f .bin/build_electron.env ]]; then
+    source .bin/build_electron.env
+fi
+
+
 # Clear the dist dir
 rm -rf electron/dist  # WARN careful!
 
@@ -14,7 +20,7 @@ cp -Rp src dist
 
 
 # Write config file to dist from env
-echo "{\"rollbar_electron\": \"$ROLLBAR_ELECTRON\"}" > dist/config.json
+echo "{\"rollbar_electron\": \"$ROLLBAR_ELECTRON\", \"hosted_api\": \"$HOSTED_API\"}" > dist/config.json
 
 
 # Build main and preload scripts
