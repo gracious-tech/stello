@@ -40,7 +40,6 @@ export async function open_window(){
         webPreferences: {
             preload: get_path('preload.js'),
             session: window_session,
-            nativeWindowOpen: true,  // Will be the default in future (set to silence warning)
         },
     })
 
