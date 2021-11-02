@@ -9,6 +9,8 @@ export async function get_clipboard_blobs(preferred:string[]=[]):Promise<Blob[]>
     // NOTE In some circumstances a DOMException may occur if no data (possibly only on Windows)
     const items:ClipboardItem[] = []
     try {
+        // NOTE This may trigger a CSP warning which is harmless
+        //      Browser seems to try to fetch a copied image from its original URL for some reason
         items.push(...await self.navigator.clipboard.read())
     } catch {
         return []
