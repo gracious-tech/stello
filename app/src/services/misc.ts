@@ -100,3 +100,36 @@ export function lifespan_days_to_text(days:number){
     const item = lifespan_options.find(item => item.value === days)
     return item ? item.text : `${days} days`
 }
+
+
+type TarFile = {name:string, type:string, buffer:ArrayBuffer}
+
+export function untar(tar_file:ArrayBuffer):Promise<TarFile[]>{
+    // Custom wrapping of js-untar worker to avoid blob url for CSP sake
+    return new Promise(function(resolve, reject){
+
+        // Collect extracted files (passed to resolve when all files extracted)
+        const files:TarFile[] = []
+
+        // Create worker from script URL (rather than blob which is forbidden by CSP)
+        const worker = new Worker('node_modules/js-untar/src/untar-worker.js')
+        worker.onerror = reject
+
+        // Handle worker events
+        worker.onmessage = function(event){
+            const message = event.data as {type:string, data:unknown}
+            if (message.type === 'extract'){
+                files.push(message.data as TarFile)
+            } else if (message.type === 'complete'){
+                worker.terminate()
+                resolve(files)
+            } else {
+                worker.terminate()
+                reject(new Error(message.type))
+            }
+        }
+
+        // Send tar data to worker to start extraction
+        worker.postMessage({type: 'extract', buffer: tar_file}, [tar_file])
+    })
+}

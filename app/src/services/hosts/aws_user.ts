@@ -1,5 +1,4 @@
 
-import untar from 'js-untar'
 import {waitUntilBucketExists} from '@aws-sdk/client-s3'
 import {waitUntilRoleExists} from '@aws-sdk/client-iam'
 import {GetFunctionCommandOutput, waitUntilFunctionExists} from '@aws-sdk/client-lambda'
@@ -10,6 +9,7 @@ import {HostCloud, HostUser} from '@/services/hosts/types'
 import {Task} from '@/services/tasks/tasks'
 import {buffer_to_hex} from '@/services/utils/coding'
 import {sleep} from '@/services/utils/async'
+import {untar} from '@/services/misc'
 import {displayer_asset_type, HostPermissionError, HOST_STORAGE_VERSION} from './common'
 import {maxWaitTime, AwsError, no404, HostStorageGeneratedAws} from '@/services/hosts/aws_common'
 
@@ -161,7 +161,6 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
         // Upload displayer, configured with deployment config
 
         // Get list of files in displayer tar
-        // WARN js-untar is unmaintained and readAsString() is buggy so not using
         const files = await untar(await self.app_native.read_file('displayer.tar'))
 
         // Start uploading displayer assets and collect promises that resolve with their path

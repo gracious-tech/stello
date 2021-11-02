@@ -2,13 +2,6 @@
 // NOTE This should be crawled by Typescript automatically
 
 
-declare module 'js-untar' {
-    // This module has no typings
-    const untar:(tar:ArrayBuffer)=>Promise<{name:string, type:string, buffer:ArrayBuffer}[]>
-    export default untar
-}
-
-
 declare module '*.vue' {
     import Vue from 'vue'
     export default Vue
