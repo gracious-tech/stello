@@ -1,7 +1,7 @@
 
 import {app, BrowserWindow, session, shell} from 'electron'
 
-import {get_path, TESTING} from './config'
+import {get_path, TESTING, CONFIG} from './config'
 
 
 export async function activate_app(){
@@ -98,8 +98,14 @@ export async function open_window(){
         return {action: 'deny'}
     })
 
-    // Disable CORS so renderer can request responses from any URL (security still handled by CSP)
-    window.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
+    // Disable CORS when it blocks access to a required origin (security still handled by CSP)
+    const no_cors = {urls: [
+        `${CONFIG.hosted_api}*`,
+        'https://*.amazonaws.com/*',
+        'https://login.microsoftonline.com/*',
+        'https://gmail.googleapis.com/*',
+    ]}
+    window.webContents.session.webRequest.onBeforeSendHeaders(no_cors, (details, callback) => {
         for (const header of Object.keys(details.requestHeaders)){
             if (header.toLowerCase() === 'origin'){
                 // Don't send origin header as may trigger origin mismatch (e.g. Microsoft OAuth)
@@ -108,7 +114,7 @@ export async function open_window(){
         }
         callback({requestHeaders: details.requestHeaders})
     })
-    window.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    window.webContents.session.webRequest.onHeadersReceived(no_cors, (details, callback) => {
 
         // Must first convert all header keys to lowercase to prevent duplication when adding
         const headers = Object.fromEntries(Object.entries(details.responseHeaders ?? {}).map(
