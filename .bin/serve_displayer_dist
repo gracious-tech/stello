@@ -7,8 +7,4 @@ cd "$(dirname "$(dirname "$0")")"
 PORT=8003
 cd displayer
 
-echo
-echo "http://localhost:$PORT/#`cat dist/dev/hash.txt`"
-echo
-
 ./node_modules/.bin/vite preview --port $PORT

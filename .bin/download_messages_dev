@@ -1,0 +1,7 @@
+#!/bin/bash
+# Download messages for a dev account for use in development of displayer
+set -e
+cd "$(dirname "$(dirname "$0")")"
+
+
+node_modules/.bin/ts-node .bin/download_messages_dev.ts

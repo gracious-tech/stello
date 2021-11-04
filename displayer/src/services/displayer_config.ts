@@ -4,7 +4,8 @@ import {import_key_asym, import_key_sym, decrypt_sym} from './utils/crypt'
 import {request} from './utils/http'
 
 
-export const MSGS_URL = import.meta.env.VITE_HOSTED_MSGS_URL ?? '/'
+export const MSGS_URL =
+    import.meta.env.DEV ? '/dev/' : (import.meta.env.VITE_HOSTED_MSGS_URL ?? '/')
 export const USER =
     import.meta.env.VITE_HOSTED_MSGS_URL ? self.location.hostname.split('.')[0]! : '_user'
 
