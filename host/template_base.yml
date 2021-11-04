@@ -74,9 +74,10 @@ Resources:
             CorsConfiguration:
                 CorsRules:
                     -   AllowedMethods: [GET]
+                        # NOTE CORS Doesn't allow wildcard subdomain so S3 will return exact value
                         AllowedOrigins:
-                            -   !Join ['', ['*.', !Ref InputDomainGeneric]]
-                            -   !Join ['', ['*.', !Ref InputDomainBranded]]
+                            -   !Join ['', ['https://*.', !Ref InputDomainGeneric]]
+                            -   !Join ['', ['https://*.', !Ref InputDomainBranded]]
             LifecycleConfiguration:
                 Rules: [
                     # Ensure max 2 year expiry can't be avoided by not including a lifespan tag
