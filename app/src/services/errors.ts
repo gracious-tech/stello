@@ -39,7 +39,17 @@ const rollbar = new Rollbar({
     accessToken: import.meta.env.VITE_ROLLBAR_APP,
     captureUncaught: true,  // NOTE Rollbar does more special handling than just `.error()`
     captureUnhandledRejections: true,
-    autoInstrument: false,  // SECURITY Don't track use via telemetry to protect privacy
+    autoInstrument: {
+        // Report CSP issues
+        contentSecurityPolicy: true,
+        errorOnContentSecurityPolicy: true,
+        // SECURITY Don't track use via telemetry to protect privacy
+        connectivity: false,
+        dom: false,
+        navigation: false,
+        network: false,
+        log: false,
+    },
     uncaughtErrorLevel: 'critical',  // Default to critical (shows fail bar)
     payload: {
         server: {
