@@ -175,6 +175,7 @@ self.addEventListener('unhandledrejection', event => {
 
 self.addEventListener('securitypolicyviolation', event => {
     // Report CSP issues
+    const msg = `CSP error: ${event.blockedURI} violated ${event.violatedDirective}`
     console.error(event)
-    self.app_report_error(event)
+    self.app_report_error(msg)
 })
