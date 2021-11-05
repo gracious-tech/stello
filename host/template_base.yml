@@ -180,12 +180,14 @@ Resources:
                     event.response.headers['strict-transport-security'] =
                         {value: 'max-age=63072000; includeSubDomains; preload'}
                     event.response.headers['content-security-policy'] = {
-                        value: "frame-ancestors 'none'; form-action 'none'; base-uri 'none';"
+                        value: ""
+                            + "frame-ancestors 'none';"
+                            + "form-action 'none';"
+                            + "base-uri 'none';"
                             + "default-src 'none';"
                             + "img-src 'self' blob:;"
-                            + "script-src-elem 'self' 'sha256-Suz7knHBav40+YObLJzbKQuKbIXf2Z6blcKiOItb5h8=' 'sha256-8O1dt9vKhSiPlbdI97h/qFxiw7RATM49YgIuvTafdwg=';"
-                            + "style-src-elem 'self' 'sha256-ZtAi/ysjZm0xsuCDCNS2IFcwQkmxUd12Cy5r4DuHrME=';"
-                            + "style-src-attr 'self';"
+                            + "script-src 'self' 'sha256-Suz7knHBav40+YObLJzbKQuKbIXf2Z6blcKiOItb5h8=' 'sha256-8O1dt9vKhSiPlbdI97h/qFxiw7RATM49YgIuvTafdwg=';"
+                            + "style-src 'self' 'sha256-ZtAi/ysjZm0xsuCDCNS2IFcwQkmxUd12Cy5r4DuHrME=';"
                             + "connect-src 'self' https://api.at.${InputDomainGeneric} https://${MessagesBucket.RegionalDomainName} https://api.rollbar.com;"
                             + "frame-src https://www.youtube-nocookie.com https://player.vimeo.com;"
                     }
