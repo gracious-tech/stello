@@ -14,6 +14,7 @@ html
         //- NOTE Can't set as HTTP header due to using file protocol, so meta tag instead
         //- TODO eventually remove 'unsafe-inline' for styles once all uses refactored
         meta(http-equiv='Content-Security-Policy' content=`
+            base-uri 'none';
             form-action 'none';
             default-src 'none';
             script-src 'self';
