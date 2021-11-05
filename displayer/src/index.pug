@@ -3,15 +3,30 @@ html
 
     head
         meta(charset='utf-8')
+
         //- SECURITY (mainly for self-hosted as already set via HTTP headers otherwise)
         meta(name='referrer' content='no-referrer')
         meta(name='robots' content='none')
+        //- WARN Keep CSP in sync with hosted setup HTTP header
+        meta(http-equiv='Content-Security-Policy' content=`
+            form-action 'none';
+            base-uri 'none';
+            default-src 'none';
+            img-src 'self' blob:;
+            script-src 'self' 'sha256-Suz7knHBav40+YObLJzbKQuKbIXf2Z6blcKiOItb5h8=' 'sha256-8O1dt9vKhSiPlbdI97h/qFxiw7RATM49YgIuvTafdwg=';
+            style-src 'self' 'sha256-ZtAi/ysjZm0xsuCDCNS2IFcwQkmxUd12Cy5r4DuHrME=';
+            connect-src 'self' https:;
+            frame-src https://www.youtube-nocookie.com https://player.vimeo.com;
+        `)
+
         //- Display
         meta(name='viewport' content='user-scalable=no, width=device-width, initial-scale=1')
         title Message Viewer
         link(rel='icon' href='displayer/icon.png')
+
         //- Add a light blue theme color, just to stand out from other tabs (not configurable)
         meta(name='theme-color' content='#b3e5fc')
+
         style
             :sass
                 // BASIC STYLING

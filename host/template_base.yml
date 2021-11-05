@@ -168,6 +168,7 @@ Resources:
             # cross-origin-embedder-policy: Require CORP/CORS for all resources (no exceptions)
             # strict-transport-security: Tell browsers to only ever use HTTPS for future requests
             # content-security-policy: Prevent requests to other origins & inline attacks etc
+            # WARN Keep CSP in sync with displayer's meta tag CSP
             FunctionCode: !Sub |
                 function handler(event){
                     event.response.headers['access-control-allow-origin'] = {value: '*'}
