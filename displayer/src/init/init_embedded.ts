@@ -30,7 +30,9 @@ self.app_report_error_critical = true
 function rollbar(message:string):void{
     // Send an error report to Rollbar
     // NOTE Not using Rollbar's own SDK as it is too large and unnecessary
-    void drop(fetch('https://api.rollbar.com/api/1/item/', {
+    // NOTE Send to localhost during dev so can inspect the request but not actually do anything
+    const url = import.meta.env.PROD ? 'https://api.rollbar.com/api/1/item/' : 'http://localhost/'
+    void drop(fetch(url, {
         method: 'POST',
         body: JSON.stringify({
             access_token: import.meta.env.VITE_ROLLBAR_DISPLAYER,
@@ -68,7 +70,7 @@ self.app_report_error = async (error:unknown):Promise<void> => {
     // Report an error
 
     // Don't report if browser not supported, as not actionable
-    if (import.meta.env.MODE !== 'production' || !self.app_browser_supported){
+    if (!self.app_browser_supported){
         return
     }
 
@@ -167,4 +169,11 @@ self.addEventListener('unhandledrejection', event => {
     }
     self.app_report_error(msg)
     self.app_fail_visual()
+})
+
+
+self.addEventListener('securitypolicyviolation', event => {
+    // Report CSP issues
+    console.error(event)
+    self.app_report_error(event)
 })
