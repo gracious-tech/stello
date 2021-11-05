@@ -31,7 +31,8 @@ function rollbar(message:string):void{
     // Send an error report to Rollbar
     // NOTE Not using Rollbar's own SDK as it is too large and unnecessary
     // NOTE Send to localhost during dev so can inspect the request but not actually do anything
-    const url = import.meta.env.PROD ? 'https://api.rollbar.com/api/1/item/' : 'http://localhost/'
+    const url =
+        import.meta.env.PROD ? 'https://api.rollbar.com/api/1/item/' : 'http://localhost:7777/'
     void drop(fetch(url, {
         method: 'POST',
         body: JSON.stringify({
