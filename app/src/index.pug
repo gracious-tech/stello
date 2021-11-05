@@ -10,11 +10,9 @@ html
         link(rel='icon' href='branding/icon.svg')
 
         //- SECURITY
-        //- Only allow requests to self to guard against compromised dependencies etc
-        //- All requests that require 3rd party are to use native method that isn't impacted by CORS
+        //- Only allow whilelisted requests to guard against compromised dependencies etc
         //- NOTE Can't set as HTTP header due to using file protocol, so meta tag instead
-        //- NOTE 'unsafe-inline' required for dynamic styling (e.g. bg image) but limited to self
-        //- NOTE Youtube/Vimeo required in frames for video previews
+        //- TODO eventually remove 'unsafe-inline' for styles once all uses refactored
         meta(http-equiv='Content-Security-Policy' content=`
             form-action 'none';
             default-src 'none';
