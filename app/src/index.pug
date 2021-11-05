@@ -6,8 +6,8 @@ html
         meta(charset='utf-8')
         meta(name='viewport' content='user-scalable=no, width=device-width, initial-scale=1')
 
-        //- Prevent error messages for favicon that can break tests
-        link(rel='icon' href='data:,')
+        //- Set icon to prevent error messages for favicon that can break tests (not actually used)
+        link(rel='icon' href='branding/icon.svg')
 
         //- SECURITY
         //- Only allow requests to self to guard against compromised dependencies etc
@@ -21,7 +21,7 @@ html
             script-src 'self';
             connect-src 'self' ${VITE_HOSTED_API} https://*.amazonaws.com https://accounts.google.com https://oauth2.googleapis.com https://gmail.googleapis.com https://people.googleapis.com https://login.microsoftonline.com https://graph.microsoft.com https://api.rollbar.com;
             style-src 'self' 'unsafe-inline';
-            img-src 'self' blob: data:;
+            img-src 'self' blob:;
             media-src 'self';
             font-src 'self';
             frame-src https://www.youtube-nocookie.com https://player.vimeo.com;

@@ -181,7 +181,7 @@ Resources:
                         {value: 'max-age=63072000; includeSubDomains; preload'}
                     event.response.headers['content-security-policy'] = {
                         value: "default-src 'none'; frame-ancestors 'none'; form-action 'none';"
-                            + "img-src 'self' data: blob:;"
+                            + "img-src 'self' blob:;"
                             + "script-src-elem 'self' 'sha256-Suz7knHBav40+YObLJzbKQuKbIXf2Z6blcKiOItb5h8=' 'sha256-8O1dt9vKhSiPlbdI97h/qFxiw7RATM49YgIuvTafdwg=';"
                             + "style-src-elem 'self' 'sha256-ZtAi/ysjZm0xsuCDCNS2IFcwQkmxUd12Cy5r4DuHrME=';"
                             + "style-src-attr 'self';"
