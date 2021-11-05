@@ -118,9 +118,11 @@ self.app_fail_visual = (network=false):void => {
             <div class="fail-splash">
                 <h1>Could not download message</h1>
                 <p>Please check your internet connection and try again</p>
-                <button onclick="location.reload(true)">RETRY</button>
+                <button>RETRY</button>
             </div>
         `
+        ;(self.document.querySelector('.fail-splash button') as HTMLButtonElement)
+            .addEventListener('click', () => {self.location.reload()})
     } else if (self.app_browser_supported){
         // Message quite likely already visible, so just show a top bar
         // NOTE Since only showing a bar, ensure loading animation no longer exists
@@ -131,9 +133,11 @@ self.app_fail_visual = (network=false):void => {
                     <h1>Your browser had trouble displaying this message</h1>
                     <p>Changing browser may help if problems persist</p>
                 </div>
-                <button onclick="location.reload(true)">RELOAD</button>
+                <button>RELOAD</button>
             </div>
         `)
+        ;(self.document.querySelector('.fail-bar button') as HTMLButtonElement)
+            .addEventListener('click', () => {self.location.reload()})
     } else {
         // Unsupported browser, so show full page splash
         // NOTE This is especially needed for errors Vue catches

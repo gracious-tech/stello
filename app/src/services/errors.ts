@@ -22,12 +22,12 @@ function show_fail_bar(){
                 Please
                 <a href="https://gracious.tech/support/stello/" target='_blank'>LET US KNOW</a>
                 and then
-                <button onclick="location.assign('#/');location.reload()">
-                    RELOAD
-                </button>
+                <button>RELOAD</button>
             </div>
         </div>
     `)
+    ;(self.document.querySelector('.reload-bar.fail button') as HTMLButtonElement)
+        .addEventListener('click', () => {location.assign('#/');location.reload()})
 }
 
 

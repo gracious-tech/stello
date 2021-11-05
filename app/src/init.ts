@@ -81,12 +81,12 @@ self.app_native.on_update_ready(() => {
         <div class="reload-bar update">
             An update is ready to go with improvements
             <div>
-                <button onclick="app_update()">
-                    RESTART
-                </button>
+                <button>RESTART</button>
             </div>
         </div>
     `)
+    ;(self.document.querySelector('.reload-bar.update button') as HTMLButtonElement)
+        .addEventListener('click', () => {self.app_update()})
 })
 
 

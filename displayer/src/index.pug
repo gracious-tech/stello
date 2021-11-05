@@ -172,4 +172,5 @@ html
 
 
         //- NOTE Vite processes URLs relative to where index.html is (not index.pug)
+        //- TODO Come up with alternative to onerror below that doesn't violate CSP
         script(src='/src/init/init_loaded.ts' type='module' onerror='app_fail_visual(true)')
