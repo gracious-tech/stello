@@ -19,8 +19,8 @@ div.root(:style='container_styles')
 import {Component, Prop, Vue} from 'vue-property-decorator'
 
 import {gen_variable_items} from '@/services/misc/templates'
-import {INVITE_HTML_CONTAINER_STYLES, INVITE_HTML_IMAGE_STYLES, render_invite_html_action,
-    } from '@/services/misc/invites'
+import {INVITE_HTML_CONTAINER_STYLES, INVITE_HTML_IMAGE_STYLES, render_invite_html_action}
+    from '@/services/misc/invites'
 import {Profile} from '@/services/database/profiles'
 import {Draft} from '@/services/database/drafts'
 
@@ -64,10 +64,14 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+@import 'src/styles/globals.sass'
+
+
 .root
     margin: 12px 0 !important
     font-size: 14px  // Actual is whatever mail client default is
     font-family: Roboto, sans-serif  // Actual is whatever mail client default is
+    @include themed(color, black, white)  // Email clients will have solid text colors
 
 .header
     cursor: pointer

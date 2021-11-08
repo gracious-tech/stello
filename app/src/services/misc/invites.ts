@@ -11,7 +11,7 @@ export const INVITE_HTML_MAX_WIDTH = 600
 export const INVITE_IMG_HEIGHT = INVITE_HTML_MAX_WIDTH / 3
 export const INVITE_HTML_CONTAINER_STYLES =
     `border-radius: 12px; max-width: ${INVITE_HTML_MAX_WIDTH}px; margin: 0 auto;`
-    + 'background-color: #eeeeee; color: #000000;'
+    + 'background-color: rgba(127, 127, 127, 0.15);'
 // NOTE Some clients (e.g. Thunderbird) don't respect img aspect ratio, so max-height helps control
 export const INVITE_HTML_IMAGE_STYLES =
     `border-radius: 12px 12px 0 0; width: 100%; height: auto; border-bottom: 1px solid #cccccc;`
@@ -41,11 +41,23 @@ export function render_invite_html(contents:string, url:string, image:string,
             </p>
         `
     }
+
+    // NOTE meta color-scheme ensures Apple etc apply user's scheme rather than default to light
     return `
         <!DOCTYPE html>
         <html>
-        <head></head>
-        <body style='margin: 0; padding: 24px; padding-bottom: 150px; background-color: #222222;'>
+        <head>
+            <meta name='color-scheme' content='light dark'>
+            <style>
+                @media (prefers-color-scheme: dark){
+                    .button {
+                        background-color: #bbddff !important;
+                        color: #000000 !important;
+                    }
+                }
+            </style>
+        </head>
+        <body style='padding-top: 16px; padding-bottom: 150px;'>
             <div style='${INVITE_HTML_CONTAINER_STYLES}'>
                 <a href='${html_escape(url)}'>
                     <img src='${html_escape(image)}' height='${INVITE_IMG_HEIGHT}'
@@ -65,16 +77,21 @@ export function render_invite_html(contents:string, url:string, image:string,
 
 export function render_invite_html_action(url:string, reply:boolean):string{
     // Return html for the action footer of a html invite
+    // NOTE Button gets lighter colors in dark mode, but won't show up in app's previews
+    // NOTE &nbsp; used instead of padding as Outlook doesn't support padding
     return `
         <hr style='margin: 0; border-style: solid; border-color: #cccccc; border-width: 1px 0 0 0;'>
 
         <div style='padding: 12px; border-radius: 0 0 12px 12px; text-align: center;
-                background-color: #ddeeff; color: #000000; font-family: Roboto, sans-serif;'>
+                background-color: rgba(87, 127, 167, 0.3);'>
 
             <p style='margin: 36px 0;'>
-                <a href='${html_escape(url)}' style='background-color: #224477; color: #ffffff;
-                        padding: 12px 18px; border-radius: 12px; text-decoration: none;'>
+                <a class='button' href='${html_escape(url)}' style='background-color: #114488;
+                        color: #ffffff; padding: 12px 0; border-radius: 12px; text-decoration: none;
+                        font-family: Roboto, sans-serif;'>
+                    &nbsp;&nbsp;
                     <strong>Open ${reply ? "Reply" : "Message"}</strong>
+                    &nbsp;&nbsp;
                 </a>
             </p>
 
