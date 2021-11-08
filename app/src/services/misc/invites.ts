@@ -25,6 +25,8 @@ export function render_invite_html(contents:string, url:string, image:string,
     // NOTE Styles are inline so preserved when replying/forwarding
     // NOTE <hr> etc used for some separation if css disabled
     // NOTE Some styles must be directly on elements to not be overriden (e.g. color on <a>)
+    // NOTE Outlook desktop is the worst client and some things (bg etc) don't work on it
+    // WARN Must always test on Outlook desktop/iMail/Gmail/Thunderbird/etc whenever changed
     let subscription_links = ''
     if (encrypted_address){
         const unsub_url = `${url},unsub,${encrypted_address}`
@@ -78,7 +80,9 @@ export function render_invite_html(contents:string, url:string, image:string,
 export function render_invite_html_action(url:string, reply:boolean):string{
     // Return html for the action footer of a html invite
     // NOTE Button gets lighter colors in dark mode, but won't show up in app's previews
-    // NOTE &nbsp; used instead of padding as Outlook doesn't support padding
+    // NOTE &nbsp; used instead of horizontal padding as Outlook doesn't support padding
+    // NOTE mso-text-raise is used to add vertical padding for Outlook
+    //      First nbsp is raised 20pt to add that much vertical space, actual text half to center
     return `
         <hr style='margin: 0; border-style: solid; border-color: #cccccc; border-width: 1px 0 0 0;'>
 
