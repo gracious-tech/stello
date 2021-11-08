@@ -105,9 +105,13 @@ export default class extends Vue {
     }
 
     async done(){
+        // Determine output size
+        // NOTE Was using DRP x2 but x1 results in 15% speed increase (both network & decrypt time)
+        //      Although not much, a fast loading header image is very important for email
+        //      Most delay comes from lambda starting unfortunately (~270ms cold start, ~75ms hot)
+        const output_width = INVITE_HTML_MAX_WIDTH
         // Crop and resize based on the user's preference
         const val = this.croppr!.getValue()
-        const output_width = INVITE_HTML_MAX_WIDTH * 2  // Even laptops now have DPR of 2+
         const bitmap = await createImageBitmap(this.image!, val.x, val.y, val.width, val.height, {
             resizeQuality: 'high',
             resizeWidth: output_width,
