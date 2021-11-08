@@ -8,13 +8,14 @@ import {buffer_to_url64} from '@/services/utils/coding'
 
 
 export const INVITE_HTML_MAX_WIDTH = 600
+export const INVITE_IMG_HEIGHT = INVITE_HTML_MAX_WIDTH / 3
 export const INVITE_HTML_CONTAINER_STYLES =
     `border-radius: 12px; max-width: ${INVITE_HTML_MAX_WIDTH}px; margin: 0 auto;`
     + 'background-color: #eeeeee; color: #000000;'
 // NOTE Some clients (e.g. Thunderbird) don't respect img aspect ratio, so max-height helps control
 export const INVITE_HTML_IMAGE_STYLES =
     `border-radius: 12px 12px 0 0; width: 100%; height: auto; border-bottom: 1px solid #cccccc;`
-    + `max-height: ${INVITE_HTML_MAX_WIDTH / 3}px; background-color: #ddeeff`
+    + `max-height: ${INVITE_IMG_HEIGHT}px; background-color: #ddeeff`
 
 
 export function render_invite_html(contents:string, url:string, image:string,
@@ -47,8 +48,8 @@ export function render_invite_html(contents:string, url:string, image:string,
         <body style='margin: 0; padding: 24px; padding-bottom: 150px; background-color: #222222;'>
             <div style='${INVITE_HTML_CONTAINER_STYLES}'>
                 <a href='${html_escape(url)}'>
-                    <img src='${html_escape(image)}' height='1' width='3'
-                        style='${INVITE_HTML_IMAGE_STYLES}'>
+                    <img src='${html_escape(image)}' height='${INVITE_IMG_HEIGHT}'
+                        width='${INVITE_HTML_MAX_WIDTH}' style='${INVITE_HTML_IMAGE_STYLES}'>
                 </a>
                 <div style='padding: 24px;'>
                     ${contents}
