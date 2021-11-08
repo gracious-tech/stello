@@ -46,7 +46,6 @@ export function render_invite_html(contents:string, url:string, image:string,
 
     // NOTE meta color-scheme ensures Apple etc apply user's scheme rather than default to light
     return `
-        <!DOCTYPE html>
         <html>
         <head>
             <meta name='color-scheme' content='light dark'>
