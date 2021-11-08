@@ -26,14 +26,16 @@ export function render_invite_html(contents:string, url:string, image:string,
     // NOTE Some styles must be directly on elements to not be overriden (e.g. color on <a>)
     let subscription_links = ''
     if (encrypted_address){
+        const unsub_url = `${url},unsub,${encrypted_address}`
+        const address_url = `${url},address,${encrypted_address}`
         subscription_links = `
             <hr style='border-style: none;'>
             <p>&nbsp;</p>
             <p style='text-align: center; color: #aaaaaa;'>
-                <a href='${url},unsub,${encrypted_address}' style='color: #aaaaaa;'>
+                <a href='${html_escape(unsub_url)}' style='color: #aaaaaa;'>
                     <small style='font-size: 0.8em;'>Unsubscribe</small></a>
                 |
-                <a href='${url},address,${encrypted_address}' style='color: #aaaaaa;'>
+                <a href='${html_escape(address_url)}' style='color: #aaaaaa;'>
                     <small style='font-size: 0.8em;'>Change email address</small></a>
             </p>
         `
@@ -44,8 +46,9 @@ export function render_invite_html(contents:string, url:string, image:string,
         <head></head>
         <body style='margin: 0; padding: 24px; padding-bottom: 150px; background-color: #222222;'>
             <div style='${INVITE_HTML_CONTAINER_STYLES}'>
-                <a href='${url}'>
-                    <img src='${image}' height='1' width='3' style='${INVITE_HTML_IMAGE_STYLES}'>
+                <a href='${html_escape(url)}'>
+                    <img src='${html_escape(image)}' height='1' width='3'
+                        style='${INVITE_HTML_IMAGE_STYLES}'>
                 </a>
                 <div style='padding: 24px;'>
                     ${contents}
