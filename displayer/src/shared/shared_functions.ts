@@ -1,7 +1,7 @@
 
 // Types
 
-interface SectionLike {
+export interface SectionLike {
     id:string
     content:{
         type:string,
@@ -9,7 +9,7 @@ interface SectionLike {
     }
 }
 
-interface RowDisplay<T> {
+export interface RowDisplay<T> {
     display:string
     sections:T[]
 }
