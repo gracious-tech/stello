@@ -57,13 +57,13 @@ export function render_invite_html(contents:string, url:string, image:string,
                 }
             </style>
         </head>
-        <body style='padding-top: 16px; padding-bottom: 150px;'>
+        <body style='padding-top: 4px; padding-bottom: 150px;'>
             <div style='${INVITE_HTML_CONTAINER_STYLES}'>
                 <a href='${html_escape(url)}'>
                     <img src='${html_escape(image)}' height='${INVITE_IMG_HEIGHT}'
                         width='${INVITE_HTML_MAX_WIDTH}' style='${INVITE_HTML_IMAGE_STYLES}'>
                 </a>
-                <div style='padding: 24px;'>
+                <div style='padding: 16px;'>
                     ${contents}
                 </div>
                 ${render_invite_html_action(url, reply)}
@@ -82,18 +82,17 @@ export function render_invite_html_action(url:string, reply:boolean):string{
     return `
         <hr style='margin: 0; border-style: solid; border-color: #cccccc; border-width: 1px 0 0 0;'>
 
-        <div style='padding: 12px; border-radius: 0 0 12px 12px; text-align: center;
-                background-color: rgba(87, 127, 167, 0.3);'>
+        <div style='border-radius: 0 0 12px 12px; background-color: rgba(87, 127, 167, 0.3);
+                padding: 36px 0; text-align: center;'>
 
-            <p style='margin: 36px 0;'>
-                <a class='button' href='${html_escape(url)}' style='background-color: #114488;
-                        color: #ffffff; padding: 12px 0; border-radius: 12px; text-decoration: none;
-                        font-family: Roboto, sans-serif;'>
-                    &nbsp;&nbsp;
-                    <strong>Open ${reply ? "Reply" : "Message"}</strong>
-                    &nbsp;&nbsp;
-                </a>
-            </p>
+            <a class='button' href='${html_escape(url)}' style='background-color: #114488;
+                    color: #ffffff; padding: 12px 0; border-radius: 12px; text-decoration: none;
+                    font-family: Roboto, sans-serif;'>
+                <span style='mso-text-raise: 20pt;'>&nbsp;</span>
+                &nbsp;
+                <strong style='mso-text-raise: 10pt;'>Open ${reply ? "Reply" : "Message"}</strong>
+                &nbsp;&nbsp;
+            </a>
 
         </div>
     `
