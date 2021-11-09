@@ -6,14 +6,14 @@ div.root(:class='{multiple}')
     div.slideshow(:class='{editing}')
         svg.aspect(:viewBox='aspect_svg_viewbox')
         div.scroller(ref='scroller' @scroll='event => recalc_current()')
-            div.item(v-for='styles of images_ui' :style='styles')
+            div.item(v-for='style of images_ui' :data-image='style.image' :class='style.size_class')
                 div.buttons(@click.self='$emit("img_click")')
                     div.prev(v-if='multiple' @click='prev')
                     div.next(v-if='multiple' @click='next')
 
     div.thumbs(v-if='multiple')
         div.thumb(v-for='(button, i) of buttons' :key='button.id' :class='{active: current === i}')
-            button(@click.stop='button.activate' :style='button.style')
+            button(@click.stop='button.activate' :data-image='button.image')
 
     div.cap
         div(v-for='(caption, i) of captions' v-show='caption' :class='{active: current === i}')
@@ -99,19 +99,19 @@ export default defineComponent({
             return '0 0 48 24'  // Placeholder's size
         },
 
-        images_ui():Record<string, string>[]{
+        images_ui():{image:string, size_class:string}[]{
             // Get UI view of images that returns styles for their display
             if (this.empty){
                 return [{
-                    'background-image': `url(${PLACEHOLDER})`,
-                    'background-size': 'cover',
+                    image: `url(${PLACEHOLDER})`,
+                    size_class: 'cover',
                 }]
             }
             return this.images.map(image => {
                 const url = this.object_urls[image.id]!
                 return {
-                    'background-image': `url(${url})`,
-                    'background-size': this.crop || url === PLACEHOLDER ? 'cover' : 'contain',
+                    image: `url(${url})`,
+                    size_class: this.crop || url === PLACEHOLDER ? 'cover' : 'contain',
                 }
             })
         },
@@ -135,12 +135,12 @@ export default defineComponent({
             return this.images.map(item => item.caption?.trim())
         },
 
-        buttons():{id:string, style:Record<string, string>, activate:()=>void}[]{
+        buttons():{id:string, image:string, activate:()=>void}[]{
             // UI data for buttons for navigating to specific images
             return this.images.map((image, i) => {
                 return {
                     id: image.id,
-                    style: {'background-image': `url(${this.object_urls[image.id]!})`},
+                    image: `url(${this.object_urls[image.id]!})`,
                     activate: () => {this.change_current(i)},
                 }
             })
@@ -186,6 +186,14 @@ export default defineComponent({
                     }
                 }
                 this.object_urls = new_object_urls
+
+                // Once items available in DOM, apply bg image (done via JS due to CSP)
+                void this.$nextTick(() => {
+                    const el = this.$el as HTMLDivElement
+                    for (const item of el.querySelectorAll<HTMLElement>('[data-image]')){
+                        item.style.backgroundImage = item.dataset['image']!
+                    }
+                })
             },
         },
 
@@ -292,6 +300,10 @@ export default defineComponent({
             min-width: 100%
             background-position: center
             background-repeat: no-repeat
+            &.cover
+                background-size: cover
+            &.contain
+                background-size: contain
 
         // Hide scrollbar as rely on buttons/swipe instead
         scrollbar-width: none
