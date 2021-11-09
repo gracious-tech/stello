@@ -23,8 +23,8 @@ export default defineComponent({
     },
 
     computed: {
-        fill():'white'|'black'{
-            return this.value ? 'white' : 'black'
+        fill():'fill-white'|'fill-black'{
+            return this.value ? 'fill-white' : 'fill-black'
         },
     },
 
@@ -51,9 +51,9 @@ div
     svg
         width: 24px
         height: 24px
-        &.black
+        &.fill-black
             fill: black
-        &.white
+        &.fill-white
             fill: white
 
     &:hover
