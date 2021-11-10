@@ -47,8 +47,8 @@ export interface RecordOAuth {
     email:string
     name:string|null  // May be null if not required
     scope_sets:('email_send'|'contacts')[]
-    token_refresh:string
-    token_access:string
+    token_refresh:ArrayBuffer  // Externally encrypted
+    token_access:ArrayBuffer  // Externally encrypted
     token_access_expires:Date|null  // When access token will expire (null = doesn't expire)
     // Contact syncing
     contacts_sync:boolean  // Whether to read contacts of this account if possible
@@ -109,7 +109,7 @@ export interface RecordProfileHostState {
 export interface RecordProfileSmtp {
     oauth:string|null
     user:string
-    pass:string
+    pass:ArrayBuffer|null  // Externally encrypted
     host:string
     port:number|null
     starttls:boolean

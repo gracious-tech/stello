@@ -26,6 +26,14 @@ const native_electron:NativeInterface = {
         return ipcRenderer.invoke('dns_mx', host) as Promise<string[]>
     },
 
+    os_encrypt(secret:string):Promise<ArrayBuffer|null>{
+        return ipcRenderer.invoke('os_encrypt', secret) as Promise<ArrayBuffer|null>
+    },
+
+    os_decrypt(encrypted:ArrayBuffer):Promise<string|null>{
+        return ipcRenderer.invoke('os_decrypt', encrypted) as Promise<string|null>
+    },
+
     async test_email_settings(settings:EmailSettings, auth=true):Promise<EmailError|undefined>{
         // Tests provided settings to see if they work and returns either null or error string
         const error =

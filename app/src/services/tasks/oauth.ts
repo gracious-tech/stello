@@ -24,6 +24,7 @@ import {task_manager, TaskStartArgs} from './tasks'
 import {CustomError, drop, MustReauthenticate, MustReconnect} from '../utils/exceptions'
 import {JsonRequestInit, request} from '../utils/http'
 import {jwt_to_object} from '@/services/utils/coding'
+import {external_decrypt, external_encrypt} from '@/services/misc/external_crypt'
 
 
 // TYPES
@@ -86,8 +87,8 @@ interface AuthCompletion<Meta=Record<string, any>> {
         email:string,
         name:string,
         scope_sets:ScopeSet[]
-        token_refresh:string,
-        token_access:string,
+        token_refresh:ArrayBuffer,
+        token_access:ArrayBuffer,
         token_access_expires:Date|null,  // null means doesn't expire
     }
     meta:Meta
@@ -274,8 +275,8 @@ async function oauth_authorize_complete(url:string):Promise<AuthCompletion>{
             email: id_info.email,
             name: id_info.name,  // Probably won't exist without `profile` scope, but pass anyway
             scope_sets: granted_scope_sets,
-            token_refresh: token_resp.refreshToken,
-            token_access: token_resp.accessToken,
+            token_refresh: await external_encrypt(token_resp.refreshToken ?? ''),
+            token_access: await external_encrypt(token_resp.accessToken ?? ''),
             token_access_expires: token_resp.expiresIn === undefined ? null :
                 new Date((token_resp.issuedAt + token_resp.expiresIn) * 1000),
         },
@@ -440,7 +441,7 @@ export async function oauth_refresh(oauth:OAuth):Promise<void>{
             new appauth.TokenRequest({
                 client_id: OAUTH_SUPPORTED[oauth.issuer].client_id,
                 grant_type: 'refresh_token',
-                refresh_token: oauth.token_refresh,
+                refresh_token: await external_decrypt(oauth.token_refresh),
                 redirect_uri: REDIRECT_URI,
                 extras: {
                     client_secret: OAUTH_SUPPORTED[oauth.issuer].client_secret,
@@ -459,7 +460,7 @@ export async function oauth_refresh(oauth:OAuth):Promise<void>{
         }
         throw error
     }
-    oauth.token_access = token_resp.accessToken
+    oauth.token_access = await external_encrypt(token_resp.accessToken)
     oauth.token_access_expires = token_resp.expiresIn === undefined ? null :
         new Date((token_resp.issuedAt + token_resp.expiresIn) * 1000)
     await self.app_db.oauths.set(oauth)
@@ -475,7 +476,7 @@ export async function oauth_revoke(oauth:OAuth):Promise<void>{
             new appauth.RevokeTokenRequest({
                 client_id: OAUTH_SUPPORTED[oauth.issuer].client_id,
                 client_secret: OAUTH_SUPPORTED[oauth.issuer].client_secret,
-                token: oauth.token_access,
+                token: await external_decrypt(oauth.token_access),
             }),
         )
     } catch (error){
@@ -502,7 +503,7 @@ export async function oauth_revoke_if_obsolete(oauth:OAuth):Promise<void>{
 
     // If used for email sending, keep
     const profiles = await self.app_db.profiles.list()
-    if (profiles.some(profile => profile.smtp_settings.oauth === oauth.id)){
+    if (profiles.some(profile => profile.smtp.oauth === oauth.id)){
         return
     }
 
@@ -542,7 +543,7 @@ export async function oauth_request(oauth:OAuth, url:string, params?:Record<stri
     const request_init:JsonRequestInit = {
         method,
         headers: {
-            Authorization: `Bearer ${oauth.token_access}`,
+            Authorization: `Bearer ${await external_decrypt(oauth.token_access)}`,
         },
     }
     if (body){

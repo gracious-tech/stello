@@ -9,6 +9,10 @@ import {OAUTH_SUPPORTED} from '@/services/tasks/oauth'
 import {email_address_like} from '../utils/misc'
 import {partition} from '../utils/strings'
 import {HOST_STORAGE_VERSION} from '@/services/hosts/common'
+import {external_decrypt} from '@/services/misc/external_crypt'
+
+
+export type ProfileEmailSettings = Omit<RecordProfileSmtp, 'pass'> & {pass:string}
 
 
 export interface SmtpProvider {
@@ -154,19 +158,20 @@ export class Profile implements RecordProfile {
         return (this.smtp_detected && SMTP_PROVIDERS[this.smtp_detected]) || null
     }
 
-    get smtp_settings():RecordProfileSmtp{
+    get smtp_settings():ProfileEmailSettings{
         // Return final smtp settings after accounting for defaults
-        // NOTE Address and password are always provided directly by user
-        const settings = Object.assign({}, this.smtp)
-        settings.host ||= this.email_domain ? `smtp.${this.email_domain}` : ''
-        settings.port ||= 465
-        settings.user ||= this.email
+        // WARN Does not include password as it requires async decryption
+        const oauth = this.smtp.oauth  // Used when creating transport id (not actually smtp)
+        let host = this.smtp.host ?? (this.email_domain ? `smtp.${this.email_domain}` : '')
+        let port = this.smtp.port ?? 465
+        let starttls = this.smtp.starttls
+        const user = this.smtp.user ?? this.email
         if (this.smtp_detected_config){
-            settings.host = this.smtp_detected_config.host
-            settings.port = this.smtp_detected_config.port
-            settings.starttls = this.smtp_detected_config.starttls
+            host = this.smtp_detected_config.host
+            port = this.smtp_detected_config.port
+            starttls = this.smtp_detected_config.starttls
         }
-        return settings
+        return {oauth, host, port, starttls, user, pass: ''}
     }
 
     get smtp_oauth_supported():boolean{
@@ -258,6 +263,14 @@ export class Profile implements RecordProfile {
         throw new Error('impossible')
     }
 
+    async get_authed_smtp_settings():Promise<ProfileEmailSettings>{
+        // Get smtp_settings with password included
+        return {
+            ...this.smtp_settings,
+            pass: this.smtp.pass ? await external_decrypt(this.smtp.pass) : '',
+        }
+    }
+
     view_url(config_secret64:string, copy_id:string, secret:ArrayBuffer, action?:string){
         // Return URL for viewing the given copy
         const domain = this.view_domain
@@ -315,7 +328,7 @@ export class DatabaseProfiles {
             smtp: {
                 oauth: null,
                 user: '',
-                pass: '',
+                pass: null,
                 host: '',
                 port: null,
                 starttls: false,

@@ -50,7 +50,7 @@ export async function send_oauth_setup(task:Task):Promise<void>{
     profile.smtp = {
         oauth: oauth_id,
         user: '',
-        pass: '',
+        pass: null,
         host: '',
         port: null,
         starttls: false,
@@ -152,7 +152,7 @@ export class Sender {
         }
 
         // Provide fix options (will detect appropriate one to use in failure dialog)
-        task.fix_oauth = this.profile.smtp_settings.oauth  // May be null which is fine
+        task.fix_oauth = this.profile.smtp.oauth  // May be null which is fine
         task.fix_settings = async () => {
             const fresh_profile = await self.app_db.profiles.get(this.profile.id)
             if (fresh_profile){
@@ -207,7 +207,7 @@ export class Sender {
             await export_key(this.profile.host_state.shared_secret))
 
         // Init email sender
-        this.email_client = new_email_task(this.profile.smtp_settings)
+        this.email_client = new_email_task(await this.profile.get_authed_smtp_settings())
         const email_promises:Promise<unknown>[] = []
 
         // Upload copies

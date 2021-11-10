@@ -50,7 +50,7 @@ export default class extends Vue {
 
     route_transition = 'below'
     snackbar_visible = false
-    snackbar:{msg:string, btn_label?:string, btn_color?:string, btn_handler?:()=>void} = null
+    snackbar:{msg:string, btn_label?:string, btn_color?:string, btn_handler?:()=>void}|null = null
     allow_force_quit = false
 
     mounted(){
@@ -60,7 +60,7 @@ export default class extends Vue {
         //      Must .'. always give a target to links to avoid them not working when tasks running
         self.addEventListener('beforeunload', event => {
             if (task_manager.data.tasks.length && !this.allow_force_quit){
-                this.$store.dispatch('show_snackbar', {
+                void this.$store.dispatch('show_snackbar', {
                     msg: "Cannot close until tasks complete",
                     btn_label: "Force quit",
                     btn_color: 'error',
@@ -77,7 +77,7 @@ export default class extends Vue {
         self.app_native.on_oauth(oauth_pretask_process)
 
         // Resume tasks
-        resume_tasks()
+        void resume_tasks()
     }
 
     get docked(){

@@ -123,6 +123,7 @@ import {EmailError, EmailSettings} from '@/services/native/types'
 import {email_address_like} from '@/services/utils/misc'
 import {Profile, SMTP_PROVIDERS} from '@/services/database/profiles'
 import {OAuthIssuer, oauth_pretask_new_usage} from '@/services/tasks/oauth'
+import {external_decrypt, external_encrypt} from '@/services/misc/external_crypt'
 
 
 export type EmailSetupStep = 'init'|'email'|'settings'|'signin'|'password'
@@ -145,7 +146,7 @@ export default class extends Vue {
 
     async created(){
         // Init tmp_pass
-        this.tmp_pass = this.profile.smtp.pass
+        this.tmp_pass = this.profile.smtp.pass ? await external_decrypt(this.profile.smtp.pass) : ''
 
         // Detect best state to put the UI in
         if (this.force_step){
@@ -246,14 +247,6 @@ export default class extends Vue {
         this.save()
     }
 
-    get smtp_pass(){
-        return this.profile.smtp.pass
-    }
-    set smtp_pass(value){
-        this.profile.smtp.pass = value
-        this.save()
-    }
-
     get smtp_host(){
         return this.profile.smtp.host
     }
@@ -315,7 +308,7 @@ export default class extends Vue {
             this.profile.smtp = {
                 oauth: null,
                 user: '',
-                pass: '',
+                pass: null,
                 host: '',
                 port: null,
                 starttls: false,
@@ -346,7 +339,7 @@ export default class extends Vue {
         // Go to next setup step depending on whether settings were detected or not
         if (this.profile.smtp_detected){
             this.setup = this.profile.smtp_oauth_supported ? 'signin' : 'password'
-        } else if (this.smtp_pass){
+        } else if (this.profile.smtp.pass){
             // Password has already been set, so host settings may already work so don't guess them
             this.setup = 'settings'
         } else {
@@ -427,7 +420,8 @@ export default class extends Vue {
         } as EmailSettings)
         if (!this.error){
             // Password worked, so save it (smtp settings detected as done when password exists)
-            this.smtp_pass = this.tmp_pass
+            this.profile.smtp.pass = await external_encrypt(this.tmp_pass)
+            this.save()
             this.$emit('close')
         }
         this.loading = false

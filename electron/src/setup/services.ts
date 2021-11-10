@@ -3,7 +3,7 @@ import path from 'path'
 import {readFileSync} from 'fs'
 import {promises as dns} from 'dns'
 
-import {ipcMain} from 'electron'
+import {ipcMain, safeStorage} from 'electron'
 import {autoUpdater} from 'electron-updater'
 
 import {get_path} from '../utils/config'
@@ -36,4 +36,22 @@ ipcMain.handle('dns_mx', async (event, host) => {
     } catch {
         return []
     }
+})
+
+
+ipcMain.handle('os_encrypt', async (event, secret:string):Promise<ArrayBuffer|null> => {
+    // Encrypt a string using OS keyring (returns null if can't encrypt)
+    if (safeStorage.isEncryptionAvailable()){
+        return safeStorage.encryptString(secret).buffer
+    }
+    return null
+})
+
+
+ipcMain.handle('os_decrypt', async (event, encrypted:ArrayBuffer):Promise<string|null> => {
+    // Decrypt a string using OS keyring (returns null if can't decrypt)
+    if (safeStorage.isEncryptionAvailable()){
+        return safeStorage.decryptString(Buffer.from(encrypted))
+    }
+    return null
 })

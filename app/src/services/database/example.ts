@@ -7,6 +7,7 @@ import {ContentImages, RecordProfileHost} from './types'
 import {Database} from './database'
 import {generate_token} from '../utils/crypt'
 import {Draft} from './drafts'
+import {external_encrypt} from '@/services/misc/external_crypt'
 
 
 export async function generate_example_data(db:Database, multiplier:number):Promise<void>{
@@ -25,7 +26,7 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
         host: 'localhost',
         port: 25,
         user: 'user',
-        pass: 'pass',
+        pass: await external_encrypt('pass'),
         starttls: true,
     }
     profile.msg_options_identity.sender_name = "Sender Name"

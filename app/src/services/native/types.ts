@@ -6,6 +6,8 @@ export interface NativeInterface {
     read_file(path:string):Promise<ArrayBuffer>
     update():void
     dns_mx(host:string):Promise<string[]>
+    os_encrypt(secret:string):Promise<ArrayBuffer|null>
+    os_decrypt(encrypted:ArrayBuffer):Promise<string|null>
     test_email_settings(settings:EmailSettings, auth?:boolean):Promise<EmailError|undefined>
     smtp_send(settings:EmailSettings, email:Email):Promise<EmailError|null>
 

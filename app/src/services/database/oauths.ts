@@ -13,8 +13,8 @@ export class OAuth implements RecordOAuth {
     email!:string
     name!:string
     scope_sets!:('email_send'|'contacts')[]
-    token_refresh!:string
-    token_access!:string
+    token_refresh!:ArrayBuffer
+    token_access!:ArrayBuffer
     token_access_expires!:Date|null
     contacts_sync!:boolean
     contacts_sync_last!:Date
