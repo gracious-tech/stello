@@ -52,6 +52,9 @@ div
                         app-list-item(v-for='group of account.groups' :key='group.id'
                             :value='group.id') {{group.display}}
                     v-divider
+                    v-subheader Management
+                    app-list-item(value='duplicates') Duplicates
+                    v-divider
                     div(class='text-center')
                         app-btn(@click='show_import_dialog' small) Import contacts
 
@@ -59,7 +62,8 @@ div
 
             div(v-if='!contacts_matched.length' class='text-center pt-16 mt-16')
                 p(class='text-h5 text--secondary noselect') {{ empty_list_explanation }}
-                app-btn(@click='empty_list_action') {{ empty_list_action_label }}
+                app-btn(v-if='empty_list_action_label' @click='empty_list_action')
+                    | {{ empty_list_action_label }}
 
             app-content-list(v-else :items='contacts_matched' ref='scrollable' height='48'
                     class='pt-6')
@@ -168,6 +172,18 @@ export default class extends Vue {
         } else if (this.filter_group){
             return this.contacts.filter(
                 item => this.filter_group.contacts.includes(item.contact.id))
+        } else if (this.filter_group_id === 'duplicates'){
+            // Show all contacts that don't have a unique address
+            const addresses:Record<string, ContactItem[]> = {}
+            for (const item of this.contacts){
+                const address = item.contact.address.trim().toLowerCase()
+                if (address && address in addresses){
+                    addresses[address]!.push(item)
+                } else if (address){
+                    addresses[address] = [item]
+                }
+            }
+            return Object.values(addresses).filter(items => items.length > 1).flat()
         }
         return this.contacts
     }
@@ -223,18 +239,26 @@ export default class extends Vue {
             return "No contacts added yet"
         } else if (this.search.length){
             return "No matches"
+        } else if (this.filter_group_id === 'duplicates'){
+            return "No duplicates"
+        } else if (this.filter_group){
+            return "Group empty"
         }
-        return "Group empty"
+        return ""
     }
 
-    get empty_list_action_label():string{
+    get empty_list_action_label():string|null{
         // Text for button when list is empty
         if (!this.contacts.length){
             return "Import contacts"
         } else if (this.search.length){
             return "Clear search"
+        } else if (this.filter_group_id === 'duplicates'){
+            return null
+        } else if (this.filter_group){
+            return "New contact"
         }
-        return "New contact"
+        return null
     }
 
     // Watch
@@ -347,7 +371,9 @@ export default class extends Vue {
             this.show_import_dialog()
         } else if (this.search.length){
             this.search = ''
-        } else {
+        } else if (this.filter_group_id === 'duplicates'){
+            // null
+        } else if (this.filter_group){
             this.new_contact()
         }
     }
