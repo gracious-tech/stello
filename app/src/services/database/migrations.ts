@@ -120,14 +120,18 @@ export async function to_13(transaction:VersionChangeTransaction){
 export async function to_14_async(db:AppDatabaseConnection){
     // External encryption for oauth tokens and email password
 
+    const null_buff = new ArrayBuffer(0)
     for (const profile of await db.getAll('profiles')){
-        // Pass previously always a string, so will either encrypt if possible or set to null
-        profile.smtp.pass =
-            await self.app_native.os_encrypt(profile.smtp.pass as unknown as string)
+        // Pass should be null if not yet set, otherwise an empty buffer to prompt for reauth
+        if (profile.smtp.pass){
+            profile.smtp.pass = await self.app_native.os_encrypt(
+                profile.smtp.pass as unknown as string) ?? null_buff
+        } else {
+            profile.smtp.pass = null  // Now using null instead of empty string
+        }
         await db.put('profiles', profile)
     }
 
-    const null_buff = new ArrayBuffer(0)
     for (const oauth of await db.getAll('oauths')){
         // Tokens never null so use empty buffer if encryption not possible
         oauth.token_access =
