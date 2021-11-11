@@ -162,10 +162,10 @@ export class Profile implements RecordProfile {
         // Return final smtp settings after accounting for defaults
         // WARN Does not include password as it requires async decryption
         const oauth = this.smtp.oauth  // Used when creating transport id (not actually smtp)
-        let host = this.smtp.host ?? (this.email_domain ? `smtp.${this.email_domain}` : '')
-        let port = this.smtp.port ?? 465
+        let host = this.smtp.host || (this.email_domain ? `smtp.${this.email_domain}` : '')
+        let port = this.smtp.port || 465
         let starttls = this.smtp.starttls
-        const user = this.smtp.user ?? this.email
+        const user = this.smtp.user || this.email
         if (this.smtp_detected_config){
             host = this.smtp_detected_config.host
             port = this.smtp_detected_config.port
