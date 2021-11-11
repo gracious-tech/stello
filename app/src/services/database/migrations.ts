@@ -6,7 +6,7 @@ import {AppDatabaseConnection, VersionChangeTransaction} from './types'
 import {to_12_from_1plus, to_12_from_1plus_async} from './migrations_pre12'
 
 
-export const DATABASE_VERSION = 13
+export const DATABASE_VERSION = 14
 
 
 export async function migrate(transaction:VersionChangeTransaction,
@@ -28,6 +28,8 @@ export async function migrate_async(db:AppDatabaseConnection, old_version:number
     // WARN If these fail, app will not redo them on next open (version number already changed)
     if (old_version < 12 && old_version !== 0)
         await to_12_from_1plus_async(db)
+    if (old_version < 14)
+        await to_14_async(db)
 }
 
 
@@ -112,4 +114,26 @@ export async function to_13(transaction:VersionChangeTransaction){
         await cursor.update(cursor.value)
     }
 
+}
+
+
+export async function to_14_async(db:AppDatabaseConnection){
+    // External encryption for oauth tokens and email password
+
+    for (const profile of await db.getAll('profiles')){
+        // Pass previously always a string, so will either encrypt if possible or set to null
+        profile.smtp.pass =
+            await self.app_native.os_encrypt(profile.smtp.pass as unknown as string)
+        await db.put('profiles', profile)
+    }
+
+    const null_buff = new ArrayBuffer(0)
+    for (const oauth of await db.getAll('oauths')){
+        // Tokens never null so use empty buffer if encryption not possible
+        oauth.token_access =
+            await self.app_native.os_encrypt(oauth.token_access as unknown as string) ?? null_buff
+        oauth.token_refresh =
+            await self.app_native.os_encrypt(oauth.token_refresh as unknown as string) ?? null_buff
+        await db.put('oauths', oauth)
+    }
 }
