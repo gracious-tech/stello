@@ -4,6 +4,7 @@ import {expect} from '@playwright/test'
 import {openDB, StoreNames} from 'idb/with-async-ittr-cjs'
 import {cloneDeep} from 'lodash'
 
+import {NativeBrowser} from '../../services/native/native_browser'
 import {to_12_from_0, _to1_creates} from './migrations'
 import {to_12_from_1plus, to_12_from_1plus_async} from './migrations_pre12'
 import {AppDatabaseConnection, AppDatabaseSchema, VersionChangeTransaction} from './types'
@@ -22,6 +23,9 @@ global.crypto = ({subtle: {generateKey: async () => 'crypto_key'}}) as unknown a
 String.prototype.replaceAll = function(old_val:string, new_val:string){
     return this.split(old_val).join(new_val)
 }
+
+// Some migrations access app_native
+global.app_native = new NativeBrowser()
 
 
 // STORE SPECS
