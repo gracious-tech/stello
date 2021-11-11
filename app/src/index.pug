@@ -18,9 +18,9 @@ html
             form-action 'none';
             default-src 'none';
             script-src 'self';
-            connect-src 'self' ${VITE_HOSTED_API} https://*.amazonaws.com https://accounts.google.com https://oauth2.googleapis.com https://gmail.googleapis.com https://people.googleapis.com https://login.microsoftonline.com https://graph.microsoft.com https://api.rollbar.com;
+            connect-src 'self' ${VITE_HOSTED_API} https://*.amazonaws.com https://accounts.google.com https://oauth2.googleapis.com https://gmail.googleapis.com https://people.googleapis.com https://login.microsoftonline.com https://graph.microsoft.com https://api.rollbar.com https://vimeo.com;
             style-src 'self' 'unsafe-inline';
-            img-src 'self' blob:;
+            img-src 'self' blob: https://img.youtube.com https://i.vimeocdn.com;
             media-src 'self';
             font-src 'self';
             frame-src https://www.youtube-nocookie.com https://player.vimeo.com;
