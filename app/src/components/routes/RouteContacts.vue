@@ -211,11 +211,11 @@ export default class extends Vue {
         return !! (this.contacts.length || this.groups.length || this.accounts.length)
     }
 
-    get filter_group():Group{
+    get filter_group():Group|null{
         // The group being used to filter contacts
         if (this.search || this.filter_group_id === '-')
             return null
-        return this.groups.find((g => g.id === this.filter_group_id))
+        return this.groups.find((g => g.id === this.filter_group_id)) ?? null
     }
 
     get some_selected():boolean{
@@ -228,7 +228,7 @@ export default class extends Vue {
         return !!this.contacts_matched.length && this.contacts_matched.every(i => i.selected)
     }
 
-    get bulk_value():boolean{
+    get bulk_value():boolean|null{
         // What value the bulk select checkbox should display as
         return this.all_matched_selected ? true : (this.some_selected ? null : false)
     }
@@ -292,7 +292,7 @@ export default class extends Vue {
         if (task.name === 'contacts_remove'){
             remove_match(this.contacts, item => item.contact.id === task.params[1])
         } else if (task.name === 'contacts_sync'){
-            this.load_contacts()
+            void this.load_contacts()
         }
     }
 
@@ -345,7 +345,7 @@ export default class extends Vue {
             this.filter_group.contacts.push(contact.id)
             await self.app_db.groups.set(this.filter_group)
         }
-        this.$router.push({name: 'contact', params: {contact_id: contact.id}})
+        void this.$router.push({name: 'contact', params: {contact_id: contact.id}})
     }
 
     async new_group():Promise<void>{
@@ -368,13 +368,13 @@ export default class extends Vue {
     empty_list_action():void{
         // Action for button displayed when list is empty
         if (!this.contacts.length){
-            this.show_import_dialog()
+            void this.show_import_dialog()
         } else if (this.search.length){
             this.search = ''
         } else if (this.filter_group_id === 'duplicates'){
             // null
         } else if (this.filter_group){
-            this.new_contact()
+            void this.new_contact()
         }
     }
 
@@ -384,10 +384,10 @@ export default class extends Vue {
         const group_id = await this.$store.dispatch('show_dialog', {
             component: DialogContactsImport,
             wide: true,
-        })
+        }) as string
         if (group_id){
             // New group and contacts so just load fresh from db and display the new group
-            this.load_contacts()
+            void this.load_contacts()
             this.filter_group_id = group_id
             this.search = ''
         }
@@ -421,14 +421,14 @@ export default class extends Vue {
     do_selected_delete():void{
         // Delete selected contacts (but only those not part of a service account)
         for (const item of this.contacts_selected_internal){
-            self.app_db.contacts.remove(item.contact.id)
+            void self.app_db.contacts.remove(item.contact.id)
         }
 
         // Notify how many deleted/skipped
         const count = this.contacts_selected_internal.length
         const skipped = this.contacts_selected.length - count
         const skipped_text = skipped ? `(skipped ${skipped} synced contacts)` : ''
-        this.$store.dispatch('show_snackbar', `Deleted ${count} contacts ${skipped_text}`)
+        void this.$store.dispatch('show_snackbar', `Deleted ${count} contacts ${skipped_text}`)
 
         // Remove deleted from list
         for (const item of this.contacts_selected_internal){
@@ -471,15 +471,15 @@ export default class extends Vue {
 
     async do_selected_join_group():Promise<void>{
         // Prompt user to choose a group to add selected contacts to
-        const group:Group = await this.$store.dispatch('show_dialog', {
+        const group = await this.$store.dispatch('show_dialog', {
             component: DialogGroupChoice,
             props: {groups: this.groups_internal},  // WARN Cannot join external groups
-        })
+        }) as Group
         if (group){
             // Add contacts to the group and remove any duplicates
             group.contacts.push(...this.contacts_selected.map(item => item.contact.id))
             group.contacts = uniq(group.contacts)
-            self.app_db.groups.set(group)
+            void self.app_db.groups.set(group)
             // Select the group so user can see the changes have happened
             this.filter_group_id = group.id
             this.search = ''
@@ -494,7 +494,7 @@ export default class extends Vue {
             for (const item of this.contacts_selected){
                 remove_item(this.filter_group.contacts, item.contact.id)
             }
-            self.app_db.groups.set(this.filter_group)
+            void self.app_db.groups.set(this.filter_group)
             // Clear selection so user doesn't get confused
             this.clear_selected()
         }
@@ -506,7 +506,7 @@ export default class extends Vue {
         const draft = await self.app_db.drafts.create_object()
         draft.recipients.include_contacts = this.contacts_selected.map(item => item.contact.id)
         await self.app_db.drafts.set(draft)
-        this.$router.push({name: 'draft', params: {draft_id: draft.id}})
+        void this.$router.push({name: 'draft', params: {draft_id: draft.id}})
     }
 
     // Event handlers
