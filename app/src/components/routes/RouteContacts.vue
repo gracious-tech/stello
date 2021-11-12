@@ -54,6 +54,7 @@ div
                     v-divider
                     v-subheader Management
                     app-list-item(value='duplicates') Duplicates
+                    app-list-item(value='disengaged') Disengaged
                     v-divider
                     div(class='text-center')
                         app-btn(@click='show_import_dialog' small) Import contacts
@@ -68,7 +69,8 @@ div
             app-content-list(v-else :items='contacts_matched' ref='scrollable' height='48'
                     class='pt-6')
                 template(#default='{item, height_styles}')
-                    route-contacts-item(:item='item' :key='item.contact.id' :style='height_styles')
+                    route-contacts-item(:item='item' :key='item.contact.id' :style='height_styles'
+                        :disengaged='filter_group_id === "disengaged"')
 
 </template>
 
@@ -95,6 +97,8 @@ import {Task} from '@/services/tasks/tasks'
 interface ContactItem {
     contact:Contact
     selected:boolean
+    unread:number
+    last_read:Date|null
 }
 
 
@@ -109,6 +113,7 @@ export default class extends Vue {
 
     filter_group_id = '-'  // Special value for null as empty values don't get highlighted
     search = ''
+    loaded_reads = false
 
     async mounted():Promise<void>{
         // Load contacts and init filters
@@ -171,7 +176,7 @@ export default class extends Vue {
             })
         } else if (this.filter_group){
             return this.contacts.filter(
-                item => this.filter_group.contacts.includes(item.contact.id))
+                item => this.filter_group!.contacts.includes(item.contact.id))
         } else if (this.filter_group_id === 'duplicates'){
             // Show all contacts that don't have a unique address
             const addresses:Record<string, ContactItem[]> = {}
@@ -184,6 +189,8 @@ export default class extends Vue {
                 }
             }
             return Object.values(addresses).filter(items => items.length > 1).flat()
+        } else if (this.filter_group_id === 'disengaged'){
+            return this.contacts.filter(item => item.unread > 1).sort((a, b) => b.unread - a.unread)
         }
         return this.contacts
     }
@@ -279,6 +286,9 @@ export default class extends Vue {
             this.search = ''
             this.clear_selected()
         }
+        if (value === 'disengaged'){
+            void this.load_reads()
+        }
     }
 
     @Watch('contacts_matched') watch_contacts_matched():void{
@@ -320,6 +330,8 @@ export default class extends Vue {
             return {
                 contact,
                 selected: false,
+                unread: 0,
+                last_read: null,
             }
         })
 
@@ -335,6 +347,76 @@ export default class extends Vue {
                 sync: () => this.$tm.start_contacts_sync(oauth.id),
             }
         })
+    }
+
+    async load_reads(){
+        // Load reads data and calculate disengaged stats
+
+        // Don't run more than once per mount
+        if (this.loaded_reads){
+            return
+        }
+        this.loaded_reads = true
+
+        // Load required data
+        const reads = await self.app_db.reads.list()
+        const copies = await self.app_db.copies.list()
+        const messages = await self.app_db.messages.list()
+
+        // Map msg ids to published date (in ms)
+        const msg_pub_ms:Record<string, number> = {}
+        for (const msg of messages){
+            msg_pub_ms[msg.id] = msg.published.getTime()
+        }
+
+        // Determine the date last read for every copy
+        const last_read_copy:Record<string, Date> = {}
+        for (const read of reads){
+            const prev_ms = last_read_copy[read.copy_id]?.getTime() ?? 0
+            if (prev_ms < read.sent.getTime()){
+                last_read_copy[read.copy_id] = read.sent
+            }
+        }
+
+        // Collect published date (in ms) of latest msg each contact has read
+        const latest_read_pub:Record<string, number> = {}
+
+        // Determine the date last read anything for contacts
+        const last_read:Record<string, Date> = {}
+
+        for (const copy of copies){
+            if (copy.id in last_read_copy){
+
+                // Update last read date for contact if this copy read more recently than any prev
+                const proposed_ms = last_read_copy[copy.id]!.getTime()
+                const existing_ms = last_read[copy.contact_id]?.getTime() ?? 0
+                if (proposed_ms > existing_ms){
+                    last_read[copy.contact_id] = last_read_copy[copy.id]!
+                }
+
+                // Also update latest msg read for contact if more recent than prev
+                // NOTE The most recent read for a contact may not be the latest msg if an old msg
+                const pub_ms = msg_pub_ms[copy.msg_id]!
+                if (pub_ms > (latest_read_pub[copy.contact_id] ?? 0)){
+                    latest_read_pub[copy.contact_id] = pub_ms
+                }
+            }
+        }
+
+        // Work out unread streak for each contact
+        const unread_streak:Record<string, number> = {}
+        for (const copy of copies){
+            if (! (copy.id in last_read_copy)
+                    && msg_pub_ms[copy.msg_id]! > (latest_read_pub[copy.contact_id] ?? 0)){
+                unread_streak[copy.contact_id] = (unread_streak[copy.contact_id] ?? 0) + 1
+            }
+        }
+
+        // Apply results to contacts
+        for (const item of this.contacts){
+            item.unread = unread_streak[item.contact.id] ?? 0
+            item.last_read = last_read[item.contact.id] ?? null
+        }
     }
 
     async new_contact():Promise<void>{
