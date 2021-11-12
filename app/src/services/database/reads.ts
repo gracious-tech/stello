@@ -25,6 +25,11 @@ export class DatabaseReads {
         this._conn = connection
     }
 
+    async list():Promise<Read[]>{
+        // Get all reads
+        return (await this._conn.getAll('reads')).map(r => new Read(r))
+    }
+
     async list_for_msg(msg_id:string):Promise<Read[]>{
         // Get all reads for given message id
         const reads = await this._conn.getAllFromIndex('reads', 'by_msg', msg_id)
