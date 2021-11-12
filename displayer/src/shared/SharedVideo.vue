@@ -3,12 +3,10 @@
 
 div
     div.aspect
-        //- NOTE allow-forms required for entering a Vimeo password
-        iframe(v-if='src' :src='src' allowfullscreen
-            sandbox='allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms'
-            allow='fullscreen; encrypted-media; gyroscope; accelerometer; clipboard-write; picture-in-picture')
+        iframe(v-if='src' :src='src' :sandbox='sandbox' :allow='allow')
         svg(v-else @click='$emit("modify")' width='32' height='18' viewBox='0 0 32 18')
-            path(d='M 22,4.5 H 10 c -1.1,0 -2,0.9 -2,2 v 5 c 0,1.1 0.9,2 2,2 h 12 c 1.1,0 2,-0.9 2,-2 v -5 c 0,-1.1 -0.9,-2 -2,-2 z m -7.5,7 v -5 l 4,2.5 z')
+            path(d=`M 22,4.5 H 10 c -1.1,0 -2,0.9 -2,2 v 5 c 0,1.1 0.9,2 2,2 h 12 c 1.1,0 2,-0.9 2,
+                -2 v -5 c 0,-1.1 -0.9,-2 -2,-2 z m -7.5,7 v -5 l 4,2.5 z`)
 
     div.cap(v-if='caption') {{ caption }}
 
@@ -25,7 +23,7 @@ export default defineComponent({
 
     props: {
         format: {
-            type: String as PropType<string|null>,
+            type: String as PropType<'iframe_youtube'|'iframe_vimeo'|null>,
             default: null,
         },
         id: {
@@ -70,7 +68,7 @@ export default defineComponent({
                 if (typeof this.end === 'number'){
                     params.set('end', `${this.end}`)
                 }
-                return `https://www.youtube-nocookie.com/embed/${this.safe_id}?${params}`
+                return `https://www.youtube-nocookie.com/embed/${this.safe_id}?${params.toString()}`
             } else if (this.format === 'iframe_vimeo'){
                 const params = new URLSearchParams([
                     ['dnt', '1'],  // Do not track
@@ -81,9 +79,28 @@ export default defineComponent({
                     const secs = this.start % 60
                     hash = `#t=${mins}m${secs}s`
                 }
-                return `https://player.vimeo.com/video/${this.safe_id}?${params}${hash}`
+                return `https://player.vimeo.com/video/${this.safe_id}?${params.toString()}${hash}`
             }
             return null
+        },
+
+        sandbox():string{
+            // REDUCES restrictions imposed by sandbox
+            if (this.format === 'iframe_youtube'){
+                //- NOTE Youtube requires access to its own origin (doesn't grant access to page's)
+                return 'allow-scripts allow-same-origin'
+            } else if (this.format === 'iframe_vimeo'){
+                //- NOTE allow-forms required for entering a Vimeo password
+                return 'allow-scripts allow-forms'
+            }
+            return ''
+        },
+
+        allow():string{
+            // INCREASES permissions not normally granted to iframes
+            // NOTE clipboard-write for copying URL (players can write even without explicit perm)
+            return 'fullscreen; encrypted-media; gyroscope; accelerometer; clipboard-write;'
+                + ' picture-in-picture;'
         },
 
     },
