@@ -246,10 +246,12 @@ export default class extends Vue {
             return "No contacts added yet"
         } else if (this.search.length){
             return "No matches"
-        } else if (this.filter_group_id === 'duplicates'){
-            return "No duplicates"
         } else if (this.filter_group){
             return "Group empty"
+        } else if (this.filter_group_id === 'duplicates'){
+            return "No duplicates"
+        } else if (this.filter_group_id === 'disengaged'){
+            return "No contacts are disengaged"
         }
         return ""
     }
@@ -260,8 +262,6 @@ export default class extends Vue {
             return "Import contacts"
         } else if (this.search.length){
             return "Clear search"
-        } else if (this.filter_group_id === 'duplicates'){
-            return null
         } else if (this.filter_group){
             return "New contact"
         }
@@ -453,8 +453,6 @@ export default class extends Vue {
             void this.show_import_dialog()
         } else if (this.search.length){
             this.search = ''
-        } else if (this.filter_group_id === 'duplicates'){
-            // null
         } else if (this.filter_group){
             void this.new_contact()
         }
