@@ -60,6 +60,11 @@ div
 
         div.contacts(:class='{selections: some_selected}')
 
+            div(v-if='filter_group_id === "disengaged"'
+                    class='app-bg-primary-relative py-4 px-15 text-body-2 text-center')
+                | Contacts who were sent messages but didn't open them<br>
+                strong Messages unopened (since last open)&nbsp;&nbsp;|&nbsp;&nbsp;Last time opened
+
             div(v-if='!contacts_matched.length' class='text-center pt-16 mt-16')
                 p(class='text-h5 text--secondary noselect') {{ empty_list_explanation }}
                 app-btn(v-if='empty_list_action_label' @click='empty_list_action')
@@ -405,7 +410,7 @@ export default class extends Vue {
         // Work out unread streak for each contact
         const unread_streak:Record<string, number> = {}
         for (const copy of copies){
-            if (! (copy.id in last_read_copy)
+            if (! (copy.id in last_read_copy) && copy.invited
                     && msg_pub_ms[copy.msg_id]! > (latest_read_pub[copy.contact_id] ?? 0)){
                 unread_streak[copy.contact_id] = (unread_streak[copy.contact_id] ?? 0) + 1
             }
