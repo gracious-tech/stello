@@ -181,6 +181,9 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
                     msg_copy.resp_token, msg_section_ids.next().value,
                     msg_subsection_ids.next().value, '', '')
             }
+            if (Math.random() > 0.2){
+                await db.read_create(random_date(), msg_copy.resp_token, '', '')
+            }
         }
     }
 }
