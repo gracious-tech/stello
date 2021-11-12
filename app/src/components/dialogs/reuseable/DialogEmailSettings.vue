@@ -27,6 +27,7 @@ v-card
     //- Choose host settings (couldn't auto-detect)
     v-card-text(v-if='setup === "settings"')
         div {{ email }} #[app-btn(@click='setup = "init"' small) Change]
+        app-security-alert(v-if='smtpless' class='mt-3') {{ smtpless }}
         app-text(v-model='smtp_host' v-bind='$t("smtp_host")'
             :placeholder='profile.smtp_settings.host' persistent-placeholder)
         app-integer(v-model='smtp_port' :buttons='false' :inherit='profile.smtp_settings.port'
@@ -129,6 +130,22 @@ import {external_decrypt, external_encrypt} from '@/services/misc/external_crypt
 export type EmailSetupStep = 'init'|'email'|'settings'|'signin'|'password'
 
 
+const SMTPLESS:Record<string, string> = {
+    protonmail: `ProtonMail only allows other apps to send emails if you have a paid account and have setup "ProtonMail Bridge" on your computer already, and will offer little security benefit over what Stello already provides.`,
+    tutanota: `Tutanota does not allow other apps to send emails. You must use a different email address which will still benefit from the security that Stello itself provides.`,
+}
+
+
+const SMTPLESS_DOMAINS:Record<string, string> = {
+    'protonmail.com': 'protonmail',
+    'tutanota.com': 'tutanota',
+    'tutanota.de': 'tutanota',
+    'tutamail.com': 'tutanota',
+    'tuta.io': 'tutanota',
+    'keemail.me': 'tutanota',
+}
+
+
 @Component({
     i18n: {messages: {en: i18n}},
 })
@@ -175,6 +192,15 @@ export default class extends Vue {
                 return "Enter password for your email account"
         }
         return "Connect email account"
+    }
+
+    get smtpless():string|null{
+        // A warning message specific to the user's email provider if it doesn't support SMTP
+        const domain = this.email.split('@').at(-1)?.toLowerCase() ?? ''
+        if (domain in SMTPLESS_DOMAINS){
+            return SMTPLESS[SMTPLESS_DOMAINS[domain]!]!
+        }
+        return null
     }
 
     get not_detected():boolean{
