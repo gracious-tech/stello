@@ -188,7 +188,7 @@ Resources:
                             + "default-src 'none';"
                             + "img-src 'self' blob:;"
                             + "script-src 'self' 'sha256-Suz7knHBav40+YObLJzbKQuKbIXf2Z6blcKiOItb5h8=' 'sha256-BXzBwLX4QB6FZL4+4caqwsgYr8ist74mVQ5B3YMkyuQ=';"
-                            + "style-src 'self' 'sha256-ZtAi/ysjZm0xsuCDCNS2IFcwQkmxUd12Cy5r4DuHrME=';"
+                            + "style-src 'self' 'sha256-sH+eW+z7vpFkiTQAbA4sXmJ5P8qWezdghRPnklbu/Ho=';"
                             + "connect-src 'self' https://api.at.${InputDomainGeneric} https://${MessagesBucket.RegionalDomainName} https://api.rollbar.com;"
                             + "frame-src https://www.youtube-nocookie.com https://player.vimeo.com;"
                     }
