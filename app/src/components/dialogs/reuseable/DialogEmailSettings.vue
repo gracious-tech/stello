@@ -26,7 +26,7 @@ v-card
 
     //- Choose host settings (couldn't auto-detect)
     v-card-text(v-if='setup === "settings"')
-        div {{ email }} #[app-btn(@click='setup = "init"') Change]
+        div {{ email }} #[app-btn(@click='setup = "init"' small) Change]
         app-text(v-model='smtp_host' v-bind='$t("smtp_host")'
             :placeholder='profile.smtp_settings.host' persistent-placeholder)
         app-integer(v-model='smtp_port' :buttons='false' :inherit='profile.smtp_settings.port'
@@ -43,10 +43,10 @@ v-card
 
     //- Auth with username/password
     v-card-text(v-if='setup === "password"')
-        div {{ email }} #[app-btn(@click='setup = "init"') Change]
+        div {{ email }} #[app-btn(@click='setup = "init"' small) Change]
         p(v-if='!profile.smtp_detected' class='my-4')
             | #[strong Server] {{ profile.smtp_settings.host }}:{{ profile.smtp_settings.port }}
-            app-btn(@click='setup = "settings"') Change
+            app-btn(@click='setup = "settings"' small) Change
         app-password(v-model='tmp_pass' :error='error && !tmp_pass' v-bind='$t("smtp_pass")'
             class='external-hint')
         p(class='hint text--secondary body-2')
@@ -101,7 +101,7 @@ const i18n = {
         hint: "This is usually the same as your email address",
     },
     smtp_pass: {
-        label: "App password",
+        label: "Email password",
     },
     smtp_host: {
         label: "Server name",
@@ -172,7 +172,7 @@ export default class extends Vue {
             case 'signin':
                 return "Signin to your email account"
             case 'password':
-                return "Enter your password"
+                return "Enter password for your email account"
         }
         return "Connect email account"
     }
