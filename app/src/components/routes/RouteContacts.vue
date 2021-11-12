@@ -55,8 +55,7 @@ div
                     v-subheader Management
                     app-list-item(value='duplicates') Duplicates
                     app-list-item(value='disengaged') Disengaged
-                    v-divider
-                    div(class='text-center')
+                    div(class='text-center mt-2')
                         app-btn(@click='show_import_dialog' small) Import contacts
 
         div.contacts(:class='{selections: some_selected}')
