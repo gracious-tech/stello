@@ -59,4 +59,11 @@ export default class extends Vue {
 <style lang='sass' scoped>
 
 
+a
+    font-size: 12px
+    &:not(:hover)
+        opacity: 0.3
+        color: inherit !important
+
+
 </style>

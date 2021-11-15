@@ -114,3 +114,4 @@ export * as icon_visibility_off     from 'md-icon-svgs/visibility_off.svg?raw-sv
 export * as icon_cancel             from 'md-icon-svgs/cancel.svg?raw-svg'
 export * as icon_check_circle       from 'md-icon-svgs/check_circle.svg?raw-svg'
 export * as icon_sync               from 'md-icon-svgs/sync.svg?raw-svg'
+export * as icon_money              from 'md-icon-svgs/monetization_on.svg?raw-svg'

@@ -12,28 +12,36 @@ div
 
         img.decor(src='@/assets/decor/welcome.svg')
 
-        div(class='notes')
-            div(class='notes-inner app-bg-accent-relative')
-                h1(class='text-h6 mb-0') What's new
-                h1(class='text-subtitle-2 opacity-secondary mt-0') Version {{ version }}
-                ul
-                    li Identify duplicates in contacts list
-                    li Identify disengaged contacts in contacts list
-                p(class='text-body-2') plus many other improvements
-
-        div(class='notes')
-            div(class='notes-inner')
-                h1(class='text-h6') Still to come
-                ul
-                    li A more useful dashboard
-                    li File attachments
-                    li Encrypted videos
-                p plus many many more...
+        v-card(class='pa-4')
+            v-card-title(class='justify-center') New features
+            v-list
+                v-subheader Recently funded
+                v-list-item(v-for='feature of added' :key='feature.title')
+                    v-list-item-content
+                        v-list-item-title {{ feature.title }}
+                        v-list-item-subtitle {{ feature.desc }}
+                    v-list-item-icon
+                        app-svg(name='icon_check_circle' class='accent--text')
+                v-divider
+                v-subheader Gathering funding
+                v-list-item(v-for='feature of todo' :key='feature.title')
+                    v-list-item-content
+                        v-list-item-title {{ feature.title }}
+                        v-list-item-subtitle {{ feature.desc }}
+                    v-list-item-icon
+                        app-svg(name='icon_money' color='#fa5788')
+            v-divider
+            div(class='text-center my-4')
+                p(class='text-body-2')
+                    | Good news! You can use Stello for free thanks to generous supporters
+                    | who've funded the work so far.
+                    | Are you able to help fund more features for others to use too?
                 app-btn(href='https://give.gracious.tech' color='#fa5788' raised small)
                     | Funding progress
-        //- TODO
-        //- div.really
-        //-     really-free
+
+        div(class='mt-15 text-body-2 opacity-secondary text-center') Version {{ version }}
+        div.really(class='mt-3 text-center pb-15 mb-15')
+            really-free
 
 </template>
 
@@ -54,6 +62,39 @@ import RouteRootResendRequests from './assets/RouteRootResendRequests.vue'
 })
 export default class extends Vue {
 
+    added = [
+        {
+            title: "Identify disengaged contacts",
+            desc: "See which contacts haven't been reading any messages for a while",
+        },
+        {
+            title: "Image headers for emails",
+            desc: "Add an image to your emails (encrypted and expire with message)",
+        },
+        {
+            title: "Easier account setup",
+            desc: "Create as many free accounts as you need",
+        },
+    ]
+    todo = [
+        {
+            title: "Encrypted videos",
+            desc: `Add videos directly rather than using third-party sites like Youtube`,
+        },
+        {
+            title: "Message theme colors and backgrounds",
+            desc: `Change the general style of messages to match your content`,
+        },
+        {
+            title: "Dashboard insights",
+            desc: `A proper dashboard that gives you the info you need when Stello opens`,
+        },
+        {
+            title: "File attachments",
+            desc: `Add encrypted files to your messages for readers to open/download`,
+        },
+    ]
+
     get version(){
         return app_config.version
     }
@@ -65,17 +106,6 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
-@import 'src/styles/globals.sass'
-
-
-.really
-    text-align: center
-    margin-bottom: 200px
-    font-size: 12px
-    a
-        opacity: 0.5
-        &:hover
-            opacity: 1
 
 .v-card
     margin: 48px 0
@@ -86,22 +116,5 @@ export default class extends Vue {
     max-width: 393px
     margin: 48px auto
 
-
-.notes
-    display: flex
-    justify-content: center
-    margin: 48px 0
-
-    .notes-inner
-        display: inline-flex
-        flex-direction: column
-        border-radius: 12px
-        padding: 24px
-        width: auto
-        align-items: center
-        @include themed(background-color, #0001, #fff1)
-
-        > *
-            margin: 12px 0
 
 </style>
