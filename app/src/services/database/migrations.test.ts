@@ -1,10 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- needed when prop no longer exists */
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+    -- needed when prop no longer exists */
 
 import 'fake-indexeddb/auto'  // WARN Must import before indexeddb accessed
 import {expect, test} from '@playwright/test'
 
-import {migrate, migrate_async, DATABASE_VERSION, to_12_from_0, _to1_creates, to_13, to_14_async}
-    from './migrations'
+import {migrate, migrate_async, DATABASE_VERSION, to_12_from_0, _to1_creates, to_13, to_14,
+    to_14_async} from './migrations'
 import {STORES_V12, STORES_LATEST, test_stores, open_db, to_12_from_1, to_12_from_11}
     from './migrations.test_utils'
 
@@ -75,13 +76,19 @@ test.describe('migrate', async () => {
             await to_12_from_0(t)
             await to_13(t)
         })
+        await db.put('profiles', {id: 'gracious', host: {cloud: 'gracious'}, smtp: {}} as any)
+        await db.put('profiles', {id: 'aws', host: {cloud: 'aws'}, smtp: {}} as any)
         await db.put('profiles', {id: 'pass', smtp: {pass: 'pass'}} as any)
         await db.put('profiles', {id: 'nopass', smtp: {pass: ''}} as any)
         await db.put('oauths', {id: 'id', token_access: 'access', token_refresh: 'refresh'} as any)
 
         // Migrate
         db.close()
-        db = await open_db('to_14', 14, () => {}, to_14_async)
+        db = await open_db('to_14', 14, to_14, to_14_async)
+
+        // Plan property added to gracious hosts
+        expect((await db.get('profiles', 'gracious') as any).host.plan).toEqual('c')
+        expect((await db.get('profiles', 'aws') as any).host.plan).toBeUndefined()
 
         // Expect pass to be encrypted (or null if empty string)
         expect((await db.get('profiles', 'pass'))!.smtp.pass).toBeInstanceOf(ArrayBuffer)

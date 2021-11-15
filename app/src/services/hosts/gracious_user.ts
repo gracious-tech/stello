@@ -13,7 +13,7 @@ import {HostCredentialsAws} from '@/services/hosts/aws_common'
 
 
 // Types
-export type AccountPlan = 'christian'|'other'
+export type AccountPlan = 'c'|'other'
 export interface HostStorageGeneratedGracious {
     credentials:HostCredentialsAws
     username:string

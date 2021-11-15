@@ -90,6 +90,7 @@ export interface RecordProfileHostAws {
 
 export interface RecordProfileHostGracious {
     cloud:'gracious'
+    plan:'c'|'other'
     username:string
     password:string
     federated_id:string

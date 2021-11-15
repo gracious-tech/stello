@@ -39,10 +39,10 @@ v-stepper(:value='setup_step' @change='change_step')
         v-stepper-content(:step='1')
             img.decor(src='@/assets/decor/setup_storage.png')
             h3(class='text-h6 my-6') Who should store your messages?
-            route-profile-storage(:profile='profile' @plan='plan_choice = $event')
+            route-profile-storage(:profile='profile')
             div.nav
                 app-btn(@click='prev_step' raised color='') Prev
-                app-btn(@click='next_step' :disabled='!plan_choice && !profile.host' raised) Next
+                app-btn(@click='next_step' :disabled='!profile.host' raised) Next
 
         v-stepper-content(:step='2')
             img.decor(src='@/assets/decor/setup_email.png')
@@ -152,7 +152,6 @@ export default class extends Vue {
 
     @Prop() profile!:Profile
 
-    plan_choice:'christian'|'other'|null = null
     username_choice:string|null = null
     security_choice:number|null = null
     security_prev_done = false
@@ -309,13 +308,14 @@ export default class extends Vue {
         void this.$store.dispatch('show_waiting', "Finishing account setup...")
 
         // Create account if hosting with GT
-        if (!this.profile.host){
+        if (this.profile.host && this.profile.host.cloud === 'gracious'){
 
             try {
                 const result = await create_account(
-                    this.username_choice!, this.profile.email, this.plan_choice!)
+                    this.username_choice!, this.profile.email, this.profile.host.plan)
                 this.profile.host = {
                     cloud: 'gracious',
+                    plan: this.profile.host.plan,
                     username: this.username_choice!,
                     password: result.password,
                     federated_id: result.federated_id,

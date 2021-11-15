@@ -8,9 +8,10 @@ div
         | Your storage provider cannot directly decrypt them,
         | but you still must trust them as they could compromise your security in other ways.
 
-    div(v-if='profile.host' class='row align-center justify-center mb-1')
+    div(v-if='profile.host && profile.host.cloud === "aws"'
+            class='row align-center justify-center mb-1')
         div(class='column')
-            h2(class='text-h5') {{ profile.host.cloud === 'aws' && profile.host.bucket }}
+            h2(class='text-h5') {{ profile.host.bucket }}
             p(class='text-center mt-2 mb-0 text--secondary') Amazon Web Services
         app-svg.correct(name='icon_done' class='app-fg-accent-relative')
 
@@ -26,8 +27,8 @@ div
                     | We provide this service to make Stello easier to setup.
                 h2(class='text-subtitle-2') What will this account be used for?
                 v-radio-group(v-model='plan' class='ml-3')
-                    v-radio(value='christian' label="Christian causes" color='accent')
-                    div(v-if='plan === "christian"' class='ml-6')
+                    v-radio(value='c' label="Christian causes" color='accent')
+                    div(v-if='plan === "c"' class='ml-6')
                         v-checkbox(v-model='christian_jesus' color='accent'
                             label="Jesus is our God and only saviour")
                         v-checkbox(v-model='christian_bible' color='accent'
@@ -96,10 +97,21 @@ export default class extends Vue {
     @Prop({required: true}) profile!:Profile
 
     storage_provider:number|null = null
-    plan:'christian'|'other'|null = null
+    plan:'c'|'other'|null = null
     christian_jesus = false
     christian_bible = false
 
+    created(){
+        // Restore state from saved data
+        if (this.profile.host?.cloud === 'gracious'){
+            this.storage_provider = 0
+            this.plan = this.profile.host.plan
+            if (this.profile.host.plan === 'c'){
+                this.christian_jesus = true
+                this.christian_bible = true
+            }
+        }
+    }
 
     get valid_plan(){
         // Return selected plan (only if valid to do so)
@@ -108,8 +120,8 @@ export default class extends Vue {
         }
         if (this.plan === 'other'){
             return 'other'
-        } else if (this.plan === 'christian' && this.christian_jesus && this.christian_bible){
-            return 'christian'
+        } else if (this.plan === 'c' && this.christian_jesus && this.christian_bible){
+            return 'c'
         }
         return null
     }
@@ -121,7 +133,17 @@ export default class extends Vue {
     }
 
     @Watch('valid_plan') watch_valid_plan(){
-        this.$emit('plan', this.valid_plan)
+        // Save changes when plan changes
+        if (this.valid_plan){
+            // @ts-ignore partial host allowed when profile not complete
+            this.profile.host = {
+                cloud: 'gracious',
+                plan: this.valid_plan,
+            }
+        } else {
+            this.profile.host = null
+        }
+        void self.app_db.profiles.set(this.profile)
     }
 }
 

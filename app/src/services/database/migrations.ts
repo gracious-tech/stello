@@ -20,6 +20,8 @@ export async function migrate(transaction:VersionChangeTransaction,
     }
     if (old_version < 13)
         await to_13(transaction)
+    if (old_version < 14)
+        await to_14(transaction)
 }
 
 
@@ -114,6 +116,17 @@ export async function to_13(transaction:VersionChangeTransaction){
         await cursor.update(cursor.value)
     }
 
+}
+
+
+export async function to_14(transaction:VersionChangeTransaction){
+    // Added new plan property to gracious host object
+    for await (const cursor of transaction.objectStore('profiles')){
+        if (cursor.value.host?.cloud === 'gracious'){
+            cursor.value.host.plan = 'c'  // Existing users all use plan 'c' so no logic needed
+            await cursor.update(cursor.value)
+        }
+    }
 }
 
 

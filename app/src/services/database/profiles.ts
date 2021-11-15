@@ -127,9 +127,12 @@ export class Profile implements RecordProfile {
 
     get display_host():string{
         // Return string for displaying host bucket/user
-        if (!this.host)
-            return "New Account"
-        return this.host.cloud === 'gracious' ? this.host.username : this.host.bucket
+        if (this.host?.cloud === 'gracious' && this.host.username){
+            return this.host.username
+        } else if (this.host?.cloud === 'aws' && this.host.bucket){
+            return this.host.bucket
+        }
+        return "New Account"
     }
 
     get email_domain():string|null{

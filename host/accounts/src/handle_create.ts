@@ -9,7 +9,7 @@ import {config, username_allowed, username_valid, setup_handler} from './utils'
 export interface CreateInput {
     username:string
     hashed_email:string
-    plan:'christian'|'other'
+    plan:'c'|'other'
 }
 
 
@@ -42,7 +42,7 @@ export const handler = setup_handler<CreateInput>(async (raw_input, ip):Promise<
     // Validate input types
     const input:CreateInput = {
         username: String(raw_input['username']),
-        plan: raw_input['plan'] === 'christian' ? 'christian' : 'other',
+        plan: raw_input['plan'] === 'other' ? 'other' : 'c',
         hashed_email: String(raw_input['hashed_email']),
     }
 
