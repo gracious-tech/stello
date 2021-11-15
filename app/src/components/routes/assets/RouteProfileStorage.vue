@@ -43,7 +43,9 @@ div
                     | However, other use cases are also currently free too.
 
                 h2(class='text-subtitle-2 text--secondary') Two year limit
-                p(class='body-2 text--secondary') All sent messages will expire after two years (or less), however they will not expire from Stello itself and can be resent at any time.
+                p(class='body-2 text--secondary')
+                    | All sent messages will expire after two years (or less),
+                    | however they will not expire from Stello itself and can be resent at any time.
 
         v-expansion-panel
             v-expansion-panel-header(class='app-bg-primary-relative')
