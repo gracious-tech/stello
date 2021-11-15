@@ -162,7 +162,7 @@ Resources:
             # referrer-policy: Ensure linked sites cannot identify user via displayer domain
             # x-robots-tag: Ensure search engines never index displayer and reveal it publicly
             # x-content-type-options: Protect against content type manipulation
-            # permissions-policy: Disable/allow browser features
+            # permissions-policy: Disable document.domain to reduce risk of subdomain exploit
             # cross-origin-opener-policy: Prevent sites from opening displayer and controlling it
             # cross-origin-resource-policy: Prevent other sites from loading displayer's assets
             # cross-origin-embedder-policy: Require CORP/CORS for all resources (no exceptions)
@@ -177,7 +177,7 @@ Resources:
                     event.response.headers['referrer-policy'] = {value: 'no-referrer'}
                     event.response.headers['x-robots-tag'] = {value: 'none'}
                     event.response.headers['x-content-type-options'] = {value: 'nosniff'}
-                    event.response.headers['permissions-policy'] = {value: 'document-domain()'}
+                    event.response.headers['permissions-policy'] = {value: 'document-domain=()'}
                     event.response.headers['cross-origin-opener-policy'] = {value: 'same-origin'}
                     event.response.headers['cross-origin-resource-policy'] = {value: 'same-origin'}
                     event.response.headers['strict-transport-security'] =
