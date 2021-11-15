@@ -8,7 +8,6 @@ html
         meta(name='referrer' content='no-referrer')
         meta(name='robots' content='none')
         //- WARN Keep CSP in sync with hosted setup HTTP header
-        //- NOTE First script hash is first block (unsupported) and second is second (ts)
         if PROD
             meta(http-equiv='Content-Security-Policy' content=`
                 form-action 'none';
@@ -16,7 +15,7 @@ html
                 default-src 'none';
                 img-src 'self' blob:;
                 script-src 'self' 'sha256-Suz7knHBav40+YObLJzbKQuKbIXf2Z6blcKiOItb5h8=' 'sha256-BXzBwLX4QB6FZL4+4caqwsgYr8ist74mVQ5B3YMkyuQ=';
-                style-src 'self' 'sha256-sH+eW+z7vpFkiTQAbA4sXmJ5P8qWezdghRPnklbu/Ho=';
+                style-src 'self' 'sha256-sH+eW+z7vpFkiTQAbA4sXmJ5P8qWezdghRPnklbu/Ho=' 'sha256-xMLPLp31/mICj15hz9sUt+PGJjNB9jUtb/aQy8cGREY=';
                 connect-src 'self' https:;
                 frame-src https://www.youtube-nocookie.com https://player.vimeo.com;
             `)

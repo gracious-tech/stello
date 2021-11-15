@@ -170,6 +170,8 @@ Resources:
             # strict-transport-security: Tell browsers to only ever use HTTPS for future requests
             # content-security-policy: Prevent requests to other origins & inline attacks etc
             # WARN Keep CSP in sync with displayer's meta tag CSP
+            # Order of script hashes: index unsupported, index typescript
+            # Order of style hashes: index embed, praying reaction svg
             FunctionCode: !Sub |
                 function handler(event){
                     event.response.headers['referrer-policy'] = {value: 'no-referrer'}
@@ -188,7 +190,7 @@ Resources:
                             + "default-src 'none';"
                             + "img-src 'self' blob:;"
                             + "script-src 'self' 'sha256-Suz7knHBav40+YObLJzbKQuKbIXf2Z6blcKiOItb5h8=' 'sha256-BXzBwLX4QB6FZL4+4caqwsgYr8ist74mVQ5B3YMkyuQ=';"
-                            + "style-src 'self' 'sha256-sH+eW+z7vpFkiTQAbA4sXmJ5P8qWezdghRPnklbu/Ho=';"
+                            + "style-src 'self' 'sha256-sH+eW+z7vpFkiTQAbA4sXmJ5P8qWezdghRPnklbu/Ho=' 'sha256-xMLPLp31/mICj15hz9sUt+PGJjNB9jUtb/aQy8cGREY=';"
                             + "connect-src 'self' https://api.at.${InputDomainGeneric} https://${MessagesBucket.RegionalDomainName} https://api.rollbar.com;"
                             + "frame-src https://www.youtube-nocookie.com https://player.vimeo.com;"
                     }
