@@ -20,12 +20,12 @@
         <linearGradient id="IDPREFIXa" x1="35.867" x2="-42.948" y1="116.46" y2="89.136" gradientUnits="userSpaceOnUse" xlink:href="#IDPREFIXc"/>
     </defs>
     <style><![CDATA[
-#IDPREFIXx4 {
-    animation: IDPREFIXx4 2000ms linear infinite normal forwards
+.part4 {
+    animation: part4 2000ms linear infinite normal forwards
 }
 
 
-@keyframes IDPREFIXx4 {
+@keyframes part4 {
 	0% {
 		transform: translate(0,0)
 	}
@@ -40,11 +40,11 @@
 }
 
 
-#IDPREFIXx2 {
-	animation: IDPREFIXx2 2000ms linear infinite normal forwards
+.part2 {
+	animation: part2 2000ms linear infinite normal forwards
 }
 
-@keyframes IDPREFIXx2 {
+@keyframes part2 {
 	0% {
 		transform: translate(13.300900px,14.794380px)
 	}
@@ -58,11 +58,11 @@
 	}
 }
 
-#IDPREFIXx3 {
-	animation: IDPREFIXx3 2000ms linear infinite normal forwards
+.part3 {
+	animation: part3 2000ms linear infinite normal forwards
 }
 
-@keyframes IDPREFIXx3 {
+@keyframes part3 {
 	0% {
 		transform: scale(1,1)
 	}
@@ -108,11 +108,11 @@
 	}
 }
 
-#IDPREFIXx1 {
-	animation: IDPREFIXx1 2000ms linear infinite normal forwards
+.part1 {
+	animation: part1 2000ms linear infinite normal forwards
 }
 
-@keyframes IDPREFIXx1 {
+@keyframes part1 {
 	0% {
 		transform: translate(13.372593px,10.252919px)
 	}
@@ -126,11 +126,11 @@
 	}
 }
 
-#IDPREFIXx5 {
-	animation: IDPREFIXx5 2000ms linear infinite normal forwards
+.part5 {
+	animation: part5 2000ms linear infinite normal forwards
 }
 
-@keyframes IDPREFIXx5 {
+@keyframes part5 {
 	0% {
 		transform: translate(13.373396px,7.576330px)
 	}
@@ -153,25 +153,25 @@
 }]]></style>
     <g transform="translate(-.071714 -.56521)">
         <circle cx="13.301" cy="13.794" r="9.922" fill="url(#IDPREFIXd)"/>
-        <g id="IDPREFIXx2" transform="translate(13.301 14.794)">
-            <g id="IDPREFIXx3" transform="scale(1)">
+        <g class="part2" transform="translate(13.301 14.794)">
+            <g class="part3" transform="scale(1)">
                 <ellipse transform="translate(-2.7e-5)" rx="3.1649" ry="1" stroke-linecap="round" stroke-linejoin="bevel" stroke-width=".865"/>
             </g>
         </g>
-        <g id="IDPREFIXx1" transform="translate(13.373 10.253)">
+        <g class="part1" transform="translate(13.373 10.253)">
             <g transform="translate(-13.373 -10.253)" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="bevel" stroke-width=".865">
                 <path d="m11.749 9.072c-1.1168 1.1823-2.4627 1.6508-4.3028 0.78884"/>
                 <path d="m14.853 9.072c1.1168 1.1823 2.4627 1.6508 4.3028 0.78884"/>
             </g>
         </g>
-        <g id="IDPREFIXx5" transform="translate(13.373 7.5763)">
+        <g class="part5" transform="translate(13.373 7.5763)">
             <g transform="translate(-13.373 -7.5763)" fill="#d79700" stroke-linecap="round" stroke-linejoin="bevel" stroke-width=".865">
                 <path transform="translate(.001604)" d="m14.851 6.2942c-0.11295 0.28128 0.96456 0.34332 2.0803 0.79135 1.1157 0.44802 2.1118 1.1124 2.2247 0.83108 0.11295-0.28128-0.69997-1.1371-1.8157-1.5851-1.1157-0.44802-2.3764-0.31861-2.4893-0.037335z"/>
                 <path d="m11.75 6.2942c0.11295 0.28128-0.96456 0.34332-2.0803 0.79135-1.1157 0.44802-2.1118 1.1124-2.2247 0.83108-0.11295-0.28128 0.69997-1.1371 1.8157-1.5851 1.1157-0.44802 2.3764-0.31861 2.4893-0.037335z"/>
             </g>
         </g>
     </g>
-    <g id="IDPREFIXx4" stroke-width="4">
+    <g class="part4" stroke-width="4">
         <g transform="matrix(-.080748 0 0 .080748 18.605 9.7121)">
             <path transform="translate(.0084999)" d="m-52.866 61.366c44.221 44.213 46.445 55.507 96.708 64.627 2.74-16.57 10.603-54.416 10.623-54.616 0.37-3.57 1.15-7.2 4.05-7.2 3.42 0 5.81 2.15 5.81 5.24l0.0015 88.86c-50.182-3.4782-76.253-21.238-95.081-43.121-13.819-18.367-19.747-37.64-22.111-53.789z" fill="url(#IDPREFIXb)" stroke="url(#IDPREFIXa)"/>
             <path d="m53.323 77.086s1.0318-5.17 5.7318-5.17 5.2318 5.17 5.2318 5.17" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10"/>
