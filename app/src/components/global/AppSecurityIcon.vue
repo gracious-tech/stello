@@ -1,7 +1,7 @@
 
 <template lang='pug'>
 
-app-btn(icon='privacy_tip' color='#ffc400' :data-tip='msg')
+app-btn(icon='privacy_tip' color='warning' :data-tip='msg')
 
 </template>
 
@@ -14,7 +14,7 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 @Component({})
 export default class extends Vue {
 
-    @Prop() msg
+    @Prop({type: String, default: ''}) msg!:string
 
 }
 

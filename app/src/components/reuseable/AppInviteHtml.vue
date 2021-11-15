@@ -6,7 +6,7 @@ div.root(:style='container_styles')
         img(:src='image_src' height='0' :style='image_styles' @click='$emit("change_image")')
     app-html.input(ref='editor' :value='value' :variables='variables'
         @input='$emit("input", $event)')
-    div.security(class='d-flex align-items-center justify-end')
+    div.security(class='d-flex align-items-center justify-end warning--text')
         app-svg(name='icon_error')
         span(class='ml-1 noselect') Invitation text never expires
     div.action(v-html='action_html')
@@ -86,7 +86,6 @@ export default class extends Vue {
     padding: 24px
 
 .security
-    color: #ee4400
     text-align: right
     padding-right: 8px
     font-size: 12px

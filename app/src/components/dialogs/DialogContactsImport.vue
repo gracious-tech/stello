@@ -5,7 +5,7 @@ v-card
     v-card-title Import Contacts
 
     div.csv_controls(v-if='type === "csv" && contacts.length')
-        p.warn(class='text-center') Confirm columns are correct
+        p(class='text-center warning--text') Confirm columns are correct
         div.columns
             app-select(v-model='csv_column_name' :items='csv_columns' label="Name column"
                 dense outlined)
@@ -343,9 +343,6 @@ export default class extends Vue {
     margin: 12px 0
     padding: 0 24px
     font-weight: 500
-
-    .warn
-        @include themed(color, #937100, #ffc400)
 
     .columns
         display: flex

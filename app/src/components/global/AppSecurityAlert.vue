@@ -1,7 +1,7 @@
 
 <template lang='pug'>
 
-v-alert(color='#ffc400' text)
+v-alert(color='warning' text)
     template(#prepend)
         app-svg.icon(name='icon_privacy_tip')
     slot

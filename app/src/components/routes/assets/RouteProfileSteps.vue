@@ -53,7 +53,7 @@ v-stepper(:value='setup_step' @change='change_step')
                 div(class='row align-center justify-center mb-1 text-h5')
                     strong(@click='show_email_dialog("init")' class='clickable') {{ profile.email }}
                     app-svg.correct(name='icon_done' class='app-fg-accent-relative')
-                v-alert(v-if='profile.smtp.oauth' class='mt-4' color='#ffc400' text)
+                v-alert(v-if='profile.smtp.oauth' class='mt-4' color='warning' text)
                     | Ensure this is the address you'd like to send emails from, and not just
                     | another account you own.
                 div

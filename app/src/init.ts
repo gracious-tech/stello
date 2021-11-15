@@ -168,7 +168,12 @@ const vuetify_theme = {
 }
 // NOTE Colors same for both dark/light to keep branding consistent (and simpler sass!)
 const vuetify = new Vuetify({
-    theme: {themes: {dark: vuetify_theme, light: vuetify_theme}},
+    theme: {
+        themes: {
+            dark: {...vuetify_theme, warning: '#ffb74d'},
+            light: {...vuetify_theme, warning: '#c56000'},
+        },
+    },
     icons: {
         values: {
             // Make Vuetify use custom icon component instead of icon fonts
