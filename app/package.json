@@ -75,6 +75,7 @@
         "@aws-sdk/client-sns",
         "@aws-sdk/client-ssm",
         "@aws-sdk/client-sts",
+        "@aws-sdk/fetch-http-handler",
         "@aws-sdk/util-waiter",
         "@openid/appauth",
         "@openid/appauth/src",

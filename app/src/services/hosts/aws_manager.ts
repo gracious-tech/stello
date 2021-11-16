@@ -11,8 +11,8 @@ import {ResourceGroupsTaggingAPI, paginateGetResources}
     from '@aws-sdk/client-resource-groups-tagging-api'
 
 import {HostPermissionError} from '@/services/hosts/common'
-import {maxWaitTime, StorageBaseAws, AwsError, HostCredentialsAws, HostStorageGeneratedAws, no404}
-    from '@/services/hosts/aws_common'
+import {maxWaitTime, StorageBaseAws, AwsError, HostCredentialsAws, RequestHandler, no404,
+    HostStorageGeneratedAws} from '@/services/hosts/aws_common'
 import {HostCloud, HostManager, StorageProps} from '@/services/hosts/types'
 import {HostUserAws} from '@/services/hosts/aws_user'
 import {Task} from '@/services/tasks/tasks'
@@ -41,11 +41,16 @@ export class HostManagerAws implements HostManager {
         const region = 'us-west-2'
 
         // Init non-regional services
-        this.iam = new IAM({apiVersion: '2010-05-08', credentials, region})
-        this.s3 = new S3({apiVersion: '2006-03-01', credentials, region})
-        this.sts = new STS({apiVersion: '2011-06-15', credentials, region})
-        this.ec2 = new EC2({apiVersion: '2016-11-15', credentials, region})
-        this.ssm = new SSM({apiVersion: '2014-11-06', credentials, region})
+        this.iam = new IAM({apiVersion: '2010-05-08', credentials, region,
+            requestHandler: new RequestHandler()})
+        this.s3 = new S3({apiVersion: '2006-03-01', credentials, region,
+            requestHandler: new RequestHandler()})
+        this.sts = new STS({apiVersion: '2011-06-15', credentials, region,
+            requestHandler: new RequestHandler()})
+        this.ec2 = new EC2({apiVersion: '2016-11-15', credentials, region,
+            requestHandler: new RequestHandler()})
+        this.ssm = new SSM({apiVersion: '2014-11-06', credentials, region,
+            requestHandler: new RequestHandler()})
 
         // Give best guess as to whether have permission to head/create buckets or not
         // Used to determine if forbidden errors due to someone else owning bucket or not
@@ -84,8 +89,8 @@ export class HostManagerAws implements HostManager {
         // Detect storage versions for users
         for (const region of regions){
             const tags_paginator = paginateGetResources({
-                client: new ResourceGroupsTaggingAPI(
-                    {apiVersion: '2017-01-26', credentials: this.credentials, region}),
+                client: new ResourceGroupsTaggingAPI({apiVersion: '2017-01-26',
+                    credentials: this.credentials, region, requestHandler: new RequestHandler()}),
             }, {
                 TagFilters: [{Key: 'stello-version'}]})
             for await (const resp of tags_paginator){
@@ -170,8 +175,8 @@ export class HostManagerAws implements HostManager {
         const topic_arn = `arn:aws:sns:${region}:${account_id}:${ids._topic_id}`
 
         // Create the messages bucket to secure its id
-        const regioned_s3 = new S3(
-            {apiVersion: '2006-03-01', credentials: this.credentials, region})
+        const regioned_s3 = new S3({apiVersion: '2006-03-01', credentials: this.credentials, region,
+            requestHandler: new RequestHandler()})
         try {
             await regioned_s3.headBucket({Bucket: bucket})
         } catch (error){
@@ -189,7 +194,7 @@ export class HostManagerAws implements HostManager {
         if (!api_id){
             // Must recreate gateway client to change region
             const regioned_gateway = new ApiGatewayV2({apiVersion: '2018-11-29',
-                credentials: this.credentials, region})
+                credentials: this.credentials, region, requestHandler: new RequestHandler()})
             api_id = (await regioned_gateway.createApi({
                 Tags: {stello: bucket},
                 Name: `stello ${bucket}`,  // Not used programatically, just for UI
@@ -350,8 +355,8 @@ export class HostManagerAws implements HostManager {
     async _get_api_id(bucket:string, region:string):Promise<string|undefined>{
         // Get the id for API gateway (null if doesn't exist)
         // NOTE ResourceTypeFilters does not work (seems to be an AWS bug) so manually filtering
-        const tagging = new ResourceGroupsTaggingAPI(
-            {apiVersion: '2017-01-26', credentials: this.credentials, region})
+        const tagging = new ResourceGroupsTaggingAPI({apiVersion: '2017-01-26',
+            credentials: this.credentials, region, requestHandler: new RequestHandler()})
         const resp = await tagging.getResources({
             TagFilters: [{Key: 'stello', Values: [bucket]}]})
         const arn = (resp.ResourceTagMappingList ?? [])

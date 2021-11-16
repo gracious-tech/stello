@@ -9,7 +9,7 @@ import {request_json} from '../utils/http'
 import {generate_hash} from '../utils/crypt'
 import {string_to_utf8, buffer_to_url64, jwt_to_object} from '../utils/coding'
 import {CustomError} from '@/services/utils/exceptions'
-import {HostCredentialsAws} from '@/services/hosts/aws_common'
+import {HostCredentialsAws, RequestHandler} from '@/services/hosts/aws_common'
 
 
 // Types
@@ -38,7 +38,8 @@ export class HostUserGracious extends HostUserAwsBase implements HostUser {
     async update_email(address:string){
         // Change the email hash stored in the user object
         const login = await new_login(this.generated.username, this.generated.password)
-        const user_pools = new CognitoIdentityProvider({region: REGION})
+        const user_pools = new CognitoIdentityProvider({region: REGION,
+            requestHandler: new RequestHandler()})
         await user_pools.updateUserAttributes({
             AccessToken: login.AccessToken,
             UserAttributes: [{
@@ -103,7 +104,8 @@ export async function create_account(username:string, email:string, plan:Account
     const login = await new_login(username, resp.password!)
 
     // Get the federated id (identity pool id) of the user (required when getting aws credentials)
-    const identity_pools = new CognitoIdentity({region: REGION})
+    const identity_pools = new CognitoIdentity({region: REGION,
+        requestHandler: new RequestHandler()})
     const id = await identity_pools.getId({
         IdentityPoolId: IDENTITY_POOL,
         Logins: {
@@ -122,7 +124,8 @@ export async function create_account(username:string, email:string, plan:Account
 
 export async function new_login(username:string, password:string){
     // Login to Cognito user pool and return tokens (valid for 1 day)
-    const user_pools = new CognitoIdentityProvider({region: REGION})
+    const user_pools = new CognitoIdentityProvider({region: REGION,
+        requestHandler: new RequestHandler()})
     const login = await user_pools.initiateAuth({
         ClientId: USER_POOL_CLIENT,
         AuthFlow: 'USER_PASSWORD_AUTH',
@@ -146,7 +149,8 @@ export async function new_login(username:string, password:string){
 export async function new_credentials(federated_id:string, id_token:string){
     // Get temporary AWS credentials (valid for 1 hour)
     // NOTE Expiration not considered as assumed any task will complete within an hour
-    const identity_pools = new CognitoIdentity({region: REGION})
+    const identity_pools = new CognitoIdentity({region: REGION,
+        requestHandler: new RequestHandler()})
     const resp = await identity_pools.getCredentialsForIdentity({
         IdentityId: federated_id,
         Logins: {

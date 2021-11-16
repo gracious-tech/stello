@@ -7,7 +7,8 @@ import {Lambda} from '@aws-sdk/client-lambda'
 import {ApiGatewayV2} from '@aws-sdk/client-apigatewayv2'
 import {ResourceGroupsTaggingAPI} from '@aws-sdk/client-resource-groups-tagging-api'
 
-import {StorageBaseAws, no404, HostStorageGeneratedAws} from '@/services/hosts/aws_common'
+import {StorageBaseAws, no404, HostStorageGeneratedAws, RequestHandler}
+    from '@/services/hosts/aws_common'
 import {enforce_range} from '../utils/numbers'
 import {stream_to_buffer} from '../utils/coding'
 import {sort} from '../utils/arrays'
@@ -38,13 +39,20 @@ export class HostUserAwsBase extends StorageBaseAws {
 
         // Init AWS clients
         const credentials = generated.credentials
-        this.s3 = new S3({apiVersion: '2006-03-01', credentials, region})
-        this.sns = new SNS({apiVersion: '2010-03-31', credentials, region})
-        this.iam = new IAM({apiVersion: '2010-05-08', credentials, region})
-        this.sts = new STS({apiVersion: '2011-06-15', credentials, region})
-        this.lambda = new Lambda({apiVersion: '2015-03-31', credentials, region})
-        this.gateway = new ApiGatewayV2({apiVersion: '2018-11-29', credentials, region})
-        this.tagging = new ResourceGroupsTaggingAPI({apiVersion: '2017-01-26', credentials, region})
+        this.s3 = new S3({apiVersion: '2006-03-01', credentials, region,
+            requestHandler: new RequestHandler()})
+        this.sns = new SNS({apiVersion: '2010-03-31', credentials, region,
+            requestHandler: new RequestHandler()})
+        this.iam = new IAM({apiVersion: '2010-05-08', credentials, region,
+            requestHandler: new RequestHandler()})
+        this.sts = new STS({apiVersion: '2011-06-15', credentials, region,
+            requestHandler: new RequestHandler()})
+        this.lambda = new Lambda({apiVersion: '2015-03-31', credentials, region,
+            requestHandler: new RequestHandler()})
+        this.gateway = new ApiGatewayV2({apiVersion: '2018-11-29', credentials, region,
+            requestHandler: new RequestHandler()})
+        this.tagging = new ResourceGroupsTaggingAPI({apiVersion: '2017-01-26', credentials, region,
+            requestHandler: new RequestHandler()})
     }
 
     async upload_file(path:string, data:Blob|ArrayBuffer, lifespan=Infinity,

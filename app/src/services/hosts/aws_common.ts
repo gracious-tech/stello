@@ -1,4 +1,11 @@
 
+import {HttpRequest} from '@aws-sdk/protocol-http'
+import {FetchHttpHandler} from '@aws-sdk/fetch-http-handler'
+import {HttpHandlerOptions} from '@aws-sdk/types'
+
+import {MustReconnect} from '@/services/utils/exceptions'
+
+
 export interface HostCredentialsAws {
     accessKeyId:string
     secretAccessKey:string
@@ -84,4 +91,17 @@ export async function no404<T>(request:Promise<T>):Promise<T|undefined>{
         }
         throw error
     })
+}
+
+
+export class RequestHandler extends FetchHttpHandler {
+    // Extend FetchHttpHandler to turn generic fetch errors into MustReconnect
+    override async handle(request:HttpRequest, options:HttpHandlerOptions|undefined){
+        try {
+            return await super.handle(request, options)
+        } catch (error){
+            console.error(error)  // Small chance of error other than network, so log
+            throw new MustReconnect()
+        }
+    }
 }
