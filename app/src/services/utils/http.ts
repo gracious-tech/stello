@@ -139,8 +139,14 @@ export async function request(input:string|Request, init?:JsonRequestInit,
     }
     try {
         return await resp[read_body]() as unknown
-    } catch {
-        throw new RequestErrorBody(url)
+    } catch (error){
+        // WARN Error may be a TypeError if didn't finish downloading body, or a parsing error...
+        //      So if TypeError assume network, otherwise could be e.g. SyntaxError for json issue
+        if (error instanceof TypeError){
+            throw new MustReconnect(url)
+        } else {
+            throw new RequestErrorBody(url)
+        }
     }
 }
 
