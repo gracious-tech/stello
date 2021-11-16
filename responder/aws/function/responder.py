@@ -508,10 +508,17 @@ def _send_notification(config, resp_type, event, user):
 
 def inviter_image(api_event):
     """Decrypt and respond with invite image"""
-    params = api_event.get('queryStringParameters', {})
-    user = params['user']
-    copy_id = params['copy']
-    secret = params['k']
+
+    # Get params from URL
+    try:
+        params = api_event['queryStringParameters']
+        user = params['user']
+        copy_id = params['copy']
+        secret = params['k']
+    except KeyError:
+        raise Abort()  # Incorrect params given
+
+    # Retrieve and decrypt the image
     bucket_key = f'messages/{user}/invite_images/{copy_id}'
     try:
         obj = S3.get_object(Bucket=MSGS_BUCKET, Key=bucket_key)
@@ -522,6 +529,8 @@ def inviter_image(api_event):
         decryptor = AESGCM(_url64_to_bytes(secret))
         decrypted = decryptor.decrypt(encrypted[:SYM_IV_BYTES], encrypted[SYM_IV_BYTES:], None)
         body = base64.b64encode(decrypted).decode()
+
+    # Serve image
     return {
         'statusCode': 200,
         'headers': {
