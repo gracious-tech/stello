@@ -101,7 +101,7 @@ export class RequestHandler extends FetchHttpHandler {
             return await super.handle(request, options)
         } catch (error){
             console.error(error)  // Small chance of error other than network, so log
-            throw new MustReconnect()
+            throw new MustReconnect(request.path)
         }
     }
 }
