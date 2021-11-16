@@ -1,5 +1,5 @@
 
-export function enforce_range(value:any, smallest:number, largest:number, default_?:number){
+export function enforce_range(value:unknown, smallest:number, largest:number, default_?:number){
     // Force value to be a number within given range
     if (typeof value !== 'number'){
         return default_ === undefined ? smallest : default_

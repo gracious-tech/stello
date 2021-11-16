@@ -11,11 +11,18 @@ SharedSlideshow(:images='images' :aspect='ratio' @img_click='$emit("fullscreen")
 
 import {ref, reactive, inject, PropType, Ref, defineComponent} from 'vue'
 
-import SharedSlideshow, {SlideshowImage} from '../shared/SharedSlideshow.vue'
+import SharedSlideshow from '../shared/SharedSlideshow.vue'
 import {store} from '../services/store'
 import {buffer_to_blob} from '../services/utils/coding'
 import {GetAsset} from '../services/types'
 import type {PublishedContentImages} from '../shared/shared_types'
+
+
+interface SlideshowImage {
+    id:string
+    data:Blob|null  // Null while still loading
+    caption:string
+}
 
 
 export default defineComponent({

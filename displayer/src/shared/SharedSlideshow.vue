@@ -27,6 +27,8 @@ div.root(:class='{multiple}')
 import {defineComponent} from 'vue-demi'
 import type {PropType} from 'vue'  // Importing just as type should still keep compatible with Vue 2
 
+import {enforce_range} from '@/services/utils/numbers'
+
 
 export interface SlideshowImage {
     id:string
@@ -221,7 +223,9 @@ export default defineComponent({
                 return  // Component probably being destroyed (avoid triggering error report)
             }
             const item_width = target.scrollWidth / this.images.length
-            this.current = Math.round(target.scrollLeft / item_width)
+            const proposed = Math.round(target.scrollLeft / item_width)
+            // Ensure value is valid (e.g. could get errors if changing while resizing window)
+            this.current = enforce_range(proposed, 0, this.images.length - 1)
         },
 
         change_current(i:number):void{
