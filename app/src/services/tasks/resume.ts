@@ -23,8 +23,8 @@ export async function resume_tasks():Promise<void>{
     // TODO Detect messages that haven't completely sent yet
 
     // Check for new responses now and routinely
-    setIntervalPlus(15, 'm', true, () => {
-        void task_manager.start_responses_receive()
+    setIntervalPlus(1, 'm', true, () => {
+        void task_manager.start_responses_receive(true)
     })
 
     // See if contacts need syncing and schedule regular checks
@@ -33,7 +33,7 @@ export async function resume_tasks():Promise<void>{
         for (const oauth of await self.app_db.oauths.list()){
             const last = oauth.contacts_sync_last
             if (oauth.contacts_sync && (!last || differenceInHours(now, last) >= 12)){
-                void task_manager.start_contacts_sync(oauth.id)
+                void task_manager.start_contacts_sync(oauth.id, true)
             }
         }
     })

@@ -205,7 +205,7 @@ export class TaskManager {
         finished: null,  // Only stores last task to have finished
     })
 
-    async start(name:string, params:unknown[]=[], options:unknown[]=[]):Promise<Task>{
+    async start(name:string, params:unknown[]=[], options:unknown[]=[], auto=false):Promise<Task>{
         // Register the task identified by given code and params
 
         // See if an existing task matches code and params
@@ -240,6 +240,10 @@ export class TaskManager {
             // Return value of `then` is null, so simply return error to mark task as failed
             console.debug(error)
             console.debug('(handled by task manager)')
+            // If network failure and task was started automatically, just abort since user offline
+            if (auto && error instanceof MustReconnect){
+                task.abort("Can't do while offline")
+            }
             return error as unknown
         }).then((error:unknown) => {
             // Resolve task's promise with error if any
@@ -266,8 +270,8 @@ export class TaskManager {
 
     // Start methods for sake of typing expected arguments to task names
 
-    start_contacts_sync(oauth_id:string):Promise<Task>{
-        return this.start('contacts_sync', [oauth_id])
+    start_contacts_sync(oauth_id:string, auto=false):Promise<Task>{
+        return this.start('contacts_sync', [oauth_id], [], auto)
     }
 
     start_contacts_change_property(oauth_id:string, contact_id:string, property:'name'|'notes',
@@ -296,8 +300,8 @@ export class TaskManager {
         return this.start('send_message', [msg_id])
     }
 
-    start_responses_receive():Promise<Task>{
-        return this.start('responses_receive')
+    start_responses_receive(auto=false):Promise<Task>{
+        return this.start('responses_receive', [], [], auto)
     }
 }
 
