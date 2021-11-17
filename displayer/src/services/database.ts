@@ -32,7 +32,7 @@ class DisplayerDatabase {
                 void this.connect()
             },
         }).catch(error => {
-            // Firefox doesn't support indexeddb in some cases, so return dummy connection instead
+            // IDB isn't available in some private tabs, webviews, etc (non-persistent fake instead)
             console.error(error)
             console.error("Database unavailable")
             return {

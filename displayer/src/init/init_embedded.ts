@@ -9,7 +9,11 @@ import {sleep} from '../services/utils/async'
 
 
 // List of keywords that if present anywhere in an error message, should ignore
-const ignore_errors = ['@safari-extension://']
+const ignore_errors = [
+    '@safari-extension://',
+    // Waiting on https://github.com/jakearchibald/idb/issues/245
+    'IDBFactory.open() called in an invalid security context',
+]
 
 
 // Mark start time so know runtime when errors occur
