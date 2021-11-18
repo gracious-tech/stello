@@ -3,7 +3,7 @@ import {HttpRequest} from '@aws-sdk/protocol-http'
 import {FetchHttpHandler} from '@aws-sdk/fetch-http-handler'
 import {HttpHandlerOptions} from '@aws-sdk/types'
 
-import {MustReconnect} from '@/services/utils/exceptions'
+import {MustReconnect} from '../utils/exceptions'
 
 
 export interface HostCredentialsAws {
