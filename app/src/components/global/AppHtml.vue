@@ -263,7 +263,7 @@ export default class extends Vue {
                         || this.variables[node.attrs['id']].label.toLocaleUpperCase(),
                     suggestion: {
                         char: '#',
-                        items: query => {
+                        items: ({query}) => {
                             // Match items by label and/or code
                             query = query.toLowerCase()
                             return Object.entries(this.variables)
