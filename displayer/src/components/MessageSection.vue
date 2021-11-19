@@ -6,11 +6,11 @@ teleport(to='.stello-displayer' :disabled='!fullscreen')
     section(:class='classes' @click.self='fullscreen = false')
         div.inner
             div(v-if='content.type === "text"' v-html='content.html')
-            Slideshow(v-if='content.type === "images"' :content='content'
+            SectionSlideshow(v-if='content.type === "images"' :content='content'
                 @displayed='on_displayed_change' @fullscreen='fullscreen = !fullscreen')
             SharedVideo(v-if='content.type === "video"' :format='content.format' :id='content.id'
                 :caption='content.caption' :start='content.start' :end='content.end')
-        Respond(:section='section' :subsection='subsection')
+        SectionRespond(:section='section' :subsection='subsection')
         svg.close(v-if='fullscreen' @click='fullscreen = false' viewBox='0 0 24 24')
             path(d=`M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59
                 19 19 17.59 13.41 12z`)
@@ -22,16 +22,16 @@ teleport(to='.stello-displayer' :disabled='!fullscreen')
 
 import {computed, PropType, ref, watch, onUnmounted, provide, defineComponent} from 'vue'
 
-import Slideshow from './Slideshow.vue'
+import SectionSlideshow from './SectionSlideshow.vue'
 import SharedVideo from '../shared/SharedVideo.vue'
-import Respond from './Respond.vue'
+import SectionRespond from './SectionRespond.vue'
 import {PublishedSection} from '../shared/shared_types'
 import {section_classes} from '../shared/shared_functions'
 
 
 export default defineComponent({
 
-    components: {Slideshow, SharedVideo, Respond},
+    components: {SectionSlideshow, SharedVideo, SectionRespond},
 
     props: {
         section: {

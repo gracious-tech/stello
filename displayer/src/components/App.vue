@@ -10,7 +10,7 @@ div(class='stello-displayer' :class='{dark}' tabindex='-1')
     div(class='content')
         //- Don't insert new node until old gone (out-in) to avoid scrolling issues
         transition(:name='transition' mode='out-in')
-            Message.msg(v-if='current_msg' :key='current_msg.id')
+            AppMessage.msg(v-if='current_msg' :key='current_msg.id')
         //- This will only be shown if no hash and no history in db
         //- e.g. Manually copied URL without hash, or refreshed browser that has no idb access
         p.no_msg(v-if='!current_msg') Click original link to view message
@@ -24,7 +24,7 @@ div(class='stello-displayer' :class='{dark}' tabindex='-1')
 
 import {computed, watch, onMounted, nextTick, defineComponent} from 'vue'
 
-import Message from './Message.vue'
+import AppMessage from './AppMessage.vue'
 import AppDialog from './AppDialog.vue'
 import SharedDarkToggle from '../shared/SharedDarkToggle.vue'
 import {store} from '../services/store'
@@ -32,7 +32,7 @@ import {store} from '../services/store'
 
 export default defineComponent({
 
-    components: {Message, SharedDarkToggle, AppDialog},
+    components: {AppMessage, SharedDarkToggle, AppDialog},
 
     setup(){
 
