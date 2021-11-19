@@ -12,15 +12,15 @@
     "dependencies": {
         "electron-context-menu": "^3.1.1",
         "electron-updater": "^4.3.9",
-        "nodemailer": "^6.6.3",
+        "nodemailer": "^6.7.1",
         "rollbar": "^2.24.0"
     },
     "devDependencies": {
         "@types/nodemailer": "^6.4.4",
-        "electron": "^15.3.0",
-        "electron-builder": "^22.11.7",
+        "electron": "^16.0.1",
+        "electron-builder": "^22.13.1",
         "electron-notarize": "^1.1.1",
-        "esbuild": "^0.12.28",
+        "esbuild": "^0.13.14",
         "png-to-ico": "^2.1.2"
     },
     "build": {
