@@ -26,8 +26,13 @@ div.respondbar(@mouseenter='have_hovered = true' class='ui')
     div.react_container(v-if='allow_reactions' @mouseenter='react_popup_visible = true'
             @mouseleave='react_popup_visible = false')
         //- WARN Safari doesn't give focus to buttons automatically so must do manually
-        SharedRespondReact(@click='$event => $event.target.focus()'
-                :class='{responded: chosen_reaction}')
+        SharedRespondReact(
+            @click=`
+                // @ts-ignore event is any
+                $event => $event.target.focus()
+            `
+            :class='{responded: chosen_reaction}'
+        )
             ReactionSvg(v-if='chosen_reaction' :reaction='chosen_reaction')
         div.position(v-if='have_hovered')
             div.popup
