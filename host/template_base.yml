@@ -560,13 +560,26 @@ Resources:
             UsernameConfiguration:
                 CaseSensitive: false  # Will be used as a subdomain which isn't case-sensitive
             Schema:
+                # WARN Keep all mutable so can update if needed, as Cognito forbids schema changes
                 # NOTE Non-dev attributes are returned in API calls, so not hidden from user
                 # NOTE Depending on the context, attributes may need prefix dev:custom: or custom:
                 # NOTE cognito:username is the attribute for the builtin username field
                 -   Name: hashed_email
                     AttributeDataType: String
                     Mutable: true
-                # Keep original hashed_email in case attacker changes and prevents account deletion
+                -   Name: hashed_email_init
+                    AttributeDataType: String
+                    Mutable: true
+                    DeveloperOnlyAttribute: true
+                -   Name: hashed_ip
+                    AttributeDataType: String
+                    Mutable: true
+                    DeveloperOnlyAttribute: true
+                -   Name: plan
+                    AttributeDataType: String
+                    Mutable: true
+                    DeveloperOnlyAttribute: true
+                # These attributes are no longer used and only exist as Cognito forbids deletion
                 -   Name: hashed_email_orig
                     AttributeDataType: String
                     Mutable: false
@@ -574,10 +587,6 @@ Resources:
                 -   Name: ip
                     AttributeDataType: String
                     Mutable: false
-                    DeveloperOnlyAttribute: true
-                -   Name: plan
-                    AttributeDataType: String
-                    Mutable: true
                     DeveloperOnlyAttribute: true
             AccountRecoverySetting:
                 RecoveryMechanisms:

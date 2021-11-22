@@ -1,5 +1,5 @@
 
-import {randomUUID} from 'crypto'
+import {randomUUID, createHash} from 'crypto'
 
 import {CognitoIdentityProvider, paginateListUsers} from '@aws-sdk/client-cognito-identity-provider'
 
@@ -59,6 +59,13 @@ export const handler = setup_handler<CreateInput>(async (raw_input, ip):Promise<
     // Prepare client
     const user_pools = new CognitoIdentityProvider({region: config.region})
 
+    // Hash ip so cannot be used to locate the user
+    // SECURITY hashing ips isn't foolproof as due to limited number, computing every hash is doable
+    //          so hashing only intended to provide basic protection
+    //          Real protection comes from deleting the hash when it's no longer needed
+    // NOTE Salt is same for every ip for comparison performance (weakens security but see above)
+    const hashed_ip = createHash('sha256').update(`stello:${ip}`).digest().toString('base64')
+
     // Ensure username not taken, and throttle creations per ip
     const day_in_ms = 1000 * 60 * 60 * 24
     const day_ago = new Date().getTime() - day_in_ms
@@ -67,7 +74,6 @@ export const handler = setup_handler<CreateInput>(async (raw_input, ip):Promise<
     let creations_fortnight = 0
     const user_lister = paginateListUsers({client: user_pools}, {
         UserPoolId: config.user_pool,
-        AttributesToGet: ['dev:custom:ip'],
     })
     for await (const users of user_lister){
         for (const user of users.Users ?? []){
@@ -76,8 +82,9 @@ export const handler = setup_handler<CreateInput>(async (raw_input, ip):Promise<
                 return {error: 'username_taken'}
             }
             // Prevent abuse by limiting creations per ip
-            const user_ip = user.Attributes!.find(attr => attr.Name === 'dev:custom:ip')!.Value
-            if (user_ip === ip){
+            const user_hashed_ip =
+                user.Attributes!.find(attr => attr.Name === 'dev:custom:hashed_ip')?.Value
+            if (user_hashed_ip === hashed_ip){
                 const created = user.UserCreateDate!.getTime()
                 if (created > day_ago){
                     creations_day += 1
@@ -101,8 +108,8 @@ export const handler = setup_handler<CreateInput>(async (raw_input, ip):Promise<
         Username: input.username,
         UserAttributes: [
             {Name: 'custom:hashed_email', Value: input.hashed_email},
-            {Name: 'dev:custom:hashed_email_orig', Value: input.hashed_email},
-            {Name: 'dev:custom:ip', Value: ip},
+            {Name: 'dev:custom:hashed_email_init', Value: input.hashed_email},
+            {Name: 'dev:custom:hashed_ip', Value: hashed_ip},
             {Name: 'dev:custom:plan', Value: input.plan},
         ],
         MessageAction: 'SUPPRESS',  // Don't email user a welcome message (not that it could...)
