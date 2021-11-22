@@ -4,8 +4,6 @@
 div
     v-toolbar
         v-toolbar-title Drafts
-        v-spacer
-        app-btn.new(@click='new_regular_draft' icon='add' fab data-tip="New empty message")
 
     app-content(class='px-5 py-10')
 
@@ -15,6 +13,8 @@ div
                 @removed='removed' @copied='copied')
             p(v-if='!regular_drafts.length' class='text-center text--secondary text-body-2')
                 | No drafts
+            div(class='text-center mt-3')
+                app-btn(@click='new_regular_draft') New draft
 
             v-divider(class='my-10')
 
@@ -23,7 +23,7 @@ div
                 @removed='removed' @copied='copied')
             p(v-if='!templates.length' class='text-center text--secondary text-body-2')
                 | Create a template so you can copy it when creating new messages
-            p(class='text-center')
+            div(class='text-center mt-3')
                 app-btn(@click='new_template' small) New template
 
 </template>
