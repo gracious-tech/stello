@@ -10,12 +10,12 @@ email_template = '''
 <head>
     <meta name="color-scheme" content="light dark">
     <style>
-        @media (prefers-color-scheme: dark) {
-            .button {
+        @media (prefers-color-scheme: dark) {{
+            .button {{
                 background-color: #bbddff !important;
                 color: #000000 !important;
-            }
-        }
+            }}
+        }}
     </style>
 </head>
 
