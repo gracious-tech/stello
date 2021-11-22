@@ -17,12 +17,13 @@ div(class='my-6')
 
 <script lang='ts'>
 
-import {Component, Vue} from 'vue-property-decorator'
+import {Component, Vue, Watch} from 'vue-property-decorator'
 
 import DialogContactsImport from '@/components/dialogs/DialogContactsImport.vue'
 import RouteSettingsContactsItem from '@/components/routes/assets/RouteSettingsContactsItem.vue'
 import {remove_match, sort} from '@/services/utils/arrays'
 import {OAuth} from '@/services/database/oauths'
+import {Task} from '@/services/tasks/tasks'
 
 
 @Component({
@@ -32,7 +33,11 @@ export default class extends Vue {
 
     oauths:OAuth[] = []
 
-    async created():Promise<void>{
+    created(){
+        void this.load_oauths()
+    }
+
+    async load_oauths():Promise<void>{
         // Get all oauths with contact syncing enabled
         const oauths = (await self.app_db.oauths.list()).filter(oauth => oauth.contacts_sync)
         sort(oauths, 'display')
@@ -48,13 +53,19 @@ export default class extends Vue {
         // Show dialog for importing contacts
         const group_id = await this.$store.dispatch('show_dialog', {
             component: DialogContactsImport,
-        })
+        }) as string
         if (group_id){
             // Navigate to contacts and display the new group for the import
-            this.$router.push({path: '/contacts/', query: {group: group_id}})
+            void this.$router.push({path: '/contacts/', query: {group: group_id}})
         }
     }
 
+    @Watch('$tm.data.finished') watch_finished(task:Task){
+        // Respond to finished tasks
+        if (task.name === 'contacts_sync'){
+            void this.load_oauths()
+        }
+    }
 }
 
 </script>
