@@ -13,9 +13,9 @@ v-list-item(:to='to')
     v-list-item-action
         app-menu-more
             app-list-item(@click='copy') Copy to new draft
-            app-list-item(@click='retract' :disabled='msg.expired' color='error')
+            app-list-item(@click='retract' :disabled='msg.expired' class='error--text')
                 | {{ retract_label }}
-            app-list-item(@click='remove' color='error') Delete
+            app-list-item(@click='remove' class='error--text') Delete
 
 </template>
 

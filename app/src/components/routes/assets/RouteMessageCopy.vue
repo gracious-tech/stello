@@ -20,7 +20,7 @@ v-list-item
     v-list-item-action(class='ml-0')
         app-menu-more(v-if='profile && !profile.old_beta')
             app-list-item(@click='copy_invite' :disabled='copy.expired') Copy invite
-            app-list-item(@click='retract' :disabled='copy.expired' color='error') Retract
+            app-list-item(@click='retract' :disabled='copy.expired' class='error--text') Retract
 
 </template>
 

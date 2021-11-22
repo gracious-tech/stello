@@ -22,7 +22,8 @@ div
                     app-list-item(@click='() => new_credentials(storage)') Get new credentials
                     app-list-item(@click='() => update_services(storage)')
                         | {{ storage.version === undefined ? "Fix" : "Update" }}
-                    app-list-item(@click='() => delete_services(storage)' color='error') Delete
+                    app-list-item(@click='() => delete_services(storage)' class='error--text')
+                        | Delete
 
     div.none(v-else-if='have_scanned' class='text--secondary')
         p No storage created yet

@@ -12,7 +12,7 @@ v-list-item(:to='route')
         app-menu-more
             app-list-item(@click='make_default' :disabled='is_default || is_incomplete')
                 | Make default
-            app-list-item(v-if='!profile.old_beta' @click='remove' color='error') Delete
+            app-list-item(v-if='!profile.old_beta' @click='remove' class='error--text') Delete
 
 </template>
 

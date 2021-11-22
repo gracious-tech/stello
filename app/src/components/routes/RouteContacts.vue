@@ -22,7 +22,7 @@ div
                     | {{ filter_group ? `Remove from "${filter_group.display}"` : "Remove from group" }}
                 v-divider
                 app-list-item(@click='do_selected_export') Export selected
-                app-list-item(@click='do_selected_delete' color='error'
+                app-list-item(@click='do_selected_delete' class='error--text'
                     :disabled='!contacts_selected_internal.length') Delete selected
         span(v-else-if='search || filter_group' class='text--secondary')
             | {{ contacts_matched.length }} {{ search ? "matched" : "included" }}

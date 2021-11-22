@@ -39,7 +39,7 @@ div
                 app-btn(@click='create_profile') Create account to send
 
             app-menu-more
-                app-list-item(@click='delete_draft' color='error')
+                app-list-item(@click='delete_draft' class='error--text')
                     | {{ draft.template ? "Delete template" : "Delete draft" }}
 
     div.stello-displayer(v-if='draft' :class='{dark: dark_message}')
