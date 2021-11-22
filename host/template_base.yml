@@ -6,9 +6,6 @@ Parameters:
     InputEnv:
         Type: String
         AllowedValues: [production, deployed_dev, development]
-    InputVersion:
-        Type: String
-        Default: INPUT_VERSION
     InputRollbarResponder:
         Type: String
     InputRollbarAccounts:
@@ -230,7 +227,7 @@ Resources:
             Environment:
                 Variables:
                     stello_env: !Ref InputEnv
-                    stello_version: !Ref InputVersion
+                    stello_version: INPUT_VERSION
                     stello_msgs_bucket: !Ref AWS::StackName
                     stello_region: !Ref AWS::Region
                     stello_rollbar_responder: !Ref InputRollbarResponder
@@ -254,7 +251,7 @@ Resources:
             Environment:
                 Variables:
                     stello_env: !Ref InputEnv
-                    stello_version: !Ref InputVersion
+                    stello_version: INPUT_VERSION
                     stello_msgs_bucket: !Ref AWS::StackName
                     stello_region: !Ref AWS::Region
                     stello_rollbar_responder: !Ref InputRollbarResponder
@@ -283,7 +280,7 @@ Resources:
             Environment:
                 Variables:
                     stello_env: !Ref InputEnv
-                    stello_version: !Ref InputVersion
+                    stello_version: INPUT_VERSION
                     stello_msgs_bucket: !Ref AWS::StackName
                     stello_region: !Ref AWS::Region
                     stello_rollbar_responder: !Ref InputRollbarResponder
@@ -323,7 +320,7 @@ Resources:
             Environment:
                 Variables:
                     stello_env: !Ref InputEnv
-                    stello_version: !Ref InputVersion
+                    stello_version: INPUT_VERSION
                     stello_msgs_bucket: !Ref AWS::StackName
                     stello_region: !Ref AWS::Region
                     stello_rollbar_responder: !Ref InputRollbarResponder
@@ -363,7 +360,7 @@ Resources:
             Environment:
                 Variables:
                     stello_env: !Ref InputEnv
-                    stello_version: !Ref InputVersion
+                    stello_version: INPUT_VERSION
                     stello_msgs_bucket: !Ref AWS::StackName
                     stello_region: !Ref AWS::Region
                     stello_rollbar_responder: !Ref InputRollbarResponder
@@ -403,7 +400,7 @@ Resources:
             Environment:
                 Variables:
                     stello_env: !Ref InputEnv
-                    stello_version: !Ref InputVersion
+                    stello_version: INPUT_VERSION
                     stello_msgs_bucket: !Ref AWS::StackName
                     stello_region: !Ref AWS::Region
                     stello_rollbar_responder: !Ref InputRollbarResponder
@@ -436,7 +433,7 @@ Resources:
             Environment:
                 Variables:
                     stello_env: !Ref InputEnv
-                    stello_version: !Ref InputVersion
+                    stello_version: INPUT_VERSION
                     stello_msgs_bucket: !Ref AWS::StackName
                     stello_region: !Ref AWS::Region
                     stello_rollbar_responder: !Ref InputRollbarResponder
@@ -469,7 +466,7 @@ Resources:
             Environment:
                 Variables:
                     stello_env: !Ref InputEnv
-                    stello_version: !Ref InputVersion
+                    stello_version: INPUT_VERSION
                     stello_msgs_bucket: !Ref AWS::StackName
                     stello_region: !Ref AWS::Region
                     stello_rollbar_responder: !Ref InputRollbarResponder
@@ -510,7 +507,7 @@ Resources:
             Environment:
                 Variables:
                     stello_env: !Ref InputEnv
-                    stello_version: !Ref InputVersion
+                    stello_version: INPUT_VERSION
                     stello_region: !Ref AWS::Region
                     stello_rollbar: !Ref InputRollbarAccounts
                     stello_user_pool: !Ref UserPool
@@ -537,7 +534,7 @@ Resources:
             Environment:
                 Variables:
                     stello_env: !Ref InputEnv
-                    stello_version: !Ref InputVersion
+                    stello_version: INPUT_VERSION
                     stello_region: !Ref AWS::Region
                     stello_rollbar: !Ref InputRollbarAccounts
                     stello_user_pool: !Ref UserPool
