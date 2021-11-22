@@ -17,7 +17,7 @@ div.root
             app-menu-more
                 app-list-item(@click='toggle_archived')
                     | {{ replaction.archived ? "Unarchive" : "Archive" }}
-                app-list-item(@click='remove' color='error') Delete
+                app-list-item(@click='remove' class='error--text') Delete
 
     div.content(v-if='is_reply' class='text-body-1 text--primary') {{ replaction.content }}
 

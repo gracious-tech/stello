@@ -14,7 +14,7 @@ v-list-item(:to='to')
             app-list-item(v-if='!draft.template' @click='make_template') Turn into template
             app-list-item(v-if='draft.template' @click='make_default_template'
                 :disabled='is_default') Make default
-            app-list-item(@click='remove' color='error') Delete
+            app-list-item(@click='remove' class='error--text') Delete
 
 </template>
 
