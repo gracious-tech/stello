@@ -511,5 +511,7 @@ export default class extends Vue {
     margin: 48px auto
     width: 100%
     max-width: 300px
+    // Image is too bright for light theme, so darken
+    @include themed(filter, brightness(0.8), none)
 
 </style>
