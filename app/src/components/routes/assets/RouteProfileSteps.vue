@@ -424,7 +424,18 @@ export default class extends Vue {
 
         ::v-deep
 
+            .v-stepper__label
+                margin-left: 8px
+                color: rgba(white, 0.6)  // On primary bg so always white
+                font-weight: 500
+
+                @media (min-width: (600px + $stello_sidebar_width))
+                    display: flex  // Ensure labels shown earlier than 959px (Vuetify's default)
+
             .v-stepper__step--editable, .v-stepper__step--active
+
+                .v-stepper__label
+                    color: white
 
                 .v-stepper__step__step
                     color: var(--on_accent) !important
@@ -433,12 +444,6 @@ export default class extends Vue {
                     color: var(--on_accent)
                     fill: currentColor
                     padding: 4px
-
-            .v-stepper__label
-                margin-left: 8px
-
-                @media (min-width: (600px + $stello_sidebar_width))
-                    display: flex  // Ensure labels shown earlier than 959px (Vuetify's default)
 
     .v-stepper__items
         width: 100%
