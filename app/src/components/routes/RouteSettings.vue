@@ -14,7 +14,7 @@ div
 
         h1(class='text-h6') Preferences
         v-switch(v-model='dark' label="Dark theme" color='accent' persistent-hint
-            hint="Use dark colors for the app's background which are easier on the eyes at night especially")
+            hint="Use dark colors for user interface")
 
         hr(class='mt-16')
 
@@ -51,7 +51,7 @@ export default class extends Vue {
     }
 
     set dark(value){
-        this.$store.dispatch('set_dark', value)
+        void this.$store.dispatch('set_dark', value)
     }
 
 }
