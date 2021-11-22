@@ -68,30 +68,34 @@ export default class extends Vue {
             desc: "See which contacts haven't been reading any messages for a while",
         },
         {
-            title: "Image headers for emails",
-            desc: "Add an image to your emails (encrypted and expire with message)",
-        },
-        {
             title: "Easier account setup",
             desc: "Create as many free accounts as you need",
+        },
+        {
+            title: "Image headers for emails",
+            desc: "Add an image to your emails (encrypted and expires with message)",
         },
     ]
     todo = [
         {
-            title: "Encrypted videos",
-            desc: `Add videos directly rather than using third-party sites like Youtube`,
+            title: "Sync with another device",
+            desc: "Access Stello from a phone or another computer",
         },
         {
             title: "Message theme colors and backgrounds",
-            desc: `Change the general style of messages to match your content`,
+            desc: "Change the general style of messages to match your content",
         },
         {
-            title: "Dashboard insights",
-            desc: `A proper dashboard that gives you the info you need when Stello opens`,
+            title: "Encrypted videos",
+            desc: "Add videos directly rather than using third-party sites like Youtube",
         },
         {
             title: "File attachments",
-            desc: `Add encrypted files to your messages for readers to open/download`,
+            desc: "Add encrypted files to your messages for readers to open/download",
+        },
+        {
+            title: "Dashboard insights",
+            desc: "A proper dashboard that gives you the info you need when Stello opens",
         },
     ]
 
