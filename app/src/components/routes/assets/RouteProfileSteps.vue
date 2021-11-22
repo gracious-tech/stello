@@ -483,7 +483,7 @@ export default class extends Vue {
 
     ::v-deep
         svg, .v-list-item__title
-            color: var(--accent_lighter)
+            @include themed(color, var(--accent_darker), var(--accent_lighter))
 
 .email_done
     text-align: center
