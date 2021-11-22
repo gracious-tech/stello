@@ -168,6 +168,12 @@ def _entry(api_event, user):
     handler(user, config, event)
     _put_resp(config, resp_type, event, ip, user)
 
+    # See if should send notification (failure reported but shouldn't impact response status)
+    try:
+        _send_notification(config, resp_type, event, user)
+    except:
+        _report_error(api_event)
+
     # Report success
     return {'statusCode': 200}
 
@@ -230,7 +236,6 @@ def handle_reply(user, config, event):
     """Notify user of replies to their messages"""
     if not config['allow_replies']:
         raise Abort()
-    _send_notification(config, 'reply', event, user)
 
 
 def handle_reaction(user, config, event):
@@ -248,8 +253,6 @@ def handle_reaction(user, config, event):
         if len(event['content']) > 25:
             raise Exception("Reaction content too long")
 
-    _send_notification(config, 'reaction', event, user)
-
 
 def handle_subscription(user, config, event):
     """Subscription modifications don't need any processing"""
@@ -263,7 +266,6 @@ def handle_resend(user, config, event):
     """Handle resend requests"""
     if not config['allow_resend_requests']:
         raise Abort()
-    _send_notification(config, 'resend', event, user)
 
 
 def handle_delete(user, config, event):
@@ -405,6 +407,10 @@ def _send_notification(config, resp_type, event, user):
     Including contents only applies to: replies, replies_and_reactions
 
     """
+
+    # Only notify for certain resp types
+    if resp_type not in ('reply', 'reaction', 'resend'):
+        return
 
     # Determine if a reaction or reply/resend
     # NOTE To keep things simple, resends are considered "replies" for purpose of notifications
