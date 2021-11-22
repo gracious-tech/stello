@@ -3,7 +3,7 @@
 
 nav.sidebar(class='app-bg-primary')
 
-    div(class='release-banner') BETA
+    //- div(class='release-banner') BETA
 
     app-logo.logo
 

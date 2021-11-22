@@ -9,11 +9,6 @@ app-content(class='pa-6 app-bg-primary')
         app-svg(name='icon_compare_arrows')
         span Convenience
 
-    v-alert(class='body-2 text-left app-bg-accent')
-        template(#prepend)
-            app-svg(name='icon_info' class='mr-3')
-        | This is a beta/preview version. While ready to use, the coming official version will be even more reliable and secure if you prefer to wait for it.
-
     p(class='body-1 text-left mt-15') Stello is designed to send communication as securely as possible while still remaining easy and enjoyable to use. This is a balance and you must decide if Stello is the right choice for your situation, and use at your own risk.
 
     div.policies
