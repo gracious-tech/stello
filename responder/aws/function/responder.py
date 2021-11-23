@@ -117,7 +117,11 @@ def entry(api_event, context):
     response['headers']['access-control-allow-origin'] = '*' if DEV else allowed_origin
     if api_event['requestContext']['http']['method'] == 'OPTIONS':
         response['headers']['access-control-allow-methods'] = 'GET,POST'
-        response['headers']['access-control-allow-headers'] = '*'
+        # Allow any headers as displayer is part of same app so fully trusted
+        # NOTE Probably only need content-type & content-encoding, but keep permissive in case
+        # WARN Old Safari (e.g. 11.1.2) doesn't support '*'
+        allowed_headers = api_event['headers'].get('access-control-request-headers', '*')
+        response['headers']['access-control-allow-headers'] = allowed_headers
 
     return response
 
