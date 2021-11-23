@@ -163,7 +163,13 @@ export default class extends Vue {
 
     async created(){
         // Init tmp_pass
-        this.tmp_pass = this.profile.smtp.pass ? await external_decrypt(this.profile.smtp.pass) : ''
+        if (this.profile.smtp.pass){
+            try {
+                this.tmp_pass = await external_decrypt(this.profile.smtp.pass)
+            } catch {
+                // Failed to decrypt so leave pass empty
+            }
+        }
 
         // Detect best state to put the UI in
         if (this.force_step){

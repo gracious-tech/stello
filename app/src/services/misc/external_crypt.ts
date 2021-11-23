@@ -4,6 +4,7 @@
 
 import {string_to_utf8, utf8_to_string} from '@/services/utils/coding'
 import {decrypt_sym, encrypt_sym, generate_key_sym} from '@/services/utils/crypt'
+import {MustReauthenticate} from '@/services/utils/exceptions'
 
 
 let CUSTOM_SECRET:CryptoKey|null = null
@@ -36,9 +37,17 @@ export async function external_decrypt(encrypted:ArrayBuffer):Promise<string>{
         if (CUSTOM_SECRET){
             return utf8_to_string(await decrypt_sym(encrypted, CUSTOM_SECRET))
         }
-        return (await self.app_native.os_decrypt(encrypted)) ?? ''
-    } catch (error){
-        self.app_report_error(error)
-        return ''
+        const decrypted = await self.app_native.os_decrypt(encrypted)
+        if (decrypted){
+            return decrypted
+        }
+    } catch {
+        // Will throw later
     }
+
+    // Not necessarily a problem, but report so can monitor frequency of credentials loss
+    self.app_report_error("External decrypt failed")
+
+    // Couldn't decrypt so must get new credentials
+    throw new MustReauthenticate()
 }
