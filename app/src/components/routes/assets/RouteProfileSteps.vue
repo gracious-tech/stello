@@ -236,7 +236,7 @@ export default class extends Vue {
 
     get done_disabled(){
         // Whether setup completion buttons are disabled
-        if (!this.profile.host && !this.username_choice){
+        if (this.profile.host?.cloud === 'gracious' && !this.username_choice){
             return true
         }
         return !this.profile.msg_options_identity.sender_name
