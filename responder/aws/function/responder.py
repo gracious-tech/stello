@@ -114,10 +114,10 @@ def entry(api_event, context):
 
     # Add CORS headers so cross-domain request doesn't fail
     response.setdefault('headers', {})
-    response['headers']['Access-Control-Allow-Origin'] = '*' if DEV else allowed_origin
+    response['headers']['access-control-allow-origin'] = '*' if DEV else allowed_origin
     if api_event['requestContext']['http']['method'] == 'OPTIONS':
-        response['headers']['Access-Control-Allow-Methods'] = 'GET,POST'
-        response['headers']['Access-Control-Allow-Headers'] = '*'
+        response['headers']['access-control-allow-methods'] = 'GET,POST'
+        response['headers']['access-control-allow-headers'] = '*'
 
     return response
 
@@ -540,8 +540,8 @@ def inviter_image(api_event):
     return {
         'statusCode': 200,
         'headers': {
-            'Content-Type': 'image/jpeg',
-            'Cache-Control': 'no-store',
+            'content-type': 'image/jpeg',
+            'cache-control': 'no-store',
         },
         'isBase64Encoded': True,
         'body': body,
