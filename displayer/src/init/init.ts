@@ -1,4 +1,7 @@
 
+// Include error handling before all else
+import './init_errors'
+
 // Include polyfills
 import 'core-js/features/string/replace-all'
 
@@ -12,7 +15,7 @@ import AppProgress from '../components/AppProgress.vue'
 
 
 // Embed stello styles in JS (so doesn't block first render)
-import './init_loaded_styles.sass'
+import './init_styles.sass'
 
 
 // Init Vue app so can configure before mounting

@@ -14,8 +14,7 @@ html
                 base-uri 'none';
                 default-src 'none';
                 img-src 'self' blob:;
-                script-src 'self' 'sha256-Suz7knHBav40+YObLJzbKQuKbIXf2Z6blcKiOItb5h8='
-                    'sha256-YTW6JUf/C6awDpC1mcjyWdPPSUeCW8XCVMXpE4o1Y30=';
+                script-src 'self';
                 style-src 'self' 'sha256-ZtAi/ysjZm0xsuCDCNS2IFcwQkmxUd12Cy5r4DuHrME=';
                 connect-src 'self' https:;
                 frame-src https://www.youtube-nocookie.com https://player.vimeo.com;
@@ -23,7 +22,7 @@ html
 
         //- Display
         meta(name='viewport' content='user-scalable=no, width=device-width, initial-scale=1')
-        title Message Viewer
+        title Loading message...
         link(rel='icon' href='displayer/icon.png')
 
         //- Add a light blue theme color, just to stand out from other tabs (not configurable)
@@ -132,45 +131,16 @@ html
                         box-shadow: 0px 2px 5px 1px rgba(0, 0, 0, 0.2)
 
 
+        //- Define scripts (execute in order after body parsed since module defaults to defer)
+        //- NOTE unsupported script in public dir so URL preserved, init script relative to src
+        //- NOTE Vite processes URLs relative to where index.html is (not index.pug)
+        script(src='/displayer/unsupported.js' defer)
+        script(src='/src/init/init.ts' type='module')
+
+
     body
         div#app
             //- Simplified low-CPU-cost Material progress circle (proportions same)
             svg.loading(viewBox='0 0 100 100' preserveAspectRatio='xMidYMid meet')
                 //- Place in middle with radius 40 (stroke length of 250 surrounds whole circle)
                 circle(cx='50' cy='50' r='40' stroke-width='10' stroke-dasharray='190')
-
-        //- Unsupported browser handling
-        //- WARN This code is intentionally inline as must be simple and support ES4/5 etc
-        //- WARN All scripts (even inline) must come last so that DOM ready for immediate errors
-        //- NOTE Only fails if error, as even if browser unsupported, some could still work in part
-        //- NOTE `app_browser_supported` is false for http (except localhost) as crypto only for https
-        script.
-            self.app_hash = self.location.hash
-            self.location.hash = ''
-            self.app_failed = false
-            self.app_browser_supported = !! (crypto && crypto.subtle && CSS && CSS.supports
-                && CSS.supports('grid-template-rows', 'none'))
-            self.app_splash_unsupported = function(){
-                self.document.body.innerHTML = "<div class='fail-splash'>"
-                    + "<h1>Sorry, your browser is too old</h1>"
-                    + "<p>Please update your browser or use another browser to view this message.</p>"
-                    + "<p>You may need to change your device's default browser, or copy and paste the link into the address bar of a different browser.</p>"
-                    + "</div>"
-            }
-            self.addEventListener('error', function(){
-                if (!self.app_failed && !self.app_browser_supported){
-                    self.app_failed = true
-                    self.location.hash = self.app_hash
-                    self.app_splash_unsupported()
-                }
-            })
-
-
-        script
-            :ts_embed
-                ./init/init_embedded.ts
-
-
-        //- NOTE Vite processes URLs relative to where index.html is (not index.pug)
-        //- TODO Come up with alternative to onerror below that doesn't violate CSP
-        script(src='/src/init/init_loaded.ts' type='module' onerror='app_fail_visual(true)')

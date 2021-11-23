@@ -167,8 +167,6 @@ Resources:
             # strict-transport-security: Tell browsers to only ever use HTTPS for future requests
             # content-security-policy: Prevent requests to other origins & inline attacks etc
             # WARN Keep CSP in sync with displayer's meta tag CSP
-            # Order of script hashes: index unsupported, index typescript
-            # Order of style hashes: index embed
             FunctionCode: !Sub |
                 function handler(event){
                     event.response.headers['referrer-policy'] = {value: 'no-referrer'}
@@ -186,7 +184,7 @@ Resources:
                             + "base-uri 'none';"
                             + "default-src 'none';"
                             + "img-src 'self' blob:;"
-                            + "script-src 'self' 'sha256-Suz7knHBav40+YObLJzbKQuKbIXf2Z6blcKiOItb5h8=' 'sha256-YTW6JUf/C6awDpC1mcjyWdPPSUeCW8XCVMXpE4o1Y30=';"
+                            + "script-src 'self';"
                             + "style-src 'self' 'sha256-ZtAi/ysjZm0xsuCDCNS2IFcwQkmxUd12Cy5r4DuHrME=';"
                             + "connect-src 'self' https://api.at.${InputDomainGeneric} https://${MessagesBucket.RegionalDomainName} https://api.rollbar.com;"
                             + "frame-src https://www.youtube-nocookie.com https://player.vimeo.com;"
