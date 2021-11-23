@@ -13,3 +13,12 @@ Resources:
             Events:
                 ApiEvent:
                     Type: HttpApi
+            Environment:
+                Variables:
+                    # These must be defined else SAM won't set them (actual values in .dev_env.json)
+                    stello_env: ''
+                    stello_version: ''
+                    stello_msgs_bucket: ''
+                    stello_topic_arn: ''
+                    stello_region: ''
+                    stello_rollbar_responder: ''
