@@ -3,8 +3,8 @@ import {partition} from '@/services/utils/strings'
 
 
 interface Contact {
-    name?:string
-    email?:string
+    name:string|null
+    email:string|null
 }
 
 
@@ -14,12 +14,18 @@ export function extract_contacts_from_vcard(data:string):Contact[]{
     const contacts:Contact[] = []
 
     let within_card = false
-    let name:string = null
-    let email:string = null
+    let name:string|null = null
+    let email:string|null = null
 
     for (let line of data.split('\n')){
 
+        // Extract key and val from line
+        // Must account for eg: group1.EMAIL;TYPE=INTERNET:user@localhost
         line = line.trim()
+        let [key, val] = partition(line, ':')
+        key = partition(key, ';')[0].split('.').at(-1) ?? ''
+        // NOTE vcard escapes commas with backlash for any field (not just ones with lists)
+        val = val.replaceAll('\\,', ',')
 
         if (line === 'BEGIN:VCARD'){
             within_card = true
@@ -40,16 +46,15 @@ export function extract_contacts_from_vcard(data:string):Contact[]{
             continue
         }
 
-        if (line.startsWith('FN:') || line.startsWith('FN;')){
-            // NOTE vcard escapes commas with backlash for any field (not just ones with lists)
-            name = partition(line, ':')[1].replaceAll('\\,', ',')
+        if (key === 'FN'){
+            name = val
             continue
         }
 
-        if (line.startsWith('EMAIL:') || line.startsWith('EMAIL;')){
+        if (key === 'EMAIL'){
             // NOTE Google/others? indicate pref by order (coming first) rather than vCard PREF arg
             if (!email){
-                email = partition(line, ':')[1]
+                email = val
             }
             continue
         }
