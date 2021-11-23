@@ -683,11 +683,11 @@ Resources:
                                         s3:RequestObjectTagKeys: ['stello-lifespan', 'stello-reads',
                                             'stello-max-reads']
 
-                            # Put own displayer config (config prefix not subject to expiry)
+                            # Put/delete own displayer config (config prefix not subject to expiry)
                             -   Effect: Allow
                                 Resource: !Join ['/', [!GetAtt MessagesBucket.Arn,
                                     'config/${aws:PrincipalTag/username}/config']]
-                                Action: ['s3:PutObject']
+                                Action: ['s3:PutObject', 's3:DeleteObject']
 
                             # List own responses
                             -   Effect: Allow
@@ -703,8 +703,8 @@ Resources:
                                     'responses/${aws:PrincipalTag/username}/*']]
                                 Action: ['s3:GetObject', 's3:DeleteObject']
 
-                            # Put own responder config (config prefix not subject to expiry)
+                            # Put/Delete own responder config (config prefix not subject to expiry)
                             -   Effect: Allow
                                 Resource: !Join ['/', [!GetAtt ResponsesBucket.Arn,
                                     'config/${aws:PrincipalTag/username}/config']]
-                                Action: ['s3:PutObject']
+                                Action: ['s3:PutObject', 's3:DeleteObject']
