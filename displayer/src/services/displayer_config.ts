@@ -64,6 +64,9 @@ class DisplayerConfigAccess {
             resp_key_public: await import_key_asym(url64_to_buffer(
                 config['resp_key_public'] as string)),
         })
+
+        // Uncomment during dev to send requests to locally served responder
+        // this.responder = 'http://127.0.0.1:8004/responder/'
     }
 
     async safe_load(config_secret_url64:string):Promise<boolean>{
