@@ -454,10 +454,6 @@ def _send_notification(config, resp_type, event, user):
         # Work out counts
         reply_count = _count_resp_objects(user, 'reply') + _count_resp_objects(user, 'resend')
         reaction_count = _count_resp_objects(user, 'reaction')
-        if reaction:
-            reaction_count += 1
-        else:
-            reply_count += 1
 
         # If notify_mode is first_new_reply then only continue if this is the first
         # NOTE Already returned if a reaction and in this notify_mode
