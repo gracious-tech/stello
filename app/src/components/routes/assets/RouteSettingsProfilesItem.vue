@@ -67,7 +67,7 @@ export default class extends Vue {
         }
 
         // Remove services
-        if (this.profile.host){
+        if (this.profile.host_accessible){
             void this.$store.dispatch('show_waiting', "Deleting account...")
             try {
                 const host_user = await self.app_db.new_host_user(this.profile)

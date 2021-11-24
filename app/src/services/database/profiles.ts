@@ -220,6 +220,11 @@ export class Profile implements RecordProfile {
         )
     }
 
+    get host_accessible(){
+        // Whether host is accessible (have credentials for it)
+        return this.host && (this.host.cloud === 'aws' || this.host.federated_id)
+    }
+
     get host_needs_update(){
         // Whether host services need updating before can send again
         if (!this.setup_complete){
