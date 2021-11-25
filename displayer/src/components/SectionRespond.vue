@@ -4,7 +4,7 @@
 div.respondbar(@mouseenter='have_hovered = true' class='ui')
 
     div.reply_container(v-if='allow_replies')
-        SharedRespondReply(@click='focus_textarea' :replied='!!replies.length'
+        SharedRespondReply(@click='focus_reply_textarea' :replied='!!replies.length'
             :class='{responded: !!replies.length}')
         div.position(v-if='have_hovered')
             //- Using form important for enabling submit button in virtual keyboards
@@ -25,9 +25,7 @@ div.respondbar(@mouseenter='have_hovered = true' class='ui')
 
     div.react_container(v-if='allow_reactions' @mouseenter='react_popup_visible = true'
             @mouseleave='react_popup_visible = false')
-        //- WARN Safari doesn't give focus to buttons automatically so must do manually
-        SharedRespondReact(@click='$event => $event.target.focus()'
-                :class='{responded: chosen_reaction}')
+        SharedRespondReact(@click='focus_react_button' :class='{responded: chosen_reaction}')
             ReactionSvg(v-if='chosen_reaction' :reaction='chosen_reaction')
         div.position(v-if='have_hovered')
             div.popup
@@ -97,10 +95,15 @@ export default defineComponent({
         const allow_replies = computed(
             () => props.section.respondable !== false && displayer_config.allow_replies)
 
-        const focus_textarea = () => {
+        const focus_reply_textarea = () => {
             // Focus textarea for quicker writing
             // NOTE iOS won't focus until textarea displayed, so requires two clicks
             reply_textarea.value.focus()
+        }
+        const focus_react_button = (event:MouseEvent) => {
+            // Focus button so reactions displayed
+            // WARN Only needed for Safari which doesn't focus buttons automatically
+            ;(event.target as HTMLButtonElement).focus()
         }
 
         const send_comment = async () => {
@@ -209,7 +212,8 @@ export default defineComponent({
         // Expose
         return {
             allow_replies, allow_reactions, have_hovered,
-            focus_textarea, reply_textarea, reply_text, reply_waiting, reply_success, send_comment,
+            focus_reply_textarea, focus_react_button,
+            reply_textarea, reply_text, reply_waiting, reply_success, send_comment,
             react_with, reaction_options, chosen_reaction, react_popup_visible,
             last_sent_contents, replies,
         }

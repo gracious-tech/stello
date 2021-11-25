@@ -17,9 +17,6 @@ import {defineComponent} from 'vue-demi'
 
 
 export default defineComponent({
-    emits: {
-        click: null,  // Needed to avoid type error when used in SectionRespond
-    },
     computed: {
         listeners():unknown{
             // @ts-ignore $listeners doesn't exist in Vue 3
