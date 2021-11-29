@@ -199,14 +199,14 @@ Resources:
         Properties:
             DisableExecuteApiEndpoint: true
 
-    GatewayDomainMap:
+    GatewayDomainApi:
         Type: AWS::ApiGatewayV2::ApiMapping
         Properties:
             ApiId: !Ref Gateway
             DomainName: !Join ['', ['api.', !Ref InputDomainGeneric]]
             Stage: !Ref Gateway.Stage
 
-    GatewayDomainMapOld:
+    GatewayDomainMap:
         # TODO Rm in e.g. 2023 (last used in v1.0.3)
         Type: AWS::ApiGatewayV2::ApiMapping
         Properties:
