@@ -6,7 +6,7 @@ import {AppDatabaseConnection, VersionChangeTransaction} from './types'
 import {to_12_from_1plus, to_12_from_1plus_async} from './migrations_pre12'
 
 
-export const DATABASE_VERSION = 14
+export const DATABASE_VERSION = 15
 
 
 export async function migrate(transaction:VersionChangeTransaction,
