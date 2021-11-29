@@ -22,6 +22,8 @@ export async function migrate(transaction:VersionChangeTransaction,
         await to_13(transaction)
     if (old_version < 14)
         await to_14(transaction)
+    if (old_version < 15)
+        await to_15(transaction)
 }
 
 
@@ -152,5 +154,15 @@ export async function to_14_async(db:AppDatabaseConnection){
         oauth.token_refresh =
             await self.app_native.os_encrypt(oauth.token_refresh as unknown as string) ?? null_buff
         await db.put('oauths', oauth)
+    }
+}
+
+
+export async function to_15(transaction:VersionChangeTransaction){
+    // A user ended up with a completed setup but host `null`, possibly due to old code, so clear
+    for await (const cursor of transaction.objectStore('profiles')){
+        if (cursor.value.setup_step === null && cursor.value.host === null){
+            await cursor.delete()
+        }
     }
 }

@@ -1,11 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-    -- needed when prop no longer exists */
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access,
+    @typescript-eslint/no-unsafe-argument -- needed when prop no longer exists */
 
 import 'fake-indexeddb/auto'  // WARN Must import before indexeddb accessed
 import {expect, test} from '@playwright/test'
 
 import {migrate, migrate_async, DATABASE_VERSION, to_12_from_0, _to1_creates, to_13, to_14,
-    to_14_async} from './migrations'
+    to_14_async, to_15} from './migrations'
 import {STORES_V12, STORES_LATEST, test_stores, open_db, to_12_from_1, to_12_from_11}
     from './migrations.test_utils'
 
@@ -97,6 +97,25 @@ test.describe('migrate', async () => {
         // Expect tokens to be encrypted
         expect((await db.get('oauths', 'id'))!.token_access).toBeInstanceOf(ArrayBuffer)
         expect((await db.get('oauths', 'id'))!.token_refresh).toBeInstanceOf(ArrayBuffer)
+    })
+
+    test('to_15', async () => {
+
+        // Setup
+        let db = await open_db('to_15', 14, async t => {
+            await to_12_from_0(t)
+            await to_13(t)
+            await to_14(t)
+        })
+        await db.put('profiles', {id: 'id', host: null, setup_step: null} as any)
+        expect((await db.get('profiles', 'id'))).not.toBeUndefined()
+
+        // Migrate
+        db.close()
+        db = await open_db('to_15', 15, to_15)
+
+        // Expect corrupted profiles to be deleted
+        expect((await db.get('profiles', 'id'))).toBeUndefined()
     })
 
 })
