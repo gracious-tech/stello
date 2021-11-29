@@ -186,7 +186,7 @@ Resources:
                             + "img-src 'self' blob:;"
                             + "script-src 'self';"
                             + "style-src 'self' 'sha256-ZtAi/ysjZm0xsuCDCNS2IFcwQkmxUd12Cy5r4DuHrME=';"
-                            + "connect-src 'self' https://api.at.${InputDomainGeneric} https://${MessagesBucket.RegionalDomainName} https://api.rollbar.com;"
+                            + "connect-src 'self' https://api.${InputDomainGeneric} https://${MessagesBucket.RegionalDomainName} https://api.rollbar.com;"
                             + "frame-src https://www.youtube-nocookie.com https://player.vimeo.com;"
                     }
                     return event.response
@@ -200,6 +200,14 @@ Resources:
             DisableExecuteApiEndpoint: true
 
     GatewayDomainMap:
+        Type: AWS::ApiGatewayV2::ApiMapping
+        Properties:
+            ApiId: !Ref Gateway
+            DomainName: !Join ['', ['api.', !Ref InputDomainGeneric]]
+            Stage: !Ref Gateway.Stage
+
+    GatewayDomainMapOld:
+        # TODO Rm in e.g. 2023 (last used in v1.0.3)
         Type: AWS::ApiGatewayV2::ApiMapping
         Properties:
             ApiId: !Ref Gateway

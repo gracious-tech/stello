@@ -10,7 +10,7 @@ declare global {
     type MinOne<T> = [T, ...T[]]
 
     interface String {
-        replaceAll(from:string|RegExp, to:string|Function):string
+        replaceAll(from:string|RegExp, to:string):string
     }
 
     interface ImportMeta {
@@ -22,6 +22,7 @@ declare global {
             DEV:boolean,
             VITE_ROLLBAR_DISPLAYER:string,
             VITE_HOSTED_MSGS_URL:string,
+            VITE_HOSTED_API:string,
         }
     }
 

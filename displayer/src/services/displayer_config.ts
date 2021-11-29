@@ -65,6 +65,11 @@ class DisplayerConfigAccess {
                 config['resp_key_public'] as string)),
         })
 
+        // If using gracious hosting, responder url forced as not dynamic like self-hosted is
+        if (import.meta.env.VITE_HOSTED_API){
+            this.responder = import.meta.env.VITE_HOSTED_API + 'responder/'
+        }
+
         // Uncomment during dev to send requests to locally served responder
         // this.responder = 'http://127.0.0.1:8004/responder/'
     }
