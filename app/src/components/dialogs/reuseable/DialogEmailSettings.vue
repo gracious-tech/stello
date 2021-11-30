@@ -62,8 +62,8 @@ v-card
         h1(class='text-h6 mb-3') Could not connect
         ul(class='body-2')
             template(v-if='error.code === "network"')
-                li You don't seem to be connected to the Internet
-                li Make sure no anti-virus software is blocking Stello
+                li Make sure you are connected to the Internet
+                li If you have anti-virus that scans emails you may need to #[app-a(href='https://stello.news/guide/antivirus/') disable it]
             template(v-if='error.code === "dns" && not_detected')
                 li Your server name is likely incorrect (#[app-a(:href='smtp_settings_search') search for correct settings])
             template(v-if='error.code === "starttls_required" && not_detected && !smtp_starttls')
