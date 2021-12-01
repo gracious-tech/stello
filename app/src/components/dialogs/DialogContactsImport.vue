@@ -362,6 +362,9 @@ export default class extends Vue {
         .v-select
             max-width: 175px
 
+            &:nth-child(2)
+                margin: 0 12px
+
             ::v-deep .v-text-field__details
                 display: none
 
