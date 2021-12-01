@@ -1,5 +1,8 @@
 // Utils that have dependencies or are app-specific
 
+// Import worker as a separate script (rather than blob which is forbidden by CSP)
+import UntarWorker from 'js-untar/src/untar-worker.js?worker'
+
 import {debounce} from 'lodash'
 import {formatDistanceStrict} from 'date-fns'
 
@@ -111,8 +114,8 @@ export function untar(tar_file:ArrayBuffer):Promise<TarFile[]>{
         // Collect extracted files (passed to resolve when all files extracted)
         const files:TarFile[] = []
 
-        // Create worker from script URL (rather than blob which is forbidden by CSP)
-        const worker = new Worker('node_modules/js-untar/src/untar-worker.js')
+        // Create worker using vite-specific constructor that uses actual script rather than blob
+        const worker = new UntarWorker()
         worker.onerror = reject
 
         // Handle worker events

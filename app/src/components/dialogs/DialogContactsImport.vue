@@ -105,12 +105,22 @@ v-card
 
 import papaparse from 'papaparse'
 import PostalMime from 'postal-mime'
-import * as zip from '@zip.js/zip.js/dist/zip'  // Avoids `import.meta` issue
+import * as zip from '@zip.js/zip.js'
+import zip_worker from '@zip.js/zip.js/dist/z-worker?url'  // Worker must be separate local script
 import {Component, Vue, Watch} from 'vue-property-decorator'
 
 import {drop} from '@/services/utils/exceptions'
 import {oauth_pretask_new_usage} from '@/services/tasks/oauth'
 import {extract_contacts_from_vcard} from '@/services/misc/vcard'
+
+
+// Configure zip module to use static local worker scripts rather than blobs to avoid CSP issues
+zip.configure({
+    workerScripts: {
+        deflate: ['/' + zip_worker],
+        inflate: ['/' + zip_worker],
+    },
+})
 
 
 @Component({})

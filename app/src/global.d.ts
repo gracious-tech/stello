@@ -2,16 +2,13 @@
 // NOTE This should be crawled by Typescript automatically
 
 
+// Import vite-specific stuff like ?raw ?url etc imports
+import 'vite/client.d'
+
+
 declare module '*.vue' {
     import Vue from 'vue'
     export default Vue
-}
-
-
-declare module '*?raw' {
-    // This "module" is actually just a string, so `content` is never actually accessible
-    const content: string
-    export default content
 }
 
 
