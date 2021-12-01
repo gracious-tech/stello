@@ -115,10 +115,12 @@ import {extract_contacts_from_vcard} from '@/services/misc/vcard'
 
 
 // Configure zip module to use static local worker scripts rather than blobs to avoid CSP issues
+// NOTE Must pass absolute URL otherwise zip.js will try resolve relative to own script and mess up
+const zip_worker_path = new URL(zip_worker, import.meta.url).toString()
 zip.configure({
     workerScripts: {
-        deflate: ['/' + zip_worker],
-        inflate: ['/' + zip_worker],
+        deflate: [zip_worker_path],
+        inflate: [zip_worker_path],
     },
 })
 
