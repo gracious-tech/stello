@@ -99,6 +99,7 @@
         "@tiptap/extension-text",
         "@tiptap/extension-typography",
         "@tiptap/vue-2",
+        "@zip.js/zip.js",
         "@zip.js/zip.js/dist/zip",
         "croppr",
         "date-fns",
