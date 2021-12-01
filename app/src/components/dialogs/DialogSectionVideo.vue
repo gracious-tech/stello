@@ -149,7 +149,7 @@ export default class extends Vue {
         } else if (url.hostname.endsWith('vimeo.com')){
             return {
                 format: 'iframe_vimeo',
-                id: url.pathname.split('/')[1] ?? '',
+                id: url.pathname.slice(1),  // May be '/id' or '/id/password' (for private mode)
             }
         }
         return null

@@ -48,7 +48,9 @@ export default defineComponent({
 
         safe_id():string{
             // Get escaped version of video id
-            return encodeURIComponent(this.id!)
+            // NOTE Vimeo id may be a two part `id/password` if in private mode
+            return encodeURIComponent(
+                this.format === 'iframe_vimeo' ? this.id!.split('/')[0]! : this.id!)
         },
 
         src(){
@@ -73,6 +75,10 @@ export default defineComponent({
                 const params = new URLSearchParams([
                     ['dnt', '1'],  // Do not track
                 ])
+                // If in private mode, vimeo id should be `id/password`
+                if (this.id!.includes('/')){
+                    params.append('h', this.id!.split('/')[1]!)
+                }
                 let hash = ''
                 if (this.start){
                     const mins = Math.floor(this.start / 60)
