@@ -3,7 +3,7 @@
 
 
 // Import vite-specific stuff like ?raw ?url etc imports
-import 'vite/client.d'
+// TODO triggers type issues (like app_db being any) -- import 'vite/client.d'
 
 
 declare module '*.vue' {
