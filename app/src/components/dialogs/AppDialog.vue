@@ -1,8 +1,9 @@
 
 <template lang='pug'>
 
+//- NOTE Dialogs have 100% width (up to max) so size doesn't change when fields appear/disappear etc
 v-dialog(:value='show' @input='close_detected' :fullscreen='fullscreen' :persistent='persistent'
-        scrollable :max-width='max_width' :content-class='content_class')
+        scrollable width='100%' :max-width='max_width' :content-class='content_class')
     component(v-if='dialog' :is='dialog.component' v-bind='dialog.props' @close='close_request')
 
 </template>
