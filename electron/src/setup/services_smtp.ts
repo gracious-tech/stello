@@ -87,6 +87,9 @@ function normalize_nodemailer_error(error:unknown):EmailError{
     // Map nodemailer codes to app codes
     const error_obj = error as NodeMailerError
     let code:EmailError['code'] = 'unknown'
+    const is_tmp_error = typeof error_obj.responseCode === 'number'
+        && error_obj.responseCode >= 400 && error_obj.responseCode < 500
+
     if (error_obj.code === 'EDNS'){
         // Either DNS server couldn't find name, or had trouble communicating with DNS server
         code = error_obj.message?.startsWith('getaddrinfo ENOTFOUND') ? 'dns' : 'network'
@@ -112,8 +115,7 @@ function normalize_nodemailer_error(error:unknown):EmailError{
         code = 'auth'
     } else if (error_obj.code === 'EENVELOPE'){
         // Server didn't accept the actual message
-        if (error_obj.responseCode && error_obj.responseCode >= 400
-                && error_obj.responseCode < 500){
+        if (is_tmp_error){
             // 4xx errors are usually temporary server-side issues
             code = 'throttled'
         } else {
@@ -124,7 +126,15 @@ function normalize_nodemailer_error(error:unknown):EmailError{
                 code = 'invalid_to'
             }
         }
+    } else if (error_obj.code === 'EMESSAGE'){
+        // Something went wrong when actually processing the message (?)
+        if (is_tmp_error){
+            // Servers may drop messages if they literally can't handle too many at once
+            // e.g. "451 4.3.0 acf-proxy: Error: queue file write error"
+            code = 'throttled'
+        }
     }
+
     // NOTE error_obj.message already includes error_obj.response (if it exists)
     return {code, details: `${error_obj.code ?? ''}: ${error_obj.message}`}
 }
