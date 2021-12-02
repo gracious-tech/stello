@@ -57,6 +57,7 @@ v-card
                 | Don't use your normal password (which probably won't work). Instead, ensure you have #[app-a(:href='url_two_step') Two-Step Verification] enabled and create a new #[app-a(:href='url_app_pass') "app password"].
         app-text(v-if='!profile.smtp_detected' v-model='smtp_user' v-bind='$t("smtp_user")'
             :placeholder='profile.smtp_settings.user' persistent-placeholder)
+        app-security-alert Never give your email password to anything you don't fully trust. Stello encrypts your password, it stays on your device, and is only used to send emails (not read them). And this can be checked as Stello is open-source.
 
     v-alert(v-if='error' colored-border border='left' color='error' class='ma-4 mb-0')
         h1(class='text-h6 mb-3') Could not connect
