@@ -93,6 +93,9 @@ function normalize_nodemailer_error(error:unknown):EmailError{
     if (error_obj.code === 'EDNS'){
         // Either DNS server couldn't find name, or had trouble communicating with DNS server
         code = error_obj.message?.startsWith('getaddrinfo ENOTFOUND') ? 'dns' : 'network'
+    } else if (error_obj.code === 'EPROTOCOL'){
+        // Server responds in a non-SMTP way (e.g. user gave an IMAP port by mistake)
+        code = 'port'
     } else if (error_obj.code === 'ESOCKET'){
         if (error_obj.message?.startsWith('Client network socket disconnected before secure TLS')){
             // Tried to use TLS on a STARTTLS port but aborted when server didn't support TLS

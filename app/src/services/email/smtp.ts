@@ -27,8 +27,8 @@ export function send_batch_smtp(items:QueueItem[],
             error = new MustReauthenticate()
         } else if (smtp_error.code === 'network'){
             error = new MustReconnect()
-        } else if (
-            ['dns', 'starttls_required', 'tls_required', 'timeout'].includes(smtp_error.code)){
+        } else if (['dns', 'port', 'starttls_required', 'tls_required', 'timeout'].includes(
+            smtp_error.code)){
             error = new MustReconfigure()
         } else {
             error = new MustInterpret(smtp_error)
