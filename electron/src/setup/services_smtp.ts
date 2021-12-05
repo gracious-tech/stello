@@ -28,6 +28,11 @@ function transport_id_from_settings(settings:EmailSettings):string{
 
 function smtp_transport(settings:SmtpSettings){
     // Return an SMTP transport instance configured with provided settings
+
+    // If host is own device (e.g. ProtonMail's bridge) TLS won't be required
+    // SECURITY Assumes user's device is secure, otherwise would be bigger problems anyway
+    const localhost = settings.host === '127.0.0.1' || settings.host === 'localhost'
+
     const config = {
         host: settings.host,
         port: settings.port,
@@ -36,7 +41,7 @@ function smtp_transport(settings:SmtpSettings){
             pass: settings.pass,
         },
         secure: !settings.starttls,
-        requireTLS: true,  // Must use either TLS or STARTTLS (cannot be insecure)
+        requireTLS: !localhost,  // Must use either TLS or STARTTLS (cannot be insecure)
         // Don't wait too long as may be testing invalid settings (defaults are in minutes!)
         connectionTimeout: 5 * 1000,  // If can't connect in 5 secs then must be wrong name/port
         greetingTimeout: 5 * 1000,  // Greeting should come quickly so allow 5 secs
@@ -49,7 +54,9 @@ function smtp_transport(settings:SmtpSettings){
         // Log during dev
         logger: !app.isPackaged,
         debug: !app.isPackaged,
-        tls: {},
+        tls: {
+            rejectUnauthorized: !localhost,  // ProtonMail Bridge uses self-signed cert
+        },
     }
 
     // Send to localhost during development
