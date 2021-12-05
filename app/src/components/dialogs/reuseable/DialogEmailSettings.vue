@@ -134,7 +134,7 @@ export type EmailSetupStep = 'init'|'email'|'settings'|'signin'|'password'
 
 
 const SMTPLESS:Record<string, string> = {
-    protonmail: `ProtonMail only allows other apps to send emails if you have a paid account and have setup "ProtonMail Bridge" on your computer already, and will offer little security benefit over what Stello already provides.`,
+    protonmail: `ProtonMail only allows other apps to send emails if you have a paid account and have setup "ProtonMail Bridge" on your computer already.`,
     tutanota: `Tutanota does not allow other apps to send emails. You must use a different email address which will still benefit from the security that Stello itself provides.`,
 }
 
