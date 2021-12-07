@@ -260,7 +260,8 @@ export class Profile implements RecordProfile {
         // The domain messages will be viewed at
         if (this.host?.cloud === 'gracious'){
             const user = this.host.username
-            const parent = this.options.generic_domain ? import.meta.env.VITE_HOSTED_DOMAIN_GENERIC
+            const parent = this.options.generic_domain
+                ? import.meta.env.VITE_HOSTED_DOMAIN_UNBRANDED
                 : import.meta.env.VITE_HOSTED_DOMAIN_BRANDED
             return `${user}.${parent}`
         } else if (this.host?.cloud === 'aws'){

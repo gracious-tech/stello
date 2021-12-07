@@ -69,9 +69,9 @@ jobs:
                     VITE_HOSTED_USER_POOL_CLIENT: 6go9el36qqr5egm92s20b8fuer
                     VITE_HOSTED_IDENTITY_POOL: us-west-2:457eead7-c848-47d1-8f09-81cb85f818d0
                     VITE_HOSTED_BUCKET: stello-hosted
-                    VITE_HOSTED_API: https://api.message.quest/
-                    VITE_HOSTED_DOMAIN_GENERIC: message.quest
+                    VITE_HOSTED_API: https://api.encrypted.news/
                     VITE_HOSTED_DOMAIN_BRANDED: stello.news
+                    VITE_HOSTED_DOMAIN_UNBRANDED: encrypted.news
             -   if: github.event.inputs.run_tests != 'false'
                 name: .bin/audit_e2e_displayer
                 run: |
@@ -106,7 +106,7 @@ jobs:
             -   run: .bin/build_electron
                 env:
                     ROLLBAR_ELECTRON: ${{ secrets.ROLLBAR_ELECTRON }}
-                    HOSTED_API: https://api.message.quest/
+                    HOSTED_API: https://api.encrypted.news/
             -   uses: actions/download-artifact@v2
                 with:
                     name: app_base

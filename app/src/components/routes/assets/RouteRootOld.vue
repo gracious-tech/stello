@@ -34,7 +34,7 @@ v-alert(v-if='need_migrating.length' color='warning' light)
             li
                 | The new system uses links that will appear more trustworthy to your readers.
                 | You can choose for your messages to either use https://*name*.stello.news
-                | or https://*name*.message.quest (an unbranded address).
+                | or https://*name*.encrypted.news (an unbranded address).
             li
                 | The new system is also easier to setup for new users.
                 | And rather than get notifications from "AWS" you'll now get them directly from Stello.
