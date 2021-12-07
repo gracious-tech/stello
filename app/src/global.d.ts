@@ -12,6 +12,20 @@ declare module '*.vue' {
 }
 
 
+declare module '*?worker' {
+    const workerConstructor:{
+        new ():Worker
+    }
+    export default workerConstructor
+}
+
+
+declare module '*?url' {
+    const src:string
+    export default src
+}
+
+
 declare module '*?raw-svg' {
     // This "module" is actually just a string, so `content` is never actually accessible
     const content: string
