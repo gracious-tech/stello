@@ -1,7 +1,8 @@
 
+import {request} from './utils/http'
+import {partition} from './utils/strings'
 import {url64_to_buffer, utf8_to_string} from './utils/coding'
 import {import_key_asym, import_key_sym, decrypt_sym} from './utils/crypt'
-import {request} from './utils/http'
 
 
 export const MSGS_URL =
@@ -66,8 +67,9 @@ class DisplayerConfigAccess {
         })
 
         // If using gracious hosting, responder url forced as not dynamic like self-hosted is
-        if (import.meta.env.VITE_HOSTED_API){
-            this.responder = import.meta.env.VITE_HOSTED_API + 'responder/'
+        if (import.meta.env.VITE_HOSTED_MSGS_URL){
+            const parent_domain = partition(self.location.hostname, '.')[1]
+            this.responder = `https://api.${parent_domain}/responder/`
         }
 
         // Uncomment during dev to send requests to locally served responder
