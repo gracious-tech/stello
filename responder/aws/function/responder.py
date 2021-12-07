@@ -49,6 +49,7 @@ if SELF_HOSTED:
     TOPIC_ARN = os.environ['stello_topic_arn']
 else:
     DOMAIN_BRANDED = os.environ['stello_domain_branded']
+    DOMAIN_UNBRANDED = os.environ['stello_domain_unbranded']
     DOMAIN_GENERIC = os.environ['stello_domain_generic']
 
 
@@ -95,7 +96,11 @@ def entry(api_event, context):
     else:
         # Hosted setup -- origin must be a subdomain of one of defined domains
         user, _, root_origin = api_event['headers']['origin'].partition('//')[2].partition('.')
-        allowed_root = DOMAIN_GENERIC if root_origin == DOMAIN_GENERIC else DOMAIN_BRANDED
+        allowed_root = DOMAIN_BRANDED
+        if root_origin == DOMAIN_UNBRANDED:
+            allowed_root = DOMAIN_UNBRANDED
+        if root_origin == DOMAIN_GENERIC:
+            allowed_root = DOMAIN_GENERIC
         allowed_origin = f'https://{user}.{allowed_root}'
 
     # If origin not allowed, 403 to prevent further processing of the request

@@ -10,9 +10,11 @@ Parameters:
         Type: String
     InputRollbarAccounts:
         Type: String
-    InputDomainGeneric:  # The domain used for CF _and_ API requests etc
+    InputDomainGeneric:  # TODO Remove start of July 2022
         Type: String
-    InputDomainBranded:  # An alternate domain usable for CF
+    InputDomainBranded:
+        Type: String
+    InputDomainUnbranded:
         Type: String
     InputCertArn:
         Type: String
@@ -75,6 +77,7 @@ Resources:
                         AllowedOrigins:
                             -   !Join ['', ['https://*.', !Ref InputDomainGeneric]]
                             -   !Join ['', ['https://*.', !Ref InputDomainBranded]]
+                            -   !Join ['', ['https://*.', !Ref InputDomainUnbranded]]
             LifecycleConfiguration:
                 Rules: [
                     # Ensure max 2 year expiry can't be avoided by not including a lifespan tag
@@ -128,6 +131,7 @@ Resources:
                 Aliases:
                     -   !Join ['', ['*.', !Ref InputDomainGeneric]]
                     -   !Join ['', ['*.', !Ref InputDomainBranded]]
+                    -   !Join ['', ['*.', !Ref InputDomainUnbranded]]
                 DefaultRootObject: index.html
                 ViewerCertificate:
                     AcmCertificateArn: !Ref InputCertArn
@@ -186,7 +190,7 @@ Resources:
                             + "img-src 'self' blob:;"
                             + "script-src 'self';"
                             + "style-src 'self' 'sha256-ZtAi/ysjZm0xsuCDCNS2IFcwQkmxUd12Cy5r4DuHrME=';"
-                            + "connect-src 'self' https://api.${InputDomainGeneric} https://${MessagesBucket.RegionalDomainName} https://api.rollbar.com;"
+                            + "connect-src 'self' https://api.${InputDomainGeneric} https://api.${InputDomainBranded} https://api.${InputDomainUnbranded} https://${MessagesBucket.RegionalDomainName} https://api.rollbar.com;"
                             + "frame-src https://www.youtube-nocookie.com https://player.vimeo.com;"
                     }
                     return event.response
@@ -199,7 +203,22 @@ Resources:
         Properties:
             DisableExecuteApiEndpoint: true
 
+    GatewayDomainBranded:
+        Type: AWS::ApiGatewayV2::ApiMapping
+        Properties:
+            ApiId: !Ref Gateway
+            DomainName: !Join ['', ['api.', !Ref InputDomainBranded]]
+            Stage: !Ref Gateway.Stage
+
+    GatewayDomainUnbranded:
+        Type: AWS::ApiGatewayV2::ApiMapping
+        Properties:
+            ApiId: !Ref Gateway
+            DomainName: !Join ['', ['api.', !Ref InputDomainUnbranded]]
+            Stage: !Ref Gateway.Stage
+
     GatewayDomainApi:
+        # TODO Rm
         Type: AWS::ApiGatewayV2::ApiMapping
         Properties:
             ApiId: !Ref Gateway
@@ -207,7 +226,7 @@ Resources:
             Stage: !Ref Gateway.Stage
 
     GatewayDomainMap:
-        # TODO Rm in e.g. 2023 (last used in v1.0.3)
+        # TODO Rm (last used in v1.0.3)
         Type: AWS::ApiGatewayV2::ApiMapping
         Properties:
             ApiId: !Ref Gateway
@@ -238,6 +257,7 @@ Resources:
                     stello_region: !Ref AWS::Region
                     stello_rollbar_responder: !Ref InputRollbarResponder
                     stello_domain_branded: !Ref InputDomainBranded
+                    stello_domain_unbranded: !Ref InputDomainUnbranded
                     stello_domain_generic: !Ref InputDomainGeneric
 
     InviterImage:
@@ -262,6 +282,7 @@ Resources:
                     stello_region: !Ref AWS::Region
                     stello_rollbar_responder: !Ref InputRollbarResponder
                     stello_domain_branded: !Ref InputDomainBranded
+                    stello_domain_unbranded: !Ref InputDomainUnbranded
                     stello_domain_generic: !Ref InputDomainGeneric
             Policies:
                 -   Version: '2012-10-17'
@@ -291,6 +312,7 @@ Resources:
                     stello_region: !Ref AWS::Region
                     stello_rollbar_responder: !Ref InputRollbarResponder
                     stello_domain_branded: !Ref InputDomainBranded
+                    stello_domain_unbranded: !Ref InputDomainUnbranded
                     stello_domain_generic: !Ref InputDomainGeneric
             Policies:
                 -   Version: '2012-10-17'
@@ -331,6 +353,7 @@ Resources:
                     stello_region: !Ref AWS::Region
                     stello_rollbar_responder: !Ref InputRollbarResponder
                     stello_domain_branded: !Ref InputDomainBranded
+                    stello_domain_unbranded: !Ref InputDomainUnbranded
                     stello_domain_generic: !Ref InputDomainGeneric
             Policies:
                 -   Version: '2012-10-17'
@@ -371,6 +394,7 @@ Resources:
                     stello_region: !Ref AWS::Region
                     stello_rollbar_responder: !Ref InputRollbarResponder
                     stello_domain_branded: !Ref InputDomainBranded
+                    stello_domain_unbranded: !Ref InputDomainUnbranded
                     stello_domain_generic: !Ref InputDomainGeneric
             Policies:
                 -   Version: '2012-10-17'
@@ -411,6 +435,7 @@ Resources:
                     stello_region: !Ref AWS::Region
                     stello_rollbar_responder: !Ref InputRollbarResponder
                     stello_domain_branded: !Ref InputDomainBranded
+                    stello_domain_unbranded: !Ref InputDomainUnbranded
                     stello_domain_generic: !Ref InputDomainGeneric
             Policies:
                 -   Version: '2012-10-17'
@@ -444,6 +469,7 @@ Resources:
                     stello_region: !Ref AWS::Region
                     stello_rollbar_responder: !Ref InputRollbarResponder
                     stello_domain_branded: !Ref InputDomainBranded
+                    stello_domain_unbranded: !Ref InputDomainUnbranded
                     stello_domain_generic: !Ref InputDomainGeneric
             Policies:
                 -   Version: '2012-10-17'
@@ -477,6 +503,7 @@ Resources:
                     stello_region: !Ref AWS::Region
                     stello_rollbar_responder: !Ref InputRollbarResponder
                     stello_domain_branded: !Ref InputDomainBranded
+                    stello_domain_unbranded: !Ref InputDomainUnbranded
                     stello_domain_generic: !Ref InputDomainGeneric
             Policies:
                 -   Version: '2012-10-17'
