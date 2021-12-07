@@ -166,7 +166,7 @@ const i18n = {
     },
     // Additional security
     generic_domain: {
-        label: "Don't mention Stello in message links",
+        label: "Use non-branded links (encrypted.news rather than stello.news)",
         hint: `This makes it less obvious you're using newsletter software linked
             to a Christian organisation`,
     },

@@ -13,9 +13,9 @@ div
         img.decor(src='@/assets/decor/welcome.svg')
 
         v-card(class='pa-4')
-            v-card-title(class='justify-center') New features
+            v-card-title(class='justify-center') New &amp; upcoming features
             v-list
-                v-subheader Recently funded
+                v-subheader Now available
                 v-list-item(v-for='feature of added' :key='feature.title')
                     v-list-item-content
                         v-list-item-title {{ feature.title }}
@@ -31,7 +31,7 @@ div
                     v-list-item-icon
                         app-svg(name='icon_money' color='#fa5788')
             v-divider
-            div(class='text-center my-4')
+            div(class='text-center my-6')
                 p(class='text-body-2')
                     | Good news! You can use Stello for free thanks to generous supporters
                     | who've funded the work so far.
@@ -64,12 +64,12 @@ export default class extends Vue {
 
     added = [
         {
-            title: "Identify disengaged contacts",
-            desc: "See which contacts haven't been reading any messages for a while",
+            title: `"message.quest" has changed to "encrypted.news"`,
+            desc: "If you have non-branded links enabled they will use the new address",
         },
         {
-            title: "Easier account setup",
-            desc: "Create as many free accounts as you need",
+            title: "Identify disengaged contacts",
+            desc: "See which contacts haven't been reading any messages for a while",
         },
         {
             title: "Image headers for emails",
