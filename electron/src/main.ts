@@ -56,7 +56,7 @@ void app.whenReady().then(async () => {
         //      e.g. `fs.access` test in past has had a bug and was actually fine to update
         autoUpdater.setFeedURL({
             provider: 'generic',
-            url: 'https://releases.message.quest/electron/',
+            url: 'https://releases.encrypted.news/electron/',
         })
         void autoUpdater.checkForUpdatesAndNotify().then(result => {
             // Update variable when download done
