@@ -43,8 +43,8 @@ import {generate_lifespan_options, lifespan_days_to_text} from '@/services/misc'
 })
 export default class extends Vue {
 
-    @Prop({required: true}) draft!:Draft
-    @Prop({required: true}) profile!:Profile  // Profile must be set before can use this dialog
+    @Prop({required: true}) declare readonly draft:Draft
+    @Prop({required: true}) declare readonly profile:Profile  // Profile must be set before can use this dialog
 
     get lifespan_options(){
         return generate_lifespan_options(this.profile.max_lifespan)

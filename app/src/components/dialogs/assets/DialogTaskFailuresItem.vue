@@ -26,7 +26,7 @@ import {OAuth} from '@/services/database/oauths'
 @Component({})
 export default class extends Vue {
 
-    @Prop() task:Task
+    @Prop() declare readonly task:Task
 
     oauth:OAuth = null
 

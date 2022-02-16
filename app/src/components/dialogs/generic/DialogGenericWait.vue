@@ -18,7 +18,7 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 @Component({})
 export default class extends Vue {
 
-    @Prop({default: ''}) title!:string
+    @Prop({default: ''}) declare readonly title:string
 }
 
 </script>

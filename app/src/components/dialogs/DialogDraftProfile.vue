@@ -26,8 +26,8 @@ import {Profile} from '@/services/database/profiles'
 @Component({})
 export default class extends Vue {
 
-    @Prop({type: Draft, required: true}) draft:Draft
-    @Prop({type: Array, required: true}) profiles:Profile[]
+    @Prop({type: Draft, required: true}) declare readonly draft:Draft
+    @Prop({type: Array, required: true}) declare readonly profiles:Profile[]
 
     get profiles_ui(){
         // Get valid profiles in UI suitable format

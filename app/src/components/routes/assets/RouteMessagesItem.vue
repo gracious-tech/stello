@@ -33,8 +33,8 @@ import {time_between} from '@/services/misc'
 @Component({})
 export default class extends Vue {
 
-    @Prop({required: true}) msg!:Message
-    @Prop({default: ''}) recipients!:string
+    @Prop({required: true}) declare readonly msg:Message
+    @Prop({default: ''}) declare readonly recipients:string
 
     get to(){
         return {name: 'message', params: {msg_id: this.msg.id}}

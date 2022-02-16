@@ -27,8 +27,8 @@ import {ContentImages} from '@/services/database/types'
 @Component({})
 export default class extends Vue {
 
-    @Prop() section:Section<ContentImages>
-    @Prop() item_index:number
+    @Prop() declare readonly section:Section<ContentImages>
+    @Prop() declare readonly item_index:number
 
     get item(){
         // Return individual image object represented by this component

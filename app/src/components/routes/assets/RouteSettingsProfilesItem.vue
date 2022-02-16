@@ -30,7 +30,7 @@ import {MustReconnect} from '@/services/utils/exceptions'
 @Component({})
 export default class extends Vue {
 
-    @Prop({required: true}) profile!:Profile
+    @Prop({required: true}) declare readonly profile:Profile
 
     get route(){
         return {name: 'profile', params: {profile_id: this.profile.id}}

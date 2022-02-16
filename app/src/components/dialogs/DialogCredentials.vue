@@ -53,10 +53,10 @@ import {Task} from '@/services/tasks/tasks'
 @Component({})
 export default class extends Vue {
 
-    @Prop({required: true}) manager!:HostManager
-    @Prop({type: String, required: true}) bucket!:string
-    @Prop({type: String, required: true}) region!:string
-    @Prop({type: Boolean, default: false}) autogen!:boolean
+    @Prop({required: true}) declare readonly manager:HostManager
+    @Prop({type: String, required: true}) declare readonly bucket:string
+    @Prop({type: String, required: true}) declare readonly region:string
+    @Prop({type: Boolean, default: false}) declare readonly autogen:boolean
 
     storage_generated:HostStorageGenerated|null = null
     waiting = false

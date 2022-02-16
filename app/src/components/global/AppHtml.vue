@@ -126,8 +126,8 @@ function mention_renderer():ReturnType<SuggestionOptions['render']>{
 })
 export default class extends Vue {
 
-    @Prop({type: String, default: ''}) value!:string
-    @Prop({type: Object, default: () => {}}) variables!:Record<string, {label:string, value:string}>
+    @Prop({type: String, default: ''}) declare readonly value:string
+    @Prop({type: Object, default: () => {}}) declare readonly variables:Record<string, {label:string, value:string}>
 
     editor:Editor|null = null
     bubble_url:string|null = null

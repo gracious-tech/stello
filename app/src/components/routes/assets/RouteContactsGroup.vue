@@ -23,7 +23,7 @@ import {Group} from '@/services/database/groups'
 @Component({})
 export default class extends Vue {
 
-    @Prop() group:Group
+    @Prop() declare readonly group:Group
 
     rename(){
         // Show dialog that allows renaming the group

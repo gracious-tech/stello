@@ -22,11 +22,11 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 @Component({})
 export default class extends Vue {
 
-    @Prop({required: true}) title:string
-    @Prop({default: null}) text:string
-    @Prop({default: "Cancel"}) cancel:string
-    @Prop({default: "Confirm"}) confirm:string
-    @Prop({default: false}) confirm_danger:boolean
+    @Prop({required: true}) declare readonly title:string
+    @Prop({default: null}) declare readonly text:string
+    @Prop({default: "Cancel"}) declare readonly cancel:string
+    @Prop({default: "Confirm"}) declare readonly confirm:string
+    @Prop({default: false}) declare readonly confirm_danger:boolean
 
     get confirm_color():string{
         // The color of the confirm button

@@ -21,7 +21,7 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 @Component({})
 export default class extends Vue {
 
-    @Prop() value
+    @Prop() declare readonly value
     visible = false
 
     get wrapped_value(){

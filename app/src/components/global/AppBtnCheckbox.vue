@@ -15,7 +15,7 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 @Component({})
 export default class extends Vue {
 
-    @Prop({type: Boolean}) value:boolean
+    @Prop({type: Boolean}) declare readonly value:boolean
 
     get icon(){
         return `checkbox_${this.value}`  // Expecting true|false|null

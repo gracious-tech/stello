@@ -35,8 +35,8 @@ import {Profile} from '@/services/database/profiles'
 })
 export default class extends Vue {
 
-    @Prop() profile:Profile
-    @Prop({type: Boolean, default: false}) steps:boolean  // Whether steps setup (show less fields)
+    @Prop() declare readonly profile:Profile
+    @Prop({type: Boolean, default: false}) declare readonly steps:boolean  // Whether steps setup (show less fields)
 
     get sender_name(){
         return this.profile.msg_options_identity.sender_name

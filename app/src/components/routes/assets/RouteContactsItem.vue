@@ -37,8 +37,8 @@ interface ContactItem {
 @Component({})
 export default class extends Vue {
 
-    @Prop({required: true}) item!:ContactItem
-    @Prop({required: true, type: Boolean}) disengaged!:boolean
+    @Prop({required: true}) declare readonly item:ContactItem
+    @Prop({required: true, type: Boolean}) declare readonly disengaged:boolean
 
     get to():RawLocation{
         // Return route location for viewing the contact

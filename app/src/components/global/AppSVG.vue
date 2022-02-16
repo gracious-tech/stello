@@ -23,9 +23,9 @@ export default class extends Vue {
     height = ''
     contents = ''
 
-    @Prop() name:string
-    @Prop({default: true, type: Boolean}) fill:boolean
-    @Prop({default: false, type: Boolean}) responsive:boolean
+    @Prop() declare readonly name:string
+    @Prop({default: true, type: Boolean}) declare readonly fill:boolean
+    @Prop({default: false, type: Boolean}) declare readonly responsive:boolean
 
     @Watch('name', {immediate: true}) watch_name(value){
         // Allow easier debugging for missing svgs

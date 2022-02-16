@@ -48,8 +48,8 @@ import {email_address_like} from '@/services/utils/misc'
 @Component({})
 export default class extends Vue {
 
-    @Prop() contact:Contact
-    @Prop() oauth:OAuth
+    @Prop() declare readonly contact:Contact
+    @Prop() declare readonly oauth:OAuth
 
     loading = true
     error = false

@@ -35,7 +35,7 @@ const ascii_upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 @Component({})
 export default class extends Vue {
 
-    @Prop({required: true}) generic_domain!:boolean
+    @Prop({required: true}) declare readonly generic_domain:boolean
 
     username_raw = ''
     username_checking:string|null = null  // The last username that a check was initiated for

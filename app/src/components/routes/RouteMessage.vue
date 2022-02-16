@@ -72,7 +72,7 @@ import {time_between} from '@/services/misc'
 })
 export default class extends Vue {
 
-    @Prop({type: String, required: true}) msg_id!:string
+    @Prop({type: String, required: true}) declare readonly msg_id:string
 
     message:Message|null = null
     copies:MessageCopy[] = []

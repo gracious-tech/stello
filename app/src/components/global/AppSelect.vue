@@ -31,8 +31,8 @@ import {VAutocomplete} from 'vuetify/lib/components/VAutocomplete'
 @Component({})
 export default class extends Vue {
 
-    @Prop() value
-    @Prop({type: Boolean, default: false}) select:boolean  // Whether select only (no autocomplete)
+    @Prop() declare readonly value
+    @Prop({type: Boolean, default: false}) declare readonly select:boolean  // Whether select only (no autocomplete)
 
     get wrapped_value(){
         return this.value

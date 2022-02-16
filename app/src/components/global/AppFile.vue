@@ -17,8 +17,8 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 @Component({})
 export default class extends Vue {
 
-    @Prop({type: String, default: ''}) accept!:string
-    @Prop({type: Boolean, default: false}) multiple!:boolean
+    @Prop({type: String, default: ''}) declare readonly accept:string
+    @Prop({type: Boolean, default: false}) declare readonly multiple:boolean
 
     get label_classes():string[]{
         // Return appropriate classes for label to make it look like a button

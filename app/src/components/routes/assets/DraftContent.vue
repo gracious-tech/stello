@@ -41,9 +41,9 @@ import {Profile} from '@/services/database/profiles'
 })
 export default class extends Vue {
 
-    @Prop({required: true}) draft!:Draft
-    @Prop({required: true}) sections!:{[id:string]: Section}
-    @Prop({default: undefined}) profile:Profile|undefined
+    @Prop({required: true}) declare readonly draft:Draft
+    @Prop({required: true}) declare readonly sections:{[id:string]: Section}
+    @Prop({default: undefined}) declare readonly profile:Profile|undefined
 
     modify_dialogs = {
         text: DialogSectionText,

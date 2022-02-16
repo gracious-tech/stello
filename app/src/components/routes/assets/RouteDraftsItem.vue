@@ -29,7 +29,7 @@ import {Draft} from '@/services/database/drafts'
 @Component({})
 export default class extends Vue {
 
-    @Prop() draft:Draft
+    @Prop() declare readonly draft:Draft
 
     get to(){
         return {name: 'draft', params: {draft_id: this.draft.id}}

@@ -155,8 +155,8 @@ const SMTPLESS_DOMAINS:Record<string, string> = {
 })
 export default class extends Vue {
 
-    @Prop() profile!:Profile
-    @Prop({type: String, default: null}) force_step!:EmailSetupStep|null
+    @Prop() declare readonly profile:Profile
+    @Prop({type: String, default: null}) declare readonly force_step:EmailSetupStep|null
 
     setup:EmailSetupStep = 'init'
     init_email = ''  // Address entered in initial setup phase (not auto-saved to profile)

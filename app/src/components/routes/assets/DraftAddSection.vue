@@ -25,9 +25,9 @@ import {Draft} from '@/services/database/drafts'
 @Component({})
 export default class extends Vue {
 
-    @Prop() draft:Draft
-    @Prop() position:number
-    @Prop({type: Boolean, default: false}) visible:boolean  // Show buttons even without hover
+    @Prop() declare readonly draft:Draft
+    @Prop() declare readonly position:number
+    @Prop({type: Boolean, default: false}) declare readonly visible:boolean  // Show buttons even without hover
 
     add(type:string){
         self.app_db.draft_section_create(this.draft, type, this.position)

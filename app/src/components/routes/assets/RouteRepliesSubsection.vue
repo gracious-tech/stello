@@ -42,7 +42,7 @@ import {request_json} from '@/services/utils/http'
 })
 export default class extends Vue {
 
-    @Prop() replactions!:(Reply|Reaction)[]
+    @Prop() declare readonly replactions:(Reply|Reaction)[]
 
     section:Section|null = null
     section_image_vimeo:string|null = null

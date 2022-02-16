@@ -30,7 +30,7 @@ import {validate_subdomain} from '@/services/hosts/common'
 @Component({})
 export default class extends Vue {
 
-    @Prop({required: true}) manager!:HostManager
+    @Prop({required: true}) declare readonly manager:HostManager
 
     bucket = ''
     bucket_dirty = false

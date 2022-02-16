@@ -35,7 +35,7 @@ import {ContentText} from '@/services/database/types'
 @Component({})
 export default class extends Vue {
 
-    @Prop() section:Section<ContentText>
+    @Prop() declare readonly section:Section<ContentText>
 
     get standout(){
         return this.section.content.standout || 'null'

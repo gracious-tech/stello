@@ -44,9 +44,9 @@ import {blob_image_size} from '@/services/utils/image'
 })
 export default class extends Vue {
 
-    @Prop({required: true}) draft!:Draft
-    @Prop({required: true}) section!:Section
-    @Prop({default: undefined}) profile:Profile|undefined
+    @Prop({required: true}) declare readonly draft:Draft
+    @Prop({required: true}) declare readonly section:Section
+    @Prop({default: undefined}) declare readonly profile:Profile|undefined
 
     images_aspect:[number, number]|null = null
 

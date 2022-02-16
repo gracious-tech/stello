@@ -96,7 +96,7 @@ function hms_to_secs(hms:string):number|null{
 })
 export default class extends Vue {
 
-    @Prop({required: true}) section!:Section<ContentVideo>
+    @Prop({required: true}) declare readonly section:Section<ContentVideo>
 
     show_help = false
     static_start:string|null = null

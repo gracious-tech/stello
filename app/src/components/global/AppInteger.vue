@@ -30,12 +30,12 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 @Component({})
 export default class extends Vue {
 
-    @Prop({type: Number}) value:number
-    @Prop({type: Number, default: null}) inherit:number  // For placeholder, also affects increments
-    @Prop({type: Number, default: 0, validator: v => v >= 0}) min:number
-    @Prop({type: Number, default: 1000000}) max:number  // Either max possible, or max before inf.
-    @Prop({type: Boolean, default: false}) infinity:boolean  // Can be infinity after max reached
-    @Prop({type: Boolean, default: true}) buttons:boolean
+    @Prop({type: Number}) declare readonly value:number
+    @Prop({type: Number, default: null}) declare readonly inherit:number  // For placeholder, also affects increments
+    @Prop({type: Number, default: 0, validator: v => v >= 0}) declare readonly min:number
+    @Prop({type: Number, default: 1000000}) declare readonly max:number  // Either max possible, or max before inf.
+    @Prop({type: Boolean, default: false}) declare readonly infinity:boolean  // Can be infinity after max reached
+    @Prop({type: Boolean, default: true}) declare readonly buttons:boolean
 
     error = null
 

@@ -25,8 +25,8 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 @Component({})
 export default class extends Vue {
 
-    @Prop() draft:Draft
-    @Prop() row_i:number
+    @Prop() declare readonly draft:Draft
+    @Prop() declare readonly row_i:number
 
     get row():[string]|[string, string]{
         // Get actual row (single or double item array of section ids)

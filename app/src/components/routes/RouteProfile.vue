@@ -189,7 +189,7 @@ import {generate_lifespan_options} from '@/services/misc'
 })
 export default class extends Vue {
 
-    @Prop({required: true}) profile_id!:string
+    @Prop({required: true}) declare readonly profile_id:string
 
     profile:Profile = null as unknown as Profile  // Avoid having to type profile as optional
     groups_ui:{text:string, value:string}[] = []

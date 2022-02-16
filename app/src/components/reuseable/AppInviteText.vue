@@ -22,8 +22,8 @@ import {render_invite_text} from '@/services/misc/invites'
 @Component({})
 export default class extends Vue {
 
-    @Prop(String) value:string
-    @Prop({default: {}}) context
+    @Prop(String) declare readonly value:string
+    @Prop({default: {}}) declare readonly context
 
     placeholders = ['CONTACT', 'SENDER', 'SUBJECT', 'LINK']
     example_context = {

@@ -20,8 +20,8 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 @Component({})
 export default class extends Vue {
 
-    @Prop(Boolean) value
-    @Prop({type: Boolean, default: null}) disabled_value
+    @Prop(Boolean) declare readonly value
+    @Prop({type: Boolean, default: null}) declare readonly disabled_value
 
     get wrapped_value(){
         // NOTE Can optionally set what value should be when disabled, rather than actual value

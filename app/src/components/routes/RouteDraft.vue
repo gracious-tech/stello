@@ -80,7 +80,7 @@ import {lifespan_days_to_text} from '@/services/misc'
 })
 export default class extends Vue {
 
-    @Prop({type: String, required: true}) draft_id!:string
+    @Prop({type: String, required: true}) declare readonly draft_id:string
 
     draft:Draft|null = null
     sections:Record<string, Section> = {}  // Content of sections loaded separately from the draft

@@ -25,7 +25,7 @@ import {Group} from '@/services/database/groups'
 @Component({})
 export default class extends Vue {
 
-    @Prop() groups:Group[]
+    @Prop() declare readonly groups:Group[]
 
 }
 

@@ -28,11 +28,11 @@ import {Draft} from '@/services/database/drafts'
 @Component({})
 export default class extends Vue {
 
-    @Prop(String) value!:string
-    @Prop({type: Blob}) image!:Blob
-    @Prop({type: Profile, required: true}) profile!:Profile
-    @Prop({type: Draft, default: null}) draft!:Draft
-    @Prop({type: Boolean, default: false}) reply!:boolean
+    @Prop(String) declare readonly value:string
+    @Prop({type: Blob}) declare readonly image:Blob
+    @Prop({type: Profile, required: true}) declare readonly profile:Profile
+    @Prop({type: Draft, default: null}) declare readonly draft:Draft
+    @Prop({type: Boolean, default: false}) declare readonly reply:boolean
 
     container_styles = INVITE_HTML_CONTAINER_STYLES
     image_styles = INVITE_HTML_IMAGE_STYLES

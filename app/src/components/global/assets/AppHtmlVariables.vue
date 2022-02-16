@@ -28,8 +28,8 @@ interface Variable {
 @Component({})
 export default class extends Vue {
 
-    @Prop({type: Array, required: true}) items:Variable[]
-    @Prop({type: Function, required: true}) command:(arg:{id:string})=>void
+    @Prop({type: Array, required: true}) declare readonly items:Variable[]
+    @Prop({type: Function, required: true}) declare readonly command:(arg:{id:string})=>void
 
     selected = 0
 

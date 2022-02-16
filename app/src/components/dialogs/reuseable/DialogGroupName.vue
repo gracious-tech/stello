@@ -23,7 +23,7 @@ import {Group} from '@/services/database/groups'
 @Component({})
 export default class extends Vue {
 
-    @Prop({required: true}) group:Group
+    @Prop({required: true}) declare readonly group:Group
 
     get name():string{
         return this.group.name

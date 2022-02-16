@@ -27,7 +27,7 @@ import {HostStorageGeneratedAws} from '@/services/hosts/aws_common'
 @Component({})
 export default class extends Vue {
 
-    @Prop({required: true}) profile!:Profile
+    @Prop({required: true}) declare readonly profile:Profile
 
     error:string|null = null
 

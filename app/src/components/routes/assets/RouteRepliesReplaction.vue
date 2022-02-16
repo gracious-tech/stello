@@ -40,7 +40,7 @@ import {time_between} from '@/services/misc'
 })
 export default class extends Vue {
 
-    @Prop() replaction:Reply|Reaction
+    @Prop() declare readonly replaction:Reply|Reaction
 
     unread = false  // Preservation of initial value before marking as read during `created`
 

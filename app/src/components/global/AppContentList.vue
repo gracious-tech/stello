@@ -14,8 +14,8 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 @Component({})
 export default class extends Vue {
 
-    @Prop({type: Array, required: true}) items:any[]
-    @Prop({required: true}) height:string|number  // Height of items as integer
+    @Prop({type: Array, required: true}) declare readonly items:any[]
+    @Prop({required: true}) declare readonly height:string|number  // Height of items as integer
 
     get height_styles():Record<string, string>{
         // Get styles that ensure items are of a specific height (important for virtual scroll)

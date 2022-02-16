@@ -35,7 +35,7 @@ import {HostCloud} from '@/services/hosts/types'
 @Component({})
 export default class extends Vue {
 
-    @Prop({required: true}) cloud!:HostCloud
+    @Prop({required: true}) declare readonly cloud:HostCloud
 
     get key_id(){
         return this.$store.state[`manager_${this.cloud}_key_id`]

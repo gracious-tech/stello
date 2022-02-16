@@ -39,7 +39,7 @@ import {ContentImages} from '@/services/database/types'
 })
 export default class extends Vue {
 
-    @Prop({required: true}) section!:Section<ContentImages>
+    @Prop({required: true}) declare readonly section:Section<ContentImages>
 
     get content(){
         return this.section.content

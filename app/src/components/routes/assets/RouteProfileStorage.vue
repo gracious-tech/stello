@@ -94,7 +94,7 @@ import RouteProfileStorageCode from '@/components/routes/assets/RouteProfileStor
 })
 export default class extends Vue {
 
-    @Prop({required: true}) profile!:Profile
+    @Prop({required: true}) declare readonly profile:Profile
 
     storage_provider:number|null = null
     plan:'c'|'other'|null = null

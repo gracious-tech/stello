@@ -26,8 +26,8 @@ import SharedRespondReact from '@/shared/SharedRespondReact.vue'
 })
 export default class extends Vue {
 
-    @Prop({required: true}) section!:Section
-    @Prop({default: undefined}) profile:Profile|undefined
+    @Prop({required: true}) declare readonly section:Section
+    @Prop({default: undefined}) declare readonly profile:Profile|undefined
 
     get respondable_final():boolean{
         // Quick access to respondable_final

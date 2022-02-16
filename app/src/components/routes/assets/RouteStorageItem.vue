@@ -54,7 +54,7 @@ import DialogGenericConfirm from '@/components/dialogs/generic/DialogGenericConf
 @Component({})
 export default class extends Vue {
 
-    @Prop({required: true}) cloud!:HostCloud
+    @Prop({required: true}) declare readonly cloud:HostCloud
 
     storages:StorageProps[] = []
     scanning = false

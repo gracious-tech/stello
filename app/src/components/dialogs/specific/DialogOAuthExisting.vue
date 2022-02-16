@@ -28,7 +28,7 @@ import {OAuth} from '@/services/database/oauths'
 @Component({})
 export default class extends Vue {
 
-    @Prop() oauths:OAuth[]  // NOTE These are all of the same issuer
+    @Prop() declare readonly oauths:OAuth[]  // NOTE These are all of the same issuer
 
     get issuer():string{
         // Only ever one issuer and always at least one oauth, so retrieve from first item

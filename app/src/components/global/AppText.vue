@@ -28,12 +28,12 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 @Component({})
 export default class extends Vue {
 
-    @Prop(String) value:string
-    @Prop(String) security:string
-    @Prop({type: Boolean, default: false}) hint_on_focus:boolean
+    @Prop(String) declare readonly value:string
+    @Prop(String) declare readonly security:string
+    @Prop({type: Boolean, default: false}) declare readonly hint_on_focus:boolean
     // Default to not spellchecking as fields usually user-specific data
     // NOTE value should be inserted in DOM as "true"|"false" string, which converting boolean does
-    @Prop({type: Boolean, default: false}) spellcheck:boolean
+    @Prop({type: Boolean, default: false}) declare readonly spellcheck:boolean
 
     get wrapped_value(){
         return this.value

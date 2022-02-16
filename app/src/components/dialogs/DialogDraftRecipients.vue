@@ -77,10 +77,10 @@ import {get_final_recipients} from '@/services/misc/recipients'
 @Component({})
 export default class extends Vue {
 
-    @Prop({type: Draft, required: true}) draft!:Draft
-    @Prop({type: Array, required: true}) groups!:Group[]
-    @Prop({type: Array, required: true}) contacts!:Contact[]
-    @Prop({type: Array, required: true}) unsubscribes!:Unsubscribe[]
+    @Prop({type: Draft, required: true}) declare readonly draft:Draft
+    @Prop({type: Array, required: true}) declare readonly groups:Group[]
+    @Prop({type: Array, required: true}) declare readonly contacts:Contact[]
+    @Prop({type: Array, required: true}) declare readonly unsubscribes:Unsubscribe[]
 
     tab = 0
     contacts_filter:number|null = 0

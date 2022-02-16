@@ -68,7 +68,7 @@ import {Task, task_manager} from '@/services/tasks/tasks'
 @Component({})
 export default class extends Vue {
 
-    @Prop() contact_id:string
+    @Prop() declare readonly contact_id:string
 
     contact:Contact = null
     possible_groups:Group[] = null

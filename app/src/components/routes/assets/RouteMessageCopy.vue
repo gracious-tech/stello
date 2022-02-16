@@ -38,9 +38,9 @@ import {get_text_invite_for_copy} from '@/services/misc/invites'
 @Component({})
 export default class extends Vue {
 
-    @Prop({type: Object, required: true}) copy!:MessageCopy
-    @Prop({type: Array, required: true}) reads!:Read[]
-    @Prop({type: Object, default: null}) profile!:Profile|null
+    @Prop({type: Object, required: true}) declare readonly copy:MessageCopy
+    @Prop({type: Array, required: true}) declare readonly reads:Read[]
+    @Prop({type: Object, default: null}) declare readonly profile:Profile|null
 
     get to(){
         // Route config for viewing the contact

@@ -44,7 +44,7 @@ import {INVITE_HTML_MAX_WIDTH} from '@/services/misc/invites'
 @Component({})
 export default class extends Vue {
 
-    @Prop({type: Array, default: () => []}) suggestions!:Blob[]
+    @Prop({type: Array, default: () => []}) declare readonly suggestions:Blob[]
 
     image:Blob|null = null
     croppr:Croppr|null = null

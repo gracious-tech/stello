@@ -33,9 +33,9 @@ import {gen_variable_items, update_template_values} from '@/services/misc/templa
 })
 export default class extends Vue {
 
-    @Prop({type: Draft, required: true}) draft!:Draft
-    @Prop({type: Profile, required: true}) profile!:Profile
-    @Prop({type: Object, required: true}) sections!:Record<string, Section>
+    @Prop({type: Draft, required: true}) declare readonly draft:Draft
+    @Prop({type: Profile, required: true}) declare readonly profile:Profile
+    @Prop({type: Object, required: true}) declare readonly sections:Record<string, Section>
 
     get image():Blob{
         // Get invite's image, accounting for inheritance

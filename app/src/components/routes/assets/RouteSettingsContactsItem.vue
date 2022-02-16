@@ -26,7 +26,7 @@ import {time_between} from '@/services/misc'
 @Component({})
 export default class extends Vue {
 
-    @Prop() oauth:OAuth
+    @Prop() declare readonly oauth:OAuth
 
     get last_synced():string{
         // Return string specifying when last sync happened

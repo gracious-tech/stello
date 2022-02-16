@@ -150,7 +150,7 @@ import {MustReconnect} from '@/services/utils/exceptions'
 })
 export default class extends Vue {
 
-    @Prop() profile!:Profile
+    @Prop() declare readonly profile:Profile
 
     username_choice:string|null = null
     security_choice:number|null = null

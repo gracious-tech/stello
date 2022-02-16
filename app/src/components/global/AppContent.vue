@@ -14,7 +14,7 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 @Component({})
 export default class extends Vue {
 
-    @Prop() inner_class
+    @Prop() declare readonly inner_class
 }
 </script>
 
