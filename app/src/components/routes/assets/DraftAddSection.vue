@@ -27,7 +27,7 @@ export default class extends Vue {
 
     @Prop() declare readonly draft:Draft
     @Prop() declare readonly position:number
-    @Prop({type: Boolean, default: false}) declare readonly visible:boolean  // Show buttons even without hover
+    @Prop({type: Boolean, default: false}) declare readonly visible:boolean  // Not just on hover
 
     add(type:string){
         self.app_db.draft_section_create(this.draft, type, this.position)
