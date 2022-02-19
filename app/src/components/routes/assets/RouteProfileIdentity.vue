@@ -13,8 +13,8 @@ div
         @change_image='change_image')
     template(v-if='!steps')
         h2(class='text-subtitle-2 mb-0 mt-8') Emailed reply
-        app-invite-html(v-model='reply_invite_tmpl_email' :image='reply_invite_image' :profile='profile'
-            @change_image='change_reply_image' reply)
+        app-invite-html(v-model='reply_invite_tmpl_email' :image='reply_invite_image'
+            :profile='profile' @change_image='change_reply_image' reply)
         app-invite-text(v-model='invite_tmpl_clipboard' :context='{sender: sender_name}')
 
 </template>
@@ -26,8 +26,9 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 
 import AppInviteHtml from '@/components/reuseable/AppInviteHtml.vue'
 import AppInviteText from '@/components/reuseable/AppInviteText.vue'
-import DialogInviteImage from '@/components/dialogs/reuseable/DialogInviteImage.vue'
+import DialogImageChooser from '@/components/dialogs/reuseable/DialogImageChooser.vue'
 import {Profile} from '@/services/database/profiles'
+import {INVITE_HTML_MAX_WIDTH} from '@/services/misc/invites'
 
 
 @Component({
@@ -36,14 +37,14 @@ import {Profile} from '@/services/database/profiles'
 export default class extends Vue {
 
     @Prop() declare readonly profile:Profile
-    @Prop({type: Boolean, default: false}) declare readonly steps:boolean  // Whether steps setup (show less fields)
+    @Prop({type: Boolean, default: false}) declare readonly steps:boolean  // Whether steps setup
 
     get sender_name(){
         return this.profile.msg_options_identity.sender_name
     }
     set sender_name(value){
         this.profile.msg_options_identity.sender_name = value
-        this.save()
+        void this.save()
     }
 
     get invite_image(){
@@ -55,7 +56,7 @@ export default class extends Vue {
             // Also set reply image to the same, if in setup steps
             this.profile.options.reply_invite_image = value
         }
-        this.save()
+        void this.save()
     }
 
     get reply_invite_image(){
@@ -63,7 +64,7 @@ export default class extends Vue {
     }
     set reply_invite_image(value){
         this.profile.options.reply_invite_image = value
-        this.save()
+        void this.save()
     }
 
     get invite_tmpl_email(){
@@ -71,7 +72,7 @@ export default class extends Vue {
     }
     set invite_tmpl_email(value){
         this.profile.msg_options_identity.invite_tmpl_email = value
-        this.save()
+        void this.save()
     }
 
     get reply_invite_tmpl_email(){
@@ -79,7 +80,7 @@ export default class extends Vue {
     }
     set reply_invite_tmpl_email(value){
         this.profile.options.reply_invite_tmpl_email = value
-        this.save()
+        void this.save()
     }
 
     get invite_tmpl_clipboard(){
@@ -87,25 +88,39 @@ export default class extends Vue {
     }
     set invite_tmpl_clipboard(value){
         this.profile.msg_options_identity.invite_tmpl_clipboard = value
-        this.save()
+        void this.save()
     }
 
     async change_image(){
-        const blob = await this.$store.dispatch('show_dialog', {component: DialogInviteImage})
+        const blob = await this.$store.dispatch('show_dialog', {
+            component: DialogImageChooser,
+            props: {
+                width: INVITE_HTML_MAX_WIDTH,
+                height: INVITE_HTML_MAX_WIDTH / 3,
+                invite: true,
+            },
+        }) as Blob
         if (blob){
             this.invite_image = blob
         }
     }
 
     async change_reply_image(){
-        const blob = await this.$store.dispatch('show_dialog', {component: DialogInviteImage})
+        const blob = await this.$store.dispatch('show_dialog', {
+            component: DialogImageChooser,
+            props: {
+                width: INVITE_HTML_MAX_WIDTH,
+                height: INVITE_HTML_MAX_WIDTH / 3,
+                invite: true,
+            },
+        }) as Blob
         if (blob){
             this.reply_invite_image = blob
         }
     }
 
-    save(){
-        self.app_db.profiles.set(this.profile)
+    async save(){
+        await self.app_db.profiles.set(this.profile)
     }
 }
 

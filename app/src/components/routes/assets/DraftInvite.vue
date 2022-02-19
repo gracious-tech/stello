@@ -21,11 +21,12 @@ div.invite(class='d-flex' :class='{"flex-column": draft_tmpl}')
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
 import AppInviteHtml from '@/components/reuseable/AppInviteHtml.vue'
-import DialogInviteImage from '@/components/dialogs/reuseable/DialogInviteImage.vue'
+import DialogImageChooser from '@/components/dialogs/reuseable/DialogImageChooser.vue'
 import {Draft} from '@/services/database/drafts'
 import {Profile} from '@/services/database/profiles'
 import {Section} from '@/services/database/sections'
 import {gen_variable_items, update_template_values} from '@/services/misc/templates'
+import {INVITE_HTML_MAX_WIDTH} from '@/services/misc/invites'
 
 
 @Component({
@@ -92,12 +93,18 @@ export default class extends Vue {
 
     async change_image():Promise<void>{
         // Open dialog for setting a custom invite image for the draft
+        // NOTE Was using DPR x2 but x1 results in 15% speed increase (both network & decrypt time)
+        //      Although not much, a fast loading header image is very important for email
+        //      Most delay comes from lambda starting unfortunately (~270ms cold start, ~75ms hot)
         const blob = await this.$store.dispatch('show_dialog', {
-            component: DialogInviteImage,
+            component: DialogImageChooser,
             props: {
+                width: INVITE_HTML_MAX_WIDTH,  // Only x1 DPR for speed increase
+                height: INVITE_HTML_MAX_WIDTH / 3,
                 suggestions: this.section_images,
+                invite: true,
             },
-        })
+        }) as Blob
         if (blob){
             this.draft.options_identity.invite_image = blob
             this.save()
