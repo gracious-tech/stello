@@ -174,7 +174,7 @@ export interface RecordSection<TContent extends RecordSectionContent=RecordSecti
 }
 
 export type RecordSectionContent =
-    ContentText|ContentImages|ContentVideo  // |ContentFile|ContentArticle
+    ContentText|ContentImages|ContentVideo|ContentPage  // ContentFile
 
 export interface ContentText {
     type:'text'
@@ -194,12 +194,12 @@ export interface ContentImageItem {
     caption:string  // Writers with blind recipients can use captions instead of alt text too
 }
 
-export interface ContentArticle {
-    type:'article'
+export interface ContentPage {
+    type:'page'
     title:string
     subtitle:string
-    image:Blob
-    sections:string[]  // All except articles allowed
+    image:Blob|null
+    sections:([string]|[string, string])[]
 }
 
 export interface ContentVideo {
