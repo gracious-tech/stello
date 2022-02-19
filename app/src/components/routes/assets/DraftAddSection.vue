@@ -7,7 +7,7 @@ div.addbar(:class='{visible}')
     div.buttons
         app-btn(@click='add_text' icon='subject' data-tip="Add text")
         app-btn(@click='add_images' icon='image' data-tip="Add images")
-        app-btn(@click='add_video' icon='video' data-tip="Add a video")
+        app-btn(@click='add_video' icon='video' data-tip="Add video")
         app-btn(@click='add_page' icon='library_books' data-tip="Add page")
         //- app-btn(icon='pie_chart')
         //- app-btn(icon='attach_file')
