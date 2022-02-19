@@ -157,6 +157,14 @@ export class Database {
                 start: null,
                 end: null,
             }
+        } else if (type === 'page'){
+            content = {
+                type,
+                title: '',
+                subtitle: '',
+                image: null,
+                sections: [],
+            }
         } else {
             throw new Error('invalid_type')
         }

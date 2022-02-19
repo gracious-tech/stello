@@ -66,10 +66,17 @@ export default class extends Vue {
     modify_section(section:Section){
         // Open the appropriate modify dialog for this section's type
         // NOTE This method is also accessed by the parent component
-        void this.$store.dispatch('show_dialog', {
-            component: this.modify_dialogs[section.content.type],
-            props: {section},
-        })
+        if (section.content.type === 'page'){
+            void this.$router.push({name: 'page', params: {
+                draft_id: this.draft.id,
+                page_id: section.id,
+            }})
+        } else {
+            void this.$store.dispatch('show_dialog', {
+                component: this.modify_dialogs[section.content.type],
+                props: {section},
+            })
+        }
     }
 }
 

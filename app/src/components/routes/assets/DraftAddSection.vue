@@ -8,9 +8,9 @@ div.addbar(:class='{visible}')
         app-btn(@click='add_text' icon='subject' data-tip="Add text")
         app-btn(@click='add_images' icon='image' data-tip="Add images")
         app-btn(@click='add_video' icon='video' data-tip="Add a video")
+        app-btn(@click='add_page' icon='library_books' data-tip="Add page")
         //- app-btn(icon='pie_chart')
         //- app-btn(icon='attach_file')
-        //- app-btn(icon='library_books')
 
 </template>
 
@@ -30,7 +30,7 @@ export default class extends Vue {
     @Prop({type: Boolean, default: false}) declare readonly visible:boolean  // Not just on hover
 
     add(type:string){
-        self.app_db.draft_section_create(this.draft, type, this.position)
+        void self.app_db.draft_section_create(this.draft, type, this.position)
     }
 
     add_text(){
@@ -43,6 +43,10 @@ export default class extends Vue {
 
     add_video(){
         this.add('video')
+    }
+
+    add_page(){
+        this.add('page')
     }
 }
 

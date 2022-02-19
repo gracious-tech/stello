@@ -9,13 +9,17 @@ section(@click.self='focus_editor' :class='classes')
 
     div.inner(@click.self='focus_editor')
 
-        app-html(v-if='type === "text"' ref='app_html' v-model='text_html' :variables='text_variables')
+        app-html(v-if='type === "text"' ref='app_html' v-model='text_html'
+            :variables='text_variables')
 
-        shared-slideshow(v-if='content.type === "images"' :images='content.images' :aspect='images_aspect'
-            :crop='content.crop' editing @img_click='modify')
+        shared-slideshow(v-if='content.type === "images"' :images='content.images'
+            :aspect='images_aspect' :crop='content.crop' editing @img_click='modify')
 
         shared-video(v-if='content.type === "video"' @modify='modify' :format='content.format'
             :id='content.id' :caption='content.caption' :start='content.start' :end='content.end')
+
+        shared-pagebait(v-if='content.type === "page"' :title='content.title'
+            :subtitle='content.subtitle' :img='content.image' @click.native.self='modify')
 
     draft-section-respond(:profile='profile' :section='section' @click.native.self='focus_editor')
 
@@ -30,6 +34,7 @@ import DraftAddSection from './DraftAddSection.vue'
 import DraftSectionRespond from './DraftSectionRespond.vue'
 import SharedVideo from '@/shared/SharedVideo.vue'
 import SharedSlideshow from '@/shared/SharedSlideshow.vue'
+import SharedPagebait from '@/shared/SharedPagebait.vue'
 import {gen_variable_items} from '@/services/misc/templates'
 import {Section} from '@/services/database/sections'
 import {Draft} from '@/services/database/drafts'
@@ -40,7 +45,8 @@ import {blob_image_size} from '@/services/utils/image'
 
 
 @Component({
-    components: {DraftAddSection, DraftSectionRespond, SharedSlideshow, SharedVideo},
+    components: {DraftAddSection, DraftSectionRespond, SharedSlideshow, SharedVideo,
+        SharedPagebait},
 })
 export default class extends Vue {
 

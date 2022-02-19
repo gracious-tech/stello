@@ -12,6 +12,7 @@ import RouteContacts from '@/components/routes/RouteContacts.vue'
 import RouteContact from '@/components/routes/RouteContact.vue'
 import RouteDrafts from '@/components/routes/RouteDrafts.vue'
 import RouteDraft from '@/components/routes/RouteDraft.vue'
+import RouteDraftPage from '@/components/routes/RouteDraftPage.vue'
 import RouteMessages from '@/components/routes/RouteMessages.vue'
 import RouteMessage from '@/components/routes/RouteMessage.vue'
 import RouteReplies from '@/components/routes/RouteReplies.vue'
@@ -24,6 +25,7 @@ const routes:RouteConfig[] = [
     {path: '/', component: RouteRoot},
     {path: '/drafts/', component: RouteDrafts},
     {path: '/drafts/:draft_id/', component: RouteDraft, name: 'draft', props: true},
+    {path: '/drafts/:draft_id/:page_id/', component: RouteDraftPage, name: 'page', props: true},
     {path: '/messages/', component: RouteMessages},
     {path: '/messages/:msg_id/', component: RouteMessage, name: 'message', props: true},
     {path: '/replies/', component: RouteReplies},
