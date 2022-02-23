@@ -12,6 +12,7 @@ v-card(class='pt-6')
             div
                 app-file(@input='upload' accept='image/*') From file
                 app-btn(@click='paste') From copy/paste
+                app-btn(v-if='removeable' @click='remove' class='error--text') Remove
 
         v-card-text.suggestions(v-if='suggestions.length' class='text-center')
             h1(class='text-subtitle-2 mb-2 text-left') From existing...
@@ -48,6 +49,7 @@ export default class extends Vue {
     @Prop({type: Number, required: true}) declare readonly width:number
     @Prop({type: Number, required: true}) declare readonly height:number
     @Prop({type: Array, default: () => []}) declare readonly suggestions:Blob[]
+    @Prop({type: Boolean, default: false}) declare readonly removeable:boolean
     @Prop({type: Boolean, default: false}) declare readonly invite:boolean  // Invite-image specific
 
     image:Blob|null = null
@@ -123,7 +125,13 @@ export default class extends Vue {
         this.$emit('close', blob)
     }
 
+    remove(){
+        // Remove existing image by emitting null (rather than undefined)
+        this.$emit('close', null)
+    }
+
     dismiss(){
+        // Emit undefined to do nothing
         this.$emit('close')
     }
 
