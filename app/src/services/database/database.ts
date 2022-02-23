@@ -160,8 +160,8 @@ export class Database {
         } else if (type === 'page'){
             content = {
                 type,
-                title: '',
-                subtitle: '',
+                headline: '',
+                desc: '',
                 image: null,
                 sections: [],
             }

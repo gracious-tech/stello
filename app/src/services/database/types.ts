@@ -196,8 +196,8 @@ export interface ContentImageItem {
 
 export interface ContentPage {
     type:'page'
-    title:string
-    subtitle:string
+    headline:string
+    desc:string
     image:Blob|null
     sections:([string]|[string, string])[]
 }
