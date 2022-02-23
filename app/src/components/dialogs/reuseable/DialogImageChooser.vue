@@ -41,13 +41,15 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 
 import {bitmap_to_canvas, canvas_to_blob} from '@/services/utils/coding'
 import {get_clipboard_blobs} from '@/services/utils/misc'
+import {resize_bitmap} from '@/services/utils/image'
 
 
 @Component({})
 export default class extends Vue {
 
-    @Prop({type: Number, required: true}) declare readonly width:number
-    @Prop({type: Number, required: true}) declare readonly height:number
+    @Prop({type: Number, required: true}) declare readonly width:number  // max if no crop
+    @Prop({type: Number, required: true}) declare readonly height:number  // max if no crop
+    @Prop({type: Boolean, default: false}) declare readonly crop:boolean
     @Prop({type: Array, default: () => []}) declare readonly suggestions:Blob[]
     @Prop({type: Boolean, default: false}) declare readonly removeable:boolean
     @Prop({type: Boolean, default: false}) declare readonly invite:boolean  // Invite-image specific
@@ -76,14 +78,21 @@ export default class extends Vue {
             console.warn(`Not an image: ${blob.type}`)
             return false
         }
+        let bitmap:ImageBitmap
         try {
-            await createImageBitmap(blob)
+            bitmap = await createImageBitmap(blob)
         } catch (error){
             console.warn(error)
             return false
         }
 
-        // Can parse as an image, so set and init croppr
+        // If not cropping, resize and emit now
+        if (!this.crop){
+            bitmap = await resize_bitmap(bitmap, this.width, this.height)
+            return canvas_to_blob(bitmap_to_canvas(bitmap))
+        }
+
+        // Prepare to crop
         this.image = blob
         this.$nextTick(() => {
             this.croppr = new Croppr(this.$refs['chosen_img_element'] as HTMLImageElement, {
