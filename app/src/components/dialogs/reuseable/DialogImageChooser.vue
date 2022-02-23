@@ -86,19 +86,19 @@ export default class extends Vue {
             return false
         }
 
-        // If not cropping, resize and emit now
-        if (!this.crop){
+        // Prepare to crop or otherwise emit now
+        if (this.crop){
+            this.image = blob
+            this.$nextTick(() => {
+                this.croppr = new Croppr(this.$refs['chosen_img_element'] as HTMLImageElement, {
+                    aspectRatio: this.height / this.width,
+                })
+            })
+        } else {
             bitmap = await resize_bitmap(bitmap, this.width, this.height)
-            return canvas_to_blob(bitmap_to_canvas(bitmap))
+            this.$emit('close', canvas_to_blob(bitmap_to_canvas(bitmap)))
         }
 
-        // Prepare to crop
-        this.image = blob
-        this.$nextTick(() => {
-            this.croppr = new Croppr(this.$refs['chosen_img_element'] as HTMLImageElement, {
-                aspectRatio: this.height / this.width,
-            })
-        })
         return true
     }
 
