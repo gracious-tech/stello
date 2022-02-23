@@ -103,6 +103,7 @@ export default class extends Vue {
                 height: INVITE_HTML_MAX_WIDTH / 3,
                 suggestions: this.section_images,
                 invite: true,
+                crop: true,
             },
         }) as Blob
         if (blob){

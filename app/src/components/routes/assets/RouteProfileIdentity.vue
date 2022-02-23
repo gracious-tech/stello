@@ -98,6 +98,7 @@ export default class extends Vue {
                 width: INVITE_HTML_MAX_WIDTH,
                 height: INVITE_HTML_MAX_WIDTH / 3,
                 invite: true,
+                crop: true,
             },
         }) as Blob
         if (blob){
@@ -112,6 +113,7 @@ export default class extends Vue {
                 width: INVITE_HTML_MAX_WIDTH,
                 height: INVITE_HTML_MAX_WIDTH / 3,
                 invite: true,
+                crop: true,
             },
         }) as Blob
         if (blob){
