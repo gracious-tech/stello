@@ -138,10 +138,6 @@ export class Database {
                 standout: null,
                 html: '',
             }
-            // If the first section, auto-add title as a heading if it exists
-            if (!draft.sections.length && draft.title.trim()){
-                content.html = `<h1>${escape_for_html(draft.title)}</h1>`
-            }
         } else if (type === 'images'){
             content = {
                 type,
