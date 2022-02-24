@@ -18,7 +18,7 @@ section(@click.self='focus_editor' :class='classes')
         shared-video(v-if='content.type === "video"' @modify='modify' :format='content.format'
             :id='content.id' :caption='content.caption' :start='content.start' :end='content.end')
 
-        shared-pagebait(v-if='content.type === "page"' :headline='content.headline'
+        shared-pagebait(v-if='content.type === "page"' :headline='page_headline'
             :desc='content.desc' :image='content.image' @click.native='modify')
 
     draft-section-respond(:profile='profile' :section='section' @click.native.self='focus_editor')
@@ -38,7 +38,7 @@ import SharedPagebait from '@/shared/SharedPagebait.vue'
 import {gen_variable_items} from '@/services/misc/templates'
 import {Section} from '@/services/database/sections'
 import {Draft} from '@/services/database/drafts'
-import {ContentText} from '@/services/database/types'
+import {ContentPage, ContentText} from '@/services/database/types'
 import {section_classes} from '@/shared/shared_functions'
 import {Profile} from '@/services/database/profiles'
 import {blob_image_size} from '@/services/utils/image'
@@ -79,6 +79,12 @@ export default class extends Vue {
             ?? this.profile?.msg_options_security.max_reads ?? Infinity
         return gen_variable_items(null, null, sender_name, this.draft.title, new Date(), max_reads,
             lifespan)
+    }
+
+    get page_headline(){
+        // If page has no headline or desc, show untitled as otherwise hard to know it's a page
+        const content = this.section.content as ContentPage
+        return content.headline || (content.desc ? '' : "[Untitled Page]")
     }
 
     get text_html(){
