@@ -74,8 +74,44 @@ export class DatabaseSections {
         })
     }
 
-    async create(content:RecordSectionContent):Promise<Section>{
+    async create(type:RecordSectionContent['type']):Promise<Section>{
         // Create new section and save to db
+
+        // Content will vary by type
+        let content:RecordSectionContent
+        if (type === 'text'){
+            content = {
+                type,
+                standout: null,
+                html: '',
+            }
+        } else if (type === 'images'){
+            content = {
+                type,
+                images: [],
+                crop: true,
+            }
+        } else if (type === 'video'){
+            content = {
+                type,
+                format: null,
+                id: null,
+                caption: '',
+                start: null,
+                end: null,
+            }
+        } else if (type === 'page'){
+            content = {
+                type,
+                headline: '',
+                desc: '',
+                image: null,
+                sections: [],
+            }
+        } else {
+            throw new Error('invalid_type')
+        }
+
         const section = await this.create_object(content)
         void this._conn.put('sections', section)
         return section

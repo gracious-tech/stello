@@ -126,51 +126,6 @@ export class Database {
         return copy
     }
 
-
-    async draft_section_create(draft:Draft, type:string, position:number):Promise<void>{
-        // Add a new section to a draft
-        let content:RecordSectionContent
-
-        // Content will vary by type
-        if (type === 'text'){
-            content = {
-                type,
-                standout: null,
-                html: '',
-            }
-        } else if (type === 'images'){
-            content = {
-                type,
-                images: [],
-                crop: true,
-            }
-        } else if (type === 'video'){
-            content = {
-                type,
-                format: null,
-                id: null,
-                caption: '',
-                start: null,
-                end: null,
-            }
-        } else if (type === 'page'){
-            content = {
-                type,
-                headline: '',
-                desc: '',
-                image: null,
-                sections: [],
-            }
-        } else {
-            throw new Error('invalid_type')
-        }
-
-        // Create the section and then add it (in correct position) to draft in a new row
-        const section = await this.sections.create(content)
-        draft.sections.splice(position, 0, [section.id])
-        await this.drafts.set(draft)
-    }
-
     async draft_section_remove(draft:Draft, section:Section):Promise<void>{
         // Remove a section from a draft
         draft.sections = draft.sections.filter(row => {
