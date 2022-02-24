@@ -113,11 +113,12 @@ export default class extends Vue {
 
         // Create a new section with the response quoted
         const quote = escape_for_html(this.replaction.content)
-        const section = await self.app_db.sections.create({
+        const section = await self.app_db.sections.create_object({
             type: 'text',
             html: `<p>&nbsp;</p><p>&nbsp;</p><blockquote>${quote}</blockquote>`,
             standout: null,
         })
+        await self.app_db.sections.set(section)
         draft.sections.push([section.id])
 
         // Save the draft and navigate to it

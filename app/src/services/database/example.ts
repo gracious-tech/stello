@@ -74,23 +74,25 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
     await db.groups.create('Subscribers', [...percent(contacts, 0.5)].map(c => c.id))
 
     // Create a text section
-    const section_text = await db.sections.create({
+    const section_text = await db.sections.create_object({
         type: 'text',
         html: '<p>' + "A super interesting sentence. ".repeat(30) + '</p>',
         standout: null,
     })
+    await db.sections.set(section_text)
 
     // Create a image section
     const image_blob = new Blob([await self.app_native.read_file('default_invite_image.jpg')],
         {type: 'image/jpeg'})
-    const section_image = await db.sections.create({
+    const section_image = await db.sections.create_object({
         type: 'images',
         images: [{id: generate_token(), data: image_blob, caption: "An example image"}],
         crop: true,
     }) as Section<ContentImages>
+    await db.sections.set(section_image)
 
     // Create a youtube section
-    const section_youtube = await db.sections.create({
+    const section_youtube = await db.sections.create_object({
         type: 'video',
         format: 'iframe_youtube',
         id: '8wF2hoZ-tYA',
@@ -98,9 +100,10 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
         start: null,
         end: null,
     })
+    await db.sections.set(section_youtube)
 
     // Create a vimeo section
-    const section_vimeo = await db.sections.create({
+    const section_vimeo = await db.sections.create_object({
         type: 'video',
         format: 'iframe_vimeo',
         id: '168213438',
@@ -108,6 +111,7 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
         start: null,
         end: null,
     })
+    await db.sections.set(section_vimeo)
 
     // Create base draft
     const draft = await db.drafts.create_object()
