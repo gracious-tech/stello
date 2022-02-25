@@ -19,38 +19,26 @@ div.addbar(:class='{visible}')
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
-import {Draft} from '@/services/database/drafts'
-import {RecordSectionContent} from '@/services/database/types'
-
 
 @Component({})
 export default class extends Vue {
 
-    @Prop() declare readonly draft:Draft
-    @Prop() declare readonly position:number
     @Prop({type: Boolean, default: false}) declare readonly visible:boolean  // Not just on hover
 
-    async add(type:RecordSectionContent['type']){
-        // Create the section and then add it (in correct position) to draft in a new row
-        const section = await self.app_db.sections.create(type)
-        this.draft.sections.splice(this.position, 0, [section.id])
-        await self.app_db.drafts.set(this.draft)
-    }
-
     add_text(){
-        return this.add('text')
+        this.$emit('add', 'text')
     }
 
     add_images(){
-        return this.add('images')
+        this.$emit('add', 'images')
     }
 
     add_video(){
-        return this.add('video')
+        this.$emit('add', 'video')
     }
 
     add_page(){
-        return this.add('page')
+        this.$emit('add', 'page')
     }
 }
 

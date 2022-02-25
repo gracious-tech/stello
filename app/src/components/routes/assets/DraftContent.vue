@@ -4,14 +4,14 @@
 div.content
 
     template(v-for='(row, row_i) of floatified_rows')
-        draft-add-section.add-before(:draft='draft' :position='row_i')
+        draft-add-section.add-before(@add='add_section($event, row_i)')
         div.srow(:class='row.display')
             draft-movebar(:draft='draft' :row_i='row_i')
             div.sections
                 draft-section.section(v-for='section of row.sections' :key='section.id'
                     :draft='draft' :profile='profile' :section='section' @modify='modify_section')
 
-    draft-add-section.add-end(:draft='draft' :position='draft.sections.length'
+    draft-add-section.add-end(@add='add_section($event, draft.sections.length)'
         :visible='!draft.sections.length')
 
     draft-guide
@@ -34,6 +34,7 @@ import {Draft} from '@/services/database/drafts'
 import {Section} from '@/services/database/sections'
 import {floatify_rows} from '@/shared/shared_functions'
 import {Profile} from '@/services/database/profiles'
+import {RecordSectionContent} from '@/services/database/types'
 
 
 @Component({
@@ -61,6 +62,13 @@ export default class extends Vue {
                     .filter(s => s) as [Section]|[Section, Section]
             }).filter(row => row.length),
         )
+    }
+
+    async add_section(type:RecordSectionContent['type'], position:number){
+        // Create the section and then add it (in correct position) to draft in a new row
+        const section = await self.app_db.sections.create(type)
+        this.draft.sections.splice(position, 0, [section.id])
+        await self.app_db.drafts.set(this.draft)
     }
 
     modify_section(section:Section){
