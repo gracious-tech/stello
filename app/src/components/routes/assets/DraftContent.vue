@@ -9,7 +9,8 @@ div.content
             draft-movebar(:sections='draft.sections' :row_i='row_i' @save='save_sections')
             div.sections
                 draft-section.section(v-for='section of row.sections' :key='section.id'
-                    :draft='draft' :profile='profile' :section='section' @modify='modify_section')
+                    :draft='draft' :profile='profile' :section='section' @modify='modify_section'
+                    @remove='remove_section')
 
     draft-add-section.add-end(@add='add_section($event, draft.sections.length)'
         :visible='!draft.sections.length')
@@ -35,6 +36,7 @@ import {Section} from '@/services/database/sections'
 import {floatify_rows} from '@/shared/shared_functions'
 import {Profile} from '@/services/database/profiles'
 import {RecordSectionContent} from '@/services/database/types'
+import {remove_item} from '@/services/utils/arrays'
 
 
 @Component({
@@ -85,6 +87,16 @@ export default class extends Vue {
                 props: {section},
             })
         }
+    }
+
+    async remove_section(section:Section){
+        // Remove the given section
+        this.draft.sections = this.draft.sections.filter(row => {
+            remove_item(row, section.id)  // Remove from inner array if exists (row is a ref)
+            return row.length  // Keep row if still has a section
+        })
+        await self.app_db.drafts.set(this.draft)
+        await self.app_db.sections.remove(section.id)
     }
 
     save_sections(){
