@@ -42,6 +42,7 @@ import {ContentPage, ContentText} from '@/services/database/types'
 import {section_classes} from '@/shared/shared_functions'
 import {Profile} from '@/services/database/profiles'
 import {blob_image_size} from '@/services/utils/image'
+import {remove_item} from '@/services/utils/arrays'
 
 
 @Component({
@@ -100,9 +101,14 @@ export default class extends Vue {
         this.$emit('modify', this.section)
     }
 
-    remove(){
+    async remove(){
         // Remove this section (and cause this component to be destroyed)
-        void self.app_db.draft_section_remove(this.draft, this.section)
+        this.draft.sections = this.draft.sections.filter(row => {
+            remove_item(row, this.section.id)  // Remove from inner array if exists (row is a ref)
+            return row.length  // Keep row if still has a section
+        })
+        await self.app_db.drafts.set(this.draft)
+        await self.app_db.sections.remove(this.section.id)
     }
 
     focus_editor(){

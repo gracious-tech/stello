@@ -1,8 +1,8 @@
 
 import {openDB} from 'idb/with-async-ittr.js'
 
-import {AppDatabaseSchema, AppDatabaseConnection, RecordReplaction, RecordSectionContent,
-    RecordDraft, RecordDraftPublished} from './types'
+import {AppDatabaseSchema, AppDatabaseConnection, RecordReplaction, RecordDraft,
+    RecordDraftPublished} from './types'
 import {DatabaseState} from './state'
 import {DatabaseContacts} from './contacts'
 import {DatabaseGroups} from './groups'
@@ -12,14 +12,12 @@ import {DatabaseUnsubscribes} from './unsubscribes'
 import {DatabaseDrafts, Draft} from './drafts'
 import {DatabaseMessages, Message} from './messages'
 import {DatabaseCopies, MessageCopy} from './copies'
-import {DatabaseSections, Section} from './sections'
+import {DatabaseSections} from './sections'
 import {DatabaseReads, Read} from './reads'
 import {DatabaseReplies, Reply} from './replies'
 import {DatabaseReactions, Reaction} from './reactions'
 import {export_key, generate_hash, generate_token, generate_key_sym} from '../utils/crypt'
 import {buffer_to_url64} from '../utils/coding'
-import {remove_item} from '../utils/arrays'
-import {escape_for_html} from '../utils/strings'
 import {migrate, migrate_async, DATABASE_VERSION} from './migrations'
 import {get_final_recipients} from '../misc/recipients'
 import {generate_example_data} from './example'
@@ -124,18 +122,6 @@ export class Database {
         // Save the copy to the database and return
         await this.drafts.set(copy)
         return copy
-    }
-
-    async draft_section_remove(draft:Draft, section:Section):Promise<void>{
-        // Remove a section from a draft
-        draft.sections = draft.sections.filter(row => {
-            remove_item(row, section.id)  // Remove from inner array if exists (row is a ref)
-            return row.length  // Keep row if still has a section
-        })
-        await Promise.all([
-            this.drafts.set(draft),
-            this.sections.remove(section.id),
-        ])
     }
 
     async draft_to_message(draft_id:string):Promise<Message>{
