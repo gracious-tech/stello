@@ -6,7 +6,7 @@ div.content
     template(v-for='(row, row_i) of floatified_rows')
         draft-add-section.add-before(@add='add_section($event, row_i)')
         div.srow(:class='row.display')
-            draft-movebar(:draft='draft' :row_i='row_i')
+            draft-movebar(:sections='draft.sections' :row_i='row_i' @save='save_sections')
             div.sections
                 draft-section.section(v-for='section of row.sections' :key='section.id'
                     :draft='draft' :profile='profile' :section='section' @modify='modify_section')
@@ -85,6 +85,10 @@ export default class extends Vue {
                 props: {section},
             })
         }
+    }
+
+    save_sections(){
+        void self.app_db.drafts.set(this.draft)
     }
 }
 

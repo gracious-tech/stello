@@ -18,19 +18,18 @@ div.movebar
 
 <script lang='ts'>
 
-import {Draft} from '@/services/database/drafts'
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
 
 @Component({})
 export default class extends Vue {
 
-    @Prop() declare readonly draft:Draft
-    @Prop() declare readonly row_i:number
+    @Prop({required: true, type: Array}) declare readonly sections:([string]|[string, string])[]
+    @Prop({required: true, type: Number}) declare readonly row_i:number
 
-    get row():[string]|[string, string]{
+    get row(){
         // Get actual row (single or double item array of section ids)
-        return this.draft.sections[this.row_i]
+        return this.sections[this.row_i]!
     }
 
     get is_merged(){
@@ -45,12 +44,12 @@ export default class extends Vue {
 
     get is_last(){
         // Bool for whether section is last in draft
-        return this.row_i === (this.draft.sections.length - 1)
+        return this.row_i === (this.sections.length - 1)
     }
 
     get mergable(){
         // Whether row can be merged with the one above it
-        return !this.is_first && this.draft.sections[this.row_i-1].length === 1
+        return !this.is_first && this.sections[this.row_i-1]!.length === 1
     }
 
     get toggle_merge_icon(){
@@ -64,34 +63,34 @@ export default class extends Vue {
 
     move_up(){
         // Move row up in order
-        const prev_row = this.draft.sections[this.row_i - 1]
-        this.draft.sections.splice(this.row_i - 1, 2, this.row, prev_row)
-        self.app_db.drafts.set(this.draft)
+        const prev_row = this.sections[this.row_i - 1]!
+        this.sections.splice(this.row_i - 1, 2, this.row, prev_row)
+        this.$emit('save')
     }
 
     move_down(){
         // Move row down in order
-        const next_section_id = this.draft.sections[this.row_i + 1]
-        this.draft.sections.splice(this.row_i, 2, next_section_id, this.row)
-        self.app_db.drafts.set(this.draft)
+        const next_section_id = this.sections[this.row_i + 1]!
+        this.sections.splice(this.row_i, 2, next_section_id, this.row)
+        this.$emit('save')
     }
 
     toggle_merge(){
         // Join/separate sections
         if (this.is_merged){
-            this.draft.sections.splice(this.row_i, 1, [this.row[0]], [this.row[1]])
+            this.sections.splice(this.row_i, 1, [this.row[0]], [this.row[1]!])
         } else {
             const prev_row_i = this.row_i - 1
-            const prev_row = this.draft.sections[prev_row_i]
-            this.draft.sections.splice(this.row_i-1, 2, [prev_row[0], this.row[0]])
+            const prev_row = this.sections[prev_row_i]!
+            this.sections.splice(this.row_i-1, 2, [prev_row[0], this.row[0]])
         }
-        self.app_db.drafts.set(this.draft)
+        this.$emit('save')
     }
 
     swap(){
         // Swap sections that have been merged
-        this.row.splice(0, 2, this.row[1], this.row[0])
-        self.app_db.drafts.set(this.draft)
+        this.row.splice(0, 2, this.row[1]!, this.row[0])
+        this.$emit('save')
     }
 
 }
