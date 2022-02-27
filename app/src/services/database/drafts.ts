@@ -1,5 +1,5 @@
 
-import {AppDatabaseConnection, RecordDraft, RecordDraftRecipients} from './types'
+import {AppDatabaseConnection, RecordDraft, RecordDraftRecipients, SectionIds} from './types'
 import {generate_token} from '@/services/utils/crypt'
 
 
@@ -10,7 +10,7 @@ export class Draft implements RecordDraft {
     reply_to!:string
     modified!:Date
     title!:string
-    sections!:([string]|[string, string])[]
+    sections!:SectionIds
     profile!:string
     options_identity!:{
         sender_name:string

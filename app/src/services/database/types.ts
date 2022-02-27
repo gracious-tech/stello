@@ -136,13 +136,15 @@ export interface RecordProfileOptions {
 
 // Draft
 
+export type SectionIds = ([string]|[string, string])[]
+
 export interface RecordDraft {
     id:string
     template:boolean
     reply_to:string|null
     modified:Date
     title:string
-    sections:([string]|[string, string])[]
+    sections:SectionIds
     profile:string|null
     options_identity:{
         sender_name:string  // No null as empty string triggers inheritance
@@ -199,7 +201,7 @@ export interface ContentPage {
     headline:string
     desc:string
     image:Blob|null
-    sections:([string]|[string, string])[]
+    sections:SectionIds
 }
 
 export interface ContentVideo {

@@ -2,7 +2,7 @@
 import {openDB} from 'idb/with-async-ittr.js'
 
 import {AppDatabaseSchema, AppDatabaseConnection, RecordReplaction, RecordDraft,
-    RecordDraftPublished} from './types'
+    RecordDraftPublished, SectionIds} from './types'
 import {DatabaseState} from './state'
 import {DatabaseContacts} from './contacts'
 import {DatabaseGroups} from './groups'
@@ -117,7 +117,7 @@ export class Database {
                 void this.sections.set(section)  // Save to db under the new id
                 return section.id  // Replace old id in the sections nested array
             })
-        }) as ([string]|[string, string])[]
+        }) as SectionIds
 
         // Save the copy to the database and return
         await this.drafts.set(copy)

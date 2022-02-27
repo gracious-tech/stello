@@ -20,11 +20,13 @@ div.movebar
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
+import {SectionIds} from '@/services/database/types'
+
 
 @Component({})
 export default class extends Vue {
 
-    @Prop({required: true, type: Array}) declare readonly sections:([string]|[string, string])[]
+    @Prop({required: true, type: Array}) declare readonly sections:SectionIds
     @Prop({required: true, type: Number}) declare readonly row_i:number
 
     get row(){
