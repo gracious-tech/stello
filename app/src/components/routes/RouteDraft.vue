@@ -139,7 +139,6 @@ export default class extends Vue {
     get existing_images(){
         // Access to existing images used in content sections
         return (this.$refs['content'] as unknown as {existing_images:Blob[]}).existing_images
-
     }
 
     get profile():Profile|undefined{
