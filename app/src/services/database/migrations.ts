@@ -6,7 +6,7 @@ import {AppDatabaseConnection, VersionChangeTransaction} from './types'
 import {to_12_from_1plus, to_12_from_1plus_async} from './migrations_pre12'
 
 
-export const DATABASE_VERSION = 15
+export const DATABASE_VERSION = 16
 
 
 export async function migrate(transaction:VersionChangeTransaction,
@@ -24,6 +24,8 @@ export async function migrate(transaction:VersionChangeTransaction,
         await to_14(transaction)
     if (old_version < 15)
         await to_15(transaction)
+    if (old_version < 16)
+        await to_16(transaction)
 }
 
 
@@ -164,5 +166,20 @@ export async function to_15(transaction:VersionChangeTransaction){
         if (cursor.value.setup_step === null && cursor.value.host === null){
             await cursor.delete()
         }
+    }
+}
+
+
+export async function to_16(transaction:VersionChangeTransaction){
+    // section_num/section_type removed from reactions and replies
+    for await (const cursor of transaction.objectStore('reactions')){
+        delete (cursor.value as unknown as {section_num?:number}).section_num
+        delete (cursor.value as unknown as {section_type?:string}).section_type
+        await cursor.update(cursor.value)
+    }
+    for await (const cursor of transaction.objectStore('replies')){
+        delete (cursor.value as unknown as {section_num?:number}).section_num
+        delete (cursor.value as unknown as {section_type?:string}).section_type
+        await cursor.update(cursor.value)
     }
 }

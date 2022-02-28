@@ -5,7 +5,7 @@ import 'fake-indexeddb/auto'  // WARN Must import before indexeddb accessed
 import {expect, test} from '@playwright/test'
 
 import {migrate, migrate_async, DATABASE_VERSION, to_12_from_0, _to1_creates, to_13, to_14,
-    to_14_async, to_15} from './migrations'
+    to_14_async, to_15, to_16} from './migrations'
 import {STORES_V12, STORES_LATEST, test_stores, open_db, to_12_from_1, to_12_from_11}
     from './migrations.test_utils'
 
@@ -116,6 +116,34 @@ test.describe('migrate', async () => {
 
         // Expect corrupted profiles to be deleted
         expect((await db.get('profiles', 'id'))).toBeUndefined()
+    })
+
+    test('to_16', async () => {
+
+        // Setup
+        let db = await open_db('to_16', 15, async t => {
+            await to_12_from_0(t)
+            await to_13(t)
+            await to_14(t)
+            await to_15(t)
+        })
+        for (const store of ['replies', 'reactions'] as ('replies'|'reactions')[]){
+            await db.put(store, {id: 'id', section_num: 1, section_type: 'text'} as any)
+            const record = await db.get(store, 'id')
+            expect(record).toHaveProperty('section_num')
+            expect(record).toHaveProperty('section_type')
+        }
+
+        // Migrate
+        db.close()
+        db = await open_db('to_16', 16, to_16)
+
+        // Expect section_num/section_type properties to have been removed
+        for (const store of ['replies', 'reactions'] as ('replies'|'reactions')[]){
+            const record = await db.get(store, 'id')
+            expect(record).not.toHaveProperty('section_num')
+            expect(record).not.toHaveProperty('section_type')
+        }
     })
 
 })

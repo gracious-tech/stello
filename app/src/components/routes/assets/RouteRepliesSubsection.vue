@@ -14,7 +14,8 @@ v-card(class='my-8')
         img(v-if='section_image' :src='section_image')
         div(v-else v-html='section_text' class='ma-4 text--secondary')
 
-    div.expand(v-if='!sectionless' class='d-flex justify-end')
+    //- NOTE Not showing expand button if no section data, as will only show very short note
+    div.expand(v-if='!sectionless && section' class='d-flex justify-end')
         app-btn(@click='section_expanded = !section_expanded' :icon='expand_icon' fab small
             color='')
 
@@ -53,8 +54,14 @@ export default class extends Vue {
         if (this.first.section_id){
             this.section = await self.app_db.sections.get(this.first.section_id) ?? null
 
+            // Confirm if section data still available
+            if (!this.section){
+                this.section_expanded = true  // Actually reduces height since only short note shown
+                return
+            }
+
             // If a vimeo section then need to do an API request to get the placeholder image
-            if (this.section?.content.type === 'video'
+            if (this.section.content.type === 'video'
                     && this.section.content.format === 'iframe_vimeo'){
                 const video_id = this.section.content.id!
                 const url = `https://vimeo.com/api/oembed.json?url=https://vimeo.com/${video_id}`
@@ -107,7 +114,9 @@ export default class extends Vue {
         if (this.section?.content.type === 'text'){
             return this.section.content.html
         }
-        return `<h1>Section #${this.first.section_num! + 1}</h1>`
+        return `<small><em>
+            Responses to an unknown section (original message has been deleted)
+        </em></small>`
     }
 
     get expand_icon(){

@@ -366,8 +366,6 @@ export class Database {
             contact_id: null,
             contact_name: null,
             section_id: section_id,
-            section_num: null,
-            section_type: null,
             subsection_id: subsection_id,
             content: content,
             read: false,
@@ -388,18 +386,6 @@ export class Database {
             // Get msg so can know title
             const msg = (await this.messages.get(msg_copy.msg_id))!
             replaction.msg_title = msg.draft.title
-
-            // If section id given then can determine its position and type
-            if (section_id){
-                // Record position as order of flat sections (ignoring rows)
-                replaction.section_num = msg.draft.sections.flat().indexOf(section_id)
-
-                // Get section object so can know the type
-                const section = await self.app_db.sections.get(section_id)
-                if (section){
-                    replaction.section_type = section.content.type
-                }
-            }
         }
 
         return replaction

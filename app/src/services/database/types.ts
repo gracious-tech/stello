@@ -286,8 +286,6 @@ export interface RecordReplaction extends RecordResponseCommon {
     contact_id:string|null  // So don't have to retrieve copy every time want to know contact
     contact_name:string|null  // So can still know contact name even if contact object deleted
     section_id:string|null  // May be null if a general reply to whole message
-    section_num:number|null  // So can at least know order of sections if later delete them
-    section_type:string|null  // So can at least know the type of section if later deleted
     subsection_id:string|null  // Some section types have subsections (e.g. image in slideshow)
     content:string
     read:boolean

@@ -14,8 +14,6 @@ export class Reply implements RecordReply {
     contact_id!:string
     contact_name!:string
     section_id!:string|null
-    section_num!:number|null
-    section_type!:string|null
     subsection_id!:string|null
     content!:string
     read!:boolean

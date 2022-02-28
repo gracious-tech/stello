@@ -14,8 +14,6 @@ export class Reaction implements RecordReaction {
     contact_id!:string
     contact_name!:string
     section_id!:string|null
-    section_num!:number
-    section_type!:string
     subsection_id!:string|null
     content!:string
     read!:boolean
