@@ -6,14 +6,14 @@ div.content
     template(v-for='(row, row_i) of floatified_rows')
         draft-add-section.add-before(@add='add_section($event, row_i)')
         div.srow(:class='row.display')
-            draft-movebar(:sections='draft.sections' :row_i='row_i' @save='save_sections')
+            draft-movebar(:sections='sections' :row_i='row_i' @save='save_sections')
             div.sections
                 draft-section.section(v-for='section of row.sections' :key='section.id'
                     :draft='draft' :profile='profile' :section='section' @modify='modify_section'
                     @remove='remove_section')
 
-    draft-add-section.add-end(@add='add_section($event, draft.sections.length)'
-        :visible='!draft.sections.length')
+    draft-add-section.add-end(@add='add_section($event, sections.length)'
+        :visible='!sections.length')
 
     draft-guide
 
@@ -22,7 +22,7 @@ div.content
 
 <script lang='ts'>
 
-import {Component, Vue, Prop} from 'vue-property-decorator'
+import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import DraftGuide from './DraftGuide.vue'
 import DraftSection from './DraftSection.vue'
@@ -35,7 +35,7 @@ import {Draft} from '@/services/database/drafts'
 import {Section} from '@/services/database/sections'
 import {floatify_rows} from '@/shared/shared_functions'
 import {Profile} from '@/services/database/profiles'
-import {RecordSectionContent} from '@/services/database/types'
+import {RecordSectionContent, SectionIds} from '@/services/database/types'
 import {remove_item} from '@/services/utils/arrays'
 
 
@@ -44,9 +44,12 @@ import {remove_item} from '@/services/utils/arrays'
 })
 export default class extends Vue {
 
-    @Prop({required: true}) declare readonly draft:Draft
-    @Prop({required: true}) declare readonly sections:{[id:string]: Section}
+    @Prop({required: true, type: Draft}) declare readonly draft:Draft
+    @Prop({required: true, type: Array}) declare readonly sections:SectionIds
     @Prop({default: undefined}) declare readonly profile:Profile|undefined
+
+    records:Record<string, Section> = {}  // Content of section records
+    records_inited = false
 
     modify_dialogs = {
         text: DialogSectionText,
@@ -59,18 +62,32 @@ export default class extends Vue {
         return floatify_rows(
             // Convert the section ids to actual sections
             // NOTE Must filter out sections and/or rows when they haven't been loaded from db yet
-            this.draft.sections.map(row => {
-                return row.map(section => this.sections[section])
+            this.sections.map(row => {
+                return row.map(section => this.records[section])
                     .filter(s => s) as [Section]|[Section, Section]
             }).filter(row => row.length),
         )
     }
 
+    get existing_images(){
+        // Access to all existing images used within sections (doesn't traverse pages)
+        // NOTE This method is accessed by parent components
+        const images:Blob[] = []
+        for (const section of Object.values(this.records)){
+            if (section.content.type === 'images'){
+                images.push(...section.content.images.map(i => i.data))
+            } else if (section.content.type === 'page' && section.content.image){
+                images.push(section.content.image)
+            }
+        }
+        return images
+    }
+
     async add_section(type:RecordSectionContent['type'], position:number){
         // Create the section and then add it (in correct position) to draft in a new row
         const section = await self.app_db.sections.create(type)
-        this.draft.sections.splice(position, 0, [section.id])
-        await self.app_db.drafts.set(this.draft)
+        this.sections.splice(position, 0, [section.id])
+        this.save_sections()
     }
 
     modify_section(section:Section){
@@ -91,16 +108,53 @@ export default class extends Vue {
 
     async remove_section(section:Section){
         // Remove the given section
-        this.draft.sections = this.draft.sections.filter(row => {
-            remove_item(row, section.id)  // Remove from inner array if exists (row is a ref)
-            return row.length  // Keep row if still has a section
-        })
-        await self.app_db.drafts.set(this.draft)
         await self.app_db.sections.remove(section.id)
+
+        // Remove from sections array
+        for (let i=0; i < this.sections.length; i++){
+            const row = this.sections[i]!
+            // Remove from inner array
+            remove_item(row, section.id)
+            if (!row.length){
+                // If row empty, section was last in row and whole row must be deleted
+                this.sections.splice(i, 1)
+            }
+        }
+        this.save_sections()
     }
 
     save_sections(){
-        void self.app_db.drafts.set(this.draft)
+        // Tell draft/page to save changes to sections
+        this.$emit('save')
+    }
+
+    @Watch('sections', {immediate: true}) watch_sections(){
+        // Fetch section data for any sections that haven't been fetched yet (on init and create)
+
+        // Cache records_inited so stays same throughout this call
+        const cached_records_inited = this.records_inited
+        this.records_inited = true
+
+        // Process each section id
+        this.sections.flat().forEach(async section_id => {
+
+            // Ignore section if data already obtained as only interested in creation events
+            // NOTE Changes to sections are made to section objects directly, not refetched from db
+            if (section_id in this.records){
+                return
+            }
+
+            // Get the section's data and add to records object
+            const section_data = (await self.app_db.sections.get(section_id))!
+            Vue.set(this.records, section_id, section_data)
+
+            // If just created a new section, open modify dialog straight away (unless text)
+            // NOTE Have to use same instance of section data, otherwise lose reactivity
+            //      Which is why must handle here since its the origin of the section instance
+            if (cached_records_inited && section_data.content.type !== 'text'){
+                this.modify_section(section_data)
+            }
+        })
     }
 }
 

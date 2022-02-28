@@ -24,7 +24,6 @@ import AppInviteHtml from '@/components/reuseable/AppInviteHtml.vue'
 import DialogImageChooser from '@/components/dialogs/reuseable/DialogImageChooser.vue'
 import {Draft} from '@/services/database/drafts'
 import {Profile} from '@/services/database/profiles'
-import {Section} from '@/services/database/sections'
 import {gen_variable_items, update_template_values} from '@/services/misc/templates'
 import {INVITE_HTML_MAX_WIDTH} from '@/services/misc/invites'
 
@@ -36,7 +35,7 @@ export default class extends Vue {
 
     @Prop({type: Draft, required: true}) declare readonly draft:Draft
     @Prop({type: Profile, required: true}) declare readonly profile:Profile
-    @Prop({type: Object, required: true}) declare readonly sections:Record<string, Section>
+    @Prop({type: Array, required: true}) declare readonly suggestions:Blob[]
 
     get image():Blob{
         // Get invite's image, accounting for inheritance
@@ -80,17 +79,6 @@ export default class extends Vue {
         ))
     }
 
-    get section_images():Blob[]{
-        // List of images already included in draft, for use as suggestions
-        const images:Blob[] = []
-        for (const section of Object.values(this.sections)){
-            if (section.content.type === 'images'){
-                images.push(...section.content.images.map(i => i.data))
-            }
-        }
-        return images
-    }
-
     async change_image():Promise<void>{
         // Open dialog for setting a custom invite image for the draft
         // NOTE Was using DPR x2 but x1 results in 15% speed increase (both network & decrypt time)
@@ -101,7 +89,7 @@ export default class extends Vue {
             props: {
                 width: INVITE_HTML_MAX_WIDTH,  // Only x1 DPR for speed increase
                 height: INVITE_HTML_MAX_WIDTH / 3,
-                suggestions: this.section_images,
+                suggestions: this.suggestions,
                 invite: true,
                 crop: true,
             },

@@ -43,9 +43,11 @@ div
                     | {{ draft.template ? "Delete template" : "Delete draft" }}
 
     div.stello-displayer(v-if='draft' :class='{dark: dark_message}')
-        draft-invite(v-if='profile' :draft='draft' :profile='profile' :sections='sections')
+        draft-invite(v-if='profile' :draft='draft' :profile='profile'
+            :suggestions='existing_images')
         shared-dark-toggle(v-model='dark_message')
-        draft-content(ref='content' :draft='draft' :profile='profile' :sections='sections')
+        draft-content(ref='content' :draft='draft' :sections='draft.sections' :profile='profile'
+            @save='save')
 
     app-content(v-if='!draft' class='text-center pt-10')
         h1(class='text--secondary text-h6') Draft does not exist
@@ -65,7 +67,6 @@ import DialogDraftSecurity from '@/components/dialogs/DialogDraftSecurity.vue'
 import SharedDarkToggle from '@/shared/SharedDarkToggle.vue'
 import {Draft} from '@/services/database/drafts'
 import {Profile} from '@/services/database/profiles'
-import {Section} from '@/services/database/sections'
 import {Group} from '@/services/database/groups'
 import {Contact} from '@/services/database/contacts'
 import {Unsubscribe} from '@/services/database/unsubscribes'
@@ -83,8 +84,6 @@ export default class extends Vue {
     @Prop({type: String, required: true}) declare readonly draft_id:string
 
     draft:Draft|null = null
-    sections:Record<string, Section> = {}  // Content of sections loaded separately from the draft
-    sections_inited = false
     profiles:Profile[] = []
     groups:Group[] = []
     contacts:Contact[] = []
@@ -92,15 +91,11 @@ export default class extends Vue {
     sending = false
 
     async created(){
-        // Load the draft and the contents of the draft's sections
-        const draft = await self.app_db.drafts.get(this.draft_id)
-        if (!draft){
+        // Load the draft
+        this.draft = await self.app_db.drafts.get(this.draft_id) ?? null
+        if (!this.draft){
             return
         }
-        for (const section of await self.app_db.sections.get_multiple(draft.sections.flat())){
-            Vue.set(this.sections, section.id, section)
-        }
-        this.draft = draft
 
         // Load profiles (so know if need to create or select existing)
         void self.app_db.profiles.list().then(profiles => {
@@ -127,36 +122,6 @@ export default class extends Vue {
         void this.load_unsubscribes()
     }
 
-    @Watch('draft.sections') watch_sections(){
-        // Fetch section data for any sections that haven't been fetched yet (on init and create)
-
-        // Cache sections_inited so stays same throughout this call
-        const cached_sections_inited = this.sections_inited
-        this.sections_inited = true
-
-        // Process each section id
-        this.draft!.sections.flat().forEach(async section_id => {
-
-            // Ignore section if data already obtained as only interested in creation events
-            // NOTE Changes to sections are made to section objects directly, not refetched from db
-            if (section_id in this.sections){
-                return
-            }
-
-            // Get the section's data and add to `this.sections`
-            const section_data = (await self.app_db.sections.get(section_id))!
-            Vue.set(this.sections, section_id, section_data)
-
-            // If just created a new section, open modify dialog straight away (unless text)
-            // NOTE Have to use same instance of section data, otherwise lose reactivity
-            //      Which is why must handle here since its the origin of the section instance
-            if (cached_sections_inited && section_data.content.type !== 'text'){
-                // @ts-ignore as doesn't know about component's methods
-                this.$refs.content.modify_section(section_data)
-            }
-        })
-    }
-
     @Watch('draft.profile') watch_profile(){
         // Unsubscribes are specific to profile
         void this.load_unsubscribes()
@@ -169,6 +134,12 @@ export default class extends Vue {
         } else if (task.name === 'responses_receive'){
             void this.load_unsubscribes()
         }
+    }
+
+    get existing_images(){
+        // Access to existing images used in content sections
+        return (this.$refs['content'] as unknown as {existing_images:Blob[]}).existing_images
+
     }
 
     get profile():Profile|undefined{
@@ -189,15 +160,6 @@ export default class extends Vue {
             return "Give message a subject"
         if (!this.draft!.sections.length)
             return "Give message some contents"
-        for (const section_id of this.draft!.sections.flat()){
-            const section = this.sections[section_id]  // WARN May not exist if fetching from db
-            if (section && section.content.type === 'images' && !section.content.images.length){
-                return "Add an image to the section you created"
-            }
-            if (section && section.content.type === 'video' && !section.content.format){
-                return "Add a video to the section you created"
-            }
-        }
         if (!this.profile)
             return "Specify which account to send from"
         if (!this.final_recipients.length)
