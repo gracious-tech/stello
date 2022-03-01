@@ -1,10 +1,13 @@
 
-import {AppDatabaseConnection, RecordSection, RecordSectionContent} from './types'
+import {IDBPObjectStore} from 'idb'
+
+import {AppDatabaseConnection, RecordSection, RecordSectionContent, SectionIds,
+    AppDatabaseSchema} from './types'
 import {generate_token} from '@/services/utils/crypt'
 
 
-export class Section<TContent extends RecordSectionContent=RecordSectionContent>
-        implements RecordSection<TContent> {
+export class Section<TContent
+        extends RecordSectionContent=RecordSectionContent> implements RecordSection<TContent> {
 
     id!:string
     respondable!:boolean
@@ -121,6 +124,24 @@ export class DatabaseSections {
     async remove(id:string):Promise<void>{
         // Remove the section with given id
         // NOTE This assumes that the section id will be removed from draft/message manually
-        await this._conn.delete('sections', id)
+        const transaction = this._conn.transaction('sections', 'readwrite')
+        void rm_sections(transaction.objectStore('sections'), [[id]])
+        await transaction.done
+    }
+}
+
+
+export async function rm_sections(
+        sections_store:IDBPObjectStore<AppDatabaseSchema, ['sections'], 'sections', 'readwrite'>,
+        section_ids:SectionIds){
+    // Recursive helper for deleting sections which traverses pages
+    // NOTE Expects to be provided an object store from an ongoing transaction
+    for (const section_id of section_ids.flat()){
+        void sections_store.get(section_id).then(section => {
+            if (section?.content.type === 'page'){
+                void rm_sections(sections_store, section.content.sections)
+            }
+            void sections_store.delete(section_id)
+        })
     }
 }
