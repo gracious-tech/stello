@@ -36,7 +36,7 @@ import {Section} from '@/services/database/sections'
 import {floatify_rows} from '@/shared/shared_functions'
 import {Profile} from '@/services/database/profiles'
 import {RecordSectionContent, SectionIds} from '@/services/database/types'
-import {remove_item} from '@/services/utils/arrays'
+import {rm_section_id} from '@/services/database/utils'
 
 
 @Component({
@@ -106,19 +106,9 @@ export default class extends Vue {
 
     async remove_section(section:Section){
         // Remove the given section
-        await self.app_db.sections.remove(section.id)
-
-        // Remove from sections array
-        for (let i=0; i < this.sections.length; i++){
-            const row = this.sections[i]!
-            // Remove from inner array
-            remove_item(row, section.id)
-            if (!row.length){
-                // If row empty, section was last in row and whole row must be deleted
-                this.sections.splice(i, 1)
-            }
-        }
+        rm_section_id(this.sections, section.id)
         this.save_sections()
+        await self.app_db.sections.remove(section.id)
     }
 
     save_sections(){
@@ -206,5 +196,23 @@ export default class extends Vue {
                 ::v-deep .actions
                     // Move actions bar to left of the right float
                     right: $stello_float_width
+
+
+    // Override app defaults that won't be present in displayer
+    ::v-deep
+
+        a
+            color: var(--stello-primary-fg) !important
+
+        strong
+            font-weight: revert  // 500 weight not supported by fonts used for message display
+
+        button
+            font-family: Roboto, sans-serif
+            // Make buttons inherit message theme color rather than app theme color
+            color: inherit !important
+            &.v-btn--disabled
+                color: inherit !important
+                opacity: 0.3
 
 </style>

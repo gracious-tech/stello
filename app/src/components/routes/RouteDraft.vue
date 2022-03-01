@@ -416,23 +416,4 @@ export default class extends Vue {
     overflow-y: auto
     position: relative  // So dark toggle button scrolls normally
 
-    // Override app defaults that won't be present in displayer
-    ::v-deep
-
-        //- NOTE Both 'div' and ':not(.v-btn' just added to override another competting style
-        //-      Can't use !important as would override invite's open message button
-        div a:not(.v-btn)
-            color: var(--stello-primary-fg)
-
-        strong
-            font-weight: revert  // 500 weight not supported by fonts used for message display
-
-        button
-            font-family: Roboto, sans-serif
-            // Make buttons inherit message theme color rather than app theme color
-            color: inherit !important
-            &.v-btn--disabled
-                color: inherit !important
-                opacity: 0.3
-
 </style>
