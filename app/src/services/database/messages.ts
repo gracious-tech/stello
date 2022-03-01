@@ -3,6 +3,7 @@ import {addDays, differenceInDays} from 'date-fns'
 
 import {enforce_range} from '../utils/numbers'
 import {AppDatabaseConnection, RecordMessage, RecordDraftPublished} from './types'
+import {rm_sections} from '@/services/database/sections'
 
 
 export class Message implements RecordMessage {
@@ -108,14 +109,12 @@ export class DatabaseMessages {
             void store_copies.delete(copy_id)
         }
 
-        // Get the message's sections and remove them
-        const section_ids = (await store_messages.get(id))?.draft.sections.flat() ?? []
-        for (const section_id of section_ids){
-            void store_sections.delete(section_id)
+        // Remove message and its sections
+        const msg_record = await store_messages.get(id)
+        if (msg_record){
+            void rm_sections(store_sections, msg_record.draft.sections)
+            void store_messages.delete(id)
         }
-
-        // Remove the message
-        void store_messages.delete(id)
 
         // Task done when transaction completes
         await transaction.done
