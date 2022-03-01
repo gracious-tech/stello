@@ -6,8 +6,9 @@ div
     AppUnsubscribed
 
     MessageContents(v-if='msg' :msg='msg')
+    MessageReply(v-if='msg')
 
-    div.no_msg(v-else class='ui')
+    div.no_msg(v-if='!msg' class='ui')
 
         h1 {{ current_msg.title }}
         p.date {{ current_msg.published?.toLocaleString() }}
@@ -33,6 +34,7 @@ import AppHistory from './AppHistory.vue'
 import AppUnsubscribed from './AppUnsubscribed.vue'
 import DialogResend from './DialogResend.vue'
 import MessageContents from './MessageContents.vue'
+import MessageReply from './MessageReply.vue'
 import {decrypt_sym, import_key_sym} from '../services/utils/crypt'
 import {request, report_http_failure} from '../services/utils/http'
 import {utf8_to_string, url64_to_buffer} from '../services/utils/coding'
@@ -45,7 +47,7 @@ import {GetAsset} from '@/services/types'
 
 export default defineComponent({
 
-    components: {MessageContents, AppHistory, AppFooter, AppUnsubscribed},
+    components: {MessageContents, MessageReply, AppHistory, AppFooter, AppUnsubscribed},
 
     setup(){
 

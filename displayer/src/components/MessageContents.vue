@@ -5,8 +5,6 @@
 //- TODO If wrapping text shorter than wrapped section, popups will appear underneath
 MessageContentsRow(v-for='(row, i) of floatified_rows' :row='row' :zindex='99 - i')
 
-MessageReply
-
 </template>
 
 
@@ -14,7 +12,6 @@ MessageReply
 
 import {computed, PropType, defineComponent} from 'vue'
 
-import MessageReply from './MessageReply.vue'
 import MessageContentsRow from './MessageContentsRow.vue'
 import {PublishedCopy} from '../shared/shared_types'
 import {floatify_rows} from '../shared/shared_functions'
@@ -22,7 +19,7 @@ import {floatify_rows} from '../shared/shared_functions'
 
 export default defineComponent({
 
-    components: {MessageReply, MessageContentsRow},
+    components: {MessageContentsRow},
 
     props: {
         msg: {
