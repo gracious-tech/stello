@@ -1,6 +1,7 @@
 
 import {AppDatabaseConnection, RecordDraft, RecordDraftRecipients, SectionIds} from './types'
 import {generate_token} from '@/services/utils/crypt'
+import {rm_sections} from '@/services/database/sections'
 
 
 export class Draft implements RecordDraft {
@@ -105,13 +106,11 @@ export class DatabaseDrafts {
         const store_drafts = transaction.objectStore('drafts')
         const store_sections = transaction.objectStore('sections')
 
-        // Get the message's sections so can remove them
-        const section_ids = (await store_drafts.get(id))?.sections.flat() ?? []
-
-        // Remove the message and its sections
-        void store_drafts.delete(id)
-        for (const section_id of section_ids){
-            void store_sections.delete(section_id)
+        // Remove the draft and its sections
+        const draft = await store_drafts.get(id)
+        if (draft){
+            void store_drafts.delete(id)
+            void rm_sections(store_sections, draft.sections)
         }
 
         // Task done when transaction completes
