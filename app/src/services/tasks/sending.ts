@@ -4,7 +4,6 @@ import {cloneDeep} from 'lodash'
 import DialogEmailSettings from '@/components/dialogs/reuseable/DialogEmailSettings.vue'
 import {Task} from './tasks'
 import {Message} from '../database/messages'
-import {Section} from '../database/sections'
 import {Profile} from '../database/profiles'
 import {MessageCopy} from '../database/copies'
 import {concurrent} from '@/services/utils/async'
@@ -21,6 +20,7 @@ import {gen_variable_items, update_template_values, TemplateVariables, msg_max_r
 import {EmailTask, new_email_task} from '../email/email'
 import {configs_update} from './configs'
 import {hosts_storage_update} from '@/services/tasks/hosts'
+import {SectionIds} from '@/services/database/types'
 
 
 export async function send_oauth_setup(task:Task):Promise<void>{
@@ -175,13 +175,12 @@ export class Sender {
             this.msg.draft.title, this.msg.published, this.msg.max_reads, this.msg.lifespan)
 
         // Process sections and produce assets
-        const sections_data = await Promise.all(this.msg.draft.sections.map(
-            async row => await Promise.all(row.map(sid => self.app_db.sections.get(sid))),
-        )) as OneOrTwo<Section>[]
-        const [pub_sections, assets] = await process_sections(sections_data, this.tmpl_variables)
+        const pub_assets:PublishedAsset[] = []
+        const pub_sections =
+            await process_sections(pub_assets, this.msg.draft.sections, this.tmpl_variables)
 
         // Encrypt and upload assets
-        await concurrent(assets.map(asset => {
+        await concurrent(pub_assets.map(asset => {
             return () => this._publish_asset(asset)
         }))
 
@@ -382,11 +381,10 @@ export class Sender {
 }
 
 
-async function process_sections(sections:OneOrTwo<Section>[], tmpl_variables:TemplateVariables)
-        :Promise<[OneOrTwo<PublishedSection>[], PublishedAsset[]]>{
+async function process_sections(pub_assets:PublishedAsset[], sections:SectionIds,
+        tmpl_variables:TemplateVariables){
     // Process sections and produce assets
     const pub_sections:OneOrTwo<PublishedSection>[] = []
-    const pub_assets:PublishedAsset[] = []
     for (const row of sections){
         const pub_row:PublishedSection[] = []
         for (const section of row){
@@ -394,18 +392,40 @@ async function process_sections(sections:OneOrTwo<Section>[], tmpl_variables:Tem
         }
         pub_sections.push(pub_row as OneOrTwo<PublishedSection>)
     }
-    return [pub_sections, pub_assets]
+    return pub_sections
 }
 
 
-async function process_section(section:Section, pub_assets:PublishedAsset[],
+async function process_section(section_id:string, pub_assets:PublishedAsset[],
         tmpl_variables:TemplateVariables):Promise<PublishedSection>{
     // Take section and produce publishable form and any assets required
     // WARN Avoid deep copying sections in case includes sensitive data (e.g. added in future)
     //      (also avoids duplicating blobs in memory)
+    const section = (await self.app_db.sections.get(section_id))!
+
+    // Handle page
+    if (section.content.type === 'page'){
+        if (section.content.image){
+            // Pagebait width/height is dynamic but does have approximate limits
+            // Given maximums are based on expected use and slight chance of very minor mistarget
+            await process_image(pub_assets, section.id, section.content.image, 500*2, 300*2, true)
+        }
+        return {
+            id: section.id,
+            respondable: false,
+            content: {
+                type: 'page',
+                button: section.content.button,
+                headline: section.content.headline,
+                desc: section.content.desc,
+                image: section.content.image ? section.id : null,
+                sections:
+                    await process_sections(pub_assets, section.content.sections, tmpl_variables),
+            },
+        }
 
     // Handle text
-    if (section.content.type === 'text'){
+    } else if (section.content.type === 'text'){
         return {
             id: section.id,
             respondable: section.respondable_final,

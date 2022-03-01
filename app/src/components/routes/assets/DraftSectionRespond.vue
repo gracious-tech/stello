@@ -2,7 +2,7 @@
 <template lang='pug'>
 
 //- WARN respondable class is inspected by parent component
-div.respondbar(v-if='can_reply || can_react' :class='{respondable: respondable_final}')
+div.respondbar(v-if='can_respond' :class='{respondable: respondable_final}')
     template(v-if='respondable_final')
         shared-respond-reply(v-if='can_reply' @click='toggle_respondable')
         shared-respond-react(v-if='can_react' @click='toggle_respondable')
@@ -42,6 +42,11 @@ export default class extends Vue {
     get can_react():boolean{
         // Whether can react (on an account level)
         return this.profile?.options.allow_reactions !== false
+    }
+
+    get can_respond(){
+        // Whether allowed to enable responses at all for this section
+        return (this.can_reply || this.can_react) && this.section.content.type !== 'page'
     }
 
     toggle_respondable():void{

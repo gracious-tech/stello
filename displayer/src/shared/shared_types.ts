@@ -22,7 +22,7 @@ export interface PublishedSection<TContent extends PublishedSectionContent=Publi
 }
 
 export type PublishedSectionContent =
-    PublishedContentText|PublishedContentImages|PublishedContentVideo
+    PublishedContentText|PublishedContentImages|PublishedContentVideo|PublishedContentPage
 
 export interface PublishedContentText {
     type:'text'
@@ -44,6 +44,15 @@ export interface PublishedContentVideo {
     caption:string
     start:number|null
     end:number|null
+}
+
+export interface PublishedContentPage {
+    type:'page'
+    button:boolean
+    headline:string
+    desc:string
+    image:string|null
+    sections:([PublishedSection]|[PublishedSection, PublishedSection])[]
 }
 
 export interface PublishedImage {
