@@ -2,7 +2,7 @@
 import {openDB} from 'idb/with-async-ittr.js'
 
 import {AppDatabaseSchema, AppDatabaseConnection, RecordReplaction, RecordDraft,
-    RecordDraftPublished, SectionIds} from './types'
+    RecordDraftPublished} from './types'
 import {DatabaseState} from './state'
 import {DatabaseContacts} from './contacts'
 import {DatabaseGroups} from './groups'
@@ -12,7 +12,7 @@ import {DatabaseUnsubscribes} from './unsubscribes'
 import {DatabaseDrafts, Draft} from './drafts'
 import {DatabaseMessages, Message} from './messages'
 import {DatabaseCopies, MessageCopy} from './copies'
-import {DatabaseSections} from './sections'
+import {DatabaseSections, copy_sections} from './sections'
 import {DatabaseReads, Read} from './reads'
 import {DatabaseReplies, Reply} from './replies'
 import {DatabaseReactions, Reaction} from './reactions'
@@ -106,21 +106,13 @@ export class Database {
         // Override template property, else use existing
         copy.template = template ?? original.template
 
-        // Also copy sections, but need to create copies of each's record too
-        // NOTE The original's sections returned are used as-is with just the id changed
-        // WARN It's assumed all properties (except id) of sections is copyable
-        const section_records = await this.sections.get_multiple(original.sections.flat())
-        copy.sections = original.sections.map(row => {
-            return row.map(old_section_id => {
-                const section = section_records.shift()!  // Take next section out of array
-                section.id = generate_token()  // Change id of the section
-                void this.sections.set(section)  // Save to db under the new id
-                return section.id  // Replace old id in the sections nested array
-            })
-        }) as SectionIds
+        // Copy sections and save draft copy
+        const transaction = this._conn.transaction(['drafts', 'sections'], 'readwrite')
+        copy.sections = await copy_sections(transaction.objectStore('sections'), original.sections)
+        void transaction.objectStore('drafts').put(copy)
 
-        // Save the copy to the database and return
-        await this.drafts.set(copy)
+        // Return the copy when done
+        await transaction.done
         return copy
     }
 

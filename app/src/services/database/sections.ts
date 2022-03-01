@@ -147,3 +147,20 @@ export async function rm_sections(sections_store:SectionsStore, section_ids:Sect
         })
     }
 }
+
+
+export async function copy_sections(sections_store:SectionsStore, section_ids:SectionIds){
+    // Recursively copy given sections and return ids of the copies
+    return Promise.all(section_ids.map(row => {
+        return Promise.all(row.map(async old_id => {
+            const section = (await sections_store.get(old_id))!
+            section.id = generate_token()  // Change id of the section
+            if (section.content.type === 'page'){
+                section.content.sections =
+                    await copy_sections(sections_store, section.content.sections)
+            }
+            void sections_store.put(section)  // Save to db under the new id
+            return section.id  // Replace old id in the sections nested array
+        }))
+    })) as Promise<SectionIds>
+}
