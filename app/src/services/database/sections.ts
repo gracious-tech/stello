@@ -131,9 +131,11 @@ export class DatabaseSections {
 }
 
 
-export async function rm_sections(
-        sections_store:IDBPObjectStore<AppDatabaseSchema, ['sections'], 'sections', 'readwrite'>,
-        section_ids:SectionIds){
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- other stores may be open too
+type SectionsStore = IDBPObjectStore<AppDatabaseSchema, any, 'sections', 'readwrite'>
+
+
+export async function rm_sections(sections_store:SectionsStore, section_ids:SectionIds){
     // Recursive helper for deleting sections which traverses pages
     // NOTE Expects to be provided an object store from an ongoing transaction
     for (const section_id of section_ids.flat()){
