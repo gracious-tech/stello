@@ -116,6 +116,9 @@
         min-height: $stello_gutter * 2 - 12px  // Allow enough room for actions bar (less margin)
         width: 100%
 
+        &.type-page
+            text-align: center  // Needed for button style (reverted in deeper descendents)
+
     .respondbar
         display: flex
         justify-content: space-around

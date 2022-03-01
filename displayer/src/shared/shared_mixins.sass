@@ -70,6 +70,7 @@ $stello_full_plus_sidebar: $stello_full_width + $stello_layout_width
 @mixin pagebait
     // Standard formatting for pagebait (narrow by default)
     .pagebait
+        text-align: left  // Revert center used by <section> for sake of button style
         display: flex
         flex-direction: column
         justify-content: center  // Needed if min-height effective
@@ -77,6 +78,22 @@ $stello_full_plus_sidebar: $stello_full_width + $stello_layout_width
         border-radius: 12px
         cursor: pointer
         min-height: 100px  // Ensure noticeable even if just single line headline
+
+        &.button
+            display: inline-flex
+            min-height: auto
+            font-family: Roboto, sans-serif
+
+            .text
+                padding: 8px 16px
+
+            .hline
+                min-width: 120px  // Minimum to be easily clickable
+                max-width: 280px  // Can't exceed half-width section space
+                font-size: 0.9em
+                text-align: center
+                overflow: hidden
+                white-space: nowrap
 
         .image
             width: 100%

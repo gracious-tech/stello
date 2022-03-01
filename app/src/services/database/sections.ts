@@ -103,6 +103,7 @@ export class DatabaseSections {
         } else if (type === 'page'){
             content = {
                 type,
+                button: false,
                 headline: '',
                 desc: '',
                 image: null,

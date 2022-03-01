@@ -1,12 +1,12 @@
 
 <template lang='pug'>
 
-div.pagebait
-    div.image(v-if='image' ref='image')
+div.pagebait(:class='{button}')
+    div.image(v-if='image && !button' ref='image')
     div.text
         h2.hline {{ headline }}
         //- Don't let desc exist if empty as messes up flex centering
-        p.desc(v-if='desc') {{ desc }}
+        p.desc(v-if='desc && !button') {{ desc }}
 
 </template>
 
@@ -19,6 +19,10 @@ import {defineComponent} from 'vue-demi'
 export default defineComponent({
 
     props: {
+        button: {
+            type: Boolean,
+            required: true,
+        },
         headline: {
             type: String,
             required: true,

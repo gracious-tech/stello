@@ -198,6 +198,7 @@ export interface ContentImageItem {
 
 export interface ContentPage {
     type:'page'
+    button:boolean
     headline:string
     desc:string
     image:Blob|null

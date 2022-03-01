@@ -2,14 +2,19 @@
 <template lang='pug'>
 
 div.pagebait-editable
-    div.pagebait
-        div.image(ref='image' @click='change_image')
+    p(class='caption opacity-secondary') Readers will click this to view the page
+    div.pagebait(:class='{button}')
+        div.image(v-show='!button' ref='image' @click='change_image')
         div.text
             //- NOTE maxlength is more than ideal (so not restrictive) but less than excessive
             textarea.hline(v-model='headline' @keydown.enter.prevent @input='textarea_input'
-                maxlength='150' rows='1' placeholder="Headline...")
-            textarea.desc(v-model='desc' @keydown.enter.prevent @input='textarea_input'
-                maxlength='400' rows='1' placeholder="Description...")
+                maxlength='150' rows='1' :placeholder='button ? "Button..." : "Headline..."')
+            textarea.desc(v-if='!button' v-model='desc' @keydown.enter.prevent
+                @input='textarea_input' maxlength='400' rows='1' placeholder="Description...")
+    div(class='d-flex justify-center align-center ui')
+        span Article style
+        v-switch(v-model='button' class='ml-4 mr-3')
+        span Button style
 
 </template>
 
@@ -51,10 +56,15 @@ export default class extends Vue {
     @Prop({type: Array, required: true}) declare readonly suggestions:Blob[]
 
     mounted(){
-        // Make textareas init with correct height
-        for (const textarea of this.$el.querySelectorAll('textarea')){
-            this.autogrow(textarea)
-        }
+        this.autogrow_all()
+    }
+
+    get button(){
+        return this.page.content.button
+    }
+    set button(value){
+        this.page.content.button = value
+        this.save()
     }
 
     get headline(){
@@ -82,6 +92,20 @@ export default class extends Vue {
         // Autogrow textarea
         textarea.style.height = '1px'  // Reset height otherwise scrollHeight won't ever reduce
         textarea.style.height = `${textarea.scrollHeight}px`
+        // Must also grow width if button style
+        if (this.button){
+            textarea.style.width = '1px'
+            textarea.style.width = `${textarea.scrollWidth}px`
+        } else {
+            textarea.style.width = 'auto'
+        }
+    }
+
+    autogrow_all(){
+        // Autogrow all textareas
+        for (const textarea of this.$el.querySelectorAll('textarea')){
+            this.autogrow(textarea)
+        }
     }
 
     async change_image():Promise<void>{
@@ -107,6 +131,13 @@ export default class extends Vue {
         void self.app_db.sections.set(this.page)
     }
 
+    @Watch('button') watch_button(){
+        // Changing pagebait style affects dimensions of textareas
+        this.$nextTick(() => {
+            this.autogrow_all()
+        })
+    }
+
     @Watch('page.content.image', {immediate: true}) watch_image(){
         // Once div available in DOM, apply bg image (done via JS due to CSP)
         const url =
@@ -130,6 +161,7 @@ export default class extends Vue {
 .pagebait-editable
     background-color: #7779
     padding: 12px
+    text-align: center
 
 .pagebait
     cursor: default !important
@@ -141,6 +173,12 @@ export default class extends Vue {
 
     textarea
         resize: none
+
+
+::v-deep .v-input.v-input--switch .v-input--selection-controls__input div:not([aria-disabled])
+    // Make switch look active whether true or false
+    // NOTE Overly specific to override existing style
+    color: var(--primary) !important
 
 
 </style>
