@@ -43,6 +43,9 @@ import {sleep} from '@/services/utils/async'
 import {resume_tasks} from '@/services/tasks/resume'
 
 
+type SnackbarProps = {msg:string, btn_label?:string, btn_color?:string, btn_handler?:()=>void}
+
+
 @Component({
     components: {AppStatus, AppSidebar, SplashWelcome, SplashDisclaimer, AppDialog},
 })
@@ -50,7 +53,7 @@ export default class extends Vue {
 
     route_transition = 'below'
     snackbar_visible = false
-    snackbar:{msg:string, btn_label?:string, btn_color?:string, btn_handler?:()=>void}|null = null
+    snackbar:SnackbarProps|null = null
     allow_force_quit = false
 
     mounted(){
@@ -82,12 +85,12 @@ export default class extends Vue {
 
     get docked(){
         // Show first item that wants to be shown
-        const items = [
+        const items:[string, boolean][] = [
             ['splash-welcome', this.$store.state.show_splash_welcome],
             ['splash-disclaimer', this.$store.state.show_splash_disclaimer],
             ['router-view', true],
         ]
-        return items.find(([component, show]) => show)[0]
+        return items.find(([component, show]) => show)![0]
     }
 
     get transition(){
@@ -107,36 +110,32 @@ export default class extends Vue {
     @Watch('$route') watch_$route(to:Route, from:Route){
         // Do a different transition depending on which routes going from/to
 
-        // Work with raw paths (/path/:param/ rather than /path/value/)
-        const to_path = to.matched[0].path
-        const from_path = from.matched[0].path
-
         this.route_transition = (() => {
 
             // If going to the same path then a param has changed
-            if (from_path === to_path)
+            if (from.path === to.path)
                 return 'below'
 
             // Root route (dashboard) is a special case and needs manual handling
-            if (from_path === '/')
+            if (from.path === '/')
                 return 'below'
-            if (to_path === '/')
+            if (to.path === '/')
                 return 'above'
 
             // Handle transitions within same branch
-            if (to_path.startsWith(from_path))
+            if (to.path.startsWith(from.path))
                 return 'deeper'
-            if (from_path.startsWith(to_path))
+            if (from.path.startsWith(to.path))
                 return 'shallower'
 
             // Moving branch, so detect is going above or below based on order of routes
-            const paths = this.$router.options.routes.map(item => item.path)
-            return paths.indexOf(to_path) > paths.indexOf(from_path) ? 'below' : 'above'
+            const paths = this.$router.options.routes!.map(item => item.path)
+            return paths.indexOf(to.path) > paths.indexOf(from.path) ? 'below' : 'above'
 
         })()
     }
 
-    @Watch('$store.state.tmp.snackbar') async watch_snackbar(arg){
+    @Watch('$store.state.tmp.snackbar') async watch_snackbar(arg:SnackbarProps){
         // Listen to changes to snackbar state and handle its display
         if (this.snackbar_visible){
             // Another message already showing so trigger close and wait a moment

@@ -25,7 +25,7 @@ const routes:RouteConfig[] = [
     {path: '/', component: RouteRoot},
     {path: '/drafts/', component: RouteDrafts},
     {path: '/drafts/:draft_id/', component: RouteDraft, name: 'draft', props: true},
-    {path: '/drafts/:draft_id/:page_id/', component: RouteDraftPage, name: 'page', props: true},
+    {path: '/drafts/:draft_id/*', component: RouteDraftPage, name: 'page', props: true},
     {path: '/messages/', component: RouteMessages},
     {path: '/messages/:msg_id/', component: RouteMessage, name: 'message', props: true},
     {path: '/replies/', component: RouteReplies},
