@@ -385,8 +385,6 @@ export class Sender {
 async function process_sections(sections:OneOrTwo<Section>[], tmpl_variables:TemplateVariables)
         :Promise<[OneOrTwo<PublishedSection>[], PublishedAsset[]]>{
     // Process sections and produce assets
-    // WARN Avoid deep copying sections in case includes sensitive data (e.g. added in future)
-    //      (also avoids duplicating blobs in memory)
     const pub_sections:OneOrTwo<PublishedSection>[] = []
     const pub_assets:PublishedAsset[] = []
     for (const row of sections){
@@ -403,6 +401,8 @@ async function process_sections(sections:OneOrTwo<Section>[], tmpl_variables:Tem
 async function process_section(section:Section, pub_assets:PublishedAsset[],
         tmpl_variables:TemplateVariables):Promise<PublishedSection>{
     // Take section and produce publishable form and any assets required
+    // WARN Avoid deep copying sections in case includes sensitive data (e.g. added in future)
+    //      (also avoids duplicating blobs in memory)
 
     // Handle text
     if (section.content.type === 'text'){
@@ -444,27 +444,8 @@ async function process_section(section:Section, pub_assets:PublishedAsset[],
         // Create assets for each image and collect other metadata into an images array
         const images:PublishedImage[] = []
         for (const image of section.content.images){
-
-            // Resize the image
-            let bitmap = await createImageBitmap(image.data)
-            bitmap = await resize_bitmap(bitmap, max_width, max_height, section.content.crop)
-            const bitmap_canvas = bitmap_to_canvas(bitmap)
-
-            // Add assets
-            pub_assets.push({
-                id: image.id,
-                data: await (await canvas_to_blob(bitmap_canvas)).arrayBuffer(),
-            })
-            /* SECURITY With admin access to storage you could know what assets are images by
-                noting the patterns for webp/jpeg ids. But if you have admin access, there are
-                far worse threats to make it negligable anyway.
-            */
-            pub_assets.push({
-                id: `${image.id}j`,  // Image id with 'j' appended
-                data: await (await canvas_to_blob(bitmap_canvas, 'jpeg')).arrayBuffer(),
-            })
-
-            // Add image metadata
+            await process_image(pub_assets, image.id, image.data, max_width, max_height,
+                section.content.crop)
             images.push({
                 id: image.id,
                 caption: image.caption,
@@ -484,4 +465,29 @@ async function process_section(section:Section, pub_assets:PublishedAsset[],
     }
 
     throw new Error("Impossible")
+}
+
+
+async function process_image(pub_assets:PublishedAsset[], id:string, image:Blob, max_width:number,
+        max_height:number, crop:boolean){
+    // Compress image and add to pub_assets
+
+    // Resize the image
+    let bitmap = await createImageBitmap(image)
+    bitmap = await resize_bitmap(bitmap, max_width, max_height, crop)
+    const bitmap_canvas = bitmap_to_canvas(bitmap)
+
+    // Add assets
+    pub_assets.push({
+        id: id,
+        data: await (await canvas_to_blob(bitmap_canvas)).arrayBuffer(),
+    })
+    /* SECURITY With admin access to storage you could know what assets are images by
+        noting the patterns for webp/jpeg ids. But if you have admin access, there are
+        far worse threats to make it negligable anyway.
+    */
+    pub_assets.push({
+        id: `${id}j`,  // Image id with 'j' appended
+        data: await (await canvas_to_blob(bitmap_canvas, 'jpeg')).arrayBuffer(),
+    })
 }
