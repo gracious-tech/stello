@@ -384,20 +384,26 @@ export class Sender {
 async function process_sections(pub_assets:PublishedAsset[], sections:SectionIds,
         tmpl_variables:TemplateVariables){
     // Process sections and produce assets
+    // NOTE Sections with empty content (like images/video) will be excluded when published
     const pub_sections:OneOrTwo<PublishedSection>[] = []
     for (const row of sections){
         const pub_row:PublishedSection[] = []
         for (const section of row){
-            pub_row.push(await process_section(section, pub_assets, tmpl_variables))
+            const pub_section = await process_section(section, pub_assets, tmpl_variables)
+            if (pub_section){
+                pub_row.push(pub_section)
+            }
         }
-        pub_sections.push(pub_row as OneOrTwo<PublishedSection>)
+        if (pub_row.length){
+            pub_sections.push(pub_row as OneOrTwo<PublishedSection>)
+        }
     }
     return pub_sections
 }
 
 
 async function process_section(section_id:string, pub_assets:PublishedAsset[],
-        tmpl_variables:TemplateVariables):Promise<PublishedSection>{
+        tmpl_variables:TemplateVariables):Promise<PublishedSection|null>{
     // Take section and produce publishable form and any assets required
     // WARN Avoid deep copying sections in case includes sensitive data (e.g. added in future)
     //      (also avoids duplicating blobs in memory)
@@ -438,13 +444,16 @@ async function process_section(section_id:string, pub_assets:PublishedAsset[],
 
     // Handle video
     } else if (section.content.type === 'video'){
+        if (!section.content.format || !section.content.id){
+            return null
+        }
         return {
             id: section.id,
             respondable: section.respondable_final,
             content: {
                 type: 'video',
-                format: section.content.format!,
-                id: section.content.id!,
+                format: section.content.format,
+                id: section.content.id,
                 caption: section.content.caption,
                 start: section.content.start,
                 end: section.content.end,
@@ -453,6 +462,11 @@ async function process_section(section_id:string, pub_assets:PublishedAsset[],
 
     // Handle images
     } else if (section.content.type === 'images'){
+
+        // Exclude if no images
+        if (!section.content.images.length){
+            return null
+        }
 
         // Work out max width/height for all images
         const max_width = SECTION_IMAGE_WIDTH
