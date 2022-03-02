@@ -113,6 +113,17 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
     })
     await db.sections.set(section_vimeo)
 
+    // Create a page section
+    const section_page = await db.sections.create_object({
+        type: 'page',
+        button: false,
+        headline: "A headline for a page",
+        desc: "A description for a page" + " about a page".repeat(10),
+        image: image_blob,
+        sections: [],
+    })
+    await db.sections.set(section_page)
+
     // Create base draft
     const draft = await db.drafts.create_object()
     draft.title = "A dummy newsletter"
@@ -120,6 +131,7 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
     draft.sections = [
         [section_text.id, section_image.id],
         [section_youtube.id, section_vimeo.id],
+        [section_page.id],
     ]
     draft.recipients.include_contacts = contacts.slice(0, 10 * multiplier).map(c => c.id)
     await db.drafts.set(draft)
