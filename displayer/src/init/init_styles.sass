@@ -5,6 +5,13 @@
 
 // Styles that aren't needed in app and might negatively affect app-specific things (like <input>)
 .stello-displayer  // To match specificity of shared styles
+    outline-style: none  // Outline may appear due to tabindex attr
+
+    .content
+        // Show narrower gutters for displayer since don't need space for menus
+        padding-left: 24px
+        padding-right: 24px
+        padding-top: 48px * 2  // Match editor, accounting for missing addbar
 
     input, textarea
         box-sizing: border-box
