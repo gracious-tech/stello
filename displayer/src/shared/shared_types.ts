@@ -5,7 +5,7 @@ export interface PublishedCopyBase {
     title:string
     published:string
     base_msg_id:string  // Needed for working out where assets are
-    sections:([PublishedSection]|[PublishedSection, PublishedSection])[]
+    sections:PublishedSections
     assets_key:string
 }
 
@@ -14,6 +14,8 @@ export interface PublishedCopy extends PublishedCopyBase {
     permission_subscription:boolean
     contact_address:string
 }
+
+export type PublishedSections = ([PublishedSection]|[PublishedSection, PublishedSection])[]
 
 export interface PublishedSection<TContent extends PublishedSectionContent=PublishedSectionContent>{
     id:string  // Required to match reactions with appropriate sections (in case order edited later)
@@ -52,7 +54,7 @@ export interface PublishedContentPage {
     headline:string
     desc:string
     image:string|null
-    sections:([PublishedSection]|[PublishedSection, PublishedSection])[]
+    sections:PublishedSections
 }
 
 export interface PublishedImage {
