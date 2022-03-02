@@ -112,9 +112,16 @@ export default defineComponent({
 
             // Import the assets key and make a method for downloading and decrypting assets
             const assets_key = await import_key_sym(url64_to_buffer(msg_data.assets_key))
+            const get_asset_cache:Record<string, ArrayBuffer> = {}
             get_asset.value = async (asset_id:string):Promise<ArrayBuffer|null> => {
-                const url =
-                    `${MSGS_URL}messages/${USER}/assets/${msg_data.base_msg_id}/${asset_id}`
+
+                // Get from cache if already downloaded
+                if (asset_id in get_asset_cache){
+                    return get_asset_cache[asset_id]!
+                }
+
+                // Fetch
+                const url = `${MSGS_URL}messages/${USER}/assets/${msg_data.base_msg_id}/${asset_id}`
                 let encrypted:ArrayBuffer|null = null
                 try {
                     encrypted = await request(url, {}, 'arrayBuffer', 'throw_null403-4')
@@ -122,7 +129,12 @@ export default defineComponent({
                     // Either network issue or server fault, either way, callers to show placeholder
                     report_http_failure(error)
                 }
-                return encrypted ? decrypt_sym(encrypted, assets_key) : null
+
+                // Cache and return
+                if (encrypted){
+                    get_asset_cache[asset_id] = await decrypt_sym(encrypted, assets_key)
+                }
+                return get_asset_cache[asset_id] ?? null
             }
 
             // Expose the message data
