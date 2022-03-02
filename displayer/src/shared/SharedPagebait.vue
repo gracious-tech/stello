@@ -13,7 +13,7 @@ div.pagebait(:class='{button}')
 
 <script lang='ts'>
 
-import {defineComponent} from 'vue-demi'
+import {defineComponent, PropType} from 'vue-demi'
 
 
 export default defineComponent({
@@ -32,7 +32,7 @@ export default defineComponent({
             required: true,
         },
         image: {
-            type: Blob,
+            type: Blob as PropType<Blob|null>,
             default: null,
         },
     },

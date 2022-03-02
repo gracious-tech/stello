@@ -5,7 +5,8 @@ div
     //- NOTE AppUnsubscribed Also used to show when account disabled
     AppUnsubscribed
 
-    MessageContents(v-if='msg' :msg='msg')
+    MessageContents(v-if='msg' :sections='msg.sections')
+    MessagePage
     MessageReply(v-if='msg')
 
     div.no_msg(v-if='!msg' class='ui')
@@ -34,12 +35,13 @@ import AppHistory from './AppHistory.vue'
 import AppUnsubscribed from './AppUnsubscribed.vue'
 import DialogResend from './DialogResend.vue'
 import MessageContents from './MessageContents.vue'
+import MessagePage from './MessagePage.vue'
 import MessageReply from './MessageReply.vue'
 import {decrypt_sym, import_key_sym} from '../services/utils/crypt'
 import {request, report_http_failure} from '../services/utils/http'
 import {utf8_to_string, url64_to_buffer} from '../services/utils/coding'
 import {store} from '../services/store'
-import {PublishedCopy} from '../shared/shared_types'
+import {PublishedCopy, PublishedSection, PublishedContentPage} from '../shared/shared_types'
 import {respond_read} from '../services/responses'
 import {displayer_config, MSGS_URL, USER} from '../services/displayer_config'
 import {GetAsset} from '@/services/types'
@@ -47,7 +49,8 @@ import {GetAsset} from '@/services/types'
 
 export default defineComponent({
 
-    components: {MessageContents, MessageReply, AppHistory, AppFooter, AppUnsubscribed},
+    components: {MessageContents, MessagePage, MessageReply, AppHistory, AppFooter,
+        AppUnsubscribed},
 
     setup(){
 
@@ -58,9 +61,11 @@ export default defineComponent({
         const error_desc = ref<string|null>(null)
         const fix_desc = ref<string|null>(null)
         const get_asset = ref<GetAsset>()
+        const page = ref<PublishedSection<PublishedContentPage>|null>(null)
 
         // Provides
         provide('get_asset', get_asset)
+        provide('page', page)
 
         // Method for downloading and decrypting the message
         const get_message = async () => {

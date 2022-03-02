@@ -13,7 +13,7 @@ MessageContentsRow(v-for='(row, i) of floatified_rows' :row='row' :zindex='99 - 
 import {computed, PropType, defineComponent} from 'vue'
 
 import MessageContentsRow from './MessageContentsRow.vue'
-import {PublishedCopy} from '../shared/shared_types'
+import {PublishedSections} from '../shared/shared_types'
 import {floatify_rows} from '../shared/shared_functions'
 
 
@@ -22,8 +22,8 @@ export default defineComponent({
     components: {MessageContentsRow},
 
     props: {
-        msg: {
-            type: Object as PropType<PublishedCopy>,
+        sections: {
+            type: Array as PropType<PublishedSections>,
             required: true,
         },
     },
@@ -31,7 +31,7 @@ export default defineComponent({
     setup(props){
         const floatified_rows = computed(() => {
             // Return rows of sections data and how to display them
-            return floatify_rows(props.msg.sections)
+            return floatify_rows(props.sections)
         })
         return {
             floatified_rows,

@@ -10,6 +10,7 @@ teleport(to='.stello-displayer' :disabled='!fullscreen')
                 @displayed='on_displayed_change' @fullscreen='fullscreen = !fullscreen')
             SharedVideo(v-if='content.type === "video"' :format='content.format' :id='content.id'
                 :caption='content.caption' :start='content.start' :end='content.end')
+            SectionPagebait(v-if='content.type === "page"' :page='section')
         SectionRespond(:section='section' :subsection='subsection')
         svg.close(v-if='fullscreen' @click='fullscreen = false' viewBox='0 0 24 24')
             path(d=`M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59
@@ -23,6 +24,7 @@ teleport(to='.stello-displayer' :disabled='!fullscreen')
 import {computed, PropType, ref, watch, onUnmounted, provide, defineComponent} from 'vue'
 
 import SectionSlideshow from './SectionSlideshow.vue'
+import SectionPagebait from './SectionPagebait.vue'
 import SharedVideo from '../shared/SharedVideo.vue'
 import SectionRespond from './SectionRespond.vue'
 import {PublishedSection} from '../shared/shared_types'
@@ -31,7 +33,7 @@ import {section_classes} from '../shared/shared_functions'
 
 export default defineComponent({
 
-    components: {SectionSlideshow, SharedVideo, SectionRespond},
+    components: {SectionSlideshow, SharedVideo, SectionRespond, SectionPagebait},
 
     props: {
         section: {
