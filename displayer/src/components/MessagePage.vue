@@ -100,7 +100,7 @@ export default defineComponent({
         overflow: hidden
         display: flex
         flex-direction: column
-        @include stello_themed(background-color, #fff, #222)
+        @include stello_themed(background-color, #eee, #111)  // Same as main message
 
         // Appear like a dialog when screen wide
         @media (min-width: 900px)
