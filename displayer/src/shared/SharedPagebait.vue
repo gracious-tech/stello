@@ -43,7 +43,7 @@ export default defineComponent({
             handler(){
                 // Once div available in DOM, apply bg image (done via JS due to CSP)
                 // NOTE If no image then image div won't be rendered at all
-                if (this.image){
+                if (this.image && !this.button){
                     const image_url = URL.createObjectURL(this.image)
                     void this.$nextTick(() => {
                         const div = this.$refs['image'] as HTMLDivElement
