@@ -5,8 +5,7 @@ v-list-item
 
     v-list-item-action
         app-btn(v-if='copy.status === "manual"' @click='copy_invite_and_mark' :icon='status_icon'
-            :disabled='!profile || profile.old_beta'
-            data-tip="Copy invite and mark as sent")
+            :disabled='!profile' data-tip="Copy invite and mark as sent")
         app-btn(v-else-if='copy.status === "error"' :to='to' :icon='status_icon' color='error'
             data-tip="Change email address")
         app-svg(v-else :name='`icon_${status_icon}`' :class='status_class' class='mx-3')
@@ -18,7 +17,7 @@ v-list-item
     v-list-item-action(title='Number of times opened' class='noselect') {{ reads.length }}
 
     v-list-item-action(class='ml-0')
-        app-menu-more(v-if='profile && !profile.old_beta')
+        app-menu-more(v-if='profile')
             app-list-item(@click='copy_invite' :disabled='copy.expired') Copy invite
             app-list-item(@click='retract' :disabled='copy.expired' class='error--text') Retract
 

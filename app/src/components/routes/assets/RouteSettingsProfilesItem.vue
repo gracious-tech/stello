@@ -5,14 +5,13 @@ v-list-item(:to='route')
     v-list-item-content
         v-list-item-title
             | {{ profile.display }}
-            v-chip(v-if='profile.old_beta' small class='ml-3 app-bg-primary-relative') old style
-            v-chip(v-else-if='is_incomplete' small class='ml-3 app-bg-primary-relative') incomplete
+            v-chip(v-if='is_incomplete' small class='ml-3 app-bg-primary-relative') incomplete
             v-chip(v-else-if='is_default' small class='ml-3 app-bg-primary-relative') default
     v-list-item-action
         app-menu-more
             app-list-item(@click='make_default' :disabled='is_default || is_incomplete')
                 | Make default
-            app-list-item(v-if='!profile.old_beta' @click='remove' class='error--text') Delete
+            app-list-item(@click='remove' class='error--text') Delete
 
 </template>
 

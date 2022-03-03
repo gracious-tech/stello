@@ -171,6 +171,13 @@ export async function to_15(transaction:VersionChangeTransaction){
 
 
 export async function to_16(transaction:VersionChangeTransaction){
+    // Remove old profiles that use beta system
+    for await (const cursor of transaction.objectStore('profiles')){
+        if ('disp_config_name' in cursor.value.host_state){
+            // This is an old beta profile as disp_config_name is an old property
+            await cursor.delete()
+        }
+    }
     // section_num/section_type removed from reactions and replies
     for await (const cursor of transaction.objectStore('reactions')){
         delete (cursor.value as unknown as {section_num?:number}).section_num

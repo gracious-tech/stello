@@ -26,8 +26,7 @@ export async function responses_receive(task:Task):Promise<void>{
     let deferred_throw:unknown
 
     // Get all active profiles
-    const profiles = (await self.app_db.profiles.list()).filter(
-        profile => profile.setup_complete || profile.old_beta)
+    const profiles = (await self.app_db.profiles.list()).filter(profile => profile.setup_complete)
 
     // Form list of processing functions for all responses in all profiles
     const resp_fns_sync:(()=>Promise<void>)[] = []
