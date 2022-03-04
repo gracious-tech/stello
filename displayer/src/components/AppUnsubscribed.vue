@@ -46,7 +46,7 @@ export default defineComponent({
         font-size: 16px
         background-color: #ffcc00
         color: rgba(black, 0.8)
-        border-radius: 12px
+        border-radius: var(--stello-radius)
 
         a
             margin-left: 12px

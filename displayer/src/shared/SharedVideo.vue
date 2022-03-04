@@ -127,7 +127,7 @@ iframe, svg
     position: absolute
     height: 100%
     width: 100%
-    border-radius: 12px
+    border-radius: var(--stello-radius)
 
 iframe
     background-color: #000  // Vimeo bg transparent when size differs and looks weird

@@ -106,10 +106,10 @@ export default defineComponent({
         @media (min-width: 900px)
             margin: 48px auto
             max-width: 800px
-            border-radius: 12px
+            border-radius: var(--stello-radius)
 
             .toolbar
-                border-radius: 12px 12px 0 0
+                border-radius: var(--stello-radius) var(--stello-radius) 0 0
 
         .toolbar
                 display: flex
@@ -121,7 +121,7 @@ export default defineComponent({
                     width: 36px
                     min-width: 36px  // So text doesn't squish
                     padding: 6px
-                    border-radius: 24px
+                    border-radius: 50%
                     margin: 8px 12px
                     cursor: pointer
                     path

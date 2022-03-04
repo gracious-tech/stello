@@ -238,7 +238,7 @@ export default defineComponent({
     .popup
         @include stello_themed(background-color, #fff, #222)
         box-shadow: 0 2px 6px 0 rgba(#000, 0.1)
-        border-radius: 12px
+        border-radius: var(--stello-radius)
 
     .note
         text-align: center

@@ -282,7 +282,7 @@ export default defineComponent({
         width: 100%
 
     // Curve corners of slideshow
-    border-radius: 12px
+    border-radius: var(--stello-radius)
 
     // Image click in displayer is zoom, but edit in editor
     cursor: zoom-in
