@@ -208,7 +208,7 @@ export default class extends Vue {
             font-weight: revert  // 500 weight not supported by fonts used for message display
 
         button
-            font-family: Roboto, sans-serif
+            font-family: ui-sans-serif, system-ui, sans-serif
             // Make buttons inherit message theme color rather than app theme color
             color: inherit !important
             &.v-btn--disabled

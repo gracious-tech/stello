@@ -90,7 +90,7 @@ export function render_invite_html_action(url:string, reply:boolean):string{
 
             <a class='button' href='${html_escape(url)}' style='background-color: #114488;
                     color: #ffffff; padding: 12px 0; border-radius: 12px; text-decoration: none;
-                    font-family: Roboto, sans-serif;'>
+                    font-family: sans-serif;'>
                 <span style='mso-text-raise: 20pt;'>&nbsp;</span>
                 &nbsp;
                 <strong style='mso-text-raise: 10pt;'>Open ${reply ? "Reply" : "Message"}</strong>

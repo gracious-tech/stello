@@ -26,6 +26,7 @@ class DisplayerConfigAccess {
     resp_key_public:CryptoKey|null = null
     // NOTE `reaction_options` didn't exist till after v0.4.1, so default needed for old configs
     reaction_options:string[] = ['like', 'love', 'yay', 'pray', 'laugh', 'wow', 'sad']
+    theme_style = 'modern'  // NOTE Didn't exist until after v1.0.11
 
     async _load(config_secret_url64:string):Promise<void>{
         // Download and apply config

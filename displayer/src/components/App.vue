@@ -3,11 +3,11 @@
 
 //- NOTE tabindex makes app container focusable (-1 so only for JS use)
 //-      VERY important for iOS, otherwise clicking outside of response popup does not defocus popup
-div(class='stello-displayer' :class='{dark}' tabindex='-1')
+div.stello-displayer(:class='classes' tabindex='-1')
 
     SharedDarkToggle(:value='dark' @input='toggle_dark')
 
-    div(class='content')
+    div.content
         //- Don't insert new node until old gone (out-in) to avoid scrolling issues
         transition(:name='transition' mode='out-in')
             AppMessage.msg(v-if='current_msg' :key='current_msg.id')
@@ -28,6 +28,7 @@ import AppMessage from './AppMessage.vue'
 import AppDialog from './AppDialog.vue'
 import SharedDarkToggle from '../shared/SharedDarkToggle.vue'
 import {store} from '../services/store'
+import {displayer_config} from '@/services/displayer_config'
 
 
 export default defineComponent({
@@ -57,6 +58,13 @@ export default defineComponent({
                 store.toggle_dark()
             },
             current_msg: computed(() => store.state.current_msg),
+            classes: computed(() => {
+                // NOTE Can't use `dark` computed prop within another computed prop (non-reactive)
+                return {
+                    dark: store.state.dict.dark,
+                    [`style-${displayer_config.theme_style}`]: true,
+                }
+            }),
         }
     },
 })

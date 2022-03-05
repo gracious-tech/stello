@@ -131,4 +131,5 @@ export interface DisplayerConfig {
     social_referral_ban:boolean
     resp_key_public:string
     reaction_options:string[]
+    theme_style:string
 }

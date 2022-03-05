@@ -42,7 +42,7 @@ div
                 app-list-item(@click='delete_draft' class='error--text')
                     | {{ draft.template ? "Delete template" : "Delete draft" }}
 
-    div.stello-displayer(v-if='draft' :class='{dark: dark_message}')
+    div.stello-displayer(v-if='draft' :class='displayer_classes')
         draft-invite(v-if='profile' :draft='draft' :profile='profile'
             :suggestions='existing_images')
         shared-dark-toggle(v-model='dark_message')
@@ -178,10 +178,23 @@ export default class extends Vue {
 
     get dark_message(){
         // Control whether message should be dark themed (for user only)
-        return this.$store.state.dark_message
+        return this.$store.state.dark_message as boolean
     }
     set dark_message(value){
         this.$store.commit('dict_set', ['dark_message', value])
+    }
+
+    get theme_style(){
+        // Get theme style setting for profile
+        return this.profile?.options.theme_style ?? 'modern'
+    }
+
+    get displayer_classes(){
+        // Classes to add to .stello-displayer div
+        return {
+            dark: this.dark_message,
+            [`style-${this.theme_style}`]: true,
+        }
     }
 
     get sender_name(){

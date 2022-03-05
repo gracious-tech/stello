@@ -67,6 +67,13 @@ div
                     app-switch(v-bind='$t("generic_domain")' v-model='generic_domain')
 
 
+        h2 Style
+        v-card
+            v-card-text
+                app-select(v-bind='$t("theme_style")' v-model='theme_style'
+                    :items='theme_style_items' select)
+
+
         //- NOTE Identity section at end since takes up the most room
         h2 Identity
         v-card
@@ -134,6 +141,11 @@ const i18n = {
         hint: `Allow recipients to request that you resend a message that has expired
             before they could read it. You still must approve any such requests.`,
     },
+    // Style
+    theme_style: {
+        label: "Style for messages",
+        hint: "Affects the font and graphic design used in displaying messages",
+    },
     // Auto-exclude
     auto_exclude: {
         p1: "Automatically stop sending messages to contacts who aren't reading them.",
@@ -193,6 +205,12 @@ export default class extends Vue {
         {value: 'first_new_reply', text: "Once until Stello opened"},
         {value: 'replies', text: "Every reply"},
         {value: 'replies_and_reactions', text: "Every reply & reaction"},
+    ]
+    theme_style_items = [
+        {value: 'modern', text: "Modern"},
+        {value: 'formal', text: "Formal"},
+        {value: 'beautiful', text: "Beautiful"},
+        {value: 'fun', text: "Fun"},
     ]
 
     async created(){
@@ -333,6 +351,14 @@ export default class extends Vue {
     set msg_max_reads(value){
         this.profile.msg_options_security.max_reads = value
         this.save()
+    }
+
+    get theme_style(){
+        return this.profile.options.theme_style
+    }
+    set theme_style(value){
+        this.profile.options.theme_style = value
+        this.save(true)
     }
 
     // WATCH

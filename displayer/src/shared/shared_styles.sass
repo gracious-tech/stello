@@ -24,7 +24,6 @@
     // ROOT STYLES
 
     line-height: 1.65
-    font-family: charter, Georgia, Cambria, "Times New Roman", Times, serif
     overflow-wrap: break-word  // Prevent layout breaks due to long words (like URLs)
 
     font-size: 18px
@@ -39,6 +38,24 @@
     @media print
         background-color: #fff !important
         color: #000 !important
+
+    // Font depends on style prop
+    // Noto preferred, otherwise Roboto (Android), "Helvetica Neue" (Apple), and Arial (all)
+    font-family: "Noto Sans", Roboto, "Helvetica Neue", Arial, sans-serif
+    &.style-formal, &.style-beautiful
+        // Noto preferred, but every device should have Georgia (used by many news sites) if not
+        font-family: "Noto Serif", Georgia, serif
+
+    // Different font for headings for some styles
+    &.style-beautiful
+        h1, h2
+            // "Edwardian Script ITC" (Windows), "Savoye LET" (Apple)
+            // NOTE Default system cursive font more likely to be comic like, so default to serif
+            font-family: "Edwardian Script ITC", "Savoye LET", serif
+    &.style-fun
+        h1, h2
+            // "Chalkboard SE" (Apple), "Comic Sans MS" (others)
+            font-family: "Chalkboard SE", "Comic Sans MS", cursive
 
 
     // STRUCTURAL
@@ -307,7 +324,7 @@
 
     .ui
         user-select: none
-        font-family: Roboto, sans-serif
+        font-family: ui-sans-serif, system-ui, sans-serif
         font-size: 16px
 
         @media print

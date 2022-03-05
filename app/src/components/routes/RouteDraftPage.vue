@@ -9,7 +9,7 @@ div
         app-menu-more
             app-list-item(@click='delete_page' class='error--text') Delete page
 
-    div.stello-displayer(v-if='draft' :class='{dark: dark_message}')
+    div.stello-displayer(v-if='draft' :class='displayer_classes')
         draft-pagebait-editable(:page='page' :suggestions='existing_images')
         draft-content(ref='content' :draft='draft' :sections='sections' :profile='profile'
             @save='save')
@@ -57,7 +57,20 @@ export default class extends Vue {
     }
 
     get dark_message(){
-        return this.$store.state.dark_message
+        return this.$store.state.dark_message as boolean
+    }
+
+    get theme_style(){
+        // Get theme style setting for profile
+        return this.profile?.options.theme_style ?? 'modern'
+    }
+
+    get displayer_classes(){
+        // Classes to add to .stello-displayer div
+        return {
+            dark: this.dark_message,
+            [`style-${this.theme_style}`]: true,
+        }
     }
 
     get sections(){

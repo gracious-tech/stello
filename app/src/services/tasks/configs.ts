@@ -44,6 +44,7 @@ export async function configs_update(task:Task){
             social_referral_ban: profile.options.social_referral_ban,
             resp_key_public,
             reaction_options: profile.options.reaction_options,
+            theme_style: profile.options.theme_style,
         }
         upload_displayer = encrypt_sym(
             string_to_utf8(JSON.stringify(config)),

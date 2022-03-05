@@ -35,7 +35,7 @@ email_template = '''
         <div style="border-radius:0 0 12px 12px;background-color:rgba(87,127,167,0.3);padding:36px 0;text-align:center">
 
             <a class="button" href="stello://responses"
-                style="background-color:#114488;color:#ffffff;padding:12px 0;border-radius:12px;text-decoration:none;font-family:Roboto,sans-serif">
+                style="background-color:#114488;color:#ffffff;padding:12px 0;border-radius:12px;text-decoration:none;font-family:sans-serif">
                 <span style="mso-text-raise: 20pt;">&nbsp;</span>
                 &nbsp;
                 <strong style="mso-text-raise: 10pt;">View in Stello</strong>

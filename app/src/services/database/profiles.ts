@@ -355,6 +355,7 @@ export class DatabaseProfiles {
                     <p>Hi <span data-mention data-id='contact_hello'></span>,</p>
                     <p><span data-mention data-id='sender_name'></span> has replied to you.</p>
                 `,
+                theme_style: 'modern',
             },
             msg_options_identity: {
                 sender_name: '',

@@ -67,13 +67,14 @@ export interface RecordProfile {
     email:string  // Address used for both sending and receiving notifications
     smtp:RecordProfileSmtp
     options:RecordProfileOptions
-    msg_options_identity:{  // Defaults
+    // Default options that can be changed per-message (match props in RecordDraft)
+    msg_options_identity:{
         sender_name:string
         invite_image:Blob
         invite_tmpl_email:string
         invite_tmpl_clipboard:string
     }
-    msg_options_security:{  // Defaults
+    msg_options_security:{
         lifespan:number  // NOTE may be Infinity
         max_reads:number  // NOTE may be Infinity
     }
@@ -116,7 +117,10 @@ export interface RecordProfileSmtp {
     starttls:boolean
 }
 
+export type ThemeStyle = 'modern'|'formal'|'beautiful'|'fun'
+
 export interface RecordProfileOptions {
+    // Options that can't be changed per-message
     notify_mode:'none'|'first_new_reply'|'replies'|'replies_and_reactions'
     notify_include_contents:boolean  // Only applicable to replies & replies_and_reactions
     allow_replies:boolean
@@ -131,6 +135,7 @@ export interface RecordProfileOptions {
     reaction_options:('like'|'love'|'yay'|'pray'|'laugh'|'wow'|'sad')[]
     reply_invite_image:Blob  // Used for inheritance for replies instead of invite_image
     reply_invite_tmpl_email:string  // Used for inheritance for replies instead of invite_tmpl_email
+    theme_style:ThemeStyle
 }
 
 

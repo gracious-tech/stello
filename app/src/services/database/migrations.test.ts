@@ -128,7 +128,7 @@ test.describe('migrate', async () => {
             await to_15(t)
         })
         await db.put('profiles', {id: 'old', host_state: {disp_config_name: 'a'}} as any)
-        await db.put('profiles', {id: 'new', host_state: {}} as any)
+        await db.put('profiles', {id: 'new', host_state: {}, options: {}} as any)
         for (const store of ['replies', 'reactions'] as ('replies'|'reactions')[]){
             await db.put(store, {id: 'id', section_num: 1, section_type: 'text'} as any)
             const record = await db.get(store, 'id')
@@ -142,7 +142,11 @@ test.describe('migrate', async () => {
 
         // Expect old beta profiles to have been removed
         expect(await db.get('profiles', 'old')).toBeUndefined()
-        expect(await db.get('profiles', 'new')).toBeDefined()
+        const new_profile = await db.get('profiles', 'new')
+        expect(new_profile).toBeDefined()
+
+        // Expect theme_style option to be added
+        expect(new_profile?.options.theme_style).toBe('modern')
 
         // Expect section_num/section_type properties to have been removed
         for (const store of ['replies', 'reactions'] as ('replies'|'reactions')[]){

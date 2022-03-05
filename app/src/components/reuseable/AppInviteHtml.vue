@@ -70,7 +70,7 @@ export default class extends Vue {
 .root
     margin: 12px 0 !important
     font-size: 14px  // Actual is whatever mail client default is
-    font-family: Roboto, sans-serif  // Actual is whatever mail client default is
+    font-family: sans-serif  // Actual is whatever mail client default is
     @include themed(color, black, white)  // Email clients will have solid text colors
 
 .header
