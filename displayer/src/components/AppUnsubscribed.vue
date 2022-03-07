@@ -6,9 +6,9 @@ div.unsubscribed(v-if='unsubscribed || !responder' class='ui')
 
         template(v-if='responder === null') Network issue detected
         template(v-else-if='responder === false') This account is no longer active
-        template(v-else-if='unsubscribed') You've unsubscribed
-
-        a(v-if='unsubscribed' @click='undo') Undo
+        template(v-else-if='unsubscribed')
+            | You've unsubscribed
+            a(@click='undo') UNDO
 
 </template>
 
@@ -47,7 +47,10 @@ export default defineComponent({
 
         a
             margin-left: 12px
-            text-decoration: underline
             font-weight: bold
+            color: inherit
+
+            &:hover
+                text-decoration: underline
 
 </style>
