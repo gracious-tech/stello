@@ -159,6 +159,12 @@
         &.type-page
             text-align: center  // Needed for button style (reverted in deeper descendents)
 
+    .dark_toggle
+        // Make dark toggle button appear over content on mobile since no bg visible
+        @media (max-width: $stello_full_plus_sidebar - 1)
+            position: absolute
+            right: 0
+
     .respondbar
         display: flex
         justify-content: space-around
