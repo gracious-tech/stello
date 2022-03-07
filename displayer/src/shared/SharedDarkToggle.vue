@@ -45,6 +45,9 @@ div
     padding: 24px
     opacity: 0.3
 
+    @media print
+        display: none
+
     svg
         width: 24px
         height: 24px
