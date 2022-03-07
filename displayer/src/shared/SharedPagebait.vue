@@ -1,7 +1,7 @@
 
 <template lang='pug'>
 
-div.pagebait(:class='{button}')
+div.pagebait(:class='{"btn-text": button, "s-primary": button}')
     div.image(v-if='image && !button' ref='image')
     div.text
         h2.hline {{ headline }}

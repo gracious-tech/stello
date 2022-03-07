@@ -120,6 +120,9 @@ export interface ResponseEventResend {
 
 // CONFIG
 
+export type ThemeStyle = 'modern'|'formal'|'beautiful'|'fun'
+export type ThemeColor = {h:number, s:number, l:number}
+
 export interface DisplayerConfig {
     version:string
     responder:string
@@ -131,5 +134,6 @@ export interface DisplayerConfig {
     social_referral_ban:boolean
     resp_key_public:string
     reaction_options:string[]
-    theme_style:string
+    theme_style:ThemeStyle
+    theme_color:ThemeColor
 }

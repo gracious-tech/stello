@@ -42,7 +42,7 @@ div
                 app-list-item(@click='delete_draft' class='error--text')
                     | {{ draft.template ? "Delete template" : "Delete draft" }}
 
-    div.stello-displayer(v-if='draft' :class='displayer_classes')
+    div.stello-displayer(v-if='draft' :class='displayer_classes' :style='theme_style_props')
         draft-invite(v-if='profile' :draft='draft' :profile='profile'
             :suggestions='existing_images')
         shared-dark-toggle(v-model='dark_message')
@@ -74,6 +74,7 @@ import {sort} from '@/services/utils/arrays'
 import {Task} from '@/services/tasks/tasks'
 import {get_final_recipients} from '@/services/misc/recipients'
 import {lifespan_days_to_text} from '@/services/misc'
+import {gen_theme_style_props} from '@/shared/shared_theme'
 
 
 @Component({
@@ -187,6 +188,14 @@ export default class extends Vue {
     get theme_style(){
         // Get theme style setting for profile
         return this.profile?.options.theme_style ?? 'modern'
+    }
+
+    get theme_style_props(){
+        // CSS style props for theming message
+        const style = this.profile?.options.theme_style ?? 'modern'
+        const color = this.profile?.options.theme_color ??
+            self.app_db.profiles.get_default_theme_color()
+        return gen_theme_style_props(this.dark_message, style, color)
     }
 
     get displayer_classes(){

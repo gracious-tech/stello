@@ -45,6 +45,7 @@ export async function configs_update(task:Task){
             resp_key_public,
             reaction_options: profile.options.reaction_options,
             theme_style: profile.options.theme_style,
+            theme_color: profile.options.theme_color,
         }
         upload_displayer = encrypt_sym(
             string_to_utf8(JSON.stringify(config)),

@@ -114,7 +114,7 @@ export default defineComponent({
         .toolbar
                 display: flex
                 align-items: center
-                background-color: rgba(#777, 0.3)
+                background-color: var(--stello-hue-medium)
                 width: 100%
 
                 svg
@@ -127,7 +127,7 @@ export default defineComponent({
                     path
                         fill: currentColor
                     &:hover
-                        background-color: rgba(#777, 0.5)
+                        background-color: rgba(#000, 0.2)
 
                 h2
                     margin: 0

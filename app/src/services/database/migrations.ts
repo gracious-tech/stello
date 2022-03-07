@@ -177,8 +177,9 @@ export async function to_16(transaction:VersionChangeTransaction){
             // Remove old profiles that use beta system
             await cursor.delete()
         } else {
-            // Added theme_style option
+            // Add theme options
             cursor.value.options.theme_style = 'modern'
+            cursor.value.options.theme_color = {h: 210, s: 0.75, l: 0.5}
             await cursor.update(cursor.value)
         }
     }

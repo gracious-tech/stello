@@ -118,6 +118,7 @@ export interface RecordProfileSmtp {
 }
 
 export type ThemeStyle = 'modern'|'formal'|'beautiful'|'fun'
+export type ThemeColor = {h:number, s:number, l:number}  // HSL (0-360, 0-1, 0-1)
 
 export interface RecordProfileOptions {
     // Options that can't be changed per-message
@@ -136,6 +137,7 @@ export interface RecordProfileOptions {
     reply_invite_image:Blob  // Used for inheritance for replies instead of invite_image
     reply_invite_tmpl_email:string  // Used for inheritance for replies instead of invite_tmpl_email
     theme_style:ThemeStyle
+    theme_color:ThemeColor
 }
 
 

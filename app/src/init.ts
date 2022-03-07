@@ -189,6 +189,8 @@ const vuetify = new Vuetify({
             complete: {component: AppSVG, props: {name: 'icon_done'}},
             expand: {component: AppSVG, props: {name: 'icon_expand_more'}},
             clear: {component: AppSVG, props: {name: 'icon_clear'}},
+            unfold: {component: AppSVG, props: {name: 'icon_unfold_more'}},
+            success: {component: AppSVG, props: {name: 'icon_check_circle'}},
         },
     },
     lang: {

@@ -73,20 +73,20 @@ $stello_full_plus_sidebar: $stello_full_width + $stello_layout_width
         display: flex
         flex-direction: column
         justify-content: center  // Needed if min-height effective
-        background-color: var(--stello-primary-bg)
+        background-color: var(--stello-hue-medium)
         border-radius: var(--stello-radius)
         cursor: pointer
         min-height: 100px  // Ensure noticeable even if just single line headline
 
-        &.button
+        &.btn-text
             display: inline-flex
             min-height: auto
-            font-family: ui-sans-serif, system-ui, sans-serif
 
             .text
                 padding: 8px 16px
 
             .hline
+                font-family: ui-sans-serif, system-ui, sans-serif
                 min-width: 120px  // Minimum to be easily clickable
                 max-width: 280px  // Can't exceed half-width section space
                 font-size: 0.9em

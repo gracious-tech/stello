@@ -329,10 +329,10 @@ export default defineComponent({
         cursor: pointer
 
     .prev:hover
-        border-left: 2px solid #0088ff
+        border-left: 2px solid var(--stello-hue)
 
     .next:hover
-        border-right: 2px solid #0088ff
+        border-right: 2px solid var(--stello-hue)
 
 
 .thumbs

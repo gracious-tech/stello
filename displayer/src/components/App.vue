@@ -3,17 +3,24 @@
 
 //- NOTE tabindex makes app container focusable (-1 so only for JS use)
 //-      VERY important for iOS, otherwise clicking outside of response popup does not defocus popup
-div.stello-displayer(:class='classes' tabindex='-1')
+div.stello-displayer(:class='classes' :style='theme_style_props' tabindex='-1')
+
+    //- NOTE AppUnsubscribed Also used to show when account disabled
+    AppUnsubscribed
 
     SharedDarkToggle(:value='dark' @input='toggle_dark')
 
-    div.content
-        //- Don't insert new node until old gone (out-in) to avoid scrolling issues
-        transition(:name='transition' mode='out-in')
-            AppMessage.msg(v-if='current_msg' :key='current_msg.id')
-        //- This will only be shown if no hash and no history in db
-        //- e.g. Manually copied URL without hash, or refreshed browser that has no idb access
-        p.no_msg(v-if='!current_msg') Click original link to view message
+    //- Don't insert new node until old gone (out-in) to avoid scrolling issues
+    transition(:name='transition' mode='out-in')
+        div.content(:key='current_msg.id')
+            AppMessage.msg(v-if='current_msg')
+            //- This will only be shown if no hash and no history in db
+            //- e.g. Manually copied URL without hash, or refreshed browser that has no idb access
+            p.no_msg(v-if='!current_msg') Click original link to view message
+
+    AppHistory
+
+    AppFooter(:msg='msg')
 
     AppDialog
 
@@ -25,15 +32,19 @@ div.stello-displayer(:class='classes' tabindex='-1')
 import {computed, watch, onMounted, nextTick, defineComponent} from 'vue'
 
 import AppMessage from './AppMessage.vue'
+import AppHistory from './AppHistory.vue'
+import AppFooter from './AppFooter.vue'
+import AppUnsubscribed from './AppUnsubscribed.vue'
 import AppDialog from './AppDialog.vue'
 import SharedDarkToggle from '../shared/SharedDarkToggle.vue'
 import {store} from '../services/store'
 import {displayer_config} from '@/services/displayer_config'
+import {gen_theme_style_props} from '@/shared/shared_theme'
 
 
 export default defineComponent({
 
-    components: {AppMessage, SharedDarkToggle, AppDialog},
+    components: {AppMessage, SharedDarkToggle, AppDialog, AppUnsubscribed, AppHistory, AppFooter},
 
     setup(){
 
@@ -62,9 +73,11 @@ export default defineComponent({
                 // NOTE Can't use `dark` computed prop within another computed prop (non-reactive)
                 return {
                     dark: store.state.dict.dark,
-                    [`style-${displayer_config.theme_style}`]: true,
+                    [`style-${displayer_config.theme_style as string}`]: true,
                 }
             }),
+            theme_style_props: computed(() => gen_theme_style_props(store.state.dict.dark,
+                displayer_config.theme_style, displayer_config.theme_color)),
         }
     },
 })
@@ -107,7 +120,7 @@ export default defineComponent({
         transform: translateX(100%)
 
 
-.msg
+.content
     animation-duration: 200ms
     animation-timing-function: linear
 

@@ -8,13 +8,14 @@
 
     // VARIABLES
 
-    --stello-primary-fg: #0044ff
-    --stello-primary-bg: #0044ff88
-    @media screen
-        &.dark
-            --stello-primary-fg: #0088ff
-            --stello-primary-bg: #0088ff88
-    --stello-radius: 4px
+    // The following color vars are set via JS
+    // --stello-color --stello-bg
+    // --stello-hue --stello-hue-heavy --stello-hue-medium --stello-hue-light
+
+    // Radius
+    --stello-radius: 0
+    &.style-beautiful
+        --stello-radius: 4px
     &.style-modern
         --stello-radius: 8px
     &.style-fun
@@ -23,6 +24,7 @@
 
     // ROOT STYLES
 
+    padding-bottom: 100px
     line-height: 1.65
     overflow-wrap: break-word  // Prevent layout breaks due to long words (like URLs)
 
@@ -30,16 +32,23 @@
     @media (min-width: $stello_full_plus_sidebar)
         font-size: 21px
 
-    background-color: #eee
-    color: rgba(#000, 0.8)
-    &.dark
-        background-color: #111
-        color: rgba(#fff, 0.8)
+    background-color: var(--stello-bg)
+    background-repeat: repeat
+    background-attachment: local  // Bg moves the same as content does
+
+    // Hide all backgrounds and make pure black/white when printing
     @media print
+        background-image: none !important
         background-color: #fff !important
         color: #000 !important
 
-    // Font depends on style prop
+        .content
+            background-color: inherit !important
+            color: inherit !important
+
+
+    // FONT
+
     // Noto preferred, otherwise Roboto (Android), "Helvetica Neue" (Apple), and Arial (all)
     font-family: "Noto Sans", Roboto, "Helvetica Neue", Arial, sans-serif
     &.style-formal, &.style-beautiful
@@ -65,7 +74,14 @@
         box-sizing: content-box  // So that max-width is width of actual content, excluding padding
         margin-left: auto
         margin-right: auto
-        padding: $stello_gutter $stello_gutter 100px $stello_gutter
+        padding: $stello_gutter
+        border-radius: var(--stello-radius)
+        background-color: #eee
+        color: rgba(#000, 0.8)
+
+    &.dark .content
+        background-color: #111
+        color: rgba(#fff, 0.8)
 
     .srow
         display: flex
@@ -161,7 +177,7 @@
 
             &:hover:not([disabled])
                 opacity: 0.75
-                @include stello_themed_contained(background-color, #0002, #fff2)
+                background-color: var(--stello-hue-light)
 
             svg
                 min-width: 36px
@@ -224,6 +240,15 @@
     h2
         font-size: 1.25em  // Relative to container size (which changes by screen size)
 
+    // Caligraphy fonts have much more vertical padding due to long strokes which reduces size
+    &.style-beautiful
+        h1
+            font-size: 2.5em
+        h2
+            font-size: 2em
+        h1, h2
+            margin-bottom: 0.2em
+
     ul, ol
         // WARN Check .wrap-left list customisations when making changes
         padding-left: 2em  // Give root list extra padding to stand out from other text
@@ -259,7 +284,7 @@
         display: inline-flex
         align-items: center
         padding: 8px 16px
-        border-radius: calc(var(--stello-radius) / 2)
+        border-radius: var(--stello-radius)
         font-family: ui-sans-serif, system-ui, sans-serif
         font-size: 14px
         text-transform: uppercase
@@ -270,7 +295,7 @@
             opacity: 0.5
 
         &.s-primary:not(:disabled)
-            background-color: var(--stello-primary-bg)
+            background-color: var(--stello-hue-heavy)
 
     .btn-icon  // Avoid `button` so don't mess up editor Vuetify ones etc
         padding: 12px
@@ -291,7 +316,7 @@
         padding-left: 12px
 
     a
-        color: var(--stello-primary-fg)
+        color: var(--stello-hue)
         cursor: pointer  // Links without href are buttons
         text-decoration: none
         &:hover

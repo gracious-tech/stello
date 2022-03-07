@@ -3,7 +3,7 @@
 
 div.pagebait-editable
     p(class='caption opacity-secondary') Readers will click this to view the page
-    div.pagebait(:class='{button}')
+    div.pagebait(:class='{"btn-text": button, "s-primary": button}')
         div.image(v-show='!button' ref='image' @click='change_image')
         div.text
             //- NOTE maxlength is more than ideal (so not restrictive) but less than excessive

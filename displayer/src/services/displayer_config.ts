@@ -3,6 +3,7 @@ import {request} from './utils/http'
 import {partition} from './utils/strings'
 import {url64_to_buffer, utf8_to_string} from './utils/coding'
 import {import_key_asym, import_key_sym, decrypt_sym} from './utils/crypt'
+import {ThemeStyle} from '@/shared/shared_types'
 
 
 export const MSGS_URL =
@@ -26,7 +27,8 @@ class DisplayerConfigAccess {
     resp_key_public:CryptoKey|null = null
     // NOTE `reaction_options` didn't exist till after v0.4.1, so default needed for old configs
     reaction_options:string[] = ['like', 'love', 'yay', 'pray', 'laugh', 'wow', 'sad']
-    theme_style = 'modern'  // NOTE Didn't exist until after v1.0.11
+    theme_style:ThemeStyle = 'modern'  // NOTE Didn't exist until after v1.0.11
+    theme_color = {h: 210, s: 0.75, l: 0.5}  // NOTE Didn't exist until after v1.0.11
 
     async _load(config_secret_url64:string):Promise<void>{
         // Download and apply config

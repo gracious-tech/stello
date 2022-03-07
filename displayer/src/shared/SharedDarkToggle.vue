@@ -41,12 +41,9 @@ export default defineComponent({
 <style lang='sass' scoped>
 
 div
-    position: absolute
-    right: 0
-    margin: 12px
-    padding: 12px
+    text-align: right
+    padding: 24px
     opacity: 0.3
-    z-index: 100
 
     svg
         width: 24px

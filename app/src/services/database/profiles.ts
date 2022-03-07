@@ -356,6 +356,7 @@ export class DatabaseProfiles {
                     <p><span data-mention data-id='sender_name'></span> has replied to you.</p>
                 `,
                 theme_style: 'modern',
+                theme_color: this.get_default_theme_color(),
             },
             msg_options_identity: {
                 sender_name: '',
@@ -422,5 +423,10 @@ export class DatabaseProfiles {
 
         // Task done when transaction completes
         await transaction.done
+    }
+
+    get_default_theme_color(){
+        // Return default theme color object (a method so always new object)
+        return {h: 210, s: 0.75, l: 0.5}
     }
 }

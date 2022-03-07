@@ -145,8 +145,9 @@ test.describe('migrate', async () => {
         const new_profile = await db.get('profiles', 'new')
         expect(new_profile).toBeDefined()
 
-        // Expect theme_style option to be added
+        // Expect theme options to be added
         expect(new_profile?.options.theme_style).toBe('modern')
+        expect(new_profile?.options.theme_color).toEqual({h: 210, s: 0.75, l: 0.5})
 
         // Expect section_num/section_type properties to have been removed
         for (const store of ['replies', 'reactions'] as ('replies'|'reactions')[]){

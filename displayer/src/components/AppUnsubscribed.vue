@@ -40,13 +40,10 @@ export default defineComponent({
     text-align: center
 
     .alert
-        display: inline-block
         padding: 4px 12px
-        margin: 0 12px 36px 12px
         font-size: 16px
         background-color: #ffcc00
         color: rgba(black, 0.8)
-        border-radius: var(--stello-radius)
 
         a
             margin-left: 12px

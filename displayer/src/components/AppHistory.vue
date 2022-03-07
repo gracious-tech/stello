@@ -2,7 +2,6 @@
 <template lang='pug'>
 
 template(v-if='prev || next')
-    hr
     h2.title(class='ui') Other Messages
 
     div.history(class='ui')
@@ -78,10 +77,11 @@ export default defineComponent({
 
 <style lang='sass' scoped>
 
-hr
-    margin-top: 100px !important
+@import '../shared/shared_mixins'
+
 
 .title
+    margin-top: 50px !important
     text-align: center
     opacity: 0.8
     font-size: 14px !important
@@ -89,6 +89,8 @@ hr
 .history
     display: flex
     justify-content: space-between
+    max-width: $stello_content_width
+    margin: 0 auto
 
     .prev, .next
         display: flex
@@ -100,6 +102,8 @@ hr
 
         a
             cursor: pointer
+            font-weight: bold
+            color: inherit
 
     .prev
         align-items: flex-start

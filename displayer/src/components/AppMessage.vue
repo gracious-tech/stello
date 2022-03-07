@@ -2,8 +2,6 @@
 <template lang='pug'>
 
 div
-    //- NOTE AppUnsubscribed Also used to show when account disabled
-    AppUnsubscribed
 
     MessageContents(v-if='msg' :sections='msg.sections')
     MessagePage
@@ -19,10 +17,6 @@ div
             button(v-if='fix_desc' @click='fix' class='btn-text s-primary') {{ fix_desc }}
         AppProgress(v-else)
 
-    AppHistory
-
-    AppFooter(:msg='msg')
-
 </template>
 
 
@@ -30,9 +24,6 @@ div
 
 import {ref, provide, defineComponent} from 'vue'
 
-import AppFooter from './AppFooter.vue'
-import AppHistory from './AppHistory.vue'
-import AppUnsubscribed from './AppUnsubscribed.vue'
 import DialogResend from './DialogResend.vue'
 import MessageContents from './MessageContents.vue'
 import MessagePage from './MessagePage.vue'
@@ -49,8 +40,7 @@ import {GetAsset} from '@/services/types'
 
 export default defineComponent({
 
-    components: {MessageContents, MessagePage, MessageReply, AppHistory, AppFooter,
-        AppUnsubscribed},
+    components: {MessageContents, MessagePage, MessageReply},
 
     setup(){
 
