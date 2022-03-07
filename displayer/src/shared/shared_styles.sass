@@ -75,9 +75,11 @@
         margin-left: auto
         margin-right: auto
         padding: $stello_gutter
-        border-radius: var(--stello-radius)
         background-color: #eee
         color: rgba(#000, 0.8)
+
+        @media (min-width: $stello_full_plus_sidebar)
+            border-radius: var(--stello-radius)
 
     &.dark .content
         background-color: #111
