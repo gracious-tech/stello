@@ -91,6 +91,7 @@ export default defineComponent({
     justify-content: space-between
     max-width: $stello_content_width
     margin: 0 auto
+    padding: 0 24px
 
     .prev, .next
         display: flex
