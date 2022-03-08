@@ -48,5 +48,7 @@ export function gen_theme_style_props(dark:boolean, style:'modern'|'formal'|'bea
         '--stello-hue-light': hsl_to_string(color.h, 0.75, 0.5, 0.2),
         // Background image with appropriate pattern for style
         'background-image': `url(${backgrounds[style]})`,
+        // Out-of-content text needs to contrast with whatever bg color is
+        'color': bg_lightness < 0.5 ? 'white' : 'black',
     }
 }
