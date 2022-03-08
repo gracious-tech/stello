@@ -73,7 +73,7 @@ export default defineComponent({
     setup(props){
 
         // Static (component re-rendered for each new message)
-        const current_msg = store.state.current_msg!
+        const msg = store.state.msg!
 
         // Generic
         const have_hovered = ref(false)  // Don't create popup DOM until needed
@@ -121,7 +121,7 @@ export default defineComponent({
             // Try send comment
             reply_success.value = null
             reply_waiting.value = true
-            reply_success.value = await respond_reply(current_msg.resp_token, text, section,
+            reply_success.value = await respond_reply(msg.resp_token, text, section,
                 subsection)
             reply_waiting.value = false
 
@@ -134,7 +134,7 @@ export default defineComponent({
 
                 // Record in db
                 replies.value.push(new Date())
-                void database.reply_add(current_msg.id, section, subsection)
+                void database.reply_add(msg.id, section, subsection)
 
                 // Blur focus so popup disappears (if not hovered)
                 // @ts-ignore blur is a valid method
@@ -151,7 +151,7 @@ export default defineComponent({
 
         watch(props, async () => {
             // Get reply dates from db
-            replies.value = await database.reply_list(current_msg.id, props.section.id,
+            replies.value = await database.reply_list(msg.id, props.section.id,
                 props.subsection)
         }, {immediate: true})
 
@@ -184,7 +184,7 @@ export default defineComponent({
             chosen_reaction.value = type
 
             // Submit request
-            const result = await respond_reaction(current_msg.resp_token, type, props.section.id,
+            const result = await respond_reaction(msg.resp_token, type, props.section.id,
                 props.subsection)
 
             // Deal with result
@@ -193,7 +193,7 @@ export default defineComponent({
                 if (type === null){
                     void database.reaction_remove(subsect_id.value)
                 } else {
-                    void database.reaction_set(current_msg.id, props.section.id, props.subsection,
+                    void database.reaction_set(msg.id, props.section.id, props.subsection,
                         type)
                 }
             } else {

@@ -47,7 +47,7 @@ export default defineComponent({
         const change = async () => {
             progress.value = true
             error.value = false
-            const token = store.state.current_msg!.resp_token
+            const token = store.state.msg!.resp_token
             if (await respond_address(token, address.value, props.encrypted_address)){
                 close()
             } else {

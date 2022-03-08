@@ -11,16 +11,17 @@ div.stello-displayer(:class='classes' :style='theme_style_props' tabindex='-1')
     SharedDarkToggle(:value='dark' @input='toggle_dark')
 
     //- Don't insert new node until old gone (out-in) to avoid scrolling issues
-    transition(:name='transition' mode='out-in')
-        div.content(:key='current_msg.id')
-            AppMessage.msg(v-if='current_msg')
-            //- This will only be shown if no hash and no history in db
-            //- e.g. Manually copied URL without hash, or refreshed browser that has no idb access
-            p.no_msg(v-if='!current_msg') Click original link to view message
+    transition(v-if='msg' :name='transition' mode='out-in')
+        div.content(:key='msg.id')
+            AppMessage
+
+    //- This will only be shown if no hash and no history in db
+    //- e.g. Manually copied URL without hash, or refreshed browser that has no idb access
+    h1.no_msg(v-else) Click original link to view message
 
     AppHistory
 
-    AppFooter(:msg='msg')
+    AppFooter
 
     AppDialog
 
@@ -57,8 +58,9 @@ export default defineComponent({
             watch(dark, async () => {
                 await nextTick()  // Wait for container style to change before knowing new value
                 const container = self.document.querySelector('.stello-displayer')!
-                const bg = self.getComputedStyle(container).backgroundColor
-                self.document.documentElement.style.backgroundColor = bg
+                const styles = self.getComputedStyle(container)
+                self.document.documentElement.style.backgroundColor = styles.backgroundColor
+                self.document.documentElement.style.backgroundImage = styles.backgroundImage
             }, {immediate: true})
         })
 
@@ -68,7 +70,7 @@ export default defineComponent({
             toggle_dark: () => {
                 store.toggle_dark()
             },
-            current_msg: computed(() => store.state.current_msg),
+            msg: computed(() => store.state.msg),
             classes: computed(() => {
                 // NOTE Can't use `dark` computed prop within another computed prop (non-reactive)
                 return {
@@ -90,6 +92,7 @@ export default defineComponent({
 
 .no_msg
     text-align: center
+    margin: 100px 48px !important
 
 
 // Prev/next transition animations

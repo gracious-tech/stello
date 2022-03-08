@@ -9,12 +9,11 @@ SharedSlideshow(:images='images' :aspect='ratio' @img_click='$emit("fullscreen")
 
 <script lang='ts'>
 
-import {ref, reactive, inject, PropType, Ref, defineComponent} from 'vue'
+import {ref, reactive, PropType, defineComponent} from 'vue'
 
 import SharedSlideshow from '../shared/SharedSlideshow.vue'
 import {store} from '../services/store'
 import {buffer_to_blob} from '../services/utils/coding'
-import {GetAsset} from '../services/types'
 import type {PublishedContentImages} from '../shared/shared_types'
 
 
@@ -43,9 +42,6 @@ export default defineComponent({
 
     setup(props, {emit}){
 
-        // Injections
-        const get_asset = inject('get_asset') as Ref<GetAsset>
-
         // Create ref for images
         const images = ref<SlideshowImage[]>([])
 
@@ -71,7 +67,7 @@ export default defineComponent({
 
             // Get the asset's data
             const asset_id = image_id + (asset_type === 'jpeg' ? 'j' : '')
-            void get_asset.value(asset_id).then(decrypted => {
+            void store.get_asset(asset_id).then(decrypted => {
                 if (decrypted){
                     image.data = buffer_to_blob(decrypted, `image/${asset_type}`)
                 }

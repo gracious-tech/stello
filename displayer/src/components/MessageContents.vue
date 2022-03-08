@@ -10,7 +10,7 @@ MessageContentsRow(v-for='(row, i) of floatified_rows' :row='row' :zindex='99 - 
 
 <script lang='ts'>
 
-import {computed, PropType, defineComponent} from 'vue'
+import {computed, PropType, defineComponent, DeepReadonly} from 'vue'
 
 import MessageContentsRow from './MessageContentsRow.vue'
 import {PublishedSections} from '../shared/shared_types'
@@ -23,7 +23,7 @@ export default defineComponent({
 
     props: {
         sections: {
-            type: Array as PropType<PublishedSections>,
+            type: Array as PropType<DeepReadonly<PublishedSections>>,
             required: true,
         },
     },
@@ -31,7 +31,7 @@ export default defineComponent({
     setup(props){
         const floatified_rows = computed(() => {
             // Return rows of sections data and how to display them
-            return floatify_rows(props.sections)
+            return floatify_rows(props.sections as PublishedSections)  // Doesn't like readonly
         })
         return {
             floatified_rows,

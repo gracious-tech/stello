@@ -47,7 +47,7 @@ export default defineComponent({
         const last_sent_contents = ref<string|null>(null)
 
         // Static (component re-rendered for each message)
-        const current_msg = store.state.current_msg!
+        const msg = store.state.msg!
 
         // Computed
         const allow_replies = computed(() => displayer_config.allow_replies)
@@ -79,20 +79,20 @@ export default defineComponent({
 
             // Try send
             waiting.value = true
-            success.value = await respond_reply(current_msg.resp_token, cached_text, null, null)
+            success.value = await respond_reply(msg.resp_token, cached_text, null, null)
             waiting.value = false
 
             // Handle success
             if (success.value){
                 last_sent_contents.value = cached_text
                 text.value = ''
-                void database.reply_add(current_msg.id, null, null)
+                void database.reply_add(msg.id, null, null)
                 replies.value.push(new Date())
             }
         }
 
         // Fetch previous replies
-        void database.reply_list(current_msg.id, null, null).then(dates => {
+        void database.reply_list(msg.id, null, null).then(dates => {
             replies.value = dates
         })
 

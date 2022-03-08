@@ -17,10 +17,11 @@ transition(appear)
 
 <script lang='ts'>
 
-import {watch, inject, defineComponent, Ref, ref} from 'vue'
+import {watch, computed, defineComponent, ref, DeepReadonly} from 'vue'
 
 import MessageContents from '@/components/MessageContents.vue'
 import {PublishedContentPage, PublishedSection} from '@/shared/shared_types'
+import {store} from '@/services/store'
 
 
 export default defineComponent({
@@ -29,17 +30,22 @@ export default defineComponent({
 
     setup(){
 
-        // Inject page
-        const page = inject('page') as Ref<PublishedSection<PublishedContentPage>|null>
-        const parents:PublishedSection<PublishedContentPage>[] = []
+        const page = computed(() => store.state.msg!.page)
+        const parents:DeepReadonly<PublishedSection<PublishedContentPage>>[] = []
         const transition = ref<'in'|'out'>('in')
 
         // Changing page methods
         const close = () => {
-            page.value = null
+            store.change_page(null)
         }
         const back = () => {
-            page.value = parents.slice(-1)[0] ?? null
+            const prev_page = parents.slice(-1)[0]
+            if (!prev_page){
+                close()
+            } else {
+                // NOTE Must type cask to avoid warnings about readonly
+                store.change_page(prev_page as PublishedSection<PublishedContentPage>)
+            }
         }
 
         // React to page changes

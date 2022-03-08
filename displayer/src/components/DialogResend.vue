@@ -30,8 +30,8 @@ export default defineComponent({
         // NOTE If message deleted, title won't be available in the app, so this could help
         // SECURITY Title can not be authenticated, so including as part of user's message only
         let title = "this message"
-        if (store.state.current_msg!.title){
-            title = '"' + store.state.current_msg!.title + '"'
+        if (store.state.msg!.title){
+            title = '"' + store.state.msg!.title + '"'
         }
 
         // Placeholders
@@ -55,7 +55,7 @@ export default defineComponent({
         const send = async () => {
             progress.value = true
             error.value = false
-            if (await respond_resend(store.state.current_msg!.resp_token, reason.value)){
+            if (await respond_resend(store.state.msg!.resp_token, reason.value)){
                 close()
             } else {
                 error.value = true

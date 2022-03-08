@@ -8,12 +8,11 @@ SharedPagebait(:button='button' :headline='headline' :desc='desc' :image='image'
 
 <script lang='ts'>
 
-import {ref, inject, PropType, Ref, defineComponent, computed} from 'vue'
+import {ref, PropType, defineComponent, computed} from 'vue'
 
 import SharedPagebait from '../shared/SharedPagebait.vue'
 import {store} from '../services/store'
 import {buffer_to_blob} from '../services/utils/coding'
-import {GetAsset} from '../services/types'
 import type {PublishedContentPage, PublishedSection} from '../shared/shared_types'
 
 
@@ -34,18 +33,16 @@ export default defineComponent({
         const page = props.page as PublishedSection<PublishedContentPage>
 
         // Opening the page
-        const current_page = inject('page') as Ref<PublishedSection<PublishedContentPage>|null>
         const open_page = () => {
-            current_page.value = page
+            store.change_page(page)
         }
 
         // Get image (if exists)
-        const get_asset = inject('get_asset') as Ref<GetAsset>
         const image = ref<Blob|null>(null)
         if (page.content.image){
             const asset_type = store.state.webp_supported ? 'webp' : 'jpeg'
             const asset_id = page.content.image + (asset_type === 'jpeg' ? 'j' : '')
-            void get_asset.value(asset_id).then(decrypted => {
+            void store.get_asset(asset_id).then(decrypted => {
                 if (decrypted){
                     image.value = buffer_to_blob(decrypted, `image/${asset_type}`)
                 }

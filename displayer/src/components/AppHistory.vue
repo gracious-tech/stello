@@ -28,7 +28,7 @@ export default defineComponent({
 
         // Reactive access to index of current message in history
         const current = computed(() => {
-            const i = store.state.history.findIndex(item => item.id === store.state.current_msg?.id)
+            const i = store.state.history.findIndex(item => item.id === store.state.msg?.id)
             return i === -1 ? null : i
         })
 
@@ -45,7 +45,7 @@ export default defineComponent({
                 date: item.published.toLocaleDateString(),
                 load: () => {
                     store.change_transition('prev')
-                    void store.change_current_msg(item.id, item.secret_url64, item.title,
+                    void store.change_msg(item.id, item.secret_url64, item.title,
                         item.published)
                 },
             }
@@ -61,7 +61,7 @@ export default defineComponent({
                 date: item.published.toLocaleDateString(),
                 load: () => {
                     store.change_transition('next')
-                    void store.change_current_msg(item.id, item.secret_url64, item.title,
+                    void store.change_msg(item.id, item.secret_url64, item.title,
                         item.published)
                 },
             }
