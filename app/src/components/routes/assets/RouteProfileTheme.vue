@@ -123,8 +123,4 @@ export default class extends Vue {
     .content
         margin: 0
 
-        ::v-deep svg h1
-            // Override hero heading positioning as example image is abnormally short height
-            margin: 40px
-
 </style>

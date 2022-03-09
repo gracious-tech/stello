@@ -1,7 +1,7 @@
 
 <template lang='pug'>
 
-svg(:viewBox='view_box' @click='$emit("click")')
+svg(:viewBox='view_box' :class='{first}' @click='$emit("click")')
     g(:clip-path='first ? clip_path : clip_path_both')
         //- NOTE preserveAspectRatio not necessary since component already preserves ratio of image
         //-      However that might change, so leaving as safeguard (similar to css' size "cover")
@@ -107,7 +107,7 @@ svg
         font-size: 80px
         display: inline-block
         padding: 12px 24px
-        margin: 100px 48px
+        margin: 100px 48px  // Top margin must be enough to avoid top clipping
         line-height: 1.25
         color: white !important
         background-color: var(--stello-hue-hero)
@@ -118,5 +118,9 @@ svg
             font-size: 130px
             line-height: 0.8
             padding: 36px 24px
+
+    &.first
+        h1
+            margin: 48px  // No top clipping so normal margin
 
 </style>
