@@ -4,7 +4,9 @@
 div
     v-toolbar
         app-btn(to='../' icon='arrow_back')
-        v-toolbar-title Page editor
+        v-toolbar-title(class='d-flex')
+            span {{ pages_title }}
+            span(class='ellipsis pl-2') {{ draft_title }}
         v-spacer
         app-menu-more
             app-list-item(@click='delete_page' class='error--text') Delete page
@@ -55,6 +57,16 @@ export default class extends Vue {
         // Get id of parent page (or null if main message)
         const parent = this.$route.path.split('/').at(-3)
         return parent === this.draft_id ? null : parent
+    }
+
+    get draft_title(){
+        return this.draft?.title ? `“${this.draft.title}”` : "draft"
+    }
+
+    get pages_title(){
+        // Repeated "Page of page of..." depending on how many levels deep
+        const levels = this.$route.path.split('/drafts/')[1]!.split('/').length - 2
+        return "Page of ".repeat(levels)
     }
 
     get dark_message(){
