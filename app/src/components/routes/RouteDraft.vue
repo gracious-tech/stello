@@ -194,10 +194,9 @@ export default class extends Vue {
 
     get theme_style_props(){
         // CSS style props for theming message
-        const style = this.profile?.options.theme_style ?? 'modern'
         const color = this.profile?.options.theme_color ??
             self.app_db.profiles.get_default_theme_color()
-        return gen_theme_style_props(this.dark_message, style, color)
+        return gen_theme_style_props(this.dark_message, this.theme_style, color)
     }
 
     get displayer_classes(){
