@@ -179,7 +179,7 @@ export async function to_16(transaction:VersionChangeTransaction){
         } else {
             // Add theme options
             cursor.value.options.theme_style = 'modern'
-            cursor.value.options.theme_color = {h: 210, s: 0.75, l: 0.5}
+            cursor.value.options.theme_color = {h: 210, s: 0.75, l: 0.75}
             await cursor.update(cursor.value)
         }
     }

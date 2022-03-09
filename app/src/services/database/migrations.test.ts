@@ -149,7 +149,7 @@ test.describe('migrate', async () => {
 
         // Expect theme options to be added
         expect(new_profile?.options.theme_style).toBe('modern')
-        expect(new_profile?.options.theme_color).toEqual({h: 210, s: 0.75, l: 0.5})
+        expect(new_profile?.options.theme_color).toEqual({h: 210, s: 0.75, l: 0.75})
 
         // Expect section_num/section_type properties to have been removed
         for (const store of ['replies', 'reactions'] as ('replies'|'reactions')[]){

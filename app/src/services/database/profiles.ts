@@ -427,6 +427,6 @@ export class DatabaseProfiles {
 
     get_default_theme_color(){
         // Return default theme color object (a method so always new object)
-        return {h: 210, s: 0.75, l: 0.5}
+        return {h: 210, s: 0.75, l: 0.75}
     }
 }

@@ -28,7 +28,7 @@ class DisplayerConfigAccess {
     // NOTE `reaction_options` didn't exist till after v0.4.1, so default needed for old configs
     reaction_options:string[] = ['like', 'love', 'yay', 'pray', 'laugh', 'wow', 'sad']
     theme_style:ThemeStyle = 'modern'  // NOTE Didn't exist until after v1.0.11
-    theme_color = {h: 210, s: 0.75, l: 0.5}  // NOTE Didn't exist until after v1.0.11
+    theme_color = {h: 210, s: 0.75, l: 0.75}  // NOTE Didn't exist until after v1.0.11
 
     async _load(config_secret_url64:string):Promise<void>{
         // Download and apply config
