@@ -3,8 +3,9 @@
 
 div(class='my-5')
     div(class='d-flex align-center mb-3')
-        div(class='flex text-center')
-            shared-hero(v-if='section.is_hero' :image='item' :theme_style='theme_style')
+        div(class='flex d-flex justify-center')
+            shared-hero.hero(v-if='section.is_hero' :image='item' :theme_style='theme_style'
+                :first='false' :class='`style-${theme_style}`' :style='theme_style_props')
             div.displayer(v-else :style='displayer_styles' :class='{multiple}')
                 img.sizer(:src='sizer_src')
         div(class='d-flex flex-column')
@@ -26,6 +27,7 @@ import SharedHero from '@/shared/SharedHero.vue'
 import {Section} from '@/services/database/sections'
 import {ContentImages} from '@/services/database/types'
 import {Profile} from '@/services/database/profiles'
+import {gen_theme_style_props} from '@/shared/shared_theme'
 
 
 @Component({
@@ -86,6 +88,14 @@ export default class extends Vue {
         return this.profile?.options.theme_style ?? 'modern'
     }
 
+    get theme_style_props(){
+        // Provide access to theme vars so hero can use them
+        // NOTE dark prop doesn't affect anything in hero since only the hue is used
+        const color = this.profile?.options.theme_color
+            ?? self.app_db.profiles.get_default_theme_color()
+        return gen_theme_style_props(false, this.theme_style, color)
+    }
+
     move_up(){
         // Move this image up in the set
         const prev_item = this.section.content.images[this.item_index - 1]
@@ -113,6 +123,13 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+@import 'src/shared/shared_mixins'
+
+.hero
+    // Provide hero with same styles it would have within a .stello-displayer class
+    @include stello_vars
+    ::v-deep h1
+        font-family: var(--stello-font-headings)
 
 .displayer
     display: inline-block
@@ -123,10 +140,12 @@ export default class extends Vue {
         background-color: black
 
 .sizer
-    width: 100%
-    max-width: 300px
     margin: 0 auto
     position: relative
     left: -99999px
+
+.sizer, .hero
+    width: 100%
+    max-height: 300px
 
 </style>

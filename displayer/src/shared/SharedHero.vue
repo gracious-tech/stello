@@ -6,7 +6,7 @@ svg(:viewBox='view_box' :class='{first}' @click='$emit("click")')
         //- NOTE preserveAspectRatio not necessary since component already preserves ratio of image
         //-      However that might change, so leaving as safeguard (similar to css' size "cover")
         image(:href='image_url' width='100%' height='100%' preserveAspectRatio='xMidYMid slice')
-        foreignObject(width='100%' height='100%')
+        foreignObject(v-if='image.caption' width='100%' height='100%')
             h1(:class='`style-${theme_style}`') {{ image.caption }}
 
 </template>
