@@ -2,7 +2,7 @@
 <template lang='pug'>
 
 div.addbar(:class='{visible}')
-    span.prompt(v-if='visible' class='noselect') Add a section
+    p.prompt(v-if='visible' class='noselect') Add a section
     app-btn.plus(icon='add')
     div.buttons
         app-btn(@click='add_text' icon='subject' data-tip="Add text")
@@ -55,6 +55,7 @@ export default class extends Vue {
 
     .prompt
         opacity: 0.6
+        padding-top: 36px
 
     .plus
         opacity: 0.15
