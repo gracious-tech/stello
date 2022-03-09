@@ -16,8 +16,8 @@ div
     div.stello-displayer(:style='theme_style_props' :class='`style-${theme_style}`'
             class='px-4 pt-4 pb-16')
         div.content
-            h1 Your message will look like this
-            p
+            shared-hero(v-if='hero.data' :image='hero' :theme_style='theme_style' :first='true')
+            p(class='my-4 mx-6')
                 | Style affects the font of headings and paragraphs, as well as more subtle
                 | elements such as the rounding of corners and shape of some sections.
                 | The color chosen will be used as the background color, and other elements
@@ -33,16 +33,20 @@ div
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
+import SharedHero from '@/shared/SharedHero.vue'
 import {Profile} from '@/services/database/profiles'
 import {gen_theme_style_props} from '@/shared/shared_theme'
 import {debounce_set} from '@/services/misc'
 
 
-@Component({})
+@Component({
+    components: {SharedHero},
+})
 export default class extends Vue {
 
     @Prop({type: Profile, required: true}) declare readonly profile:Profile
 
+    hero_image:Blob|null = null
     custom_color = false
     theme_style_items = [
         {value: 'modern', text: "Modern"},
@@ -63,9 +67,25 @@ export default class extends Vue {
         ['#bcaaa4', '#795548', '#3e2723'],
     ]
 
+    async created(){
+        // Load example image for use in hero
+        this.hero_image = new Blob(
+            [await self.app_native.read_file('default_invite_image.jpg')],
+            {type: 'image/jpeg'},
+        )
+    }
+
     get theme_style_props(){
         // CSS style props for theme (forcing non-dark since dark bg sometimes not same as chosen)
         return gen_theme_style_props(false, this.theme_style, this.theme_color)
+    }
+
+    get hero(){
+        // Example data for hero component
+        return {
+            data: this.hero_image,
+            caption: "How it will look",
+        }
     }
 
     get theme_style(){
@@ -101,6 +121,10 @@ export default class extends Vue {
     font-size: 16px
 
     .content
-        padding: 12px 24px
+        margin: 0
+
+        ::v-deep svg h1
+            // Override hero heading positioning as example image is abnormally short height
+            margin: 40px
 
 </style>
