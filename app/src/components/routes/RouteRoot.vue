@@ -61,16 +61,16 @@ export default class extends Vue {
 
     added = [
         {
-            title: `"message.quest" has changed to "encrypted.news"`,
-            desc: "If you have non-branded links enabled they will use the new address",
+            title: `Customise message color and style`,
+            desc: "New options available in sending accounts",
         },
         {
-            title: "Identify disengaged contacts",
-            desc: "See which contacts haven't been reading any messages for a while",
+            title: "Add pages to messages",
+            desc: "Turn your message into a news site with articles and subpages",
         },
         {
-            title: "Image headers for emails",
-            desc: "Add an image to your emails (encrypted and expires with message)",
+            title: "Create a banner image",
+            desc: "Single images can be turned into banners with text overlayed",
         },
     ]
     todo = [
@@ -79,16 +79,16 @@ export default class extends Vue {
             desc: "Access Stello from a phone or another computer",
         },
         {
-            title: "Message theme colors and backgrounds",
-            desc: "Change the general style of messages to match your content",
-        },
-        {
             title: "Encrypted videos",
             desc: "Add videos directly rather than using third-party sites like Youtube",
         },
         {
             title: "File attachments",
             desc: "Add encrypted files to your messages for readers to open/download",
+        },
+        {
+            title: "Quick reply to responses",
+            desc: "Send replies without leaving the list of responses",
         },
         {
             title: "Dashboard insights",
