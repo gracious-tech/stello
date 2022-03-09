@@ -9,7 +9,7 @@ div
         app-menu-more
             app-list-item(@click='delete_page' class='error--text') Delete page
 
-    div.stello-displayer(v-if='draft' :class='displayer_classes')
+    div.stello-displayer(v-if='draft' :class='displayer_classes' :style='theme_style_props')
         draft-pagebait-editable(:page='page' :suggestions='existing_images')
         draft-content(ref='content' :draft='draft' :sections='sections' :profile='profile'
             @save='save')
@@ -31,6 +31,7 @@ import {Section} from '@/services/database/sections'
 import {ContentPage} from '@/services/database/types'
 import {Profile} from '@/services/database/profiles'
 import {rm_section_id} from '@/services/database/utils'
+import {gen_theme_style_props} from '@/shared/shared_theme'
 
 
 @Component({
@@ -63,6 +64,13 @@ export default class extends Vue {
     get theme_style(){
         // Get theme style setting for profile
         return this.profile?.options.theme_style ?? 'modern'
+    }
+
+    get theme_style_props(){
+        // CSS style props for theming message
+        const color = this.profile?.options.theme_color ??
+            self.app_db.profiles.get_default_theme_color()
+        return gen_theme_style_props(this.dark_message, this.theme_style, color)
     }
 
     get displayer_classes(){
