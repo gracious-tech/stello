@@ -135,6 +135,8 @@ test.describe('migrate', async () => {
             expect(record).toHaveProperty('section_num')
             expect(record).toHaveProperty('section_type')
         }
+        await db.put('sections', {id: 'images', content: {type: 'images'}} as any)
+        await db.put('sections', {id: 'video', content: {type: 'video'}} as any)
 
         // Migrate
         db.close()
@@ -155,6 +157,10 @@ test.describe('migrate', async () => {
             expect(record).not.toHaveProperty('section_num')
             expect(record).not.toHaveProperty('section_type')
         }
+
+        // Expect hero prop to be added to image sections
+        expect((await db.get('sections', 'images'))!.content).toHaveProperty('hero')
+        expect((await db.get('sections', 'video'))!.content).not.toHaveProperty('hero')
     })
 
 })

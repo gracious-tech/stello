@@ -39,6 +39,7 @@ div
                 app-btn(@click='create_profile') Create account to send
 
             app-menu-more
+                app-list-item(v-if='profile' @click='show_theme_dialog') Change appearance
                 app-list-item(@click='delete_draft' class='error--text')
                     | {{ draft.template ? "Delete template" : "Delete draft" }}
 
@@ -64,6 +65,7 @@ import DraftInvite from './assets/DraftInvite.vue'
 import DialogDraftProfile from '@/components/dialogs/DialogDraftProfile.vue'
 import DialogDraftRecipients from '@/components/dialogs/DialogDraftRecipients.vue'
 import DialogDraftSecurity from '@/components/dialogs/DialogDraftSecurity.vue'
+import DialogProfileTheme from '@/components/dialogs/reuseable/DialogProfileTheme.vue'
 import SharedDarkToggle from '@/shared/SharedDarkToggle.vue'
 import {Draft} from '@/services/database/drafts'
 import {Profile} from '@/services/database/profiles'
@@ -322,6 +324,14 @@ export default class extends Vue {
         void this.$store.dispatch('show_dialog', {
             component: DialogDraftSecurity,
             props: {draft: this.draft, profile: this.profile},
+        })
+    }
+
+    show_theme_dialog(){
+        // Open dialog for modifying profile theme
+        void this.$store.dispatch('show_dialog', {
+            component: DialogProfileTheme,
+            props: {profile: this.profile},
         })
     }
 

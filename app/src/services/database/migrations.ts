@@ -195,4 +195,12 @@ export async function to_16(transaction:VersionChangeTransaction){
         delete (cursor.value as unknown as {section_type?:string}).section_type
         await cursor.update(cursor.value)
     }
+
+    // Added hero property to image sections
+    for await (const cursor of transaction.objectStore('sections')){
+        if (cursor.value.content.type === 'images'){
+            cursor.value.content.hero = false
+        }
+        await cursor.update(cursor.value)
+    }
 }

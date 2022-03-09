@@ -46,6 +46,8 @@ export function gen_theme_style_props(dark:boolean, style:'modern'|'formal'|'bea
         '--stello-hue-heavy': hsl_to_string(color.h, 0.75, 0.5, 0.8),
         '--stello-hue-medium': hsl_to_string(color.h, 0.75, 0.5, 0.5),
         '--stello-hue-light': hsl_to_string(color.h, 0.75, 0.5, 0.2),
+        // Special hue for hero images that works well over any image/colors with white text
+        '--stello-hue-hero': hsl_to_string(color.h, 0.75, 0.2, 0.5),
         // Background image with appropriate pattern for style
         'background-image': `url(${backgrounds[style]})`,
         // Out-of-content text needs to contrast with whatever bg color is

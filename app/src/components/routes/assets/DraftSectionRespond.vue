@@ -62,6 +62,9 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+.respondbar:not(.respondable)
+    margin: 0  // Reduce space taken up since won't exist when published
+
 .show:not(:hover)
     opacity: 0.3
 

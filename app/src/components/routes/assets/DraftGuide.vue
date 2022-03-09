@@ -1,3 +1,5 @@
+<!-- eslint-disable max-len -- Lots of text that needs to wrap -->
+
 
 <template lang='pug'>
 
@@ -96,8 +98,11 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+@import 'src/shared/shared_mixins'
+
+
 .root
-    margin-top: 100px
+    margin: 100px $stello_gutter 50px $stello_gutter
 
     .decor_compose
         max-width: 500px

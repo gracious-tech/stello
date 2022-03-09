@@ -73,7 +73,7 @@ export default class extends Vue {
     }
     set theme_style(value){
         this.profile.options.theme_style = value
-        this.$emit('save', true)
+        this.save()
     }
 
     get theme_color(){
@@ -81,7 +81,13 @@ export default class extends Vue {
     }
     @debounce_set(100) set theme_color(value){
         this.profile.options.theme_color = {h: value.h, s: value.s, l: value.l}
-        this.$emit('save', true)
+        this.save()
+    }
+
+    save(){
+        // Save changes to profile
+        this.profile.host_state.displayer_config_uploaded = false
+        void self.app_db.profiles.set(this.profile)
     }
 
 }

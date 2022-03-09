@@ -70,7 +70,7 @@ div
         h2 Message appearance
         v-card
             v-card-text
-                route-profile-theme(:profile='profile' @save='save')
+                route-profile-theme(:profile='profile')
 
 
         //- NOTE Identity section at end since takes up the most room

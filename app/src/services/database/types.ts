@@ -195,6 +195,7 @@ export interface ContentImages {
     type:'images'
     images:ContentImageItem[]
     crop:boolean
+    hero:boolean
 }
 
 export interface ContentImageItem {

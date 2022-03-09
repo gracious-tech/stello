@@ -6,12 +6,15 @@ export interface SectionLike {
     content:{
         type:string,
         standout?:string|null,
+        images?:unknown[]
+        hero?:boolean
     }
 }
 
 export interface RowDisplay<T> {
     display:string
     sections:T[]
+    hero:boolean
 }
 
 
@@ -28,6 +31,8 @@ export function floatify_rows<T extends SectionLike>(rows:([T]|[T, T])[]):RowDis
             return {
                 display: 'single',
                 sections: [first],
+                hero: first.content.type === 'images' && first.content.images!.length === 1 &&
+                    first.content.hero!,
             }
         }
 
@@ -41,12 +46,14 @@ export function floatify_rows<T extends SectionLike>(rows:([T]|[T, T])[]):RowDis
             return {
                 display: 'wrap-right',
                 sections: [second, first],
+                hero: false,
             }
         }
 
         return {
             display: is_plain(second) ? 'wrap-left' : 'parallel',
             sections: [first, second],
+            hero: false,
         }
     })
 }

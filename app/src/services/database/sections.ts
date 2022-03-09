@@ -38,6 +38,12 @@ export class Section<TContent
         // Boolean for whether section is text without any standout
         return this.content.type === 'text' && !this.content.standout
     }
+
+    get is_hero():boolean{
+        // Whether section is an image hero
+        return this.content.type === 'images' && this.content.images.length === 1
+            && this.content.hero
+    }
 }
 
 
@@ -93,6 +99,7 @@ export class DatabaseSections {
                 type,
                 images: [],
                 crop: true,
+                hero: false,
             }
         } else if (type === 'video'){
             content = {

@@ -6,12 +6,12 @@ v-card
     v-card-title
         app-file(@input='add_files' accept='image/*' multiple) Select image
         app-btn(@click='paste_images') Paste image
-        app-switch(v-model='crop' :disabled='images.length < 2' :disabled_value='false'
-            label="Make same size")
+        app-switch(v-if='images.length === 1' v-model='hero' label="Banner style")
+        app-switch(v-else-if='images.length > 1' v-model='crop' label="Make same size")
 
     v-card-text
         dialog-section-images-item(v-for='(item, i) of images' :key='item.id' :section='section'
-            :item_index='i')
+            :item_index='i' :profile='profile')
         p.empty(v-if='!images.length') Select from your files or copy &amp; paste an image
 
     v-card-actions
@@ -32,6 +32,7 @@ import {get_clipboard_blobs} from '@/services/utils/misc'
 import {SECTION_IMAGE_WIDTH} from '@/services/misc'
 import {Section} from '@/services/database/sections'
 import {ContentImages} from '@/services/database/types'
+import {Profile} from '@/services/database/profiles'
 
 
 @Component({
@@ -39,7 +40,8 @@ import {ContentImages} from '@/services/database/types'
 })
 export default class extends Vue {
 
-    @Prop({required: true}) declare readonly section:Section<ContentImages>
+    @Prop({type: Section, required: true}) declare readonly section:Section<ContentImages>
+    @Prop({type: Profile, default: null}) declare readonly profile:Profile|null
 
     get content(){
         return this.section.content
@@ -54,6 +56,14 @@ export default class extends Vue {
     }
     set crop(value){
         this.content.crop = value
+        void self.app_db.sections.set(this.section)
+    }
+
+    get hero(){
+        return this.content.hero
+    }
+    set hero(value){
+        this.content.hero = value
         void self.app_db.sections.set(this.section)
     }
 

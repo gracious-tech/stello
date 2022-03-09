@@ -122,9 +122,16 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+@import 'src/styles/globals.sass'
+
 
 .invite
-    background-color: rgba(#888888, 0.25)
+    // Fix colors so not affected by displayer dark mode
+    @include themed(background-color, #eee, #111)
+    @include themed(color, black, white)
+
+    ::v-deep a.button
+        color: white !important
 
 
 .img_div, .default

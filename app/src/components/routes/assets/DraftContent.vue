@@ -4,13 +4,15 @@
 div.content
 
     template(v-for='(row, row_i) of floatified_rows')
-        draft-add-section.add-before(@add='add_section($event, row_i)')
-        div.srow(:class='row.display')
+        draft-add-section.add-before(v-if='row_i > 0 || !row.hero'
+            @add='add_section($event, row_i)')
+        div.srow(:class='{[row.display]: true, hero: row.hero}')
             draft-movebar(:sections='sections' :row_i='row_i' @save='save_sections')
             div.sections
                 draft-section.section(v-for='section of row.sections' :key='section.id'
-                    :draft='draft' :profile='profile' :section='section' @modify='modify_section'
-                    @remove='remove_section')
+                    :draft='draft' :profile='profile' :section='section'
+                    :first_hero='row_i === 0 && row.hero'
+                    @modify='modify_section' @remove='remove_section')
 
     draft-add-section.add-end(@add='add_section($event, sections.length)'
         :visible='!sections.length')
@@ -99,7 +101,7 @@ export default class extends Vue {
         } else {
             void this.$store.dispatch('show_dialog', {
                 component: this.modify_dialogs[section.content.type],
-                props: {section},
+                props: {section, profile: this.profile},
             })
         }
     }
@@ -196,5 +198,22 @@ export default class extends Vue {
                 ::v-deep .actions
                     // Move actions bar to left of the right float
                     right: $stello_float_width
+
+        &.hero
+            // Make toolbars overlap hero since no gutter available
+            .movebar
+                margin-left: 0
+            ::v-deep .actions
+                right: 0
+            // Give toolbars a background when modifying a hero as will be displayed overlapping it
+            &:hover .movebar
+                @include stello_themed(background-color, white, black)
+                border-radius: 24px
+            ::v-deep section:hover .actions
+                @include stello_themed(background-color, white, black)
+                border-radius: 24px
+            // Hero can be clicked to modify when in editor
+            ::v-deep section svg
+                cursor: pointer
 
 </style>

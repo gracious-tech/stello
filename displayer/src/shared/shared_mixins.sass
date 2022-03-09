@@ -32,7 +32,6 @@ $stello_full_plus_sidebar: $stello_full_width + $stello_layout_width
 @mixin standout
     padding: 18px  // WARN Affects position of action buttons
     border-radius: var(--stello-radius)
-    box-shadow: 2px 2px 4px 1px #0004
     font-size: 0.9em
 
     // Remove first/last child elements' margin as standout bg already has padding
@@ -45,7 +44,6 @@ $stello_full_plus_sidebar: $stello_full_width + $stello_layout_width
     @include standout
     opacity: 0.6
     font-size: 0.75em
-    box-shadow: none
 
 @mixin standout-distinct
     @include standout

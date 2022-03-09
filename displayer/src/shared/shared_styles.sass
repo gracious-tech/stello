@@ -71,15 +71,16 @@
 
     .content
         max-width: $stello_content_width
+        overflow: hidden  // Ensures corners remain rounded even if hero image is first section
         box-sizing: content-box  // So that max-width is width of actual content, excluding padding
         margin-left: auto
         margin-right: auto
-        padding: $stello_gutter
         background-color: #eee
         color: rgba(#000, 0.8)
 
         @media (min-width: $stello_full_plus_sidebar)
             border-radius: var(--stello-radius)
+            margin-top: 48px
 
     &.dark .content
         background-color: #111
@@ -89,6 +90,9 @@
         display: flex
         align-items: center
         position: relative  // So can create new stacking contexts and apply z-index
+
+        &:not(.hero)
+            padding: 0 $stello_gutter
 
         // Restore correct order of sections for .wrap-right when wrapping isn't active
         @media (max-width: $stello_full_plus_sidebar - 1)
@@ -114,6 +118,7 @@
                     float: left
                     max-width: $stello_float_width
                     margin-right: $stello_gutter
+                    margin-bottom: 12px  // Give space between wrapped text below this section
                 section:nth-child(2)
                     ul, ol
                         /* PROBLEM: List indentation breaks when next to a left float
@@ -139,6 +144,7 @@
                     float: right
                     max-width: $stello_float_width
                     margin-left: $stello_gutter
+                    margin-bottom: 12px  // Give space between wrapped text below this section
 
     .sections
         flex-grow: 1
@@ -150,20 +156,18 @@
     section
         position: relative  // Needed to position .actions & to stop ol/ul overlapping left float
         box-sizing: border-box
-        padding: 2px
+        padding: 2px  // A little padding between toolbars and text so don't accidently click a btn
         border: 2px dashed #0000  // Although not used by displayer, keeps same sizing as editor
-        margin-bottom: 12px  // Important for floated sections
         min-height: $stello_gutter * 2 - 12px  // Allow enough room for actions bar (less margin)
         width: 100%
 
         &.type-page
             text-align: center  // Needed for button style (reverted in deeper descendents)
 
-    .dark_toggle
-        // Make dark toggle button appear over content on mobile since no bg visible
-        @media (max-width: $stello_full_plus_sidebar - 1)
-            position: absolute
-            right: 0
+    .srow.hero section
+        // Remove all whitespace when displaying hero image
+        padding: 0
+        border-width: 0
 
     .respondbar
         display: flex

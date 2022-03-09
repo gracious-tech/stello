@@ -47,7 +47,11 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+@import 'src/shared/shared_mixins'
+
+
 .addbar
+    margin-left: $stello_gutter  // Mustn't overlap with move buttons
 
     .prompt
         opacity: 0.6

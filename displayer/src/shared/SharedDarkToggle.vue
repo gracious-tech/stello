@@ -41,8 +41,11 @@ export default defineComponent({
 <style lang='sass' scoped>
 
 div
-    text-align: right
-    padding: 24px
+    position: absolute
+    right: 0
+    z-index: 100
+    padding: 12px
+    margin: 12px
     opacity: 0.3
 
     @media print

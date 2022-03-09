@@ -12,8 +12,11 @@ section(@click.self='focus_editor' :class='classes')
         app-html(v-if='type === "text"' ref='app_html' v-model='text_html'
             :variables='text_variables')
 
-        shared-slideshow(v-if='content.type === "images"' :images='content.images'
-            :aspect='images_aspect' :crop='content.crop' editing @img_click='modify')
+        template(v-if='content.type === "images"')
+            shared-hero(v-if='section.is_hero' :image='content.images[0]'
+                :theme_style='theme_style' :first='first_hero' @click='modify')
+            shared-slideshow(v-else :images='content.images' :aspect='images_aspect'
+                :crop='content.crop' editing @img_click='modify')
 
         shared-video(v-if='content.type === "video"' @modify='modify' :format='content.format'
             :id='content.id' :caption='content.caption' :start='content.start' :end='content.end')
@@ -35,6 +38,7 @@ import DraftAddSection from './DraftAddSection.vue'
 import DraftSectionRespond from './DraftSectionRespond.vue'
 import SharedVideo from '@/shared/SharedVideo.vue'
 import SharedSlideshow from '@/shared/SharedSlideshow.vue'
+import SharedHero from '@/shared/SharedHero.vue'
 import SharedPagebait from '@/shared/SharedPagebait.vue'
 import {gen_variable_items} from '@/services/misc/templates'
 import {Section} from '@/services/database/sections'
@@ -47,13 +51,14 @@ import {blob_image_size} from '@/services/utils/image'
 
 @Component({
     components: {DraftAddSection, DraftSectionRespond, SharedSlideshow, SharedVideo,
-        SharedPagebait},
+        SharedPagebait, SharedHero},
 })
 export default class extends Vue {
 
     @Prop({required: true}) declare readonly draft:Draft
     @Prop({required: true}) declare readonly section:Section
     @Prop({default: undefined}) declare readonly profile:Profile|undefined
+    @Prop({type: Boolean, required: true}) declare readonly first_hero:boolean
 
     images_aspect:[number, number]|null = null
 
@@ -96,6 +101,10 @@ export default class extends Vue {
         void self.app_db.sections.set(this.section)
     }
 
+    get theme_style(){
+        return this.profile?.options.theme_style ?? 'modern'
+    }
+
     modify(){
         // Emit modify event so parent can open a dialog
         this.$emit('modify', this.section)
@@ -110,7 +119,8 @@ export default class extends Vue {
         // If text section is clicked, focus the text area for editing
         // NOTE Normally section's padding would prevent focusing the text area
         if (this.type === 'text'){
-            ;(this.$refs['app_html'] as any).focus()  // Accesses private method of AppHtml
+            // Accesses private method of AppHtml
+            ;(this.$refs['app_html'] as unknown as {focus:()=>void}).focus()
         }
     }
 
