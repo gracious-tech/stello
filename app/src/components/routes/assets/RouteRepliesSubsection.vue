@@ -92,6 +92,7 @@ export default class extends Vue {
 
     get section_image():string|null{
         // Return url for an image that represents the section (if any)
+        // TODO Show heros using shared-hero component so text also included?
         if (this.section?.content.type === 'images'){
             const images = this.section.content.images
             const image = images.find(i => i.id === this.first.subsection_id)
