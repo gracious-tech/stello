@@ -6,21 +6,7 @@
 
 .stello-displayer
 
-    // VARIABLES
-
-    // The following color vars are set via JS
-    // --stello-color --stello-bg
-    // --stello-hue --stello-hue-heavy --stello-hue-medium --stello-hue-light
-
-    // Radius
-    --stello-radius: 0
-    &.style-beautiful
-        --stello-radius: 4px
-    &.style-modern
-        --stello-radius: 8px
-    &.style-fun
-        --stello-radius: 12px
-
+    @include stello_vars
 
     // ROOT STYLES
 
@@ -36,6 +22,10 @@
     background-repeat: repeat
     background-attachment: local  // Bg moves the same as content does
 
+    font-family: var(--stello-font)
+    h1, h2
+        font-family: var(--stello-font-headings)
+
     // Hide all backgrounds and make pure black/white when printing
     @media print
         background-image: none !important
@@ -45,26 +35,6 @@
         .content
             background-color: inherit !important
             color: inherit !important
-
-
-    // FONT
-
-    // Noto preferred, otherwise Roboto (Android), "Helvetica Neue" (Apple), and Arial (all)
-    font-family: "Noto Sans", Roboto, "Helvetica Neue", Arial, sans-serif
-    &.style-formal, &.style-beautiful
-        // Noto preferred, but every device should have Georgia (used by many news sites) if not
-        font-family: "Noto Serif", Georgia, serif
-
-    // Different font for headings for some styles
-    &.style-beautiful
-        h1, h2
-            // "Edwardian Script ITC" (Windows), "Savoye LET" (Apple)
-            // NOTE Default system cursive font more likely to be comic like, so default to serif
-            font-family: "Edwardian Script ITC", "Savoye LET", serif
-    &.style-fun
-        h1, h2
-            // "Chalkboard SE" (Apple), "Comic Sans MS" (others)
-            font-family: "Chalkboard SE", "Comic Sans MS", cursive
 
 
     // STRUCTURAL

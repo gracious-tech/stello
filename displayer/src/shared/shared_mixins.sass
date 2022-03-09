@@ -11,6 +11,40 @@ $stello_layout_width: 0px !default  // Draft editor has sidebar/scrollbar etc in
 $stello_full_plus_sidebar: $stello_full_width + $stello_layout_width
 
 
+@mixin stello_vars
+    // CSS variables
+
+    // The following color vars are set via JS
+    // --stello-color --stello-bg
+    // --stello-hue --stello-hue-heavy --stello-hue-medium --stello-hue-light --stello-hue-hero
+
+    // Radius
+    --stello-radius: 0
+    &.style-beautiful
+        --stello-radius: 4px
+    &.style-modern
+        --stello-radius: 8px
+    &.style-fun
+        --stello-radius: 12px
+
+    // Fonts
+    // Noto preferred, otherwise Roboto (Android), "Helvetica Neue" (Apple), and Arial (all)
+    --stello-font: "Noto Sans", Roboto, "Helvetica Neue", Arial, sans-serif
+    &.style-formal, &.style-beautiful
+        // Noto preferred, but every device should have Georgia (used by many news sites) if not
+        --stello-font: "Noto Serif", Georgia, serif
+
+    // Different font for headings for some styles
+    --stello-font-headings: var(--stello-font)
+    &.style-beautiful
+        // "Edwardian Script ITC" (Windows), "Savoye LET" (Apple)
+        // NOTE Default system cursive font more likely to be comic like, so default to serif
+        --stello-font-headings: "Edwardian Script ITC", "Savoye LET", serif
+    &.style-fun
+        // "Chalkboard SE" (Apple), "Comic Sans MS" (others)
+        --stello-font-headings: "Chalkboard SE", "Comic Sans MS", cursive
+
+
 @mixin stello_themed($property, $light, $dark)
     // Set property with $light, but also create same selector prefixed with .dark set to $dark
     // NOTE Applies only to .stello-displayer to avoid affecting rest of app
