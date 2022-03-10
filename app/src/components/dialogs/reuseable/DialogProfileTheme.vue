@@ -6,7 +6,7 @@ v-card
 
     v-card-text
         p This will change the appearance of all messages, including those already sent.
-        route-profile-theme(:profile='profile')
+        profile-theme(:profile='profile')
 
     v-card-actions
         app-btn(@click='done') Done
@@ -18,12 +18,12 @@ v-card
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
-import RouteProfileTheme from '@/components/routes/assets/RouteProfileTheme.vue'
+import ProfileTheme from '@/components/reuseable/ProfileTheme.vue'
 import {Profile} from '@/services/database/profiles'
 
 
 @Component({
-    components: {RouteProfileTheme},
+    components: {ProfileTheme},
 })
 export default class extends Vue {
 

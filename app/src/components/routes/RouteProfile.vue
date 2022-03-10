@@ -70,7 +70,7 @@ div
         h2 Message appearance
         v-card
             v-card-text
-                route-profile-theme(:profile='profile')
+                profile-theme(:profile='profile')
 
 
         //- NOTE Identity section at end since takes up the most room
@@ -178,7 +178,7 @@ import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import DialogEmailSettings from '@/components/dialogs/reuseable/DialogEmailSettings.vue'
 import RouteProfileIdentity from '@/components/routes/assets/RouteProfileIdentity.vue'
-import RouteProfileTheme from '@/components/routes/assets/RouteProfileTheme.vue'
+import ProfileTheme from '@/components/reuseable/ProfileTheme.vue'
 import RouteProfileSteps from '@/components/routes/assets/RouteProfileSteps.vue'
 import {Profile} from '@/services/database/profiles'
 import {Task, task_manager} from '@/services/tasks/tasks'
@@ -186,7 +186,7 @@ import {generate_lifespan_options} from '@/services/misc'
 
 
 @Component({
-    components: {RouteProfileIdentity, RouteProfileSteps, RouteProfileTheme},
+    components: {RouteProfileIdentity, RouteProfileSteps, ProfileTheme},
     i18n: {messages: {en: i18n}},
 })
 export default class extends Vue {
