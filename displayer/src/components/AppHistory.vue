@@ -89,6 +89,7 @@ export default defineComponent({
 .history
     display: flex
     justify-content: space-between
+    width: 100%
     max-width: $stello_content_width
     margin: 0 auto
     padding: 0 24px
