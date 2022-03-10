@@ -32,7 +32,7 @@ export function floatify_rows<T extends SectionLike>(rows:([T]|[T, T])[]):RowDis
                 display: 'single',
                 sections: [first],
                 hero: first.content.type === 'images' && first.content.images!.length === 1 &&
-                    first.content.hero!,
+                    !!first.content.hero,
             }
         }
 
