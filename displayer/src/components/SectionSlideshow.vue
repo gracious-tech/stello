@@ -1,7 +1,7 @@
 
 <template lang='pug'>
 
-SharedHero(v-if='content.hero' :image='images[0]' :theme_style='theme_style'
+SharedHero(v-if='content.hero' :image='first_image' :theme_style='theme_style'
     :first='first_hero' :aspect='ratio')
 
 SharedSlideshow(v-else :images='images' :aspect='ratio' @img_click='$emit("fullscreen")'
@@ -12,7 +12,7 @@ SharedSlideshow(v-else :images='images' :aspect='ratio' @img_click='$emit("fulls
 
 <script lang='ts'>
 
-import {ref, reactive, PropType, defineComponent} from 'vue'
+import {ref, reactive, computed, PropType, defineComponent} from 'vue'
 
 import SharedHero from '../shared/SharedHero.vue'
 import SharedSlideshow from '../shared/SharedSlideshow.vue'
@@ -91,10 +91,13 @@ export default defineComponent({
             emit('displayed', images.value[index]!.id)
         }
 
+        // Access to first image that assumes it exists (needed for TS)
+        const first_image = computed(() => images.value[0]!)
 
         // Expose template's requirements
         return {
             images,
+            first_image,
             on_displayed_change,
             ratio,
             theme_style: displayer_config.theme_style,

@@ -88,6 +88,7 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
         type: 'images',
         images: [{id: generate_token(), data: image_blob, caption: "An example image"}],
         crop: true,
+        hero: true,
     }) as Section<ContentImages>
     await db.sections.set(section_image)
 
