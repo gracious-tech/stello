@@ -5,7 +5,8 @@ svg(:viewBox='view_box' :class='{first}' @click='$emit("click")')
     g(:clip-path='first ? clip_path : clip_path_both')
         //- NOTE preserveAspectRatio not necessary since component already preserves ratio of image
         //-      However that might change, so leaving as safeguard (similar to css' size "cover")
-        image(v-if='image_url' :href='image_url' width='100%' height='100%'
+        //- WARN Safari (at least 11.1) requires the xlink prefix, where as Chrome does not
+        image(v-if='image_url' :xlink:href='image_url' width='100%' height='100%'
             preserveAspectRatio='xMidYMid slice')
         foreignObject(v-if='image.caption' width='100%' height='100%')
             h1(:class='`style-${theme_style}`') {{ image.caption }}
