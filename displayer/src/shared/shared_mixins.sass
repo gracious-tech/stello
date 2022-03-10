@@ -111,20 +111,20 @@ $stello_full_plus_sidebar: $stello_full_width + $stello_layout_width
         min-height: 100px  // Ensure noticeable even if just single line headline
 
         &.btn-text
-            display: inline-flex
+            // Undo styles inherited by .pagebait etc that aren't on normal .btn-text elements
             min-height: auto
 
             .text
-                padding: 8px 16px
+                padding: 0
 
             .hline
                 font-family: ui-sans-serif, system-ui, sans-serif
-                min-width: 120px  // Minimum to be easily clickable
+                min-width: 50px  // Minimum to be easily clickable
                 max-width: 280px  // Can't exceed half-width section space
-                font-size: 0.9em
                 text-align: center
                 overflow: hidden
                 white-space: nowrap
+                line-height: 1.65
 
         .image
             width: 100%
