@@ -110,7 +110,6 @@ export default defineComponent({
 @import '../shared/shared_mixins'
 
 form
-    width: 100%
     display: flex
     flex-direction: column
     margin: 36px var(--stello-gutter)
