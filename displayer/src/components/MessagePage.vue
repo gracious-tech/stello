@@ -122,6 +122,7 @@ export default defineComponent({
                 align-items: center
                 background-color: var(--stello-hue-medium)
                 width: 100%
+                flex-shrink: 0  // Prevent toolbar getting squished on old Safari
 
                 svg
                     width: 36px
