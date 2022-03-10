@@ -31,6 +31,9 @@ export class Section<TContent
                 return false  // Short sections unlikely appropriate for comments
             }
         }
+        if (this.is_hero){
+            return false  // Hero images usually decorative or section dividers rather than content
+        }
         return true
     }
 
