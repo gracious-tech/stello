@@ -127,7 +127,7 @@ export default class extends Vue {
 
 .invite
     // Fix colors so not affected by displayer dark mode
-    @include themed(background-color, #eee, #111)
+    @include themed(background-color, #ddd, #222)  // Slightly diff to content bg for contrast
     @include themed(color, black, white)
 
     ::v-deep a.button

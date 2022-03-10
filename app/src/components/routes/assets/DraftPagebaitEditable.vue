@@ -155,11 +155,15 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+@import 'src/styles/globals.sass'
 @import 'src/shared/shared_mixins.sass'
 
 
 .pagebait-editable
-    background-color: #7779
+    // Fix colors so not affected by displayer dark mode
+    @include themed(background-color, #ddd, #222)  // Slightly diff to content bg for contrast
+    @include themed(color, black, white)
+
     padding: 12px
     text-align: center
 
