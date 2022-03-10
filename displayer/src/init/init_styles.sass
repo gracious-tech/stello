@@ -7,6 +7,10 @@
 .stello-displayer  // To match specificity of shared styles
     outline-style: none  // Outline may appear due to tabindex attr
 
+    // Dark toggle button appears too low in displayer only (inline with .content's top)
+    // For some reason app editor isn't affected, maybe due to invite editor above it
+    display: grid  // Not actually doing anything with grid, just corrects dark toggle positioning
+
     @media (max-width: $stello_full_plus_sidebar)
         // Reduce padding when less than full width available
         --stello-gutter: 24px
