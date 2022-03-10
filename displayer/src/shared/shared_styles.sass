@@ -46,6 +46,7 @@
         margin-right: auto
         background-color: #eee
         color: rgba(#000, 0.8)
+        padding-bottom: var(--stello-gutter)  // All other sides depend on if hero or not
 
         @media (min-width: $stello_full_plus_sidebar)
             border-radius: var(--stello-radius)
@@ -61,7 +62,7 @@
         position: relative  // So can create new stacking contexts and apply z-index
 
         &:not(.hero)
-            padding: 0 var(--stello-gutter)
+            padding: var(--stello-gutter) var(--stello-gutter) 0 var(--stello-gutter)
 
         // Restore correct order of sections for .wrap-right when wrapping isn't active
         @media (max-width: $stello_full_plus_sidebar - 1)

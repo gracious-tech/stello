@@ -1,7 +1,7 @@
 
 <template lang='pug'>
 
-div.respondbar(@mouseenter='have_hovered = true' class='ui')
+div.respondbar(v-if='allow_replies || allow_reactions' @mouseenter='have_hovered = true' class='ui')
 
     div.reply_container(v-if='allow_replies')
         SharedRespondReply(@click='focus_reply_textarea' :replied='!!replies.length'
