@@ -52,8 +52,8 @@ export default defineComponent({
         watch(page, (value, old_value) => {
 
             // Prevent page scroll while page is open
-            (self.document.body.parentNode as HTMLElement).style.overflowY =
-                value ? "hidden" : "auto"
+            // NOTE Applying on <html> doesn't work for Safari
+            self.document.body.style.overflowY = value ? "hidden" : "auto"
 
             // Keep parents array updated
             if (value === null){

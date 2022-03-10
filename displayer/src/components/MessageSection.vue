@@ -61,6 +61,7 @@ export default defineComponent({
 
         // Disabling of page scroll during fullscreen
         const set_page_scroll = (value:boolean) => {
+            // NOTE Applying on <html> doesn't work for Safari
             self.document.body.style.overflowY = value ? 'auto' : 'hidden'
         }
         watch(fullscreen, value => {
