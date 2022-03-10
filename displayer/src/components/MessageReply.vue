@@ -113,7 +113,7 @@ form
     width: 100%
     display: flex
     flex-direction: column
-    margin-top: 36px
+    margin: 36px var(--stello-gutter)
 
     .prev, .last
         font-size: 14px

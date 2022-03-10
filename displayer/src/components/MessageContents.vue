@@ -1,9 +1,7 @@
 
 <template lang='pug'>
 
-//- NOTE Gives each srow a higher z-index than the next, so respond popups can overlap below
-//- TODO If wrapping text shorter than wrapped section, popups will appear underneath
-MessageContentsRow(v-for='(row, i) of floatified_rows' :row='row' :zindex='99 - i')
+MessageContentsRow(v-for='(row, i) of floatified_rows' :row='row' :index='i')
 
 </template>
 

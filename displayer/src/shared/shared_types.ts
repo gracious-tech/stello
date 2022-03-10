@@ -37,6 +37,7 @@ export interface PublishedContentImages {
     images:PublishedImage[]
     ratio_width:number
     ratio_height:number
+    hero?:boolean  // Not optional, just didn't exist until after v1.0.11
 }
 
 export interface PublishedContentVideo {

@@ -3,9 +3,10 @@
 @use 'sass:selector'
 
 
+// TODO Since scrollbar width is considered part of the page, the breakpoint is a little off
 $stello_gutter: 48px
 $stello_content_width: 700px
-$stello_full_width: 700px + $stello_gutter * 2
+$stello_full_width: 700px + $stello_gutter * 2 + 2*2*2  // Also add 2px padding&border left&right
 $stello_float_width: calc(#{$stello_content_width} / 2 - #{$stello_gutter} / 2)
 $stello_layout_width: 0px !default  // Draft editor has sidebar/scrollbar etc in addition to content
 $stello_full_plus_sidebar: $stello_full_width + $stello_layout_width
@@ -17,6 +18,9 @@ $stello_full_plus_sidebar: $stello_full_width + $stello_layout_width
     // The following color vars are set via JS
     // --stello-color --stello-bg
     // --stello-hue --stello-hue-heavy --stello-hue-medium --stello-hue-light --stello-hue-hero
+
+    // Layout
+    --stello-gutter: #{$stello_gutter}
 
     // Radius
     --stello-radius: 0

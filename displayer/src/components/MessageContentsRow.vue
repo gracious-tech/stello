@@ -1,9 +1,10 @@
 
 <template lang='pug'>
 
-div.srow(ref='row_element' :class='row.display')
+div.srow(ref='row_element' :class='{[row.display]: true, hero: row.hero}')
     div.sections
-        MessageSection(v-for='section of row.sections' :key='section.id' :section='section')
+        MessageSection(v-for='section of row.sections' :key='section.id' :section='section'
+            :first_hero='index === 0 && row.hero')
 
 </template>
 
@@ -26,7 +27,7 @@ export default defineComponent({
             type: Object as PropType<RowDisplay<PublishedSection>>,
             required: true,
         },
-        zindex: {
+        index: {
             type: Number,
             required: true,
         },
@@ -34,11 +35,13 @@ export default defineComponent({
 
     setup(props){
         // Set zIndex of row whenever the prop changes
+        // Gives each srow a higher z-index than the next, so respond popups can overlap below
+        // TODO If wrapping text shorter than wrapped section, popups will appear underneath
         const row_element = ref<HTMLDivElement>()
         onMounted(() => {
             watch(
-                () => props.zindex,
-                value => {row_element.value!.style.zIndex = String(value)},
+                () => props.index,
+                value => {row_element.value!.style.zIndex = String(99 - value)},
                 {immediate: true},
             )
         })

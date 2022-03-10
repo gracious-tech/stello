@@ -22,7 +22,7 @@ export default defineComponent({
 
     props: {
         image: {
-            type: Object as PropType<{data:Blob, caption:string}>,
+            type: Object as PropType<{data:Blob|null, caption:string}>,
             required: true,
         },
         theme_style: {
@@ -32,6 +32,10 @@ export default defineComponent({
         first: {  // Whether hero is first row (won't clip top)
             type: Boolean,
             require: true,
+        },
+        aspect: {
+            type: Array as unknown as PropType<[number, number]>|null,
+            default: null,
         },
     },
 
@@ -47,7 +51,7 @@ export default defineComponent({
             return `0 0 1000 ${this.relative_height}`
         },
         image_url(){
-            return URL.createObjectURL(this.image.data)
+            return this.image.data && URL.createObjectURL(this.image.data)
         },
         clip_path(){
             // Path spec to use to clip image and text (only clips bottom)
@@ -86,8 +90,15 @@ export default defineComponent({
             immediate: true,
             async handler(){
                 // Recalculate relative height whenever image changes
-                const bitmap = await createImageBitmap(this.image.data)
-                this.relative_height = Math.round(bitmap.height / bitmap.width * 1000)
+                if (this.aspect){
+                    // Aspect will be directly provided in displayer
+                    this.relative_height = Math.round(this.aspect[1] / this.aspect[0] * 1000)
+                } else if (this.image.data){
+                    // Calculate on-the-fly in editor
+                    // WARN createImageBitmap not available in all browsers so access from self
+                    const bitmap = await self.createImageBitmap(this.image.data)
+                    this.relative_height = Math.round(bitmap.height / bitmap.width * 1000)
+                }
             },
         },
     },
@@ -104,7 +115,7 @@ svg
     display: block  // Inline has padding due to line-height etc
 
     h1
-        font-size: 80px
+        font-size: 60px
         display: inline-block
         padding: 12px 24px
         margin: 100px 48px  // Top margin must be enough to avoid top clipping
@@ -115,9 +126,9 @@ svg
 
         &.style-beautiful
             // Beautiful font looks smaller than others due to long strokes
-            font-size: 130px
-            line-height: 0.8
-            padding: 36px 24px
+            font-size: 100px
+            line-height: 0.9
+            padding: 28px 24px
 
     &.first
         h1

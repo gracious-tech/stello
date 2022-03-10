@@ -7,7 +7,8 @@ teleport(to='.stello-displayer' :disabled='!fullscreen')
         div.inner
             div(v-if='content.type === "text"' v-html='content.html')
             SectionSlideshow(v-if='content.type === "images"' :content='content'
-                @displayed='on_displayed_change' @fullscreen='fullscreen = !fullscreen')
+                :first_hero='first_hero' @displayed='on_displayed_change'
+                @fullscreen='fullscreen = !fullscreen')
             SharedVideo(v-if='content.type === "video"' :format='content.format' :id='content.id'
                 :caption='content.caption' :start='content.start' :end='content.end')
             SectionPagebait(v-if='content.type === "page"' :page='section')
@@ -38,6 +39,10 @@ export default defineComponent({
     props: {
         section: {
             type: Object as PropType<PublishedSection>,
+            required: true,
+        },
+        first_hero: {
+            type: Boolean,
             required: true,
         },
     },

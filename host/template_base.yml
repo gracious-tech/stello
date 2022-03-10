@@ -189,7 +189,7 @@ Resources:
                             + "default-src 'none';"
                             + "img-src 'self' blob:;"
                             + "script-src 'self';"
-                            + "style-src 'self' 'sha256-ZtAi/ysjZm0xsuCDCNS2IFcwQkmxUd12Cy5r4DuHrME=';"
+                            + "style-src 'self' 'sha256-m3bHFeKa8uX6CBIajTT4DOIbdgboFfvwKX4j4PBJobM=';"
                             + "connect-src 'self' https://api.${InputDomainGeneric} https://api.${InputDomainBranded} https://api.${InputDomainUnbranded} https://${MessagesBucket.RegionalDomainName} https://api.rollbar.com;"
                             + "frame-src https://www.youtube-nocookie.com https://player.vimeo.com;"
                     }

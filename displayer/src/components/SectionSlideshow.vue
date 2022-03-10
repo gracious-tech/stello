@@ -1,7 +1,10 @@
 
 <template lang='pug'>
 
-SharedSlideshow(:images='images' :aspect='ratio' @img_click='$emit("fullscreen")'
+SharedHero(v-if='content.hero' :image='images[0]' :theme_style='theme_style'
+    :first='first_hero' :aspect='ratio')
+
+SharedSlideshow(v-else :images='images' :aspect='ratio' @img_click='$emit("fullscreen")'
     @displayed='on_displayed_change')
 
 </template>
@@ -11,9 +14,11 @@ SharedSlideshow(:images='images' :aspect='ratio' @img_click='$emit("fullscreen")
 
 import {ref, reactive, PropType, defineComponent} from 'vue'
 
+import SharedHero from '../shared/SharedHero.vue'
 import SharedSlideshow from '../shared/SharedSlideshow.vue'
 import {store} from '../services/store'
 import {buffer_to_blob} from '../services/utils/coding'
+import {displayer_config} from '@/services/displayer_config'
 import type {PublishedContentImages} from '../shared/shared_types'
 
 
@@ -26,11 +31,15 @@ interface SlideshowImage {
 
 export default defineComponent({
 
-    components: {SharedSlideshow},
+    components: {SharedSlideshow, SharedHero},
 
     props: {
         content: {
             type: Object as PropType<PublishedContentImages>,
+            required: true,
+        },
+        first_hero: {
+            type: Boolean,
             required: true,
         },
     },
@@ -84,7 +93,12 @@ export default defineComponent({
 
 
         // Expose template's requirements
-        return {images, on_displayed_change, ratio}
+        return {
+            images,
+            on_displayed_change,
+            ratio,
+            theme_style: displayer_config.theme_style,
+        }
     },
 })
 

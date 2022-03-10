@@ -494,6 +494,7 @@ async function process_section(section_id:string, pub_assets:PublishedAsset[],
                 images: images,
                 ratio_width: base_size.width,  // May be smaller if resized (just for ratio)
                 ratio_height: base_size.height,  // May be smaller if resized (just for ratio)
+                hero: section.is_hero,  // Providing 'is_hero' rather than just hero option value
             },
         }
     }

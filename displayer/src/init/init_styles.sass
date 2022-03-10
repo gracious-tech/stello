@@ -7,11 +7,9 @@
 .stello-displayer  // To match specificity of shared styles
     outline-style: none  // Outline may appear due to tabindex attr
 
-    .content
-        // Show narrower gutters for displayer since don't need space for menus
-        padding-left: 24px
-        padding-right: 24px
-        padding-top: 48px * 2  // Match editor, accounting for missing addbar
+    @media (max-width: $stello_full_plus_sidebar)
+        // Reduce padding when less than full width available
+        --stello-gutter: 24px
 
     input, textarea
         box-sizing: border-box
