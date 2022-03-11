@@ -70,6 +70,10 @@
                 display: flex
                 flex-direction: column-reverse
 
+            section:nth-child(2)
+                // Need padding between sections in same row when showing vertically
+                margin-top: var(--stello-gutter)
+
         // As soon as content width starts decreasing, switch to single column
         // (otherwise add/respond buttons don't have space to display)
         @media (min-width: $stello_full_plus_sidebar)
