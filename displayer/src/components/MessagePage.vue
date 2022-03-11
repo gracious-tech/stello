@@ -117,6 +117,8 @@ export default defineComponent({
 
             .toolbar
                 border-radius: var(--stello-radius) var(--stello-radius) 0 0
+                svg
+                    margin: 8px 12px  // Taller toolbar when not on mobile
 
         .toolbar
                 display: flex
@@ -126,11 +128,11 @@ export default defineComponent({
                 flex-shrink: 0  // Prevent toolbar getting squished on old Safari
 
                 svg
-                    width: 36px
-                    min-width: 36px  // So text doesn't squish
-                    padding: 6px
+                    width: 24px
+                    min-width: 24px  // So text doesn't squish
+                    padding: 12px
                     border-radius: 50%
-                    margin: 8px 12px
+                    margin: 0 12px
                     cursor: pointer
                     path
                         fill: currentColor
@@ -138,6 +140,7 @@ export default defineComponent({
                         background-color: rgba(#000, 0.2)
 
                 h2
+                    font-size: 18px
                     margin: 0
                     margin-right: 24px  // So don't show overflow against edge
                     white-space: nowrap
