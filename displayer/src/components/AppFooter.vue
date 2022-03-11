@@ -74,7 +74,7 @@ export default defineComponent({
     text-align: center
     opacity: 0.5
     font-size: 13px !important
-    margin: 100px 0
+    margin-top: 100px
 
     &:hover
         opacity: 1

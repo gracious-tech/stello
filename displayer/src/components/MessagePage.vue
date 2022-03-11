@@ -148,7 +148,7 @@ export default defineComponent({
             overflow-y: auto
             max-width: none  // Enforced by container instead so scrollbar touches screen edge
             border-radius: 0  // conflicts with container's radius
-            padding-bottom: 100px  // Don't have page bottom to rely on for scrolling to
+            padding-bottom: 200px  // Don't have page bottom to rely on for scrolling to
 
 
 
