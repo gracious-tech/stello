@@ -109,7 +109,8 @@ export default defineComponent({
         @include stello_themed(background-color, #eee, #111)  // Same as main message
 
         // Appear like a dialog when screen wide
-        @media (min-width: 900px)
+        // NOTE Tigger before actually reach container edge (hence the + 100)
+        @media (min-width: #{$stello_full_plus_sidebar + 100})
             margin: 48px auto
             max-width: 800px
             border-radius: var(--stello-radius)
