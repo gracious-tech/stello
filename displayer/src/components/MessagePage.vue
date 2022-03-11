@@ -147,6 +147,7 @@ export default defineComponent({
             margin: 0
             overflow-y: auto
             max-width: none  // Enforced by container instead so scrollbar touches screen edge
+            border-radius: 0  // conflicts with container's radius
 
 
 
