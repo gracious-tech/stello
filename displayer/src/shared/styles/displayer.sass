@@ -132,8 +132,10 @@
         box-sizing: border-box
         padding: 2px  // A little padding between toolbars and text so don't accidently click a btn
         border: 2px dashed #0000  // Although not used by displayer, keeps same sizing as editor
-        min-height: $stello_gutter * 2  // Allow enough room for actions bar
         width: 100%
+        // Allow enough room for actions bar to show (1 button's worth as 2nd can overlap add bar)
+        // NOTE Don't increase as pagebait in button mode will have far too much padding
+        min-height: 48px
 
         &.type-page
             text-align: center  // Needed for button style (reverted in deeper descendents)
