@@ -405,7 +405,7 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
-@import 'src/styles/globals.sass'
+@import 'src/styles/utils.sass'
 
 
 .v-stepper

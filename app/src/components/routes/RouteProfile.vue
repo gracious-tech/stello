@@ -391,7 +391,7 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
-@import '../../styles/globals'
+@import 'src/styles/utils.sass'
 
 
 h2

@@ -225,7 +225,7 @@ export default defineComponent({
 
 <style lang='sass' scoped>
 
-@import '../shared/shared_mixins'
+@import 'src/shared/styles/utils'
 
 
 .reply_container, .react_container

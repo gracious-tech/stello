@@ -123,7 +123,8 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
-@import 'src/shared/shared_mixins'
+@import 'src/styles/utils.sass'
+
 
 .hero
     // Provide hero with same styles it would have within a .stello-displayer class

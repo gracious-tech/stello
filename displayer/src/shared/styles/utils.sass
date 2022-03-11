@@ -1,14 +1,14 @@
+// WARN Do not import directly from app, import app's utils instead so variables overriden
 
 // Make selector functions available
 @use 'sass:selector'
 
 
-// TODO Since scrollbar width is considered part of the page, the breakpoint is a little off
 $stello_gutter: 48px
 $stello_content_width: 700px
 $stello_full_width: 700px + $stello_gutter * 2 + 2*2*2  // Also add 2px padding&border left&right
 $stello_float_width: calc(#{$stello_content_width} / 2 - #{$stello_gutter} / 2)
-$stello_layout_width: 0px !default  // Draft editor has sidebar/scrollbar etc in addition to content
+$stello_layout_width: 15px !default  // Scrollbar (average, not exact) + sidebar added by app
 $stello_full_plus_sidebar: $stello_full_width + $stello_layout_width
 
 

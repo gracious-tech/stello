@@ -43,7 +43,6 @@ import AppSecurityAlert from '@/components/global/AppSecurityAlert.vue'
 
 // Trigger addition of styles
 import '@/styles/generic.sass'
-import '@/shared/shared_styles.sass'
 import '@/styles/fonts.css'
 import 'croppr/dist/croppr.css'
 

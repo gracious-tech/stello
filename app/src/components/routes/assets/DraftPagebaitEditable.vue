@@ -155,8 +155,7 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
-@import 'src/styles/globals.sass'
-@import 'src/shared/shared_mixins.sass'
+@import 'src/styles/utils.sass'
 
 
 .pagebait-editable

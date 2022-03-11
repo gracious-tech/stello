@@ -47,7 +47,7 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
-@import 'src/shared/shared_mixins'
+@import 'src/styles/utils.sass'
 
 
 .addbar
