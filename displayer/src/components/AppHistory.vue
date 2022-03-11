@@ -90,6 +90,7 @@ export default defineComponent({
     display: flex
     justify-content: space-between
     width: 100%
+    box-sizing: border-box  // Important so 100% width doesn't overflow page in Safari
     max-width: $stello_content_width
     margin: 0 auto
     padding: 0 24px
