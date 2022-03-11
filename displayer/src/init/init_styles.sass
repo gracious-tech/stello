@@ -10,6 +10,8 @@
     // Dark toggle button appears too low in displayer only (inline with .content's top)
     // For some reason app editor isn't affected, maybe due to invite editor above it
     display: grid  // Not actually doing anything with grid, just corrects dark toggle positioning
+    .content
+        width: 100%  // Required due to displayer being set to 'grid'
 
     @media (max-width: $stello_full_plus_sidebar)
         // Reduce padding when less than full width available
