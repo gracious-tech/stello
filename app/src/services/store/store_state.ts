@@ -25,7 +25,7 @@ export async function get_initial_state(db:Database):Promise<AppStoreState>{
         // Private state
         usage_installed: null,  // Will be inited via main.ts if null
         usage_opens: 0,  // This will soon be increased to 1 via main.ts
-        usage_sends: 0,
+        usage_sends: 0,  // This doesn't track replies after 1.1.0
         show_splash_welcome: true,
         show_splash_disclaimer: true,
         show_guide_default: true,

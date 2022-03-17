@@ -352,8 +352,11 @@ export default class extends Vue {
         // Convert to message
         const msg = await self.app_db.draft_to_message(this.draft_id)
 
-        // Increase send counter
-        this.$store.commit('dict_set', ['usage_sends', this.$store.state.usage_sends as number + 1])
+        // Increase send counter if not a reply
+        if (!msg.draft.reply_to){
+            this.$store.commit('dict_set',
+                ['usage_sends', this.$store.state.usage_sends as number + 1])
+        }
 
         // Go to sent message now, so user knows things are happening
         void this.$router.push({name: 'message', params: {msg_id: msg.id}})
