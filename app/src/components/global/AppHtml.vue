@@ -35,7 +35,7 @@ div
                 data-tip="Numbered list")
             app-btn(icon='format_quote' @click='focused_run("toggleBlockquote")'
                 data-tip="Multi-line quote")
-            app-btn(icon='tag' @click='focused_run("insertContent", "#")'
+            app-btn(v-if='has_variables' icon='tag' @click='focused_run("insertContent", "#")'
                 data-tip="Dynamic content (merge fields)")
 
     editor-content(:editor='editor')
@@ -127,11 +127,17 @@ function mention_renderer():ReturnType<SuggestionOptions['render']>{
 export default class extends Vue {
 
     @Prop({type: String, default: ''}) declare readonly value:string
-    @Prop({type: Object, default: () => {}}) declare readonly variables:Record<string, {label:string, value:string}>
+    @Prop({type: Object, default: () => ({})}) declare readonly variables
+        :Record<string, {label:string, value:string}>
 
     editor:Editor|null = null
     bubble_url:string|null = null
     heading_prompt = null
+
+    get has_variables(){
+        // Whether variables provided
+        return !!Object.keys(this.variables).length
+    }
 
     get bubble_tippy_options():BubbleMenuInterface['tippyOptions']{
         // Custom popup options for the bubble menu
