@@ -8,11 +8,11 @@ export class Draft implements RecordDraft {
 
     id!:string
     template!:boolean
-    reply_to!:string
+    reply_to!:string|null
     modified!:Date
     title!:string
     sections!:SectionIds
-    profile!:string
+    profile!:string|null
     options_identity!:{
         sender_name:string
         invite_image:Blob|null
