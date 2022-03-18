@@ -6,7 +6,7 @@ import {remove_value} from '../utils/arrays'
 // Partial interfaces to specify minimum fields required for functionality and testing
 
 export interface PartialDraft {
-    profile:string
+    profile:string|null
     recipients:{
         include_contacts:string[]
         include_groups:string[]
@@ -56,7 +56,7 @@ export function get_final_recipients(draft:PartialDraft, contacts:PartialContact
     for (const group_id of draft.recipients.exclude_groups){
         if (group_id in groups_dict){  // WARN Group may no longer exist
             for (const contact_id of groups_dict[group_id]!){
-                  // WARN May need to remove duplicates, so search whole array
+                // WARN May need to remove duplicates, so search whole array
                 remove_value(recipients, contact_id)
             }
         }
