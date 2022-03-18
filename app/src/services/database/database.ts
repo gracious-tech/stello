@@ -121,7 +121,7 @@ export class Database {
 
         // Get the draft and profile
         const draft = await this.drafts.get(draft_id) as Draft
-        const profile = await this.profiles.get(draft.profile) as Profile
+        const profile = await this.profiles.get(draft.profile!) as Profile
 
         // Determine expiration values, accounting for inheritance
         const lifespan = draft.options_security.lifespan ?? profile.msg_options_security.lifespan
@@ -141,7 +141,7 @@ export class Database {
 
         // Create copy objects for the recipients
         const contacts = await this.contacts.list()
-        const unsubs = await this.unsubscribes.list_for_profile(draft.profile)
+        const unsubs = await this.unsubscribes.list_for_profile(draft.profile!)
         const recipients = get_final_recipients(draft, contacts, await this.groups.list(), unsubs)
         const copies = await Promise.all(recipients.map(async contact_id => {
 
