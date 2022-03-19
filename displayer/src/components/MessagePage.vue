@@ -108,18 +108,6 @@ export default defineComponent({
         flex-direction: column
         @include stello_themed(background-color, #eee, #111)  // Same as main message
 
-        // Appear like a dialog when screen wide
-        // NOTE Tigger before actually reach container edge (hence the + 100)
-        @media (min-width: #{$stello_full_plus_sidebar + 100})
-            margin: 48px auto
-            max-width: 800px
-            border-radius: var(--stello-radius)
-
-            .toolbar
-                border-radius: var(--stello-radius) var(--stello-radius) 0 0
-                svg
-                    margin: 8px 12px  // Taller toolbar when not on mobile
-
         .toolbar
                 display: flex
                 align-items: center
@@ -154,6 +142,17 @@ export default defineComponent({
             border-radius: 0  // conflicts with container's radius
             padding-bottom: 200px  // Don't have page bottom to rely on for scrolling to
 
+        // Appear like a dialog when screen wide
+        // NOTE Tigger before actually reach container edge (hence the + 100)
+        @media (min-width: #{$stello_full_plus_sidebar + 100})
+            margin: 48px auto
+            max-width: 800px
+            border-radius: var(--stello-radius)
+
+            .toolbar
+                border-radius: var(--stello-radius) var(--stello-radius) 0 0
+                svg
+                    margin: 8px 12px  // Taller toolbar when not on mobile
 
 
 // Transitions between pages
