@@ -79,13 +79,11 @@
         @media (min-width: $stello_full_plus_sidebar)
 
             &.parallel
-                section:nth-child(1)
-                    float: left
-                    max-width: $stello_float_width
-                    margin-right: $stello_gutter
-                section:nth-child(2)
-                    float: right
-                    max-width: $stello_float_width
+                // No text wrapping needed so just use flex row
+                .sections
+                    display: flex
+                    section:nth-child(1)
+                        margin-right: $stello_gutter  // Each section seems equal width despite this
 
             &.wrap-left
                 section:nth-child(1)
