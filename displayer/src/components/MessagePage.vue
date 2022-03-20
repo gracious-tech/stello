@@ -146,7 +146,7 @@ export default defineComponent({
         // NOTE Tigger before actually reach container edge (hence the + 100)
         @media (min-width: #{$stello_full_plus_sidebar + 100})
             margin: 48px auto
-            max-width: 800px
+            max-width: $stello_full_plus_sidebar  // Includes scrollbar width
             border-radius: var(--stello-radius)
 
             .toolbar
