@@ -34,7 +34,7 @@ div
             app-btn(icon='short_text' @click='focused_run("toggleNote")'
                 data-tip="Note")
             app-btn(icon='format_quote' @click='focused_run("toggleBlockquote")'
-                data-tip="Multi-line quote")
+                data-tip="Quotation")
             app-btn(v-if='has_variables' icon='tag' @click='focused_run("insertContent", "#")'
                 data-tip="Dynamic content (merge fields)")
 
