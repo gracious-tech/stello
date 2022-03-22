@@ -45,7 +45,7 @@ export default class extends Vue {
         } else if (event.key === 'ArrowDown'){
             this.selected = (this.selected + 1) % this.items.length
         } else if (event.key === 'Enter' && this.selected < this.items.length){
-            this.execute(this.items[this.selected])
+            this.execute(this.items[this.selected]!)
         } else {
             return false
         }
