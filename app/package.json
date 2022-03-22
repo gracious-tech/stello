@@ -109,6 +109,7 @@
         "lottie-web/build/player/lottie_light",
         "papaparse",
         "postal-mime",
+        "prosemirror-state",
         "punycode/",
         "rollbar/src/browser/core",
         "tippy.js",
