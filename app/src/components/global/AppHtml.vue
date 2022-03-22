@@ -21,18 +21,18 @@ div
 
     floating-menu.floating(v-if='editor' @click.native='focus' :editor='editor'
             :tippy-options='floating_tippy_options')
-        template(v-if='heading_prompt')
-            span.heading_prompt {{ heading_prompt }}
+        template(v-if='block_prompt')
+            span.block_prompt {{ block_prompt }}
         template(v-else)
             span.prompt Type or...
-            app-btn(icon='heading' @click='focused_run("toggleHeading", {level:1})'
+            app-btn(icon='heading' @click='focused_run("toggleHeading", {level:2})'
                 data-tip="Heading")
-            app-btn(icon='subheading' @click='focused_run("toggleHeading", {level:2})'
-                data-tip="Subheading")
             app-btn(icon='list_bulleted' @click='focused_run("toggleBulletList")'
                 data-tip="Bullet points")
             app-btn(icon='list_numbered' @click='focused_run("toggleOrderedList")'
                 data-tip="Numbered list")
+            app-btn(icon='short_text' @click='focused_run("toggleNote")'
+                data-tip="Note")
             app-btn(icon='format_quote' @click='focused_run("toggleBlockquote")'
                 data-tip="Multi-line quote")
             app-btn(v-if='has_variables' icon='tag' @click='focused_run("insertContent", "#")'
@@ -48,10 +48,12 @@ div
 import tippy from 'tippy.js'
 import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
+import {Plugin, PluginKey} from 'prosemirror-state'
+import {Node as ProseMirrorNode} from 'prosemirror-model'
 import {Editor, EditorContent, BubbleMenu, FloatingMenu, VueRenderer, BubbleMenuInterface,
-    mergeAttributes} from '@tiptap/vue-2'
+    mergeAttributes, Node, Extension, ChainedCommands} from '@tiptap/vue-2'
 import {Mention} from '@tiptap/extension-mention'
-import {SuggestionOptions} from '@tiptap/suggestion'
+import {SuggestionProps, SuggestionKeyDownProps} from '@tiptap/suggestion'
 import {Document} from '@tiptap/extension-document'
 import {Text} from '@tiptap/extension-text'
 import {Link} from '@tiptap/extension-link'
@@ -74,17 +76,85 @@ import {Highlight} from '@tiptap/extension-highlight'
 import AppHtmlVariables from './assets/AppHtmlVariables.vue'
 
 
-function mention_renderer():ReturnType<SuggestionOptions['render']>{
-    // Render function for mention extension
+declare module '@tiptap/core' {
+    // Tell TS about custom commands
+    interface Commands<ReturnType> {
+        note: {
+            toggleNote: () => ReturnType,
+        }
+    }
+}
+
+
+export const NormalizeHeadings = Extension.create({
+    // A TipTap extension for converting all headings to H2 when pasted (else <h1> would become <p>)
+    name: 'NormalizeHeadings',
+    addProseMirrorPlugins(){
+        return [new Plugin({
+            key: new PluginKey('NormalizeHeadings'),
+            props: {
+                transformPastedHTML(html){
+                    // WARN Pasted html may be <h1 style=...> rather than <h1>
+                    return html.replaceAll(/<(\/?\s*)h[1-6]/ig, '<$1h2')
+                },
+            },
+        })]
+    },
+})
+
+
+export const Note = Node.create({
+    // A custom node for notes that uses <p><small> so that will render correctly in emails too etc
+    name: 'note',
+    group: 'block',
+    content: 'inline*',
+    defining: true,  // Pasted text should go within (rather than replace) notes
+
+    parseHTML(){
+        return [{tag: 'p', context: 'paragraph/small'}]
+    },
+
+    renderHTML(){
+        return ['p', ['small', 0]]
+    },
+
+    addCommands(){
+        return {
+            toggleNote: () => ({commands}) => {
+                return commands.toggleNode(this.name, 'note')
+            },
+        }
+    },
+
+    addKeyboardShortcuts: () => {return {
+        // Revert to a <p> when backspace on empty note (rather than rm line)
+        // so that is similar to ul/ol/etc and shows inline menu options again
+        Backspace: ({editor}) => {
+            const {empty, $anchor} = editor.state.selection
+            if (!empty || $anchor.parent.type.name !== 'note') {
+                return false  // Something selected, or not dealing with a note
+            }
+            if ($anchor.pos === 1 || !$anchor.parent.textContent.length){
+                // Cursor is at beginning of line, so remove the note node
+                return editor.commands.clearNodes()
+            }
+            return false
+        },
+    }},
+})
+
+
+function mention_renderer(parent_component:AppHtml){
+    // Render function for AppHtmlVariables list popup
     let component:VueRenderer
     let popup:ReturnType<typeof tippy>
 
     return {
 
-        onStart: props => {
+        onStart: (props:SuggestionProps) => {
             // Render custom component with list of suggestions
             component = new VueRenderer(AppHtmlVariables, {
-                parent: this,
+                parent: parent_component,
                 propsData: props,
             })
             // Use tippy to position the list (could possibly use Vuetify but meh)
@@ -99,32 +169,79 @@ function mention_renderer():ReturnType<SuggestionOptions['render']>{
             })
         },
 
-        onUpdate(props){
+        onUpdate(props:SuggestionProps){
             // Update component when props change
             component.updateProps(props)
-            popup[0].setProps({
+            popup[0]!.setProps({
                 getReferenceClientRect: props.clientRect,
             })
         },
 
-        onKeyDown(props){
+        onKeyDown(props:SuggestionKeyDownProps){
             // Pass on key down events to the custom list component to handle
-            return (component.ref as any).on_keydown(props)
+            return (component.ref as AppHtmlVariables).on_keydown(props)
         },
 
         onExit(){
             // Destroy the popup and component when no longer needed
-            popup[0].destroy()
+            popup[0]!.destroy()
             component.destroy()
         },
     }
 }
 
 
+function CustomMention(component:AppHtml){
+    // Custom version of Mention extension that uses # and own variables system
+    const trigger_char = '#'
+
+    const options = {
+        // Use variable's value as span's text, otherwise variable's label
+        renderLabel: ({node}:{node:ProseMirrorNode}) => {
+            return component.variables[node.attrs['id'] as string]!.value
+                || component.variables[node.attrs['id'] as string]!.label.toLocaleUpperCase()
+        },
+        suggestion: {
+            char: trigger_char,
+            items: ({query}:{query:string}) => {
+                // Match items by label and/or code when typing after trigger char
+                query = query.toLowerCase()
+                return Object.entries(component.variables)
+                    .map(([code, {label, value}]) => ({code, label, value}))
+                    .filter(i => i.label.toLowerCase().includes(query) || i.code.includes(query))
+            },
+            render: () => mention_renderer(component),
+        },
+    }
+
+    return Mention.configure(options).extend({
+        renderHTML:({node, HTMLAttributes}) => {
+            // Override to add tip attributes
+            return [
+                'span',
+                mergeAttributes(
+                    {
+                        'data-mention': '',
+                        'data-tip': component.variables[node.attrs['id'] as string]!.label,
+                        'data-tip-instant': '',
+                    },
+                    HTMLAttributes,
+                ),
+                options.renderLabel({node}),
+            ]
+        },
+        renderText({node}){
+            // Use code when copying/pasting as text, as easier to reapply as no spaces
+            return `${trigger_char}${node.attrs['id'] as string}`
+        },
+    })
+}
+
+
 @Component({
     components: {EditorContent, BubbleMenu, FloatingMenu},
 })
-export default class extends Vue {
+export default class AppHtml extends Vue {
 
     @Prop({type: String, default: ''}) declare readonly value:string
     @Prop({type: Object, default: () => ({})}) declare readonly variables
@@ -132,7 +249,7 @@ export default class extends Vue {
 
     editor:Editor|null = null
     bubble_url:string|null = null
-    heading_prompt = null
+    block_prompt:string|null = null
 
     get has_variables(){
         // Whether variables provided
@@ -167,19 +284,21 @@ export default class extends Vue {
         }
     }
 
-    focused_run(command:string, config?:any):void{
+    focused_run<T extends keyof ChainedCommands>(
+            command:T, ...config:Parameters<ChainedCommands[T]>):void{
         // Run an editor command after focusing the editor (e.g. after a button click)
-        this.editor.chain().focus()[command](config).run()
+        // @ts-ignore TS doesn't like ... as every command has different arg expectations
+        ;(this.editor!.chain().focus()[command](...config) as ChainedCommands).run()
     }
 
-    reevaluate_heading_prompt(){
-        // Re-evaluate whether inside a heading or subheading
-        if (this.editor!.isActive('heading', {level: 1})){
-            this.heading_prompt = "Heading..."
-        } else if (this.editor!.isActive('heading', {level: 2})){
-            this.heading_prompt = "Subheading..."
+    reevaluate_block_prompt(){
+        // Re-evaluate what prompt to show when block is empty
+        if (this.editor!.isActive('heading')){
+            this.block_prompt = "Heading..."
+        } else if (this.editor!.isActive('note')){
+            this.block_prompt = "Note..."
         } else {
-            this.heading_prompt = null
+            this.block_prompt = null
         }
     }
 
@@ -197,7 +316,7 @@ export default class extends Vue {
 
     on_url_confirmation(){
         // When clicking the appended confirm button, create the link if there was any input
-        let url = this.bubble_url.trim()
+        let url = this.bubble_url?.trim()
         if (url){
             if (!url.includes(':')){  // Allows mailto, and other protocols
                 url = 'https://' + url  // SECURITY default to https
@@ -214,12 +333,12 @@ export default class extends Vue {
             onUpdate: () => {
                 // Emit html whenever content changes
                 this.$emit('input', this.editor!.getHTML())
-                // Whenever content changes, may/may not be inside a heading any more
-                this.reevaluate_heading_prompt()
+                // Whenever content changes, may be in a new block type
+                this.reevaluate_block_prompt()
             },
             onSelectionUpdate: () => {
-                // Whenever selection changes, may/may not be inside a heading any more
-                this.reevaluate_heading_prompt()
+                // Whenever selection changes, may be in a new block type
+                this.reevaluate_block_prompt()
             },
             extensions: [
                 // Core
@@ -231,7 +350,7 @@ export default class extends Vue {
                 HorizontalRule,  // ---
                 Typography,  // Transforms common sequences into unicode, e.g. (c) to ©
                 // Elements with UI
-                Heading.configure({levels: [1, 2]}).extend({
+                Heading.configure({levels: [2]}).extend({
                     addInputRules: () => [],  // Disable creation via '# ' since use for variables
                     addKeyboardShortcuts: () => {return {
                         // Revert to a <p> when backspace on empty heading (rather than rm line)
@@ -261,48 +380,12 @@ export default class extends Vue {
                 Link,
                 // Utils
                 Placeholder,
-                Mention.configure({
-                    // @ts-ignore custom fn added so can use it within `renderHTML()`
-                    tip: (id:string):string => this.variables[id].label,
-                    // Use variable's value as span's text, otherwise variable's label
-                    renderLabel: ({node}) => this.variables[node.attrs['id']].value
-                        || this.variables[node.attrs['id']].label.toLocaleUpperCase(),
-                    suggestion: {
-                        char: '#',
-                        items: ({query}) => {
-                            // Match items by label and/or code
-                            query = query.toLowerCase()
-                            return Object.entries(this.variables)
-                                .map(([code, {label, value}]) => ({code, label, value}))
-                                .filter(i =>
-                                    i.label.toLowerCase().includes(query) || i.code.includes(query))
-                        },
-                        render: mention_renderer,
-                    },
-                }).extend({
-                    renderHTML({node, HTMLAttributes}){
-                        // Override to add tip attributes
-                        return [
-                            'span',
-                            mergeAttributes(
-                                {
-                                    'data-mention': '',
-                                    'data-tip': this.options.tip(node.attrs['id']),
-                                    'data-tip-instant': '',
-                                },
-                                this.options.HTMLAttributes,
-                                HTMLAttributes,
-                            ),
-                            this.options.renderLabel({node, options: this.options}),
-                        ]
-                    },
-                    renderText({node}){
-                        // Use code when copying/pasting as text, as easier to reapply as no spaces
-                        return `${this.options.suggestion.char}${node.attrs['id']}`
-                    },
-                }),
                 History,  // Required for undo/redo
                 Dropcursor,  // Required for showing drag position
+                // Own extensions
+                CustomMention(this),
+                Note,
+                NormalizeHeadings,
             ],
         })
     }
@@ -328,9 +411,9 @@ export default class extends Vue {
         // NOTE Prosemirror/Tiptap APIs didn't seem to have an easy way to do this
         // NOTE Changes don't need saving as the content of mention nodes is always dynamic
         for (const node of this.$el.querySelectorAll('[data-mention]')){
-            const data_id = node.attributes.getNamedItem('data-id').value
-            node.textContent = this.variables[data_id].value
-                || this.variables[data_id].label.toLocaleUpperCase()
+            const data_id = node.attributes.getNamedItem('data-id')!.value
+            node.textContent = this.variables[data_id]!.value
+                || this.variables[data_id]!.label.toLocaleUpperCase()
         }
     }
 }
@@ -375,7 +458,7 @@ export default class extends Vue {
 .floating
     user-select: none
 
-    .prompt, .heading_prompt
+    .prompt, .block_prompt
         opacity: 0.25
 
     .v-btn
