@@ -304,9 +304,21 @@
                 fill: currentColor
 
     blockquote
-        margin-left: 12px
-        border-left: 2px solid rgba(50%, 50%, 50%, 0.5)
-        padding-left: 12px
+        // Style <p> rather than <blockquote> so can wrap around other content when needed
+        margin: 0.8rem 0
+        padding: 0
+        border-style: none
+        font-size: 0.9em
+
+        p
+            display: flex  // Works better for wrapping purposes
+            margin: 0 0 0 1rem  // Doesn't affect when wrapping to right but not important anyway
+            padding: 0 0.2rem 0.8rem 0.8rem
+            border-left: 2px solid var(--stello-hue)
+            background-color: hsl(0, 0%, 50%, 0.1)
+
+            &:first-child
+                padding-top: 0.8rem  // First <p> needs as otherwise touching bg color edge
 
     a
         color: var(--stello-hue)
