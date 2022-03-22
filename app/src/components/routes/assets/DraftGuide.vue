@@ -18,30 +18,34 @@ div.root
             app-svg.decor_compose(name='decor_compose' responsive)
 
         h2(class='text-h6') The subject
-        p Like an email, the subject for each message is not part of the message itself. Readers will see it when they are notified about your message. Don't put anything sensitive in the subject, as it will still be around after your messages expire.
+        p Like an email, the subject for each message is not part of the message itself. Readers will see it when they are notified about your message.
+        p Don't put anything sensitive in the subject, as it will still be around after your messages expire.
         video(src='@/assets/guides/editor_clips/subject.webm' autoplay loop)
 
 
         h2(class='text-h6') Sections
-        p Stello organises messages into sections, which can be text #[app-svg(name='icon_subject')], images #[app-svg(name='icon_image')], video #[app-svg(name='icon_video')] or pages #[app-svg(name='icon_library_books')]. This gives several advantages, such as being able to rearrange sections, allow recipients to comment on individual sections, and giving your message a more logical flow. You can still just write one long section if you prefer.
+        p Stello organises messages into sections, which can be text #[app-svg(name='icon_subject')], images #[app-svg(name='icon_image')], video #[app-svg(name='icon_video')], or pages #[app-svg(name='icon_library_books')]. This gives several advantages, such as being able to rearrange sections, allow recipients to comment on individual sections, and giving your message a more logical flow. You can still just write one long section if you prefer.
         p Add sections with the #[app-svg(name='icon_add')] menu and customise them with #[app-svg(name='icon_settings')].
         video(src='@/assets/guides/editor_clips/sections.webm' autoplay loop)
 
         h2(class='text-h6') Responses
-        p Readers can #[app-svg(name='icon_chat_bubble_outline')] Comment or #[app-svg(name='icon_thumb_up')] React (with emoji) to each section of your message unless you disable it. You can disable all responses in settings, or individually for each section. All responses are encrypted and private, so only you can see them.
+        p Readers can #[app-svg(name='icon_chat_bubble_outline')] Comment or #[app-svg(name='icon_thumb_up')] React (with emoji) to each section of your message, and all responses are encrypted and private so only you can see them.
+        p Stello will automatically enable responses for significant sections of your message, however you can customise this yourself or disable all responses in settings.
         video(src='@/assets/guides/editor_clips/responses.webm' autoplay loop)
 
         h2(class='text-h6') Layout
         p Sections are normally displayed one after the other. You can display two sections side-by-side with the #[app-svg(name='icon_section_merge')] button and separate them again with #[app-svg(name='icon_section_separate')], or swap them with #[app-svg(name='icon_swap_horiz')]. Normal text will wrap around whatever content it is placed next to.
         p This only happens on large screens (like computers) where as on small screens (like phones) Stello will automatically revert to a single column format.
+        p(class='note') You can preview the single column format by reducing the width of Stello's window.
         video(src='@/assets/guides/editor_clips/layout.webm' autoplay loop)
 
-        h2(class='text-h6') Formatting &amp; Style
+        h2(class='text-h6') Formatting
         p There are three main ways to change the style and formatting of text:
         ol
-            li Every new line you can either type normal text or create a heading #[app-svg(name='icon_heading')], list #[app-svg(name='icon_list_numbered')], etc
-            li Select text to make it bold #[app-svg(name='icon_format_bold')], italic #[app-svg(name='icon_format_italic')], etc
-            li Change the text section's settings #[app-svg(name='icon_settings')] to make the whole section standout more or less
+            li Choose the format when writing a new line
+            li Select text to change its formatting
+            li Change the text section's settings #[app-svg(name='icon_settings')]
+        p You can also change the general color and style of your entire account in its settings page.
         video(src='@/assets/guides/editor_clips/formatting.webm' autoplay loop)
         p(class='note') Stello has intentionally limited styling options. This is because the default style and layout is already designed to be as easy to read as possible. While you may wish to change the font, color, size, alignment etc, these can end up making your message harder to read. Stello automatically changes font size, color, and layout depending on the size of screen (such as phone or desktop) and the preference of the reader. Instead, simply focus on your content and Stello will take care of the rest.
 
@@ -56,6 +60,16 @@ div.root
             app-svg(name='icon_brightness_4' class='mx-2')
             | button without affecting your readers.
         video(src='@/assets/guides/editor_clips/dark.webm' autoplay loop)
+
+        h2(class='text-h6') Recipients
+        p You can add recipients individually or as part of a group. You can also exclude groups and contacts as well. Stello applies these in the following order:
+        ol
+            li Adds contacts from included groups
+            li Removes contacts if part of an excluded group
+            li Adds individually included contacts
+            li Removes individually excluded contacts
+        p(class='note') If ever in doubt, you can check the "Recipients" filter in the contacts tab which will show exactly who will be sent to.
+        //- TODO video
 
     p(class='text-center mt-6')
         app-btn(v-if='show_guide' @click='toggle_guide' color='' outlined) Hide guide
