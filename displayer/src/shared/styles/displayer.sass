@@ -227,6 +227,13 @@
     h2
         font-size: 1.25em  // Relative to container size (which changes by screen size)
 
+    small
+        display: block  // Wrapped is <p> for symantics but display wise need this to be block too
+        font-size: 0.8em
+        opacity: 0.8  // WARN compounds with existing opacity in text color
+        margin-left: 1.5em
+        margin-bottom: 0.8rem  // Restore same margin as <p> (by being relative to root font size)
+
     // Caligraphy fonts have much more vertical padding due to long strokes which reduces size
     &.style-beautiful
         h1
