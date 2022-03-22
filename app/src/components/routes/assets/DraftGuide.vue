@@ -46,7 +46,7 @@ div.root
         p(class='note') Stello has intentionally limited styling options. This is because the default style and layout is already designed to be as easy to read as possible. While you may wish to change the font, color, size, alignment etc, these can end up making your message harder to read. Stello automatically changes font size, color, and layout depending on the size of screen (such as phone or desktop) and the preference of the reader. Instead, simply focus on your content and Stello will take care of the rest.
 
         h2(class='text-h6') Dynamic content
-        p Click or type #[app-svg(name='icon_tag')] to add dynamic content (also known as merge fields). A placeholder will be added that will be replaced with the real value when the message is sent. For example, it could be the date of sending, or the contact's name.
+        p Type #[app-svg(name='icon_tag')] to add dynamic content (also known as merge fields). A placeholder will be added that will be replaced with the real value when the message is sent. For example, it could be the date of sending, or the contact's name.
         video(src='@/assets/guides/editor_clips/dynamic_content.webm' autoplay loop)
 
         h2(class='text-h6') Dark mode
