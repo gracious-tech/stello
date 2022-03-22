@@ -14,6 +14,17 @@ div
                 @click='focused_run("toggleHighlight")' data-tip="Highlight")
             app-btn(icon='link' :color='editor.isActive("link") ? "accent" : ""'
                 @click='on_url_toggle' data-tip="Link")
+            app-menu-more
+                v-subheader Change format
+                app-list-item(@click='force_block("setParagraph")') Normal
+                app-list-item(@click='force_heading') Heading
+                app-list-item(@click='force_block("toggleBulletList")') Bullet points
+                app-list-item(@click='force_block("toggleOrderedList")') Numbered list
+                app-list-item(@click='force_block("setNote")') Note
+                app-list-item(@click='force_block("setBlockquote")') Quotation
+                v-divider
+                app-list-item(@click='clear_formatting') Clear all formatting
+
         template(v-else)
             input.url(ref='url' v-model='bubble_url' @keydown.enter.prevent='on_url_confirmation'
                 type='url' placeholder="Enter URL..." spellcheck='false')
@@ -25,18 +36,16 @@ div
             span.block_prompt {{ block_prompt }}
         template(v-else)
             span.prompt Type or...
-            app-btn(icon='heading' @click='focused_run("toggleHeading", {level:2})'
+            app-btn(icon='heading' @click='focused_run("setHeading", {level:2})'
                 data-tip="Heading")
             app-btn(icon='list_bulleted' @click='focused_run("toggleBulletList")'
                 data-tip="Bullet points")
             app-btn(icon='list_numbered' @click='focused_run("toggleOrderedList")'
                 data-tip="Numbered list")
-            app-btn(icon='short_text' @click='focused_run("toggleNote")'
+            app-btn(icon='short_text' @click='focused_run("setNote")'
                 data-tip="Note")
-            app-btn(icon='format_quote' @click='focused_run("toggleBlockquote")'
+            app-btn(icon='format_quote' @click='focused_run("setBlockquote")'
                 data-tip="Quotation")
-            app-btn(v-if='has_variables' icon='tag' @click='focused_run("insertContent", "#")'
-                data-tip="Dynamic content (merge fields)")
 
     editor-content(:editor='editor')
 
@@ -80,7 +89,7 @@ declare module '@tiptap/core' {
     // Tell TS about custom commands
     interface Commands<ReturnType> {
         note: {
-            toggleNote: () => ReturnType,
+            setNote: () => ReturnType,
         }
     }
 }
@@ -120,8 +129,8 @@ export const Note = Node.create({
 
     addCommands(){
         return {
-            toggleNote: () => ({commands}) => {
-                return commands.toggleNode(this.name, 'note')
+            setNote: () => ({commands}) => {
+                return commands.setNode(this.name)
             },
         }
     },
@@ -289,6 +298,23 @@ export default class AppHtml extends Vue {
         // Run an editor command after focusing the editor (e.g. after a button click)
         // @ts-ignore TS doesn't like ... as every command has different arg expectations
         ;(this.editor!.chain().focus()[command](...config) as ChainedCommands).run()
+    }
+
+    force_block(command:'setBlockquote'|'setNote'|'toggleBulletList'|'toggleOrderedList'
+            |'setParagraph'){
+        // Force selection to become block signified by given command
+        // NOTE Some block types won't change unless existing nodes first cleared
+        this.editor!.chain().focus().clearNodes()[command]().run()
+    }
+
+    force_heading(){
+        // Force selection to become a heading
+        this.editor!.chain().focus().clearNodes().setHeading({level: 2}).run()
+    }
+
+    clear_formatting(){
+        // Clear all formatting for selected text
+        this.editor!.chain().focus().clearNodes().unsetAllMarks().run()
     }
 
     reevaluate_block_prompt(){
