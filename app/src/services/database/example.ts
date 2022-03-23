@@ -145,8 +145,11 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
         "I can't think of an interesting title",
     ])
     const messages = await Promise.all([...range(10 * multiplier)].map(async i => {
-        const draft_copy = await db.draft_copy(
-            new Draft({...draft, title: titles.next().value}))
+        const draft_copy = await db.draft_copy(new Draft({
+            ...draft,
+            title: titles.next().value,
+            reply_to: Math.random() > 0.2 ? 'id' : null,
+        }))
         const msg = await db.draft_to_message(draft_copy.id)
 
         // Sometimes create resend requests
