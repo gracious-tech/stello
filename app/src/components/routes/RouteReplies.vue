@@ -17,12 +17,8 @@ div
 
     app-content(class='pa-5')
 
-        route-replies-subsection(
-            v-for='replactions of subsections_visible'
-            :replactions='replactions'
-            :key='replactions[0].subsection_id || replactions[0].section_id || replactions[0].id'
-            @removed='on_removed'
-        )
+        route-replies-subsection(v-for='replactions of subsections_visible'
+            :replactions='replactions.items' :key='replactions.key' @removed='on_removed')
 
         div(v-if='!subsections_visible.length' class='text-center text--secondary text-h5 my-10')
             | No responses
@@ -44,6 +40,9 @@ import {Reaction} from '@/services/database/reactions'
 import {Task} from '@/services/tasks/tasks'
 
 
+type MinOne<T> = [T, ...T[]]
+
+
 @Component({
     components: {RouteRepliesSubsection},
 })
@@ -52,12 +51,12 @@ export default class extends Vue {
     replactions:(Reply|Reaction)[] = []
     pages = 1
     filter_current = true  // Only show current (non-archived)
-    filter_contact:string = null
-    filter_message:string = null
-    filter_search:string = null  // TODO Not yet implemented
+    filter_contact:string|null = null
+    filter_message:string|null = null
+    filter_search:string|null = null  // TODO Not yet implemented
 
     created(){
-        this.load()
+        void this.load()
     }
 
     get replactions_matched(){
@@ -70,7 +69,7 @@ export default class extends Vue {
                 return false
             if (this.filter_message && replaction.msg_id !== this.filter_message)
                 return false
-            if (this.filter_search && (replaction.is_reaction ||
+            if (lower_search && (replaction.is_reaction ||
                     !replaction.content.toLowerCase().includes(lower_search)))
                 return false
             return true
@@ -98,17 +97,17 @@ export default class extends Vue {
                     // This is the first response to the subsection, so create new array
                     // NOTE Important that item in map points to same item in `subsections`
                     subsections_map[subsection_id] = []
-                    subsections.push(subsections_map[subsection_id])
+                    subsections.push(subsections_map[subsection_id]!)
                 }
                 // Add response to the subsection's array
-                subsections_map[subsection_id].push(response)
+                subsections_map[subsection_id]!.push(response)
             } else {
                 // This response is sectionless (a general response to whole message)
                 subsections.push([response])
             }
         }
 
-        return subsections
+        return subsections as MinOne<Reply|Reaction>[]
     }
 
     get subsections_visible(){
@@ -117,7 +116,10 @@ export default class extends Vue {
         let replactions_count = 0
         const visible = []
         for (const replactions of this.subsections){
-            visible.push(replactions)
+            visible.push({
+                items: replactions,
+                key: replactions[0].subsection_id || replactions[0].section_id || replactions[0].id,
+            })
             replactions_count += replactions.length
             if (replactions_count >= replactions_allowance)
                 break
@@ -150,7 +152,7 @@ export default class extends Vue {
     @Watch('$tm.data.finished') watch_tm_finished(task:Task){
         // Listen to task completions and adjust state as needed
         if (task.name === 'responses_receive'){
-            this.load()
+            void this.load()
         }
     }
 
@@ -164,9 +166,9 @@ export default class extends Vue {
         sort(this.replactions, 'sent', false)
     }
 
-    async download(){
+    download(){
         // Manually trigger a download of responses
-        this.$tm.start_responses_receive()
+        void this.$tm.start_responses_receive()
     }
 
     on_removed(replaction_id:string):void{
