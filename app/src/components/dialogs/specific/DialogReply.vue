@@ -118,6 +118,7 @@ export default class extends Vue {
 <style lang='sass' scoped>
 
 .html
+    font-size: 16px  // TODO Apply stello-displayer typography
     position: relative  // Needed for AppHtml menu to position properly upon first open
     background-color: hsl(0, 0%, 50%, 0.1)
 
