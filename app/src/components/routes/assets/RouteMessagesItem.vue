@@ -2,6 +2,8 @@
 <template lang='pug'>
 
 v-list-item(:to='to')
+    div(v-if='msg.draft.reply_to' class='mr-3')
+        app-svg(name='icon_reply')
     v-list-item-content
         v-list-item-title {{ msg.display }}
         v-list-item-subtitle {{ recipients }}
