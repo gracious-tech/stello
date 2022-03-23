@@ -13,7 +13,8 @@ div.root
             :class='unread ? "app-fg-accent-relative" : "text--secondary"') {{ sent_informal }}
 
         div.actions
-            app-btn(@click='reply_by_stello' icon='reply' :color='replaction.replied ? "accent" : ""')
+            app-btn(@click='reply_by_stello' icon='reply'
+                :color='replaction.replied ? "accent" : ""')
             app-menu-more
                 app-list-item(@click='toggle_archived')
                     | {{ replaction.archived ? "Unarchive" : "Archive" }}
@@ -28,10 +29,10 @@ div.root
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
+import DialogReply from '@/components/dialogs/specific/DialogReply.vue'
 import SharedSvgAnimated from '@/shared/SharedSvgAnimated.vue'
 import {Reply} from '@/services/database/replies'
 import {Reaction} from '@/services/database/reactions'
-import {escape_for_html} from '@/services/utils/strings'
 import {time_between} from '@/services/misc'
 
 
@@ -95,40 +96,20 @@ export default class extends Vue {
         void self.app_db[this.replaction.is_reply ? 'replies' : 'reactions'].set(this.replaction)
     }
 
-    async reply_by_stello(){
-        // Create a new draft as a reply to this response
-
-        // Create a new draft
-        const draft = await self.app_db.drafts.create_object()
-        draft.reply_to = this.replaction.id
-        draft.title = this.replaction.msg_title
-        if (!draft.title.startsWith('Re: ')){
-            draft.title = 'Re: ' + draft.title
-        }
-        draft.recipients.include_contacts.push(this.replaction.contact_id)
-
-        // Need to get the original message to know the profile used
-        const msg = await self.app_db.messages.get(this.replaction.msg_id)
-        draft.profile = msg?.draft.profile ?? this.$store.state.default_profile
-
-        // Create a new section with the response quoted
-        const quote = escape_for_html(this.replaction.content)
-        const section = await self.app_db.sections.create_object({
-            type: 'text',
-            html: `<p>&nbsp;</p><p>&nbsp;</p><blockquote>${quote}</blockquote>`,
-            standout: null,
+    reply_by_stello(){
+        // Open reply dialog
+        void this.$store.dispatch('show_dialog', {
+            component: DialogReply,
+            props: {
+                replaction: this.replaction,
+            },
         })
-        await self.app_db.sections.set(section)
-        draft.sections.push([section.id])
-
-        // Save the draft and navigate to it
-        await self.app_db.drafts.set(draft)
-        void this.$router.push({name: 'draft', params: {draft_id: draft.id}})
     }
 
     remove():void{
         // Remove the replaction
-        void self.app_db[this.replaction.is_reply ? 'replies' : 'reactions'].remove(this.replaction.id)
+        void self.app_db[this.replaction.is_reply ? 'replies' : 'reactions']
+            .remove(this.replaction.id)
         this.$emit('removed', this.replaction.id)
     }
 
