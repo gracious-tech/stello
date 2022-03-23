@@ -61,6 +61,10 @@ export default class extends Vue {
 
     added = [
         {
+            title: "Quick reply to responses",
+            desc: "Send replies without leaving the list of responses",
+        },
+        {
             title: `Customise message color and style`,
             desc: "New options available in sending accounts",
         },
@@ -87,8 +91,8 @@ export default class extends Vue {
             desc: "Add encrypted files to your messages for readers to open/download",
         },
         {
-            title: "Quick reply to responses",
-            desc: "Send replies without leaving the list of responses",
+            title: "Edit message after sending",
+            desc: "Add or fix any part of your message without sending additional emails",
         },
         {
             title: "Dashboard insights",
