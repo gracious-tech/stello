@@ -362,7 +362,9 @@ export class Database {
             replaction.copy_id = msg_copy.id
             replaction.msg_id = msg_copy.msg_id
             replaction.contact_id = msg_copy.contact_id
-            replaction.contact_name = msg_copy.contact_name
+            // Preserve some kind of name in case contact later deleted
+            replaction.contact_name =
+                msg_copy.contact_name || msg_copy.contact_hello || msg_copy.contact_address
 
             // Get msg so can know title
             const msg = (await this.messages.get(msg_copy.msg_id))!
