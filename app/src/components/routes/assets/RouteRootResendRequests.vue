@@ -42,7 +42,7 @@ export default class extends Vue {
     requests:RequestUI[] = []
 
     created(){
-        this.load()
+        void this.load()
     }
 
     async load(){
@@ -71,7 +71,8 @@ export default class extends Vue {
                 discard: async () => {await remove_request()},
                 accept: async () => {
                     // Create new draft, with contact as recipient (if contact still exists)
-                    const to_be_copied = new Draft(message.draft)
+                    // NOTE Action should not be available if message no longer exists
+                    const to_be_copied = new Draft(message!.draft)
                     to_be_copied.recipients.include_contacts = contact ? [contact.id] : []
                     to_be_copied.recipients.include_groups = []
                     to_be_copied.recipients.exclude_contacts = []
@@ -82,7 +83,7 @@ export default class extends Vue {
                     await remove_request()
 
                     // Go to the new draft
-                    this.$router.push({name: 'draft', params: {draft_id: new_draft.id}})
+                    void this.$router.push({name: 'draft', params: {draft_id: new_draft.id}})
                 },
             })
         }
@@ -93,7 +94,7 @@ export default class extends Vue {
         // Respond to task completions
         if (task.name === 'responses_receive'){
             // May have received a new request
-            this.load()
+            void this.load()
         }
     }
 
