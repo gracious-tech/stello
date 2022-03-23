@@ -5,7 +5,7 @@ import 'fake-indexeddb/auto'  // WARN Must import before indexeddb accessed
 import {expect, test} from '@playwright/test'
 
 import {migrate, migrate_async, DATABASE_VERSION, to_12_from_0, _to1_creates, to_13, to_14,
-    to_14_async, to_15, to_16} from './migrations'
+    to_14_async, to_15, to_16, to_17} from './migrations'
 import {STORES_V12, STORES_LATEST, test_stores, open_db, to_12_from_1, to_12_from_11}
     from './migrations.test_utils'
 
@@ -161,6 +161,28 @@ test.describe('migrate', async () => {
         // Expect hero prop to be added to image sections
         expect((await db.get('sections', 'images'))!.content).toHaveProperty('hero')
         expect((await db.get('sections', 'video'))!.content).not.toHaveProperty('hero')
+    })
+
+    test('to_17', async () => {
+
+        // Setup
+        let db = await open_db('to_17', 16, async t => {
+            await to_12_from_0(t)
+            await to_13(t)
+            await to_14(t)
+            await to_15(t)
+            await to_16(t)
+        })
+        await db.put('sections', {id: 'text', content: {type: 'text', html: '<H1>H</ h1>'}} as any)
+        await db.put('sections', {id: 'video', content: {type: 'video'}} as any)
+
+        // Migrate
+        db.close()
+        db = await open_db('to_17', 17, to_17)
+
+        // Expect headings to all be <h2>
+        // @ts-ignore html prop will exist
+        expect((await db.get('sections', 'text'))!.content.html).toBe('<h2>H</ h2>')
     })
 
 })

@@ -6,7 +6,7 @@ import {AppDatabaseConnection, VersionChangeTransaction} from './types'
 import {to_12_from_1plus, to_12_from_1plus_async} from './migrations_pre12'
 
 
-export const DATABASE_VERSION = 16
+export const DATABASE_VERSION = 17
 
 
 export async function migrate(transaction:VersionChangeTransaction,
@@ -26,6 +26,8 @@ export async function migrate(transaction:VersionChangeTransaction,
         await to_15(transaction)
     if (old_version < 16)
         await to_16(transaction)
+    if (old_version < 17)
+        await to_17(transaction)
 }
 
 
@@ -200,7 +202,20 @@ export async function to_16(transaction:VersionChangeTransaction){
     for await (const cursor of transaction.objectStore('sections')){
         if (cursor.value.content.type === 'images'){
             cursor.value.content.hero = false
+            await cursor.update(cursor.value)
         }
-        await cursor.update(cursor.value)
+    }
+}
+
+
+export async function to_17(transaction:VersionChangeTransaction){
+    // Convert all <h1> (deprecated) to <h2>
+    // NOTE invites unlikely to have headings so ignored (will default to <p> when edited)
+    for await (const cursor of transaction.objectStore('sections')){
+        if (cursor.value.content.type === 'text'){
+            cursor.value.content.html =
+                cursor.value.content.html.replace(/<(\/?\s*)h[1-6]/ig, '<$1h2')
+            await cursor.update(cursor.value)
+        }
     }
 }
