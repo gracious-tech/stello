@@ -104,7 +104,7 @@ export const NormalizeHeadings = Extension.create({
             props: {
                 transformPastedHTML(html){
                     // WARN Pasted html may be <h1 style=...> rather than <h1>
-                    return html.replaceAll(/<(\/?\s*)h[1-6]/ig, '<$1h2')
+                    return html.replace(/<(\/?\s*)h[1-6]/ig, '<$1h2')
                 },
             },
         })]
