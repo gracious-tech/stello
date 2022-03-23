@@ -6,7 +6,7 @@ v-card
     v-card-title Reply to {{ replaction.contact_name }}
 
     v-card-text
-        app-html.html(v-model='html' class='pa-4')
+        app-html.html(ref='app_html' v-model='html' class='pa-4')
 
     v-card-actions
         app-btn(@click='edit_further') More options
@@ -37,6 +37,11 @@ export default class extends Vue {
         // Init html with quote
         const quote = escape_for_html(this.replaction.content)
         this.html = `<p></p><p></p><blockquote>${quote}</blockquote>`
+    }
+
+    mounted(){
+        // Access internal method of AppHtml to focus it when dialog opens
+        ;(this.$refs['app_html'] as unknown as {focus:()=>void}).focus()
     }
 
     async create_reply_draft(){
@@ -113,6 +118,7 @@ export default class extends Vue {
 <style lang='sass' scoped>
 
 .html
+    position: relative  // Needed for AppHtml menu to position properly upon first open
     background-color: hsl(0, 0%, 50%, 0.1)
 
 </style>
