@@ -131,11 +131,7 @@ export default class extends Vue {
 
     get contacts_ui(){
         // Get contacts that have responded in UI form for use in select component
-        const contacts:Record<string, string> = {}
-        for (const replaction of this.replactions){
-            contacts[replaction.contact_id] = replaction.contact_name
-        }
-        const ui_array = Object.entries(contacts).map(([k, v]) => ({value: k, text: v}))
+        const ui_array = Object.entries(this.contact_names).map(([k, v]) => ({value: k, text: v}))
         sort(ui_array, 'text')
         return ui_array
     }
@@ -172,9 +168,13 @@ export default class extends Vue {
         for (const replaction of this.replactions){
             // Don't reload contact if already have name, as won't have changed
             if (! (replaction.contact_id in this.contact_names)){
+                // Init with replaction name so don't wait for db and in case contact deleted
+                this.$set(this.contact_names, replaction.contact_id,
+                    replaction.contact_name || "[nameless]")
                 void self.app_db.contacts.get(replaction.contact_id).then(contact => {
-                    // Empty string if contact deleted, as sub component will fallback on own cache
-                    this.$set(this.contact_names, replaction.contact_id, contact?.display ?? '')
+                    if (contact){
+                        this.$set(this.contact_names, replaction.contact_id, contact.display)
+                    }
                 })
             }
         }

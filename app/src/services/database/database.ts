@@ -363,6 +363,7 @@ export class Database {
             replaction.msg_id = msg_copy.msg_id
             replaction.contact_id = msg_copy.contact_id
             // Preserve some kind of name in case contact later deleted
+            // NOTE Whole address used as unlike `contact.display`, can't open contact to see whole
             replaction.contact_name =
                 msg_copy.contact_name || msg_copy.contact_hello || msg_copy.contact_address
 
