@@ -53,7 +53,6 @@ const PLACEHOLDER = URL.createObjectURL(
 export default class extends Vue {
 
     @Prop({type: Section, required: true}) declare readonly page:Section<ContentPage>
-    @Prop({type: Array, required: true}) declare readonly suggestions:Blob[]
 
     mounted(){
         this.autogrow_all()
@@ -116,7 +115,9 @@ export default class extends Vue {
                 // Same limits as image section in case used for an image section too in future
                 width: SECTION_IMAGE_WIDTH * 2,
                 height: SECTION_IMAGE_WIDTH * 2,
-                suggestions: this.suggestions,
+                // @ts-ignore -- Hack to get section data from DraftContent
+                // eslint-disable-next-line
+                suggestions: this.$parent.$refs['content'].get_existing_images(),
                 removeable: !!this.page.content.image,
             },
         }) as Blob

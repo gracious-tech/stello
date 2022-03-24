@@ -44,9 +44,9 @@ div
                     | {{ draft.template ? "Delete template" : "Delete draft" }}
 
     div.stello-displayer(v-if='draft' :class='displayer_classes' :style='theme_style_props')
-        draft-invite(v-if='profile' :draft='draft' :profile='profile'
-            :suggestions='existing_images')
+        draft-invite(v-if='profile' :draft='draft' :profile='profile')
         shared-dark-toggle(v-model='dark_message')
+        //- WARN `content` ref used by DraftInvite
         draft-content(ref='content' :draft='draft' :sections='draft.sections' :profile='profile'
             @save='save')
 
@@ -137,11 +137,6 @@ export default class extends Vue {
         } else if (task.name === 'responses_receive'){
             void this.load_unsubscribes()
         }
-    }
-
-    get existing_images(){
-        // Access to existing images used in content sections
-        return (this.$refs['content'] as unknown as {existing_images:Blob[]}).existing_images
     }
 
     get profile():Profile|undefined{

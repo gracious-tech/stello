@@ -71,9 +71,9 @@ export default class extends Vue {
         )
     }
 
-    get existing_images(){
-        // Access to all existing images used within sections (doesn't traverse pages)
-        // NOTE This method is accessed by parent components
+    get_existing_images(){
+        // Return existing images used within sections (doesn't traverse pages)
+        // WARN This method is accessed by sibling components like DraftInvite
         const images:Blob[] = []
         for (const section of Object.values(this.records)){
             if (section.content.type === 'images'){

@@ -35,7 +35,6 @@ export default class extends Vue {
 
     @Prop({type: Draft, required: true}) declare readonly draft:Draft
     @Prop({type: Profile, required: true}) declare readonly profile:Profile
-    @Prop({type: Array, required: true}) declare readonly suggestions:Blob[]
 
     get image():Blob{
         // Get invite's image, accounting for inheritance
@@ -89,7 +88,9 @@ export default class extends Vue {
             props: {
                 width: INVITE_HTML_MAX_WIDTH,  // Only x1 DPR for speed increase
                 height: INVITE_HTML_MAX_WIDTH / 3,
-                suggestions: this.suggestions,
+                // @ts-ignore -- Hack to get section data from DraftContent
+                // eslint-disable-next-line
+                suggestions: this.$parent.$refs['content'].get_existing_images(),
                 invite: true,
                 crop: true,
             },

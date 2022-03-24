@@ -12,7 +12,8 @@ div
             app-list-item(@click='delete_page' class='error--text') Delete page
 
     div.stello-displayer(v-if='draft' :class='displayer_classes' :style='theme_style_props')
-        draft-pagebait-editable(:page='page' :suggestions='existing_images')
+        draft-pagebait-editable(:page='page')
+        //- WARN `content` ref used by DraftPagebaitEditable
         draft-content(ref='content' :draft='draft' :sections='sections' :profile='profile'
             @save='save')
 
@@ -95,11 +96,6 @@ export default class extends Vue {
 
     get sections(){
         return this.page!.content.sections
-    }
-
-    get existing_images(){
-        // Access to existing images used in content sections
-        return (this.$refs['content'] as unknown as {existing_images:Blob[]})?.existing_images ?? []
     }
 
     async save(){
