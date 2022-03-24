@@ -27,7 +27,7 @@ div
                 app-switch(v-bind='$t("allow_replies")' v-model='allow_replies')
                 app-switch(v-bind='$t("allow_reactions")' v-model='allow_reactions')
                 app-switch(v-bind='$t("smtp_no_reply")' v-model='smtp_no_reply'
-                    :hint='smtp_no_reply_hint' :disabled='!allow_replies' :disabled_value='false')
+                    :hint='smtp_no_reply_hint')
                 app-select(v-bind='$t("notify_mode")' v-model='notify_mode'
                     :items='notify_mode_items' select)
                 app-switch(v-bind='$t("notify_include_contents")' v-model='notify_include_contents'

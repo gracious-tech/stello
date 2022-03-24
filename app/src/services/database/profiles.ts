@@ -184,14 +184,14 @@ export class Profile implements RecordProfile {
 
     get smtp_reply_to_name():string{
         // The "name" to be used for Reply-To contact if smtp_no_reply enabled
-        return "PLEASE DON'T REPLY VIA EMAIL (open message to reply)"
+        return "PLEASE DON'T REPLY VIA EMAIL"
     }
 
     get smtp_reply_to():{name:string, address:string}|undefined{
         // Return name/address contact pair for use with Reply-To header
 
-        // If allowing email replies, or in-message replies not enabled, no need for a Reply-To
-        if (!this.options.smtp_no_reply || !this.options.allow_replies){
+        // If allowing email replies then no need for a Reply-To
+        if (!this.options.smtp_no_reply){
             return undefined
         }
 
