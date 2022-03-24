@@ -6,8 +6,9 @@ v-card(class='my-8')
     div.header(class='d-flex align-center justify-space-between'
             :class='{"app-bg-primary-relative": sectionless}')
         span(@click='go_to_msg' class='text-subtitle-2 ml-4') {{ msg_title }}
-        app-btn(v-if='!all_archived' @click='archive_all' icon='archive' class='mr-2'
-            data-tip="Archive all")
+        app-menu-more
+            app-list-item(@click='archive_all' :disabled='all_archived') Archive all
+            app-list-item(@click='remove_all' class='error--text') Delete all
 
     div.section_content(v-if='!sectionless'
             :class='{img: section_image, expanded: section_expanded}')
@@ -143,6 +144,14 @@ export default class extends Vue {
                 replaction.archived = true
                 void self.app_db[replaction.is_reply ? 'replies' : 'reactions'].set(replaction)
             }
+        }
+    }
+
+    remove_all(){
+        // Remove all replactions of the section
+        for (const replaction of this.replactions){
+            void self.app_db[replaction.is_reply ? 'replies' : 'reactions'].remove(replaction.id)
+            this.on_removed(replaction.id)
         }
     }
 

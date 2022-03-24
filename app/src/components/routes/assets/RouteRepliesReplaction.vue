@@ -13,11 +13,12 @@ div.root
             :class='unread ? "app-fg-accent-relative" : "text--secondary"') {{ sent_informal }}
 
         div.actions
-            app-btn(@click='reply_by_stello' icon='reply'
+            app-btn(@click='reply_by_stello' icon='reply' data-tip="Reply"
                 :color='replaction.replied ? "accent" : ""')
+            app-btn(@click='toggle_archived' icon='archive'
+                :color='replaction.archived ? "accent" : ""'
+                :data-tip='replaction.archived ? "Unarchive" : "Archive"')
             app-menu-more
-                app-list-item(@click='toggle_archived')
-                    | {{ replaction.archived ? "Unarchive" : "Archive" }}
                 app-list-item(@click='remove' class='error--text') Delete
 
     div.content(v-if='is_reply' class='text-body-1 text--primary') {{ replaction.content }}
