@@ -8,7 +8,7 @@ div
     //- NOTE width must be static as Vuetify doesn't support responsive for the canvas yet
     v-color-picker(v-model='theme_color' mode='hsla' :swatches='swatches'
         :show-swatches='!custom_color' :hide-inputs='!custom_color' :hide-canvas='!custom_color'
-        :hide-sliders='!custom_color' width='560')
+        :hide-sliders='!custom_color' width='560' swatches-max-height='auto')
 
     div(class='text-center mb-4')
         app-btn(v-if='!custom_color' @click='custom_color = true' small) Custom color
