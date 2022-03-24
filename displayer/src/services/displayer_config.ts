@@ -20,6 +20,7 @@ class DisplayerConfigAccess {
     responder:string|false|null = null  // false if config deleted (account disabled)
     notify_include_contents = false
     allow_replies = false
+    allow_comments = false
     allow_reactions = false
     allow_delete = false
     allow_resend_requests = false
@@ -42,6 +43,7 @@ class DisplayerConfigAccess {
                 // Config no longer exists, the sign account deactivated, so disable responses
                 this.responder = false
                 this.allow_replies = false
+                this.allow_comments = false
                 this.allow_reactions = false
                 this.allow_delete = false
                 this.allow_resend_requests = false
@@ -68,6 +70,11 @@ class DisplayerConfigAccess {
             resp_key_public: await import_key_asym(url64_to_buffer(
                 config['resp_key_public'] as string)),
         })
+
+        // allow_comments added after v1.1.0 and previously defaulted to value of allow_replies
+        if (! ('allow_comments' in config)){
+            this.allow_comments = this.allow_replies
+        }
 
         // If using gracious hosting, responder url forced as not dynamic like self-hosted is
         if (import.meta.env.VITE_HOSTED_MSGS_URL){

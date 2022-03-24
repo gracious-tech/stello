@@ -1,9 +1,10 @@
 
 <template lang='pug'>
 
-div.respondbar(v-if='allow_replies || allow_reactions' @mouseenter='have_hovered = true' class='ui')
+div.respondbar(v-if='allow_comments || allow_reactions' @mouseenter='have_hovered = true'
+        class='ui')
 
-    div.reply_container(v-if='allow_replies')
+    div.reply_container(v-if='allow_comments')
         SharedRespondReply(@click='focus_reply_textarea' :replied='!!replies.length'
             :class='{responded: !!replies.length}')
         div.position(v-if='have_hovered')
@@ -92,8 +93,8 @@ export default defineComponent({
         const last_sent_contents = computed(() => last_sent_cache[props.subsection ?? 'null'])
 
         // NOTE `respondable` didn't exist v0.3.6 and below, so may be undefined in old messages
-        const allow_replies = computed(
-            () => props.section.respondable !== false && displayer_config.allow_replies)
+        const allow_comments = computed(
+            () => props.section.respondable !== false && displayer_config.allow_comments)
 
         const focus_reply_textarea = () => {
             // Focus textarea for quicker writing
@@ -211,7 +212,7 @@ export default defineComponent({
 
         // Expose
         return {
-            allow_replies, allow_reactions, have_hovered,
+            allow_comments, allow_reactions, have_hovered,
             focus_reply_textarea, focus_react_button,
             reply_textarea, reply_text, reply_waiting, reply_success, send_comment,
             react_with, reaction_options, chosen_reaction, react_popup_visible,

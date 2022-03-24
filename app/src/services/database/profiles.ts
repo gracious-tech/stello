@@ -341,6 +341,7 @@ export class DatabaseProfiles {
                 notify_mode: 'replies',
                 notify_include_contents: false,
                 allow_replies: true,
+                allow_comments: true,
                 allow_reactions: true,
                 allow_delete: true,
                 allow_resend_requests: true,

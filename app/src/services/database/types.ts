@@ -125,6 +125,7 @@ export interface RecordProfileOptions {
     notify_mode:'none'|'first_new_reply'|'replies'|'replies_and_reactions'
     notify_include_contents:boolean  // Only applicable to replies & replies_and_reactions
     allow_replies:boolean
+    allow_comments:boolean
     allow_reactions:boolean
     allow_delete:boolean
     allow_resend_requests:boolean

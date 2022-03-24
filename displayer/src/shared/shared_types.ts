@@ -129,6 +129,7 @@ export interface DisplayerConfig {
     responder:string
     notify_include_contents:boolean
     allow_replies:boolean
+    allow_comments:boolean
     allow_reactions:boolean
     allow_delete:boolean
     allow_resend_requests:boolean

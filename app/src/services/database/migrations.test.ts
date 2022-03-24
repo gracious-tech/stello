@@ -175,6 +175,8 @@ test.describe('migrate', async () => {
         })
         await db.put('sections', {id: 'text', content: {type: 'text', html: '<H1>H</ h1>'}} as any)
         await db.put('sections', {id: 'video', content: {type: 'video'}} as any)
+        await db.put('profiles', {id: 'true', options: {allow_replies: true}} as any)
+        await db.put('profiles', {id: 'false', options: {allow_replies: false}} as any)
 
         // Migrate
         db.close()
@@ -183,6 +185,10 @@ test.describe('migrate', async () => {
         // Expect headings to all be <h2>
         // @ts-ignore html prop will exist
         expect((await db.get('sections', 'text'))!.content.html).toBe('<h2>H</ h2>')
+
+        // Expect allow_comments to exist and default to same as allow_replies
+        expect((await db.get('profiles', 'true'))?.options.allow_comments).toBe(true)
+        expect((await db.get('profiles', 'false'))?.options.allow_comments).toBe(false)
     })
 
 })

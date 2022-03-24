@@ -38,6 +38,7 @@ export async function configs_update(task:Task){
             responder: `${profile.api}responder/`,
             notify_include_contents: profile.options.notify_include_contents,
             allow_replies: profile.options.allow_replies,
+            allow_comments: profile.options.allow_comments,
             allow_reactions: profile.options.allow_reactions,
             allow_delete: profile.options.allow_delete,
             allow_resend_requests: profile.options.allow_resend_requests,
@@ -59,7 +60,8 @@ export async function configs_update(task:Task){
             version: app_config.version,  // Did not exist v0.7.2 and below
             notify_mode: profile.options.notify_mode,
             notify_include_contents: profile.options.notify_include_contents,
-            allow_replies: profile.options.allow_replies,
+            // NOTE Responder does not distinguish between allow_replies and allow_comments
+            allow_replies: profile.options.allow_replies || profile.options.allow_comments,
             allow_reactions: profile.options.allow_reactions,
             allow_delete: profile.options.allow_delete,
             allow_resend_requests: profile.options.allow_resend_requests,

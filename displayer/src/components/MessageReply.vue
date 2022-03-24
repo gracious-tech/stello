@@ -19,7 +19,7 @@ form(v-if='allow_replies' @submit.prevent='send_reply' class='ui')
             AppProgress(v-if='waiting')
             svg(v-else viewBox='0 0 24 24')
                 path(d='M2.01 21L23 12 2.01 3 2 10l15 2-15 2z')
-    p.note All comments/reactions/replies securely encrypted &amp; only visible to author
+    p.note All replies/comments/reactions securely encrypted &amp; only visible to author
 
 </template>
 

@@ -209,6 +209,7 @@ export async function to_16(transaction:VersionChangeTransaction){
 
 
 export async function to_17(transaction:VersionChangeTransaction){
+
     // Convert all <h1> (deprecated) to <h2>
     // NOTE invites unlikely to have headings so ignored (will default to <p> when edited)
     for await (const cursor of transaction.objectStore('sections')){
@@ -217,5 +218,11 @@ export async function to_17(transaction:VersionChangeTransaction){
                 cursor.value.content.html.replace(/<(\/?\s*)h[1-6]/ig, '<$1h2')
             await cursor.update(cursor.value)
         }
+    }
+
+    // New allow_comments option for profiles
+    for await (const cursor of transaction.objectStore('profiles')){
+        cursor.value.options.allow_comments = cursor.value.options.allow_replies
+        await cursor.update(cursor.value)
     }
 }

@@ -25,6 +25,7 @@ div
         v-card
             v-card-text
                 app-switch(v-bind='$t("allow_replies")' v-model='allow_replies')
+                app-switch(v-bind='$t("allow_comments")' v-model='allow_comments')
                 app-switch(v-bind='$t("allow_reactions")' v-model='allow_reactions')
                 app-switch(v-bind='$t("smtp_no_reply")' v-model='smtp_no_reply'
                     :hint='smtp_no_reply_hint')
@@ -98,8 +99,12 @@ const i18n = {
             Unlike messages, this information does not expire
             and will remain in recipients' inboxes, likely for all eternity.`,
     },
-    // Replies
+    // Responses
     allow_replies: {
+        label: "Allow replies",
+        hint: "Include a reply form at the end of each message",
+    },
+    allow_comments: {
         label: "Allow comments",
         hint: "Allow recipients to comment on message sections",
     },
@@ -267,6 +272,14 @@ export default class extends Vue {
     }
     set allow_replies(value){
         this.profile.options.allow_replies = value
+        this.save(true)
+    }
+
+    get allow_comments(){
+        return this.profile.options.allow_comments
+    }
+    set allow_comments(value){
+        this.profile.options.allow_comments = value
         this.save(true)
     }
 
