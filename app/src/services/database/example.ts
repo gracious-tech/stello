@@ -37,12 +37,12 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
 
     // Create contacts
     const first_names = ['Adam', 'Ben', 'Charlie', 'David', 'Edward', 'Fred', 'Greg',
-        'Harry']
+        'Harry', 'Ike', 'John & Jenny', 'Keith & Karen', '', '', '', '']
     const last_names = ['Andrews', 'Beaver', 'Chapman', 'Driver', 'Edmonds', 'Fudge',
-        'Goods', 'Harvard']
+        'Goods', 'Harvard', '', '', '', '']
     const contacts = await Promise.all([...range(100 * multiplier)].map(async i => {
         const contact = await db.contacts.create(
-            `${sample(first_names)!} ${sample(last_names)!}`,
+            `${sample(first_names)!} ${sample(last_names)!}`.trim(),
             Math.random() > 0.8 ? '' : `blackhole+stello${i}@gracious.tech`,
         )
         // Sometimes unsubscribe them
