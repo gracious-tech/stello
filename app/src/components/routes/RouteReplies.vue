@@ -18,7 +18,8 @@ div
     app-content(class='pa-5')
 
         route-replies-subsection(v-for='replactions of subsections_visible'
-            :replactions='replactions.items' :key='replactions.key' @removed='on_removed')
+            :replactions='replactions.items' :key='replactions.key' :names='contact_names'
+            @removed='on_removed')
 
         div(v-if='!subsections_visible.length' class='text-center text--secondary text-h5 my-10')
             | No responses
@@ -49,6 +50,7 @@ type MinOne<T> = [T, ...T[]]
 export default class extends Vue {
 
     replactions:(Reply|Reaction)[] = []
+    contact_names:Record<string, string> = {}  // Cache of up-to-date contact names
     pages = 1
     filter_current = true  // Only show current (non-archived)
     filter_contact:string|null = null
@@ -164,6 +166,18 @@ export default class extends Vue {
         // Merge into one array and sort by date
         this.replactions = [...replies, ...reactions]
         sort(this.replactions, 'sent', false)
+
+        // Also load contacts in case names have been updated
+        // NOTE Important when user hasn't previously bothered to enter names, just addresses
+        for (const replaction of this.replactions){
+            // Don't reload contact if already have name, as won't have changed
+            if (! (replaction.contact_id in this.contact_names)){
+                void self.app_db.contacts.get(replaction.contact_id).then(contact => {
+                    // Empty string if contact deleted, as sub component will fallback on own cache
+                    this.$set(this.contact_names, replaction.contact_id, contact?.display ?? '')
+                })
+            }
+        }
     }
 
     download(){

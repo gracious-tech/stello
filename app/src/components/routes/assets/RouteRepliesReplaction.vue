@@ -5,7 +5,7 @@ div.root
     hr
     div.meta(class='d-flex align-center')
 
-        a.author(@click='to_contact' class='font-weight-medium') {{ replaction.contact_name }}
+        a.author(@click='to_contact' class='font-weight-medium') {{ safe_name }}
 
         SharedSvgAnimated.reaction(v-if='!is_reply' :url='reaction_url' :playing='unread')
 
@@ -41,7 +41,8 @@ import {time_between} from '@/services/misc'
 })
 export default class extends Vue {
 
-    @Prop() declare readonly replaction:Reply|Reaction
+    @Prop({type: Object, required: true}) declare readonly replaction:Reply|Reaction
+    @Prop({type: String}) declare readonly name:string|undefined
 
     unread = false  // Preservation of initial value before marking as read during `created`
 
@@ -85,6 +86,12 @@ export default class extends Vue {
         return this.replaction.sent.toLocaleString()
     }
 
+    get safe_name(){
+        // Ensure something always displayed for contact name
+        // `this.name` will be empty if contact deleted or undefined if still loading from db
+        return this.name || this.replaction.contact_name || "[nameless]"
+    }
+
     to_contact(){
         // Navigate to the contact that sent this response
         void this.$router.push({name: 'contact', params: {contact_id: this.replaction.contact_id}})
@@ -102,6 +109,7 @@ export default class extends Vue {
             component: DialogReply,
             props: {
                 replaction: this.replaction,
+                name: this.safe_name,
             },
         })
     }

@@ -3,7 +3,7 @@
 
 v-card
 
-    v-card-title Reply to {{ replaction.contact_name }}
+    v-card-title Reply to {{ name }}
 
     v-card-text
         app-html.html(ref='app_html' v-model='html' class='pa-4')
@@ -30,6 +30,7 @@ import {escape_for_html} from '@/services/utils/strings'
 export default class extends Vue {
 
     @Prop({type: Object, required: true}) declare readonly replaction:Reply|Reaction
+    @Prop({type: String, required: true}) declare readonly name:string
 
     html = ''
 

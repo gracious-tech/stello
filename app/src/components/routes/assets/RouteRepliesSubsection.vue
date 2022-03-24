@@ -21,7 +21,7 @@ v-card(class='my-8')
 
     v-card-text
         RouteRepliesReplaction(v-for='replaction of replactions' :key='replaction.id'
-            :replaction='replaction' @removed='on_removed')
+            :replaction='replaction' :name='names[replaction.contact_id]' @removed='on_removed')
 
 
 </template>
@@ -43,7 +43,8 @@ import {request_json} from '@/services/utils/http'
 })
 export default class extends Vue {
 
-    @Prop() declare readonly replactions:(Reply|Reaction)[]
+    @Prop({type: Array, required: true}) declare readonly replactions:(Reply|Reaction)[]
+    @Prop({type: Object, required: true}) declare readonly names:Record<string, string>
 
     section:Section|null = null
     section_image_vimeo:string|null = null
