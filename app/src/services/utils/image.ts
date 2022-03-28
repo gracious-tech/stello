@@ -2,6 +2,8 @@
 
 export async function blob_image_size(blob:Blob):Promise<{width:number, height:number}>{
     // Get the width/height of an image blob
+    // WARN Dimensions will be wrong for rotated jpegs in Chrome
+    // See https://bugs.chromium.org/p/chromium/issues/detail?id=1220671#c15
     const bitmap = await createImageBitmap(blob)
     return {
         width: bitmap.width,
