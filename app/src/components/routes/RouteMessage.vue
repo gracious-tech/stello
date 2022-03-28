@@ -19,7 +19,9 @@ div
                     div(:title='expires_exact || ""') #[strong Expires:] {{ expires_relative }}
 
                 div(class='text-center')
-                    strong {{ num_copies_read }} of {{ copies.length }} opened
+                    strong
+                        | {{ num_copies_read }} of {{ copies.length }} opened
+                        | ({{ percent_copies_read }}%)
 
                 div(v-if='!profile' class='text-center error--text mt-3')
                     | The account used to send this no longer exists
@@ -137,6 +139,11 @@ export default class extends Vue {
     get num_copies_read(){
         // Return how many copies have at least one read recorded
         return Object.values(this.reads_by_copy).filter(reads => reads.length).length
+    }
+
+    get percent_copies_read(){
+        // Floored percent of num_copies_read
+        return Math.floor(this.num_copies_read / this.copies.length * 100)
     }
 
     get some_still_pending(){
