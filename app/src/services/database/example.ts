@@ -43,10 +43,10 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
     const contacts = await Promise.all([...range(100 * multiplier)].map(async i => {
         const contact = await db.contacts.create(
             `${sample(first_names)!} ${sample(last_names)!}`.trim(),
-            Math.random() > 0.8 ? '' : `blackhole+stello${i}@gracious.tech`,
+            Math.random() < 0.2 ? '' : `blackhole+stello${i}@gracious.tech`,
         )
         // Sometimes unsubscribe them
-        if (Math.random() > 0.75){
+        if (Math.random() < 0.2){
             await db.unsubscribes.set({
                 profile: profile.id,
                 contact: contact.id,
@@ -56,7 +56,7 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
             })
         }
         // Sometimes request to change address
-        if (Math.random() > 0.9 && contact.address){
+        if (Math.random() < 0.1 && contact.address){
             await db._conn.put('request_address', {
                 contact: contact.id,
                 new_address: contact.address + '.new',
@@ -148,12 +148,12 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
         const draft_copy = await db.draft_copy(new Draft({
             ...draft,
             title: titles.next().value,
-            reply_to: Math.random() > 0.2 ? 'id' : null,
+            reply_to: Math.random() < 0.8 ? 'id' : null,
         }))
         const msg = await db.draft_to_message(draft_copy.id)
 
         // Sometimes create resend requests
-        if (Math.random() > 0.9){
+        if (Math.random() < 0.1){
             await db._conn.put('request_resend', {
                 contact: draft.recipients.include_contacts[0]!,
                 message: msg.id,
@@ -183,26 +183,28 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
     }
 
     // Create responses
-    for (const msg of percent(messages)){
+    for (const msg of messages){
         const msg_section_ids = cycle(msg.draft.sections.flat() as MinOne<string>)
-        const msg_subsection_ids =
-            cycle([null, section_image.content.images[0]!.id, null, null])
-        for (const msg_copy of percent(await db.copies.list_for_msg(msg.id))){
-            if (Math.random() > 0.5){
+        const msg_subsection_ids = cycle([null, section_image.content.images[0]!.id, null, null])
+        for (const msg_copy of await db.copies.list_for_msg(msg.id)){
+            if (Math.random() < 0.2){
                 await db.reply_create(random_reply(), random_date(), msg_copy.resp_token,
                     null, null, '', '')
             }
-            if (Math.random() > 0.5){
+            if (Math.random() < 0.2){
                 await db.reply_create(random_reply(), random_date(), msg_copy.resp_token,
                     msg_section_ids.next().value, msg_subsection_ids.next().value, '', '')
             }
-            if (Math.random() > 0.5){
+            if (Math.random() < 0.2){
                 await db.reaction_create(reactions.next().value, random_date(),
                     msg_copy.resp_token, msg_section_ids.next().value,
                     msg_subsection_ids.next().value, '', '')
             }
-            if (Math.random() > 0.2){
+            if (Math.random() < 0.5){
                 await db.read_create(random_date(), msg_copy.resp_token, '', '')
+                if (Math.random() < 0.3){  // Sometimes read more than once
+                    await db.read_create(random_date(), msg_copy.resp_token, '', '')
+                }
             }
         }
     }
