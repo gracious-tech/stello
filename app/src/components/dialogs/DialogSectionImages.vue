@@ -25,7 +25,7 @@ v-card
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
 import DialogSectionImagesItem from './assets/DialogSectionImagesItem.vue'
-import {resize_bitmap} from '@/services/utils/image'
+import {normalize_orientation, resize_bitmap} from '@/services/utils/image'
 import {generate_token} from '@/services/utils/crypt'
 import {bitmap_to_canvas, canvas_to_blob} from '@/services/utils/coding'
 import {get_clipboard_blobs} from '@/services/utils/misc'
@@ -70,22 +70,19 @@ export default class extends Vue {
     async handle_blob(blob:Blob){
         // Handle a blob, resizing and adding if an image, otherwise returning false for failure
 
-        // If blob isn't an image, ignore it
-        if (!blob.type.startsWith('image/')){
-            console.warn(`Not an image: ${blob.type}`)
-            return false
-        }
+        // Normalize to ensure no issues with orientation when convert to bitmap
+        // NOTE Chrome currently doesn't support orientation for createImageBitmap
         let bitmap:ImageBitmap
         try {
-            bitmap = await createImageBitmap(blob)
-        } catch (error){
-            console.warn(error)
+            bitmap = await createImageBitmap(await normalize_orientation(blob))
+        } catch {
+            // If blob isn't an image, ignore it
+            console.warn(`Not an image: ${blob.type}`)
             return false
         }
 
         // Resize the image, just to save space, as will resize again when publish message
-        // Double the possible output size in case crop later
-        // TODO Reconsider what to do about height (not currently considered important)
+        // Use double possible published width for both dimensions in case rotate or crop later
         bitmap = await resize_bitmap(bitmap, SECTION_IMAGE_WIDTH * 2, SECTION_IMAGE_WIDTH * 2)
         blob = await canvas_to_blob(bitmap_to_canvas(bitmap))
 
