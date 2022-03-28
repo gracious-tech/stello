@@ -41,7 +41,7 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 
 import {bitmap_to_canvas, canvas_to_blob} from '@/services/utils/coding'
 import {get_clipboard_blobs} from '@/services/utils/misc'
-import {resize_bitmap} from '@/services/utils/image'
+import {normalize_orientation, resize_bitmap} from '@/services/utils/image'
 
 
 @Component({})
@@ -71,18 +71,15 @@ export default class extends Vue {
     }
 
     async handle_blob(blob:Blob){
-        // Handle a blob, adding if an image, otherwise returning false for failure
+        // Handle a blob, emitting if an image
 
-        // If blob isn't an image, ignore it
-        if (!blob.type.startsWith('image/')){
-            console.warn(`Not an image: ${blob.type}`)
-            return false
-        }
-        let bitmap:ImageBitmap
+        // Normalize to ensure no issues with orientation when convert to bitmap
+        // NOTE Chrome currently doesn't support orientation for createImageBitmap
         try {
-            bitmap = await createImageBitmap(blob)
-        } catch (error){
-            console.warn(error)
+            // Overwrite original blob as may only use that rather than bitmap if cropping
+            blob = await normalize_orientation(blob)
+        } catch {
+            console.warn(`Not an image: ${blob.type}`)
             return false
         }
 
@@ -95,6 +92,7 @@ export default class extends Vue {
                 })
             })
         } else {
+            let bitmap = await createImageBitmap(blob)
             bitmap = await resize_bitmap(bitmap, this.width, this.height)
             this.$emit('close', canvas_to_blob(bitmap_to_canvas(bitmap)))
         }

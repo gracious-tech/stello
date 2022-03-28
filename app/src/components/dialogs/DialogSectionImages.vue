@@ -72,17 +72,16 @@ export default class extends Vue {
 
         // Normalize to ensure no issues with orientation when convert to bitmap
         // NOTE Chrome currently doesn't support orientation for createImageBitmap
-        let bitmap:ImageBitmap
         try {
-            bitmap = await createImageBitmap(await normalize_orientation(blob))
+            blob = await normalize_orientation(blob)
         } catch {
-            // If blob isn't an image, ignore it
             console.warn(`Not an image: ${blob.type}`)
             return false
         }
 
         // Resize the image, just to save space, as will resize again when publish message
         // Use double possible published width for both dimensions in case rotate or crop later
+        let bitmap = await createImageBitmap(blob)
         bitmap = await resize_bitmap(bitmap, SECTION_IMAGE_WIDTH * 2, SECTION_IMAGE_WIDTH * 2)
         blob = await canvas_to_blob(bitmap_to_canvas(bitmap))
 
