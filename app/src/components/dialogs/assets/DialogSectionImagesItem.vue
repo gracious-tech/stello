@@ -41,12 +41,12 @@ export default class extends Vue {
 
     get item(){
         // Return individual image object represented by this component
-        return this.section.content.images[this.item_index]
+        return this.section.content.images[this.item_index]!
     }
 
     get sizer_src(){
         // Return blob url for first image (may not be this one) so can use for sizing purposes
-        return URL.createObjectURL(this.section.content.images[0].data)
+        return URL.createObjectURL(this.section.content.images[0]!.data)
     }
 
     get displayer_styles(){
@@ -65,7 +65,7 @@ export default class extends Vue {
     set caption(value){
         // Change the caption of this image
         this.item.caption = value
-        self.app_db.sections.set(this.section)
+        void self.app_db.sections.set(this.section)
     }
 
     get is_first(){
@@ -98,22 +98,22 @@ export default class extends Vue {
 
     move_up(){
         // Move this image up in the set
-        const prev_item = this.section.content.images[this.item_index - 1]
+        const prev_item = this.section.content.images[this.item_index - 1]!
         this.section.content.images.splice(this.item_index - 1, 2, this.item, prev_item)
-        self.app_db.sections.set(this.section)
+        void self.app_db.sections.set(this.section)
     }
 
     move_down(){
         // Move this image down in the set
-        const next_item = this.section.content.images[this.item_index + 1]
+        const next_item = this.section.content.images[this.item_index + 1]!
         this.section.content.images.splice(this.item_index, 2, next_item, this.item)
-        self.app_db.sections.set(this.section)
+        void self.app_db.sections.set(this.section)
     }
 
     remove(){
         // Remove this image (and cause this component to be destroyed)
         this.section.content.images.splice(this.item_index, 1)
-        self.app_db.sections.set(this.section)
+        void self.app_db.sections.set(this.section)
     }
 
 }
