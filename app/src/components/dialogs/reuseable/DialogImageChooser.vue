@@ -129,7 +129,7 @@ export default class extends Vue {
         })
 
         // Emit as a blob
-        const format = this.invite ? 'jpeg' : undefined  // Many email clients only support jpeg
+        const format = this.invite ? 'jpeg' : 'png'  // Many email clients only support jpeg
         const blob = await canvas_to_blob(bitmap_to_canvas(bitmap), format)
         this.$emit('close', blob)
     }

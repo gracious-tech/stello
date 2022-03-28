@@ -515,7 +515,7 @@ async function process_image(pub_assets:PublishedAsset[], id:string, image:Blob,
     // Add assets
     pub_assets.push({
         id: id,
-        data: await (await canvas_to_blob(bitmap_canvas)).arrayBuffer(),
+        data: await (await canvas_to_blob(bitmap_canvas, 'webp')).arrayBuffer(),
     })
     /* SECURITY With admin access to storage you could know what assets are images by
         noting the patterns for webp/jpeg ids. But if you have admin access, there are

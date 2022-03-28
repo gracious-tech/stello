@@ -88,8 +88,10 @@ export function bitmap_to_canvas(bitmap:ImageBitmap):OffscreenCanvas{
 }
 
 
-export function canvas_to_blob(canvas:OffscreenCanvas, type='webp', quality=0.8):Promise<Blob>{
+export function canvas_to_blob(canvas:OffscreenCanvas, type:'png'|'jpeg'|'webp'='png', quality=0.8)
+        :Promise<Blob>{
     // Generate a compressed image blob from the given canvas
+    // NOTE quality not relevant for png
     return canvas.convertToBlob({type: `image/${type}`, quality})
 }
 
