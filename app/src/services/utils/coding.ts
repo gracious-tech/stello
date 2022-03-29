@@ -77,6 +77,12 @@ export async function stream_to_buffer(stream:ReadableStream):Promise<ArrayBuffe
 
 
 // IMAGES
+/* Usage guide:
+    * Blob -- Compressed / no dimensions / turn into bitmap / display via createObjectURL
+    * Bitmap -- Uncompressed / has dimensions / turn into canvas / can't display
+    * 2dcanvas -- Uncompressed / has dimensions / turn into bitmap|blob / display if not offscreen
+    * bitcanvas -- Same as 2dcanvas but can't use 2d context and can transfer bitmap efficiently
+*/
 
 
 export function blob_to_bitmap(blob:Blob):Promise<ImageBitmap>{
@@ -90,19 +96,19 @@ export function bitmap_to_blob(bitmap:ImageBitmap, type:'png'|'jpeg'|'webp'='png
     // Generate an image blob from a bitmap
     // NOTE No direct method so must go via canvas
     // NOTE quality not relevant for png
-    return canvas_to_blob(bitmap_to_canvas(bitmap), type, quality)
+    return canvas_to_blob(bitmap_to_bitcanvas(bitmap), type, quality)
 }
 
 
-export async function blob_to_canvas(blob:Blob):Promise<OffscreenCanvas>{
+export async function blob_to_bitcanvas(blob:Blob):Promise<OffscreenCanvas>{
     // Generate a canvas from an image blob
     // NOTE No direct method so must go via bitmap
-    return bitmap_to_canvas(await blob_to_bitmap(blob))
+    return bitmap_to_bitcanvas(await blob_to_bitmap(blob))
 }
 
 
-export function bitmap_to_canvas(bitmap:ImageBitmap):OffscreenCanvas{
-    // Convert a bitmap into a canvas (more memory efficient than `copy_bitmap_to_canvas`)
+export function bitmap_to_bitcanvas(bitmap:ImageBitmap):OffscreenCanvas{
+    // Convert a bitmap into a canvas (more memory efficient than `bitmap_to_2dcanvas`)
     // WARN You cannot use the original bitmap after `transferFromImageBitmap()` is used
     const canvas = new OffscreenCanvas(bitmap.width, bitmap.height)
     canvas.getContext('bitmaprenderer')!.transferFromImageBitmap(bitmap)
@@ -110,8 +116,8 @@ export function bitmap_to_canvas(bitmap:ImageBitmap):OffscreenCanvas{
 }
 
 
-export function copy_bitmap_to_canvas(bitmap:ImageBitmap):OffscreenCanvas{
-    // Version of `bitmap_to_canvas` that doesn't cause the original bitmap to be lost
+export function bitmap_to_2dcanvas(bitmap:ImageBitmap):OffscreenCanvas{
+    // Convert a bitmap into a 2d canvas that doesn't cause original bitmap to be lost
     const canvas = new OffscreenCanvas(bitmap.width, bitmap.height)
     canvas.getContext('2d')!.drawImage(bitmap, 0, 0)
     return canvas

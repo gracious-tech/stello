@@ -8,7 +8,7 @@ import {Profile} from '../database/profiles'
 import {MessageCopy} from '../database/copies'
 import {concurrent} from '@/services/utils/async'
 import {resize_bitmap, blob_image_size} from '@/services/utils/image'
-import {bitmap_to_canvas, blob_to_bitmap, canvas_to_blob, buffer_to_url64, string_to_utf8}
+import {bitmap_to_bitcanvas, blob_to_bitmap, canvas_to_blob, buffer_to_url64, string_to_utf8}
     from '../utils/coding'
 import {encrypt_sym, export_key} from '../utils/crypt'
 import {SECTION_IMAGE_WIDTH} from '../misc'
@@ -511,12 +511,12 @@ async function process_image(pub_assets:PublishedAsset[], id:string, image:Blob,
     // Resize the image
     let bitmap = await blob_to_bitmap(image)
     bitmap = await resize_bitmap(bitmap, max_width, max_height, crop)
-    const bitmap_canvas = bitmap_to_canvas(bitmap)  // bitmap_to_blob uses canvas anyway, save mem
+    const bitcanvas = bitmap_to_bitcanvas(bitmap)  // bitmap_to_blob uses canvas anyway, save mem
 
     // Add assets
     pub_assets.push({
         id: id,
-        data: await (await canvas_to_blob(bitmap_canvas, 'webp')).arrayBuffer(),
+        data: await (await canvas_to_blob(bitcanvas, 'webp')).arrayBuffer(),
     })
     /* SECURITY With admin access to storage you could know what assets are images by
         noting the patterns for webp/jpeg ids. But if you have admin access, there are
@@ -524,6 +524,6 @@ async function process_image(pub_assets:PublishedAsset[], id:string, image:Blob,
     */
     pub_assets.push({
         id: `${id}j`,  // Image id with 'j' appended
-        data: await (await canvas_to_blob(bitmap_canvas, 'jpeg')).arrayBuffer(),
+        data: await (await canvas_to_blob(bitcanvas, 'jpeg')).arrayBuffer(),
     })
 }
