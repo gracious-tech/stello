@@ -115,3 +115,12 @@ export function rotate_image(source:OffscreenCanvas|ImageBitmap, clockwise=true)
 
     return canvas
 }
+
+
+export function filter_image(source:OffscreenCanvas|ImageBitmap, filter:string):OffscreenCanvas{
+    // Apply filters to an image and return the result as a canvas
+    const canvas = new OffscreenCanvas(source.width, source.height)
+    canvas.getContext('2d')!.filter = filter
+    canvas.getContext('2d')!.drawImage(source, 0, 0)
+    return canvas
+}
