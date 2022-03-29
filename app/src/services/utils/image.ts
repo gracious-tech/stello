@@ -1,5 +1,5 @@
 
-export async function _tmp_normalize_orientation(blob:Blob){
+export async function _tmp_normalize_orientation(blob:Blob):Promise<Blob>{
     // Normalize image orientation by producing new image with standard orientation
     // NOTE Output is always a PNG to avoid losing any quality since can't otherwise know it
     // WARN This is required before using createImageBitmap with images in Chrome
@@ -113,6 +113,9 @@ export function rotate_image(source:OffscreenCanvas|ImageBitmap, clockwise=true)
     // Draw image in the rotated context
     context.drawImage(source, 0, 0)
 
+    // Reset context in case caller does further modifications
+    context.resetTransform()
+
     return canvas
 }
 
@@ -120,7 +123,12 @@ export function rotate_image(source:OffscreenCanvas|ImageBitmap, clockwise=true)
 export function filter_image(source:OffscreenCanvas|ImageBitmap, filter:string):OffscreenCanvas{
     // Apply filters to an image and return the result as a canvas
     const canvas = new OffscreenCanvas(source.width, source.height)
-    canvas.getContext('2d')!.filter = filter
-    canvas.getContext('2d')!.drawImage(source, 0, 0)
+    const context = canvas.getContext('2d')!
+    context.filter = filter
+    context.drawImage(source, 0, 0)
+
+    // Reset filter in case caller does further modifications
+    context.filter = ''
+
     return canvas
 }
