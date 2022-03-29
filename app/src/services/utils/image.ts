@@ -94,3 +94,24 @@ export async function resize_bitmap(bitmap:ImageBitmap, max_width:number, max_he
     // Resize
     return createImageBitmap(bitmap, ...src_args, resize_args)
 }
+
+
+export function rotate_image(source:OffscreenCanvas|ImageBitmap, clockwise=true):OffscreenCanvas{
+    // Rotate an image by 90deg
+    // Can take any source that drawImage supports as long as has width/height properties
+
+    // Create canvas with dimensions swapped
+    const new_width = source.height
+    const new_height = source.width
+    const canvas = new OffscreenCanvas(new_width, new_height)
+
+    // Create context that is rotated (must first translate since rotates from top-left)
+    const context = canvas.getContext('2d')!
+    context.translate(clockwise ? new_width : 0, clockwise ? 0 : new_height)
+    context.rotate(Math.PI / (clockwise ? 2 : -2))
+
+    // Draw image in the rotated context
+    context.drawImage(source, 0, 0)
+
+    return canvas
+}
