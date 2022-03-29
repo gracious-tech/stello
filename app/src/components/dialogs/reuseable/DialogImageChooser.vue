@@ -39,8 +39,7 @@ v-card(class='pt-6')
 import Croppr from 'croppr'
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
-import {bitmap_to_canvas, bitmap_to_blob, blob_to_bitmap, canvas_to_blob}
-    from '@/services/utils/coding'
+import {bitmap_to_blob, blob_to_bitmap} from '@/services/utils/coding'
 import {get_clipboard_blobs} from '@/services/utils/misc'
 import {_tmp_normalize_orientation, resize_bitmap} from '@/services/utils/image'
 
