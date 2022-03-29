@@ -5,7 +5,7 @@
 v-menu
     template(#activator='menu')
         //- .menu-more-btn added so can identify button when using this component
-        app-btn.menu-more-btn(@click.prevent='menu.on.click' icon='more_vert')
+        app-btn.menu-more-btn(v-bind='$attrs' @click.prevent='menu.on.click' :icon='icon')
     v-list
         slot
 
@@ -14,11 +14,13 @@ v-menu
 
 <script lang='ts'>
 
-import {Component, Vue} from 'vue-property-decorator'
+import {Component, Vue, Prop} from 'vue-property-decorator'
 
 
 @Component({})
 export default class extends Vue {
+
+    @Prop({type: String, default: 'more_vert'}) declare readonly icon:string
 
 }
 
