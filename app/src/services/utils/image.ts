@@ -1,5 +1,5 @@
 
-export async function normalize_orientation(blob:Blob){
+export async function _tmp_normalize_orientation(blob:Blob){
     // Normalize image orientation by producing new image with standard orientation
     // NOTE Output is always a PNG to avoid losing any quality since can't otherwise know it
     // WARN This is required before using createImageBitmap with images in Chrome
