@@ -79,18 +79,54 @@ export async function stream_to_buffer(stream:ReadableStream):Promise<ArrayBuffe
 // IMAGES
 
 
+export function blob_to_bitmap(blob:Blob):Promise<ImageBitmap>{
+    // Generate a bitmap from an image blob
+    return createImageBitmap(blob)
+}
+
+
+export function bitmap_to_blob(bitmap:ImageBitmap, type:'png'|'jpeg'|'webp'='png', quality=0.8)
+        :Promise<Blob>{
+    // Generate an image blob from a bitmap
+    // NOTE No direct method so must go via canvas
+    // NOTE quality not relevant for png
+    return canvas_to_blob(bitmap_to_canvas(bitmap), type, quality)
+}
+
+
+export async function blob_to_canvas(blob:Blob):Promise<OffscreenCanvas>{
+    // Generate a canvas from an image blob
+    // NOTE No direct method so must go via bitmap
+    return bitmap_to_canvas(await blob_to_bitmap(blob))
+}
+
+
 export function bitmap_to_canvas(bitmap:ImageBitmap):OffscreenCanvas{
-    // Convert an image bitmap into a canvas (can then use canvas to generate blobs)
+    // Convert a bitmap into a canvas (more memory efficient than `copy_bitmap_to_canvas`)
     // WARN You cannot use the original bitmap after `transferFromImageBitmap()` is used
     const canvas = new OffscreenCanvas(bitmap.width, bitmap.height)
-    canvas.getContext('bitmaprenderer')?.transferFromImageBitmap(bitmap)
+    canvas.getContext('bitmaprenderer')!.transferFromImageBitmap(bitmap)
     return canvas
+}
+
+
+export function copy_bitmap_to_canvas(bitmap:ImageBitmap):OffscreenCanvas{
+    // Version of `bitmap_to_canvas` that doesn't cause the original bitmap to be lost
+    const canvas = new OffscreenCanvas(bitmap.width, bitmap.height)
+    canvas.getContext('2d')!.drawImage(bitmap, 0, 0)
+    return canvas
+}
+
+
+export function canvas_to_bitmap(canvas:OffscreenCanvas):ImageBitmap{
+    // Generate a bitmap from a canvas
+    return canvas.transferToImageBitmap()
 }
 
 
 export function canvas_to_blob(canvas:OffscreenCanvas, type:'png'|'jpeg'|'webp'='png', quality=0.8)
         :Promise<Blob>{
-    // Generate a compressed image blob from the given canvas
+    // Generate an image blob from a canvas
     // NOTE quality not relevant for png
     return canvas.convertToBlob({type: `image/${type}`, quality})
 }
