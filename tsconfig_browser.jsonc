@@ -4,8 +4,7 @@
     "extends": "./tsconfig_base.jsonc",
     "compilerOptions": {
         // Build for latest browser (use esbuild etc to target old browsers if necessary)
-        // NOTE WebWorker just added for sake of OffscreenCanvas and should be removed later
-        "lib": ["ESNext", "DOM", "DOM.Iterable", "WebWorker"],
+        "lib": ["ESNext", "DOM", "DOM.Iterable"],
         "module": "ESNext",
         "target": "ESNext",
     },
