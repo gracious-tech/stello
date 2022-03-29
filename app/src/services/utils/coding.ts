@@ -132,6 +132,14 @@ export function canvas_to_blob(canvas:OffscreenCanvas, type:'png'|'jpeg'|'webp'=
 }
 
 
+export function clone_canvas(canvas:OffscreenCanvas):OffscreenCanvas{
+    // Clone a canvas so modifications in one do not affect the other
+    const new_canvas = new OffscreenCanvas(canvas.width, canvas.height)
+    new_canvas.getContext('2d')!.drawImage(canvas, 0, 0)
+    return new_canvas
+}
+
+
 // TEXT
 
 
