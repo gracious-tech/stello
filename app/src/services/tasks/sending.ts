@@ -8,7 +8,8 @@ import {Profile} from '../database/profiles'
 import {MessageCopy} from '../database/copies'
 import {concurrent} from '@/services/utils/async'
 import {resize_bitmap, blob_image_size} from '@/services/utils/image'
-import {bitmap_to_canvas, canvas_to_blob, buffer_to_url64, string_to_utf8} from '../utils/coding'
+import {bitmap_to_canvas, blob_to_bitmap, canvas_to_blob, buffer_to_url64, string_to_utf8}
+    from '../utils/coding'
 import {encrypt_sym, export_key} from '../utils/crypt'
 import {SECTION_IMAGE_WIDTH} from '../misc'
 import {HostUser} from '../hosts/types'
@@ -508,9 +509,9 @@ async function process_image(pub_assets:PublishedAsset[], id:string, image:Blob,
     // Compress image and add to pub_assets
 
     // Resize the image
-    let bitmap = await createImageBitmap(image)
+    let bitmap = await blob_to_bitmap(image)
     bitmap = await resize_bitmap(bitmap, max_width, max_height, crop)
-    const bitmap_canvas = bitmap_to_canvas(bitmap)
+    const bitmap_canvas = bitmap_to_canvas(bitmap)  // bitmap_to_blob uses canvas anyway, save mem
 
     // Add assets
     pub_assets.push({

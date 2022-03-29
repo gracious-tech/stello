@@ -39,9 +39,10 @@ v-card(class='pt-6')
 import Croppr from 'croppr'
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
-import {bitmap_to_canvas, canvas_to_blob} from '@/services/utils/coding'
+import {bitmap_to_canvas, bitmap_to_blob, blob_to_bitmap, canvas_to_blob}
+    from '@/services/utils/coding'
 import {get_clipboard_blobs} from '@/services/utils/misc'
-import {normalize_orientation, resize_bitmap} from '@/services/utils/image'
+import {_tmp_normalize_orientation, resize_bitmap} from '@/services/utils/image'
 
 
 @Component({})
@@ -73,11 +74,11 @@ export default class extends Vue {
     async handle_blob(blob:Blob){
         // Handle a blob, emitting if an image
 
-        // Normalize to ensure no issues with orientation when convert to bitmap
-        // NOTE Chrome currently doesn't support orientation for createImageBitmap
+        // Ensure is an image
+        let bitmap:ImageBitmap
         try {
-            // Overwrite original blob as may only use that rather than bitmap if cropping
-            blob = await normalize_orientation(blob)
+            blob = await _tmp_normalize_orientation(blob)  // TODO rm when bug fixed
+            bitmap = await blob_to_bitmap(blob)
         } catch {
             console.warn(`Not an image: ${blob.type}`)
             return false
@@ -92,9 +93,8 @@ export default class extends Vue {
                 })
             })
         } else {
-            let bitmap = await createImageBitmap(blob)
             bitmap = await resize_bitmap(bitmap, this.width, this.height)
-            this.$emit('close', canvas_to_blob(bitmap_to_canvas(bitmap)))
+            this.$emit('close', bitmap_to_blob(bitmap))
         }
 
         return true
@@ -128,8 +128,7 @@ export default class extends Vue {
 
         // Emit as a blob
         const format = this.invite ? 'jpeg' : 'png'  // Many email clients only support jpeg
-        const blob = await canvas_to_blob(bitmap_to_canvas(bitmap), format)
-        this.$emit('close', blob)
+        this.$emit('close', await bitmap_to_blob(bitmap, format))
     }
 
     remove(){

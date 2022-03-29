@@ -4,6 +4,7 @@ export async function normalize_orientation(blob:Blob){
     // NOTE Output is always a PNG to avoid losing any quality since can't otherwise know it
     // WARN This is required before using createImageBitmap with images in Chrome
     // See https://bugs.chromium.org/p/chromium/issues/detail?id=1220671#c15
+    // TODO Remove once Chrome bug fixed
     if (blob.type === 'image/png'){
         return blob  // PNG has no orientation meta data
     }
