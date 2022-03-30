@@ -44,7 +44,7 @@ import AppSecurityAlert from '@/components/global/AppSecurityAlert.vue'
 // Trigger addition of styles
 import '@/styles/generic.sass'
 import '@/styles/fonts.css'
-import 'croppr/dist/croppr.css'
+import 'dnm-croppr/dist/dnm-croppr.css'
 
 
 // Create CSS variables for theme colors
