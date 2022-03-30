@@ -303,6 +303,10 @@ html
 .croppr
     display: block !important  // inline-block can result in bottom gap due to line-height etc
 
+    // Make excluded area lighter (rather than darker) when cropping a dark image
+    &.croppr-dark .croppr-overlay
+        background-color: rgba(white, 0.5)
+
 
 // Custom
 
