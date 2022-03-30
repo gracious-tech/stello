@@ -25,6 +25,7 @@ import AppA from '@/components/global/AppA.vue'
 import AppBtn from '@/components/global/AppBtn.vue'
 import AppBtnCheckbox from '@/components/global/AppBtnCheckbox.vue'
 import AppSVG from '@/components/global/AppSVG.vue'
+import AppBlob from '@/components/global/AppBlob.vue'
 import AppText from '@/components/global/AppText.vue'
 import AppHtml from '@/components/global/AppHtml.vue'
 import AppTextarea from '@/components/global/AppTextarea.vue'
@@ -127,6 +128,7 @@ Vue.component('AppA', AppA)
 Vue.component('AppBtn', AppBtn)
 Vue.component('AppBtnCheckbox', AppBtnCheckbox)
 Vue.component('AppSvg', AppSVG)
+Vue.component('AppBlob', AppBlob)
 Vue.component('AppText', AppText)
 Vue.component('AppHtml', AppHtml)
 Vue.component('AppTextarea', AppTextarea)
