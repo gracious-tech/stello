@@ -88,7 +88,8 @@ export function type_of(value:any):string{
 }
 
 
-export function catch_only(error_class:any, error:Error):void{
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TS says can't be unknown :/
+export function catch_only(error_class:any, error:unknown):void{
     // Rethrow an error if not of the given class
     if (! (error instanceof error_class)){
         throw error
