@@ -87,7 +87,7 @@ export default defineComponent({
     data(){
         return {
             current: 0,
-            object_urls: {} as Record<string, string>,  // Caches object urls to avoid recreating
+            object_urls: {} as Record<string, {blob:Blob, url:string}>,  // Cache of blob URLs
         }
     },
 
@@ -110,7 +110,7 @@ export default defineComponent({
                 }]
             }
             return this.images.map(image => {
-                const url = this.object_urls[image.id]!
+                const url = this.object_urls[image.id]?.url || PLACEHOLDER
                 return {
                     image: `url(${url})`,
                     size_class: this.crop || url === PLACEHOLDER ? 'cover' : 'contain',
@@ -142,7 +142,7 @@ export default defineComponent({
             return this.images.map((image, i) => {
                 return {
                     id: image.id,
-                    image: `url(${this.object_urls[image.id]!})`,
+                    image: `url(${this.object_urls[image.id]?.url || PLACEHOLDER})`,
                     activate: () => {this.change_current(i)},
                 }
             })
@@ -173,18 +173,26 @@ export default defineComponent({
             deep: true,
             handler(){
                 // Create object URLs for images whenever their data becomes available
-                // WARN Assumes image data doesn't change (aside from a null -> blob)
-                const new_object_urls:Record<string, string> = {}
+                // WARN Never store PLACEHOLDER in object_urls as would get revoked when unmounted
+                const new_object_urls:Record<string, {blob:Blob, url:string}> = {}
                 for (const image of this.images){
-                    if (image.id in this.object_urls && this.object_urls[image.id] !== PLACEHOLDER){
-                        // URL already created for this image, so reuse to reduce memory usage
-                        new_object_urls[image.id] = this.object_urls[image.id]!
-                    } else if (image.data){
-                        // Data only now available, so create URL
-                        new_object_urls[image.id] = URL.createObjectURL(image.data)
-                    } else {
-                        // Still waiting on data, so display placeholder
-                        new_object_urls[image.id] = PLACEHOLDER
+                    if (image.data){
+                        if (image.data === this.object_urls[image.id]?.blob){
+                            // Already have a URL for this blob (hasn't changed)
+                            new_object_urls[image.id] = this.object_urls[image.id]!
+                        } else {
+                            new_object_urls[image.id] = {
+                                blob: image.data,
+                                url: URL.createObjectURL(image.data),
+                            }
+                        }
+                    }
+                }
+
+                // Revoke old urls before replacing cache
+                for (const image_id in this.object_urls){
+                    if (! (image_id in new_object_urls)){
+                        URL.revokeObjectURL(this.object_urls[image_id]!.url)
                     }
                 }
                 this.object_urls = new_object_urls
@@ -210,6 +218,14 @@ export default defineComponent({
                 })
             },
         },
+    },
+
+    destroyed(){  // eslint-disable-line vue/no-deprecated-destroyed-lifecycle -- Vue 2
+        this.revoke_urls()
+    },
+
+    unmounted(){  // Vue 3
+        this.revoke_urls()
     },
 
     methods: {
@@ -247,6 +263,13 @@ export default defineComponent({
         next(){
             // Change to next image (loops)
             this.change_current(this.is_last ? 0 : this.current + 1)
+        },
+
+        revoke_urls(){
+            // Revoke all blob URLs that were created
+            for (const item of Object.values(this.object_urls)){
+                URL.revokeObjectURL(item.url)
+            }
         },
     },
 
