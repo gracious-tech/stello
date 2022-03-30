@@ -101,7 +101,6 @@
         "@tiptap/vue-2",
         "@zip.js/zip.js",
         "@zip.js/zip.js/dist/zip",
-        "croppr",
         "date-fns",
         "dnm-croppr",
         "idb/with-async-ittr.js",
