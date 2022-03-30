@@ -124,7 +124,7 @@ export default class extends Vue {
         }
     }
 
-    @Watch('content.images', {immediate: true}) async watch_images(){
+    @Watch('content.images.0.data', {immediate: true}) async watch_images(){
         // Recalculate the aspect ratio for images section based on the first image
         if (this.content.type === 'images' && this.content.images.length){
             const size = await blob_image_size(this.content.images[0]!.data)
