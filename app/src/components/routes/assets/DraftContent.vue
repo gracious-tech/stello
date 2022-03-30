@@ -102,6 +102,7 @@ export default class extends Vue {
             void this.$store.dispatch('show_dialog', {
                 component: this.modify_dialogs[section.content.type],
                 props: {section, profile: this.profile},
+                wide: section.content.type === 'images',
             })
         }
     }
