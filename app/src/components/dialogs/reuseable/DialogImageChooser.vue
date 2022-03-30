@@ -3,11 +3,11 @@
 
 <template lang='pug'>
 
-v-card(class='pt-6')
+v-card
 
     template(v-if='!image')
 
-        v-card-title(class='pt-0 d-flex flex-column align-center')
+        v-card-title(class='d-flex flex-column align-center')
             div(class='mb-2') Choose Image
             div
                 app-file(@input='upload' accept='image/*') From file
@@ -24,19 +24,19 @@ v-card(class='pt-6')
 
     template(v-else)
 
-        v-card-text(class='text-center')
-            img(ref='chosen_img_element' :src='image_url')
+        v-card-text(class='pt-6')
+            image-edit-bar(:blob='image' :aspect='aspect' :init_crop='crop' @changed='image_edited')
+                app-blob(:blob='image')
 
         v-card-actions
             app-btn(@click='dismiss') Cancel
-            app-btn(v-if='image' @click='done') Done
+            app-btn(@click='done' :disabled='!ready') Done
 
 </template>
 
 
 <script lang='ts'>
 
-import Croppr from 'croppr'
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
 import {bitmap_to_blob, blob_to_bitmap} from '@/services/utils/coding'
@@ -49,17 +49,13 @@ export default class extends Vue {
 
     @Prop({type: Number, required: true}) declare readonly width:number  // max if no crop
     @Prop({type: Number, required: true}) declare readonly height:number  // max if no crop
-    @Prop({type: Boolean, default: false}) declare readonly crop:boolean
+    @Prop({type: Boolean, default: false}) declare readonly crop:boolean  // Force aspect ratio
     @Prop({type: Array, default: () => []}) declare readonly suggestions:Blob[]
     @Prop({type: Boolean, default: false}) declare readonly removeable:boolean
     @Prop({type: Boolean, default: false}) declare readonly invite:boolean  // Invite-image specific
 
     image:Blob|null = null
-    croppr:Croppr|null = null
-
-    get image_url():string{
-        return URL.createObjectURL(this.image!)
-    }
+    have_edited = false
 
     get suggestions_ui():{url:string, choose():void}[]{
         return this.suggestions.map(blob => {
@@ -70,32 +66,29 @@ export default class extends Vue {
         })
     }
 
+    get aspect(){
+        // Whether aspect ratio is expected and what it is
+        return this.crop ? this.width / this.height : undefined
+    }
+
+    get ready(){
+        // Whether ready to emit final blob (must have edited once to crop if it's required)
+        return this.image && (!this.crop || this.have_edited)
+    }
+
     async handle_blob(blob:Blob){
-        // Handle a blob, emitting if an image
+        // Accept given blob if it's an image and begin editing
 
         // Ensure is an image
-        let bitmap:ImageBitmap
         try {
             blob = await _tmp_normalize_orientation(blob)  // TODO rm when bug fixed
-            bitmap = await blob_to_bitmap(blob)
+            await blob_to_bitmap(blob)
         } catch {
             console.warn(`Not an image: ${blob.type}`)
             return false
         }
 
-        // Prepare to crop or otherwise emit now
-        if (this.crop){
-            this.image = blob
-            this.$nextTick(() => {
-                this.croppr = new Croppr(this.$refs['chosen_img_element'] as HTMLImageElement, {
-                    aspectRatio: this.height / this.width,
-                })
-            })
-        } else {
-            bitmap = await resize_bitmap(bitmap, this.width, this.height)
-            this.$emit('close', bitmap_to_blob(bitmap))
-        }
-
+        this.image = blob
         return true
     }
 
@@ -116,14 +109,16 @@ export default class extends Vue {
         void this.$store.dispatch('show_snackbar', "No image found (first copy an image)")
     }
 
+    image_edited(blob:Blob){
+        // Update image whenever edited
+        this.have_edited = true
+        this.image = blob
+    }
+
     async done(){
         // Crop and resize based on the user's preference
-        const val = this.croppr!.getValue()
-        const bitmap = await createImageBitmap(this.image!, val.x, val.y, val.width, val.height, {
-            resizeQuality: 'high',
-            resizeWidth: this.width,
-            resizeHeight: this.height,
-        })
+        let bitmap = await blob_to_bitmap(this.image!)
+        bitmap = await resize_bitmap(bitmap, this.width, this.height, this.crop)
 
         // Emit as a blob
         const format = this.invite ? 'jpeg' : 'png'  // Many email clients only support jpeg
@@ -138,12 +133,6 @@ export default class extends Vue {
     dismiss(){
         // Emit undefined to do nothing
         this.$emit('close')
-    }
-
-    beforeDestroy(){
-        if (this.croppr){
-            this.croppr.destroy()
-        }
     }
 
 }
@@ -162,5 +151,6 @@ export default class extends Vue {
         vertical-align: middle
         margin: 12px
         width: 40%
+        cursor: pointer
 
 </style>
