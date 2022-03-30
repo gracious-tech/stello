@@ -33,6 +33,53 @@ declare module '*?raw-svg' {
 }
 
 
+// Third-party modules that are missing types
+
+
+declare module 'dnm-croppr' {
+    // WARN May be outdated and different to fork of croppr
+
+    export interface CropprOptions {
+        aspectRatio?: number|undefined
+        maxSize?: SizeValue
+        minSize?: SizeValue
+        startSize?: SizeValue|undefined
+        onCropStart?(data: CropValue): void
+        onCropMove?(data: CropValue): void
+        onCropEnd?(data: CropValue): void
+        onInitialize?(instance: Croppr): void
+        returnMode?: 'real'|'ratio'|'raw'
+    }
+
+    export interface CropValue {
+        x: number
+        y: number
+        width: number
+        height: number
+    }
+
+    export interface SizeValue extends Array<string|number> {
+        0: number,
+        1: number,
+        2?:'real'|'ratio'|'raw'
+    }
+
+    export default class Croppr {
+        constructor(element: string|HTMLElement, options?: CropprOptions, deferred?: boolean)
+        getValue(mode?: 'real'|'ratio'|'raw'): CropValue
+        setImage(src: string): Croppr
+        destroy(): void
+        moveTo(x: number, y: number): Croppr
+        resizeTo(width: number, height: number, origin?: Array<number>): Croppr
+        scaleBy(factor: number, origin?: Array<number>): Croppr
+        reset(): Croppr
+    }
+}
+
+
+// Globally available
+
+
 declare module 'Custom' {
     // Must wrap in a custom module so can import modules (for some reason)
     import Vue from 'vue'
