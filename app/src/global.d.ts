@@ -44,6 +44,7 @@ declare module 'dnm-croppr' {
         maxSize?: SizeValue
         minSize?: SizeValue
         startSize?: SizeValue|undefined
+        startPosition?: SizeValue|undefined
         onCropStart?(data: CropValue): void
         onCropMove?(data: CropValue): void
         onCropEnd?(data: CropValue): void
