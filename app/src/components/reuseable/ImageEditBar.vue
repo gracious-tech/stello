@@ -134,6 +134,11 @@ export default class extends Vue {
     submit_region(){
         // Accept the current region
 
+        // Confirm if have ever cropped (relevant for when enforcing aspect ratio)
+        if (this.region_mode === 'crop'){
+            this.cropped = true
+        }
+
         // Preserve region coordinates and mode before reseting
         const region = this.croppr!.getValue()
         const region_mode = this.region_mode
@@ -181,9 +186,14 @@ export default class extends Vue {
         })
     }
 
-    rotate(){
+    async rotate(){
         // Rotate the image 90deg clockwise
-        void this.update_image(rotate_image)
+        await this.update_image(rotate_image)
+        if (this.aspect){
+            // Enforcing aspect ratio so will now need to crop again
+            this.cropped = false
+            this.start_region('crop')
+        }
     }
 
     change_filter(filter:string|null){
@@ -206,14 +216,7 @@ export default class extends Vue {
         }
 
         // Emit as a blob
-        const blob = await canvas_to_blob(filtered)
-        if (this.aspect && !this.cropped){
-            // If first compulsary crop (enforcing an aspect ratio) consider it the new original
-            // So that the user can't "undo" the initial crop and end up with a wrong ratio again
-            this.original = blob
-            this.cropped = true
-        }
-        this.$emit('changed', blob)
+        this.$emit('changed', await canvas_to_blob(filtered))
     }
 
     async undo(){

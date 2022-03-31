@@ -117,6 +117,7 @@ export default class extends Vue {
 
     async done(){
         // Crop and resize based on the user's preference
+        // WARN Never trust user crop as they can rotate image to again ruin aspect ratio
         let bitmap = await blob_to_bitmap(this.image!)
         bitmap = await resize_bitmap(bitmap, this.width, this.height, this.crop)
 
@@ -153,7 +154,7 @@ export default class extends Vue {
         width: 40%
         cursor: pointer
 
-.blob
+.blob, ::v-deep .croppr-container img
     width: 100%
 
 </style>
