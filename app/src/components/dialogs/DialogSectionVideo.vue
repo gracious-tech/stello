@@ -6,9 +6,10 @@ v-card
     v-card-title Video Settings
 
     v-card-text
-        div(class='mt-4')
+        div(class='my-4')
             app-text(@input='process_url' :rules='[validate_url]' label="Video URL"
-                placeholder="Youtube/Vimeo URL...")
+                placeholder="Youtube/Vimeo URL..."
+                hint="Currently only Youtube and Vimeo videos are supported")
 
         shared-video(:format='content.format' :id='content.id'
             :start='content.start' :end='content.end')
