@@ -25,7 +25,7 @@ v-card
     template(v-else)
 
         v-card-text(class='pt-6')
-            image-edit-bar(:blob='image' :aspect='aspect' :init_crop='crop' @changed='image_edited')
+            image-edit-bar(:blob='image' :aspect='aspect' @changed='image_edited')
                 app-blob.blob(:blob='image')
 
         v-card-actions
