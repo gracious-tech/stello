@@ -190,8 +190,8 @@ export default class extends Vue {
         // Rotate the image 90deg clockwise
         await this.update_image(rotate_image)
         if (this.aspect){
-            // Enforcing aspect ratio so will now need to crop again
-            this.cropped = false
+            // Enforcing aspect ratio so prompt to crop again
+            // Not setting `this.cropped = false` so user can rotate again before crop if needed
             this.start_region('crop')
         }
     }
