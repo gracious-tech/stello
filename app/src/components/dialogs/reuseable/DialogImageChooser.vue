@@ -26,7 +26,7 @@ v-card
 
         v-card-text(class='pt-6')
             image-edit-bar(:blob='image' :aspect='aspect' :init_crop='crop' @changed='image_edited')
-                app-blob(:blob='image')
+                app-blob.blob(:blob='image')
 
         v-card-actions
             app-btn(@click='dismiss') Cancel
@@ -152,5 +152,8 @@ export default class extends Vue {
         margin: 12px
         width: 40%
         cursor: pointer
+
+.blob
+    width: 100%
 
 </style>
