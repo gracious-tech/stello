@@ -232,7 +232,7 @@ export default class extends Vue {
 
     // Default to displaying top elements over each other (menu and image)
     display: grid
-    justify-content: center
+    // WARN `justify-content: center` here will mess up svg width
     ::v-deep > *
         grid-area: 1/1
 

@@ -1,17 +1,24 @@
 
 <template lang='pug'>
 
-div(class='my-5')
+div.dialog-section-images-item(class='my-5')
+
+    div(v-html='aspect_style')
+
     div(class='d-flex align-center mb-3')
+
         div(class='flex d-flex justify-center')
-            shared-hero.hero(v-if='section.is_hero' :image='item' :theme_style='theme_style'
-                :first='false' :class='`style-${theme_style}`' :style='theme_style_props')
-            div.displayer(v-else :style='displayer_styles' :class='{multiple}')
-                img.sizer(:src='sizer_src')
+            image-edit-bar.bar(:blob='item.data' @changed='image_edited')
+                shared-hero.hero(v-if='section.is_hero' ref='hero' :image='item'
+                    :theme_style='theme_style' :first='false' :class='`style-${theme_style}`'
+                    :style='theme_style_props')
+                img.img(v-else ref='img' :src='img_src' :class='{multiple, crop}')
+
         div(class='d-flex flex-column')
             app-btn(@click='move_up' :disabled='is_first' icon='arrow_upward')
             app-btn(@click='move_down' :disabled='is_last' icon='arrow_downward')
             app-btn(@click='remove' color='error' icon='delete')
+
     div
         app-textarea(v-model='caption' :placeholder='section.is_hero ? "Banner text" : "Caption"'
             :rows='1' regular dense @keydown.enter.prevent)
@@ -24,6 +31,7 @@ div(class='my-5')
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
 import SharedHero from '@/shared/SharedHero.vue'
+import ImageEditBar from '@/components/reuseable/ImageEditBar.vue'
 import {Section} from '@/services/database/sections'
 import {ContentImages} from '@/services/database/types'
 import {Profile} from '@/services/database/profiles'
@@ -31,31 +39,22 @@ import {gen_theme_style_props} from '@/shared/shared_theme'
 
 
 @Component({
-    components: {SharedHero},
+    components: {SharedHero, ImageEditBar},
 })
 export default class extends Vue {
 
-    @Prop() declare readonly section:Section<ContentImages>
-    @Prop() declare readonly item_index:number
+    @Prop({type: Object, required: true}) declare readonly section:Section<ContentImages>
+    @Prop({type: Number, required: true}) declare readonly item_index:number
     @Prop({type: Profile, default: null}) declare readonly profile:Profile|null
+    @Prop({type: String, required: true}) declare readonly aspect:string
 
     get item(){
         // Return individual image object represented by this component
         return this.section.content.images[this.item_index]!
     }
 
-    get sizer_src(){
-        // Return blob url for first image (may not be this one) so can use for sizing purposes
-        return URL.createObjectURL(this.section.content.images[0]!.data)
-    }
-
-    get displayer_styles(){
-        // Return background image styles for displaying the image this component represents
-        const url = URL.createObjectURL(this.item.data)
-        return {
-            backgroundImage: `url(${url})`,
-            backgroundSize: this.section.content.crop ? 'cover' : 'contain',
-        }
+    get img_src(){
+        return URL.createObjectURL(this.item.data)
     }
 
     get caption(){
@@ -83,6 +82,11 @@ export default class extends Vue {
         return this.section.content.images.length > 1
     }
 
+    get crop(){
+        // Whether crop is enabled
+        return this.section.content.crop
+    }
+
     get theme_style(){
         // Access to theme style profile option (if available)
         return this.profile?.options.theme_style ?? 'modern'
@@ -96,23 +100,45 @@ export default class extends Vue {
         return gen_theme_style_props(false, this.theme_style, color)
     }
 
+    get aspect_style(){
+        // Hack for ensuring aspect-ratio always applied to elements that often get added/removed
+        // e.g. they get removed when Croppr enabled
+        // NOTE Croppr not included as should expand when region editing so can see whole image
+        return `<style>
+            .dialog-section-images-item .img, .dialog-section-images-item .hero {
+                aspect-ratio: ${this.aspect};
+            }
+        </style>`
+    }
+
+    image_edited(blob:Blob){
+        // If image edited, replace and save record
+        this.item.data = blob
+        this.save()
+    }
+
     move_up(){
         // Move this image up in the set
         const prev_item = this.section.content.images[this.item_index - 1]!
         this.section.content.images.splice(this.item_index - 1, 2, this.item, prev_item)
-        void self.app_db.sections.set(this.section)
+        this.save()
     }
 
     move_down(){
         // Move this image down in the set
         const next_item = this.section.content.images[this.item_index + 1]!
         this.section.content.images.splice(this.item_index, 2, next_item, this.item)
-        void self.app_db.sections.set(this.section)
+        this.save()
     }
 
     remove(){
         // Remove this image (and cause this component to be destroyed)
         this.section.content.images.splice(this.item_index, 1)
+        this.save()
+    }
+
+    save(){
+        // Save changes to section
         void self.app_db.sections.set(this.section)
     }
 
@@ -132,21 +158,24 @@ export default class extends Vue {
     ::v-deep h1
         font-family: var(--stello-font-headings)
 
-.displayer
-    display: inline-block
-    background-position: center
+.img
+    object-fit: contain
+
+    &.crop
+        object-fit: cover
 
     &.multiple
         // Only solo images allow transparency, bg helps to show cropping/sizing when multiple
         background-color: black
 
-.sizer
-    margin: 0 auto
-    position: relative
-    left: -99999px
-
-.sizer, .hero
+.bar
+    // WARN Might be nice to have max-height for images, but messes up aspect-ratio obedience
+    //      If desired should revert to old method of including hidden first image as sizer
     width: 100%
-    max-height: 300px
+    ::v-deep
+        // Apply to whatever element is showing the image (including croppr)
+        // NOTE Apply to croppr images rather than container as container won't grow if img doesn't
+        .img, .hero, .croppr-container img
+            width: 100%
 
 </style>

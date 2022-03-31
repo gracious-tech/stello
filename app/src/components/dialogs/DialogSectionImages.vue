@@ -11,7 +11,7 @@ v-card
 
     v-card-text
         dialog-section-images-item(v-for='(item, i) of images' :key='item.id' :section='section'
-            :item_index='i' :profile='profile')
+            :item_index='i' :profile='profile' :aspect='aspect')
         p.empty(v-if='!images.length') Select from your files or copy &amp; paste an image
 
     v-card-actions
@@ -22,10 +22,10 @@ v-card
 
 <script lang='ts'>
 
-import {Component, Vue, Prop} from 'vue-property-decorator'
+import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import DialogSectionImagesItem from './assets/DialogSectionImagesItem.vue'
-import {_tmp_normalize_orientation, resize_bitmap} from '@/services/utils/image'
+import {_tmp_normalize_orientation, resize_bitmap, blob_image_size} from '@/services/utils/image'
 import {generate_token} from '@/services/utils/crypt'
 import {bitmap_to_blob, blob_to_bitmap} from '@/services/utils/coding'
 import {get_clipboard_blobs} from '@/services/utils/misc'
@@ -42,6 +42,8 @@ export default class extends Vue {
 
     @Prop({type: Section, required: true}) declare readonly section:Section<ContentImages>
     @Prop({type: Profile, default: null}) declare readonly profile:Profile|null
+
+    aspect = '1/1'
 
     get content(){
         return this.section.content
@@ -122,6 +124,16 @@ export default class extends Vue {
 
     dismiss(){
         this.$emit('close')
+    }
+
+    @Watch('images.0.data', {immediate: true}) async watch_first_image(){
+        // Recalculate aspect ratio for all images whenever first image changes
+        if (this.images.length){
+            const first_size = await blob_image_size(this.images[0]!.data)
+            this.aspect = `${first_size.width}/${first_size.height}`
+        } else {
+            this.aspect = '1/1'
+        }
     }
 
 }
