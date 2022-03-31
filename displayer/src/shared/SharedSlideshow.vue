@@ -3,7 +3,7 @@
 
 div.root(:class='{multiple}')
 
-    div.slideshow(:class='{editing}')
+    div.slideshow
         svg.aspect(:viewBox='aspect_svg_viewbox')
         div.scroller(ref='scroller' @scroll='event => recalc_current()')
             div.item(v-for='style of images_ui' :data-image='style.image' :class='style.size_class')
@@ -75,10 +75,6 @@ export default defineComponent({
         crop: {
             type: Boolean,
             default: false,  // Not needed in displayer (crop already applied)
-        },
-        editing: {
-            type: Boolean,
-            default: false,  // Whether using slideshow in message editor or displayer
         },
     },
 
@@ -307,10 +303,8 @@ export default defineComponent({
     // Curve corners of slideshow
     border-radius: var(--stello-radius)
 
-    // Image click in displayer is zoom, but edit in editor
+    // Image click in displayer is zoom (edit in editor which will override cursor)
     cursor: zoom-in
-    &.editing
-        cursor: pointer
 
     .scroller
         // A container for images that scrolls horizontally, wide enough only for one at a time

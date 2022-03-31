@@ -13,10 +13,10 @@ section(@click.self='focus_editor' :class='classes')
             :variables='text_variables')
 
         template(v-if='content.type === "images"')
-            shared-hero(v-if='section.is_hero' :image='content.images[0]'
+            shared-hero.hero(v-if='section.is_hero' :image='content.images[0]'
                 :theme_style='theme_style' :first='first_hero' @click='modify')
             shared-slideshow(v-else :images='content.images' :aspect='images_aspect'
-                :crop='content.crop' editing @img_click='modify')
+                :crop='content.crop' @img_click='modify')
 
         shared-video(v-if='content.type === "video"' @modify='modify' :format='content.format'
             :id='content.id' :caption='content.caption' :start='content.start' :end='content.end')
@@ -180,5 +180,8 @@ section
 
     .respondbar:not(.respondable)
         visibility: hidden
+
+    .hero, ::v-deep .slideshow
+        cursor: pointer
 
 </style>
