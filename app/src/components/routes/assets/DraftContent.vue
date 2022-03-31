@@ -112,6 +112,7 @@ export default class extends Vue {
         rm_section_id(this.sections, section.id)
         this.save_sections()
         await self.app_db.sections.remove(section.id)
+        delete this.records[section.id]  // Rm from cache
     }
 
     save_sections(){
