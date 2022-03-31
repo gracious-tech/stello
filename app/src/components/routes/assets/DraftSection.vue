@@ -4,8 +4,8 @@
 section(@click.self='focus_editor' :class='classes')
 
     div.actions
-        app-btn(icon='settings' @click='modify')
-        app-btn(icon='delete' @click='remove' color='error')
+        app-btn(icon='settings' @click='modify' data-tip="Section settings")
+        app-btn(icon='content_cut' @click='remove' color='error' data-tip="Cut section")
 
     div.inner(@click.self='focus_editor')
 
@@ -177,6 +177,11 @@ section
         // Default to hiding bar contents only, so that bar itself can still receive hover
         > *
             visibility: hidden
+
+        [data-tip]::after
+            // Position tooltip on left of button as doesn't go off page
+            top: auto !important
+            right: 60px
 
     .respondbar:not(.respondable)
         visibility: hidden

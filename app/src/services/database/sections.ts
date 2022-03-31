@@ -131,12 +131,13 @@ export class DatabaseSections {
         return section
     }
 
-    async remove(id:string):Promise<void>{
-        // Remove the section with given id
-        // NOTE This assumes that the section id will be removed from draft/message manually
+    async remove(id:string):Promise<RecordSection[]>{
+        // Remove the section with given id and return it and all connected subsections
+        // WARN callers expect first section of returned array to be the one identified by given id
         const transaction = this._conn.transaction('sections', 'readwrite')
-        void rm_sections(transaction.objectStore('sections'), [[id]])
+        const removed = await rm_sections(transaction.objectStore('sections'), [[id]])
         await transaction.done
+        return removed
     }
 }
 
@@ -148,14 +149,26 @@ type SectionsStore = IDBPObjectStore<AppDatabaseSchema, any, 'sections', 'readwr
 export async function rm_sections(sections_store:SectionsStore, section_ids:SectionIds){
     // Recursive helper for deleting sections which traverses pages
     // NOTE Expects to be provided an object store from an ongoing transaction
-    for (const section_id of section_ids.flat()){
-        void sections_store.get(section_id).then(section => {
-            if (section?.content.type === 'page'){
-                void rm_sections(sections_store, section.content.sections)
-            }
-            void sections_store.delete(section_id)
-        })
-    }
+
+    // Collect all section records that are removed so can later return them
+    const removed:RecordSection[] = []
+
+    // Can process each id concurrently but must wait for all to finish so removed array populated
+    // NOTE order added to removed matters to DatabaseSections.remove() but only 1 item in that case
+    await Promise.all(section_ids.flat().map(async section_id => {
+
+        // Get and remove section
+        const section = (await sections_store.get(section_id))!
+        removed.push(section)
+        void sections_store.delete(section_id)  // Can wait on transaction later if needed
+
+        // See if need to recurse through subpages
+        if (section.content.type === 'page'){
+            removed.push(... await rm_sections(sections_store, section.content.sections))
+        }
+    }))
+
+    return removed
 }
 
 

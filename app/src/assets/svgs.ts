@@ -30,6 +30,7 @@ export * as icon_subheading         from '@/assets/icons/subheading.svg?raw-svg'
 export * as icon_checkbox_null      from '@/assets/icons/checkbox_null.svg?raw-svg'
 export * as icon_auto_awesome       from '@/assets/icons/auto_awesome.svg?raw-svg'
 export * as icon_face_retouching_off from '@/assets/icons/face_retouching_off.svg?raw-svg'
+export * as icon_content_paste      from '@/assets/icons/content_paste.svg?raw-svg'  // New version
 
 // Material icons
 export * as icon_brightness_4       from 'md-icon-svgs/brightness_4.svg?raw-svg'
@@ -121,3 +122,4 @@ export * as icon_short_text         from 'md-icon-svgs/short_text.svg?raw-svg'
 export * as icon_crop               from 'md-icon-svgs/crop.svg?raw-svg'
 export * as icon_rotate_right       from 'md-icon-svgs/rotate_right.svg?raw-svg'
 export * as icon_undo               from 'md-icon-svgs/undo.svg?raw-svg'
+export * as icon_content_cut        from 'md-icon-svgs/content_cut.svg?raw-svg'

@@ -85,10 +85,19 @@ export default class extends Vue {
         return images
     }
 
-    async add_section(type:RecordSectionContent['type'], position:number){
+    async add_section(type:RecordSectionContent['type']|'paste', position:number){
         // Create the section and then add it (in correct position) to draft in a new row
-        const section = await self.app_db.sections.create(type)
-        this.sections.splice(position, 0, [section.id])
+        let section_id:string
+        if (type === 'paste'){
+            for (const section of this.$store.state.tmp.cut_section){
+                void self.app_db.sections.set(section)
+            }
+            section_id = this.$store.state.tmp.cut_section[0].id
+            this.$store.commit('tmp_set', ['cut_section', null])
+        } else {
+            section_id = (await self.app_db.sections.create(type)).id
+        }
+        this.sections.splice(position, 0, [section_id])
         this.save_sections()
     }
 
@@ -111,7 +120,8 @@ export default class extends Vue {
         // Remove the given section
         rm_section_id(this.sections, section.id)
         this.save_sections()
-        await self.app_db.sections.remove(section.id)
+        const removed_sections = await self.app_db.sections.remove(section.id)
+        this.$store.commit('tmp_set', ['cut_section', removed_sections])
         delete this.records[section.id]  // Rm from cache
     }
 

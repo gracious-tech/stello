@@ -43,6 +43,7 @@ export async function get_initial_state(db:Database):Promise<AppStoreState>{
             dialog: null,
             prev_route: null,
             prev_state_contacts: null,
+            cut_section: null,
 
             // Unread responses
             unread_replies: {},

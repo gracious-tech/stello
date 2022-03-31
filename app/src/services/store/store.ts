@@ -34,7 +34,7 @@ async function get_store_options(db:Database):Promise<StoreOptions<AppStoreState
 
     mutations: {
 
-        dict_set(state, [key_or_keys, value]:[string|MinOne<string>, any]):void{
+        dict_set(state, [key_or_keys, value]:[string|MinOne<string>, unknown]):void{
             // Both set a value in the store and save it in the db
 
             // May have been given single key string, so convert to array to make simpler
@@ -47,20 +47,20 @@ async function get_store_options(db:Database):Promise<StoreOptions<AppStoreState
             // Save in db
             // NOTE Below is async but does not affect app at all so ok in mutation
             const db_key = keys.join(KEY_SEPARATOR)
-            db.state.set({key: db_key, value})
+            void db.state.set({key: db_key, value})
         },
 
-        tmp_set(state, [key, value]:[string, any]):void{
+        tmp_set(state, [key, value]:[string, unknown]):void{
             // Set a value in the store's tmp object (not saved to db)
             state.tmp[key] = value
         },
 
-        tmp_new(state, [container, key, value]:[string, string, any]):void{
+        tmp_new(state, [container, key, value]:[string, string, unknown]):void{
             // Add a new property (or set existing) on a containing object
             Vue.set(state.tmp[container], key, value)
         },
 
-        tmp_add(state, [key, item]:[string, any]):void{
+        tmp_add(state, [key, item]:[string, unknown]):void{
             // Append an item to an array in tmp object
             state.tmp[key].push(item)
         },
@@ -73,14 +73,14 @@ async function get_store_options(db:Database):Promise<StoreOptions<AppStoreState
             commit('tmp_set', ['snackbar', typeof arg === 'string' ? {msg: arg} : arg])
         },
 
-        show_dialog({state, commit}, dialog:StateTmpDialog):Promise<unknown>{
+        async show_dialog({state, commit}, dialog:StateTmpDialog):Promise<unknown>{
             // Show the specified dialog
 
             // If a dialog is already open, try close it
             if (state.tmp.dialog){
                 // If existing dialog is persistant and requested one isn't, assume more important
                 if (state.tmp.dialog.persistent && !dialog.persistent){
-                    return undefined  // Ignore request to open dialog
+                    return  // Ignore request to open dialog
                 } else {
                     state.tmp.dialog.resolve()
                 }

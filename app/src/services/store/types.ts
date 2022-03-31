@@ -1,7 +1,8 @@
 
 import {Route} from 'vue-router'
 
-import {MessageCopy} from '../database/copies'
+import {RecordSection} from '@/services/database/types'
+import {MessageCopy} from '@/services/database/copies'
 
 
 export interface AppStoreState {
@@ -34,6 +35,7 @@ export interface AppStoreState {
         dialog:StateTmpDialog|null,
         prev_route:Route|null,
         prev_state_contacts:{filter_group_id:string, search:string, scroll_top:number}|null,
+        cut_section:RecordSection[]|null,  // First section is one that was cut, others subsections
 
         // Unread responses
         // NOTE Using objects with `true` constant for performance and reactivity
@@ -55,5 +57,5 @@ export interface StateTmpDialog {
     persistent?:boolean
     wide?:boolean
     tall?:boolean
-    resolve:(v?:any)=>void
+    resolve:(v?:unknown)=>void
 }

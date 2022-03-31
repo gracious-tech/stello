@@ -5,12 +5,14 @@ div.addbar(:class='{visible}')
     p.prompt(v-if='visible' class='noselect') Add a section
     app-btn.plus(icon='add')
     div.buttons
-        app-btn(@click='add_text' icon='subject' data-tip="Add text")
-        app-btn(@click='add_images' icon='image' data-tip="Add images")
-        app-btn(@click='add_video' icon='video' data-tip="Add video")
-        app-btn(@click='add_page' icon='library_books' data-tip="Add page")
+        app-btn(@click='add("text")' icon='subject' data-tip="Add text")
+        app-btn(@click='add("images")' icon='image' data-tip="Add images")
+        app-btn(@click='add("video")' icon='video' data-tip="Add video")
+        app-btn(@click='add("page")' icon='library_books' data-tip="Add page")
         //- app-btn(icon='pie_chart')
         //- app-btn(icon='attach_file')
+        app-btn(v-if='can_paste' @click='add("paste")' icon='content_paste' color='primary'
+            data-tip="Paste section")
 
 </template>
 
@@ -25,21 +27,14 @@ export default class extends Vue {
 
     @Prop({type: Boolean, default: false}) declare readonly visible:boolean  // Not just on hover
 
-    add_text(){
-        this.$emit('add', 'text')
+    get can_paste(){
+        return this.$store.state.tmp.cut_section !== null
     }
 
-    add_images(){
-        this.$emit('add', 'images')
+    add(type:string){
+        this.$emit('add', type)
     }
 
-    add_video(){
-        this.$emit('add', 'video')
-    }
-
-    add_page(){
-        this.$emit('add', 'page')
-    }
 }
 
 </script>
