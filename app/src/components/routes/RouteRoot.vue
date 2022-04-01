@@ -61,6 +61,10 @@ export default class extends Vue {
 
     added = [
         {
+            title: "Edit and redact images",
+            desc: "Do simple image editing within Stello and redact parts of images",
+        },
+        {
             title: "Quick reply to responses",
             desc: "Send replies without leaving the list of responses",
         },
