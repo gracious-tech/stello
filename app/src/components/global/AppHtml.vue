@@ -188,6 +188,7 @@ function mention_renderer(parent_component:AppHtml){
 
         onKeyDown(props:SuggestionKeyDownProps){
             // Pass on key down events to the custom list component to handle
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- bug?
             return (component.ref as AppHtmlVariables).on_keydown(props)
         },
 
