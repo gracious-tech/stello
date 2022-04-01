@@ -4,6 +4,15 @@ set -e
 cd "$(dirname "$(dirname "$0")")"
 
 
+# Confirm have deployed host if needed
+echo -n "Have you run deploy_host or deploy_host_displayer (if needed)? [y/N] "
+read have_deployed
+if [[ "$have_deployed" != "y" ]]; then
+    echo "Aborted"
+    exit
+fi
+
+
 # Config
 BUCKET="stello-releases"
 CF_DIST="E3BA5K555JRNHM"
