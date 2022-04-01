@@ -37,12 +37,6 @@ import {rotate_image, filter_image} from '@/services/utils/image'
 import {bitmap_to_2dcanvas, blob_to_bitmap, canvas_to_blob} from '@/services/utils/coding'
 
 
-// Hack to support OffscreenCanvas (which seems to be fine in .ts files but not in .vue)
-declare class OffscreenCanvas extends HTMLCanvasElement {
-    constructor(width:number, height:number)
-}
-
-
 @Component({})
 export default class extends Vue {
 
