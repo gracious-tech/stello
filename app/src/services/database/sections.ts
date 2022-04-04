@@ -118,6 +118,7 @@ export class DatabaseSections {
                 type,
                 chart: 'doughnut',
                 data: [],
+                threshold: null,
                 title: '',
                 caption: '',
             }

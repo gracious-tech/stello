@@ -21,8 +21,8 @@ section(@click.self='focus_editor' :class='classes')
         shared-video(v-if='content.type === "video"' @modify='modify' :format='content.format'
             :id='content.id' :caption='content.caption' :start='content.start' :end='content.end')
 
-        shared-chart(v-if='content.type === "chart"' :type='content.chart'
-            :data='content.data' :title='content.title' :caption='content.caption'
+        shared-chart(v-if='content.type === "chart"' :type='content.chart' :data='content.data'
+            :threshold='content.threshold' :title='content.title' :caption='content.caption'
             :color='theme_style_props["--stello-hue"]')
 
         shared-pagebait(v-if='content.type === "page"' :button='content.button'

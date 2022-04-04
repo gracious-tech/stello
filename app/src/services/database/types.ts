@@ -234,6 +234,7 @@ export interface ContentChart {
     type:'chart'
     chart:'doughnut'|'bar'|'line'
     data:{number:number|null, label:string}[]
+    threshold:number|null
     title:string
     caption:string
 }
