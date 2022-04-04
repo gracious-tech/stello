@@ -33,6 +33,7 @@ import DraftAddSection from './DraftAddSection.vue'
 import DialogSectionText from '@/components/dialogs/DialogSectionText.vue'
 import DialogSectionImages from '@/components/dialogs/DialogSectionImages.vue'
 import DialogSectionVideo from '@/components/dialogs/DialogSectionVideo.vue'
+import DialogSectionChart from '@/components/dialogs/DialogSectionChart.vue'
 import {Draft} from '@/services/database/drafts'
 import {Section} from '@/services/database/sections'
 import {floatify_rows} from '@/shared/shared_functions'
@@ -59,6 +60,7 @@ export default class extends Vue {
         text: DialogSectionText,
         images: DialogSectionImages,
         video: DialogSectionVideo,
+        chart: DialogSectionChart,
     }
 
     created(){

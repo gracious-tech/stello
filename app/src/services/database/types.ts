@@ -184,7 +184,7 @@ export interface RecordSection<TContent extends RecordSectionContent=RecordSecti
 }
 
 export type RecordSectionContent =
-    ContentText|ContentImages|ContentVideo|ContentPage  // ContentFile
+    ContentText|ContentImages|ContentVideo|ContentChart|ContentPage  // ContentFile
 
 export interface ContentText {
     type:'text'
@@ -228,6 +228,14 @@ export interface ContentFile {
     data:Blob
     filename:string
     download:boolean  // Whether to force download or allow preview in browser (if supported)
+}
+
+export interface ContentChart {
+    type:'chart'
+    chart:'doughnut'|'bar'|'line'
+    data:{number:number|null, label:string}[]
+    title:string
+    caption:string
 }
 
 

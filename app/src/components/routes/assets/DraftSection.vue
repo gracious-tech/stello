@@ -21,6 +21,10 @@ section(@click.self='focus_editor' :class='classes')
         shared-video(v-if='content.type === "video"' @modify='modify' :format='content.format'
             :id='content.id' :caption='content.caption' :start='content.start' :end='content.end')
 
+        shared-chart(v-if='content.type === "chart"' :type='content.chart'
+            :data='content.data' :title='content.title' :caption='content.caption'
+            :color='theme_style_props["--stello-hue"]')
+
         shared-pagebait(v-if='content.type === "page"' :button='content.button'
             :headline='page_headline' :desc='content.desc' :image='content.image'
             @click.native='modify')
@@ -37,6 +41,7 @@ import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 import DraftAddSection from './DraftAddSection.vue'
 import DraftSectionRespond from './DraftSectionRespond.vue'
 import SharedVideo from '@/shared/SharedVideo.vue'
+import SharedChart from '@/shared/SharedChart.vue'
 import SharedSlideshow from '@/shared/SharedSlideshow.vue'
 import SharedHero from '@/shared/SharedHero.vue'
 import SharedPagebait from '@/shared/SharedPagebait.vue'
@@ -50,10 +55,13 @@ import {blob_image_size} from '@/services/utils/image'
 
 
 @Component({
-    components: {DraftAddSection, DraftSectionRespond, SharedSlideshow, SharedVideo,
+    components: {DraftAddSection, DraftSectionRespond, SharedSlideshow, SharedVideo, SharedChart,
         SharedPagebait, SharedHero},
+    inject: ['theme_style_props'],
 })
 export default class extends Vue {
+
+    declare readonly theme_style_props:Record<string, string>  // Injected
 
     @Prop({required: true}) declare readonly draft:Draft
     @Prop({required: true}) declare readonly section:Section

@@ -113,6 +113,14 @@ export class DatabaseSections {
                 start: null,
                 end: null,
             }
+        } else if (type === 'chart'){
+            content = {
+                type,
+                chart: 'doughnut',
+                data: [],
+                title: '',
+                caption: '',
+            }
         } else if (type === 'page'){
             content = {
                 type,
