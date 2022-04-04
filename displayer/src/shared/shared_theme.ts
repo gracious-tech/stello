@@ -36,6 +36,8 @@ export function gen_theme_style_props(dark:boolean, style:'modern'|'formal'|'bea
     const bg_lightness = dark ? Math.min(color.l, 0.3) : color.l
 
     return {
+        // Access to style (for JS access mainly)
+        '--stello-style': style,
         // Access to exact chosen color
         '--stello-color': hsl_to_string(color.h, color.s, color.l),
         // Access to bg color (which will be same as --stello-color or darkened a bit)
