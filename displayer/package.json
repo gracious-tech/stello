@@ -12,6 +12,7 @@
     },
     "dependencies": {
         "chart.js": "^3.7.1",
+        "chartjs-plugin-annotation": "^1.4.0",
         "chartjs-plugin-datalabels": "^2.0.0",
         "core-js": "^3.19.1",
         "idb": "^6.1.5",
