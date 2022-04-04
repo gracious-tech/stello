@@ -3,7 +3,7 @@
 // Import worker as a separate script (rather than blob which is forbidden by CSP)
 import UntarWorker from 'js-untar/src/untar-worker.js?worker'
 
-import {debounce} from 'lodash'
+import {debounce as lodash_debounce} from 'lodash'
 import {formatDistanceStrict} from 'date-fns'
 
 
@@ -21,11 +21,18 @@ export const SECTION_IMAGE_WIDTH = Math.max(PIXELS_WIDTH_HANDHELD, SECTION_WIDTH
 export const debounce_default_ms = 500
 
 
+export function debounce<T>(fn:T, ms=debounce_default_ms){
+    // Version of lodash debounce that has own defaults
+    // @ts-ignore -- Lodash uses 'any' types and can't work out how to declare unknown args fn
+    return lodash_debounce(fn, ms) as unknown as T
+}
+
+
 export function debounce_method(ms=debounce_default_ms){
     // Debounce decorator for methods
     // See https://www.typescriptlang.org/docs/handbook/decorators.html#method-decorators
-    return (that, name, descriptor) => {
-        descriptor.value = debounce(descriptor.value, ms)
+    return (that:unknown, name:string, descriptor:PropertyDescriptor) => {
+        descriptor.value = debounce(descriptor.value as unknown, ms)
     }
 }
 
@@ -34,7 +41,8 @@ export function debounce_set(ms=debounce_default_ms){
     // Debounce decorator for `set` accessors
     // See https://www.typescriptlang.org/docs/handbook/decorators.html#accessor-decorators
     // NOTE Only one decorator can be used for each accessor name (whether get or set)
-    return (that, name, descriptor) => {
+    return (that:unknown, name:string, descriptor:PropertyDescriptor) => {
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         descriptor.set = debounce(descriptor.set, ms)
     }
 }
