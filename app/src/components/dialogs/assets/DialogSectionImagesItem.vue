@@ -34,8 +34,6 @@ import SharedHero from '@/shared/SharedHero.vue'
 import ImageEditBar from '@/components/reuseable/ImageEditBar.vue'
 import {Section} from '@/services/database/sections'
 import {ContentImages} from '@/services/database/types'
-import {Profile} from '@/services/database/profiles'
-import {gen_theme_style_props} from '@/shared/shared_theme'
 
 
 @Component({
@@ -45,7 +43,7 @@ export default class extends Vue {
 
     @Prop({type: Object, required: true}) declare readonly section:Section<ContentImages>
     @Prop({type: Number, required: true}) declare readonly item_index:number
-    @Prop({type: Profile, default: null}) declare readonly profile:Profile|null
+    @Prop({type: Object, required: true}) declare readonly theme_style_props:Record<string, string>
     @Prop({type: String, required: true}) declare readonly aspect:string
 
     get item(){
@@ -88,16 +86,8 @@ export default class extends Vue {
     }
 
     get theme_style(){
-        // Access to theme style profile option (if available)
-        return this.profile?.options.theme_style ?? 'modern'
-    }
-
-    get theme_style_props(){
-        // Provide access to theme vars so hero can use them
-        // NOTE dark prop doesn't affect anything in hero since only the hue is used
-        const color = this.profile?.options.theme_color
-            ?? self.app_db.profiles.get_default_theme_color()
-        return gen_theme_style_props(false, this.theme_style, color)
+        // Access to theme style
+        return this.theme_style_props['--stello-style']
     }
 
     get aspect_style(){
@@ -155,6 +145,7 @@ export default class extends Vue {
 .hero
     // Provide hero with same styles it would have within a .stello-displayer class
     @include stello_vars
+    background-image: none !important  // Undo image applied by theme styles
     ::v-deep h1
         font-family: var(--stello-font-headings)
 

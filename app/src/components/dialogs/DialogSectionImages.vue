@@ -11,7 +11,7 @@ v-card
 
     v-card-text
         dialog-section-images-item(v-for='(item, i) of images' :key='item.id' :section='section'
-            :item_index='i' :profile='profile' :aspect='aspect')
+            :item_index='i' :theme_style_props='theme_style_props' :aspect='aspect')
         p.empty(v-if='!images.length') Select from your files or copy &amp; paste an image
 
     v-card-actions
@@ -32,7 +32,6 @@ import {get_clipboard_blobs} from '@/services/utils/misc'
 import {SECTION_IMAGE_WIDTH} from '@/services/misc'
 import {Section} from '@/services/database/sections'
 import {ContentImages} from '@/services/database/types'
-import {Profile} from '@/services/database/profiles'
 
 
 @Component({
@@ -41,7 +40,7 @@ import {Profile} from '@/services/database/profiles'
 export default class extends Vue {
 
     @Prop({type: Section, required: true}) declare readonly section:Section<ContentImages>
-    @Prop({type: Profile, default: null}) declare readonly profile:Profile|null
+    @Prop({type: Object, required: true}) declare readonly theme_style_props:Record<string, string>
 
     aspect = '1/1'
 

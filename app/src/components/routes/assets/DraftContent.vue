@@ -43,8 +43,11 @@ import {rm_section_id} from '@/services/database/utils'
 
 @Component({
     components: {DraftSection, DraftAddSection, DraftGuide, DraftMovebar},
+    inject: ['theme_style_props'],
 })
 export default class extends Vue {
+
+    declare readonly theme_style_props:Record<string, string>  // Injected
 
     @Prop({required: true, type: Draft}) declare readonly draft:Draft
     @Prop({required: true, type: Array}) declare readonly sections:SectionIds
@@ -130,7 +133,12 @@ export default class extends Vue {
         } else {
             void this.$store.dispatch('show_dialog', {
                 component: this.modify_dialogs[section.content.type],
-                props: {section, profile: this.profile},
+                props: {
+                    section,
+                    profile: this.profile,
+                    // Dialog not a child so can't inject and must pass explicitly
+                    theme_style_props: this.theme_style_props,
+                },
                 wide: section.content.type === 'images',
             })
         }

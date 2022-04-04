@@ -81,8 +81,11 @@ import {gen_theme_style_props} from '@/shared/shared_theme'
 
 @Component({
     components: {DraftContent, SharedDarkToggle, DraftInvite},
+    provide(){
+        return {theme_style_props: (this as RouteDraft).theme_style_props}
+    },
 })
-export default class extends Vue {
+export default class RouteDraft extends Vue {
 
     @Prop({type: String, required: true}) declare readonly draft_id:string
 
@@ -92,6 +95,7 @@ export default class extends Vue {
     contacts:Contact[] = []
     unsubscribes:Unsubscribe[] = []
     sending = false
+    theme_style_props:Record<string, string> = {}  // Not a getter so stays reactive when provided
 
     async created(){
         // Load the draft
@@ -125,9 +129,19 @@ export default class extends Vue {
         void this.load_unsubscribes()
     }
 
-    @Watch('draft.profile') watch_profile(){
+    @Watch('draft.profile') watch_profile_id(){
         // Unsubscribes are specific to profile
         void this.load_unsubscribes()
+    }
+
+    @Watch('profile', {deep: true, immediate: true}) watch_profile(){
+        // CSS style props for theming message
+        const color = this.profile?.options.theme_color ??
+            self.app_db.profiles.get_default_theme_color()
+        const new_values = gen_theme_style_props(this.dark_message, this.theme_style, color)
+        for (const [key, val] of Object.entries(new_values)){
+            this.$set(this.theme_style_props, key, val)
+        }
     }
 
     @Watch('$tm.data.finished') watch_finished(task:Task){
@@ -185,13 +199,6 @@ export default class extends Vue {
     get theme_style(){
         // Get theme style setting for profile
         return this.profile?.options.theme_style ?? 'modern'
-    }
-
-    get theme_style_props(){
-        // CSS style props for theming message
-        const color = this.profile?.options.theme_color ??
-            self.app_db.profiles.get_default_theme_color()
-        return gen_theme_style_props(this.dark_message, this.theme_style, color)
     }
 
     get displayer_classes(){

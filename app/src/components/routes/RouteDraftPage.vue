@@ -25,7 +25,7 @@ div
 
 <script lang='ts'>
 
-import {Component, Vue, Prop} from 'vue-property-decorator'
+import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import DraftContent from './assets/DraftContent.vue'
 import DraftPagebaitEditable from './assets/DraftPagebaitEditable.vue'
@@ -39,8 +39,11 @@ import {gen_theme_style_props} from '@/shared/shared_theme'
 
 @Component({
     components: {DraftContent, DraftPagebaitEditable},
+    provide(){
+        return {theme_style_props: (this as RouteDraftPage).theme_style_props}
+    },
 })
-export default class extends Vue {
+export default class RouteDraftPage extends Vue {
 
     @Prop({type: String, required: true}) declare readonly draft_id:string
     // NOTE Page ids are manually processed due to limitations with Router v3
@@ -48,6 +51,7 @@ export default class extends Vue {
     draft:Draft|null = null
     page:Section<ContentPage>|null = null
     profile:Profile|null = null
+    theme_style_props:Record<string, string> = {}  // Not a getter so stays reactive when provided
 
     get page_id(){
         // Current page id is always the last item in URL
@@ -77,13 +81,6 @@ export default class extends Vue {
     get theme_style(){
         // Get theme style setting for profile
         return this.profile?.options.theme_style ?? 'modern'
-    }
-
-    get theme_style_props(){
-        // CSS style props for theming message
-        const color = this.profile?.options.theme_color ??
-            self.app_db.profiles.get_default_theme_color()
-        return gen_theme_style_props(this.dark_message, this.theme_style, color)
     }
 
     get displayer_classes(){
@@ -135,6 +132,16 @@ export default class extends Vue {
         // Get profile if one set
         if (draft.profile){
             this.profile = await self.app_db.profiles.get(draft.profile) ?? null
+        }
+    }
+
+    @Watch('profile', {deep: true, immediate: true}) watch_profile(){
+        // CSS style props for theming message
+        const color = this.profile?.options.theme_color ??
+            self.app_db.profiles.get_default_theme_color()
+        const new_values = gen_theme_style_props(this.dark_message, this.theme_style, color)
+        for (const [key, val] of Object.entries(new_values)){
+            this.$set(this.theme_style_props, key, val)
         }
     }
 }
