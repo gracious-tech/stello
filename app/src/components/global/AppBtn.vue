@@ -26,7 +26,7 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 @Component({})
 export default class extends Vue {
 
-    @Prop({type: String, default: null}) declare readonly icon
+    @Prop({type: String, default: null}) declare readonly icon:string|null
 
     get color(){
         // Use provided color, else default to accent (unless an icon)
