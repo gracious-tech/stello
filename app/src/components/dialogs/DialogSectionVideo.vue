@@ -22,7 +22,8 @@ v-card
                 | a song or segment of the video is copyrighted (even if you own the video).
             app-btn(v-else @click='show_help = true' small) Not playing?
 
-        app-textarea(v-model='caption' label="Caption" :rows='1' dense class='mt-8')
+        app-textarea(v-model='caption' label="Caption" :rows='1' @keydown.enter.prevent dense
+            class='mt-8')
 
         div.range
             app-text(:value='static_start' @input='start_changed' :rules='[validate_time]'
