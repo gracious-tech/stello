@@ -116,9 +116,13 @@ export class DatabaseSections {
         } else if (type === 'chart'){
             content = {
                 type,
-                chart: 'doughnut',
-                data: [],
-                threshold: null,
+                chart: 'bar',
+                data: [
+                    // Start with some data so chart is actually visible and type choice meaningful
+                    {label: '', number: '60%', hue: 150},  // Auto-picker increments by +150
+                    {label: '', number: '30%', hue: 300},
+                ],
+                threshold: '100%',
                 title: '',
                 caption: '',
             }
