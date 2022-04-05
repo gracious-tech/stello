@@ -139,12 +139,5 @@ svg
     path
         fill: #55555533
 
-.cap  // Avoid Vuetify's caption class
-    text-align: center
-    opacity: 0.6
-    font-size: 0.75em
-    line-height: 1.2  // Minimize distance from wrapped text
-    padding-top: 10px
-
 
 </style>

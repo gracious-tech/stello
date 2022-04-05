@@ -15,8 +15,8 @@ div.root(:class='{multiple}')
         div.thumb(v-for='(button, i) of buttons' :key='button.id' :class='{active: current === i}')
             button(@click.stop='button.activate' :data-image='button.image')
 
-    div.cap
-        div(v-for='(caption, i) of captions' v-show='caption' :class='{active: current === i}')
+    div.cap_parent
+        div.cap(v-for='(caption, i) of captions' v-show='caption' :class='{active: current === i}')
             | {{ caption }}
 
 </template>
@@ -384,17 +384,11 @@ export default defineComponent({
                 outline-style: none
 
 
-.cap  // Avoid Vuetify's caption class
+.cap_parent
     display: grid
 
-    > div
+    .cap
         grid-area: 1/1  // Place on top of each other
-        text-align: center
-        opacity: 0.6
-        font-size: 0.75em
-        line-height: 1.2  // Minimize distance from wrapped text
-        padding-top: 10px
-        overflow: hidden  // Triggers word wrap
 
         &:not(.active)
             visibility: hidden
