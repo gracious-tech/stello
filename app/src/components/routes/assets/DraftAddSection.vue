@@ -8,7 +8,7 @@ div.addbar(:class='{visible}')
         app-btn(@click='add("text")' icon='subject' data-tip="Add text")
         app-btn(@click='add("images")' icon='image' data-tip="Add images")
         app-btn(@click='add("video")' icon='video' data-tip="Add video")
-        app-btn(@click='add("chart")' icon='pie_chart' data-tip="Add chart")
+        app-btn(@click='add("chart")' icon='insert_chart' data-tip="Add chart")
         app-btn(@click='add("page")' icon='library_books' data-tip="Add page")
         //- app-btn(icon='attach_file')
         app-btn(v-if='can_paste' @click='add("paste")' icon='content_paste' color='primary'

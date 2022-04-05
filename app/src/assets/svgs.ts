@@ -101,7 +101,7 @@ export * as icon_library_books      from 'md-icon-svgs/library_books.svg?raw-svg
 export * as icon_fingerprint        from 'md-icon-svgs/fingerprint.svg?raw-svg'
 export * as icon_contact_mail       from 'md-icon-svgs/contact_mail.svg?raw-svg'
 export * as icon_attach_file        from 'md-icon-svgs/attach_file.svg?raw-svg'
-export * as icon_pie_chart          from 'md-icon-svgs/pie_chart.svg?raw-svg'
+export * as icon_insert_chart       from 'md-icon-svgs/insert_chart.svg?raw-svg'
 export * as icon_format_bold        from 'md-icon-svgs/format_bold.svg?raw-svg'
 export * as icon_format_italic      from 'md-icon-svgs/format_italic.svg?raw-svg'
 export * as icon_link               from 'md-icon-svgs/link.svg?raw-svg'
