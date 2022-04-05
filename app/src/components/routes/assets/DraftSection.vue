@@ -23,7 +23,7 @@ section(@click.self='focus_editor' :class='classes')
 
         shared-chart(v-if='content.type === "chart"' :type='content.chart' :data='content.data'
             :threshold='content.threshold' :title='content.title' :caption='content.caption'
-            :color='theme_style_props["--stello-hue"]')
+            :dark='$store.state.dark_message')
 
         shared-pagebait(v-if='content.type === "page"' :button='content.button'
             :headline='page_headline' :desc='content.desc' :image='content.image'
