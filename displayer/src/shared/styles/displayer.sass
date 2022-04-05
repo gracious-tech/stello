@@ -82,6 +82,9 @@
                 // No text wrapping needed so just use flex row
                 .sections
                     display: flex
+                    section
+                        // Prevent either section expanding too much (graph can do sometimes)
+                        max-width: $stello_float_width
                     section:nth-child(1)
                         margin-right: $stello_gutter  // Each section seems equal width despite this
 
