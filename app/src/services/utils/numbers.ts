@@ -22,3 +22,19 @@ export function parse_float(value:unknown):number|null{
         (typeof value === 'string' ? Number.parseFloat(value.replace(/[^\d.-]/g, '')) : null)
     return Number.isNaN(number) ? null : number
 }
+
+
+export function mimic_formatting(model:string, value:number){
+    // Format a number in a way that mimics the formatting of an existing number string
+    // WARN Not an exact science and result may still be malformed so rely on for display only
+    // e.g. ('$.1', -2) => '-$2', ('-1%', 2) => '2%'
+
+    // Get all chars up to first digit and remove any '-' or '.' among them
+    const prefix = (model.match(/([\D]*)/)?.[1] ?? '').replace(/[.-]*/g, '')
+    // Get all chars after last digit and remove any '-' or '.' among them
+    const suffix = (model.match(/.*[\d](.*)/)?.[1] ?? '').replace(/[.-]*/g, '')
+    // Determine if negative sign needed
+    const minus = value < 0 ? '-' : ''
+    // Put together
+    return `${minus}${prefix}${Math.abs(value)}${suffix}`
+}
