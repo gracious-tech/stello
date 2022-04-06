@@ -6,7 +6,7 @@ v-card
     v-card-title Reply to {{ name }}
 
     v-card-text
-        app-html.html(ref='app_html' v-model='html' class='pa-4')
+        app-html.html(ref='app_html' v-model='html' class='pa-4 stello-displayer-styles')
 
     v-card-actions
         app-btn(@click='edit_further') More options
@@ -119,7 +119,6 @@ export default class extends Vue {
 <style lang='sass' scoped>
 
 .html
-    font-size: 16px  // TODO Apply stello-displayer typography
     position: relative  // Needed for AppHtml menu to position properly upon first open
     background-color: hsl(0, 0%, 50%, 0.1)
 

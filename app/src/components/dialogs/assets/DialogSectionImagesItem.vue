@@ -11,7 +11,7 @@ div.dialog-section-images-item(class='my-5')
             image-edit-bar.bar(:blob='item.data' @changed='image_edited')
                 shared-hero.hero(v-if='section.is_hero' ref='hero' :image='item'
                     :theme_style='theme_style' :first='false' :class='`style-${theme_style}`'
-                    :style='theme_style_props')
+                    :style='theme_style_props' class='stello-displayer-styles')
                 img.img(v-else ref='img' :src='img_src' :class='{multiple, crop}')
 
         div(class='d-flex flex-column')
@@ -139,15 +139,6 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
-@import 'src/styles/utils.sass'
-
-
-.hero
-    // Provide hero with same styles it would have within a .stello-displayer class
-    @include stello_vars
-    background-image: none !important  // Undo image applied by theme styles
-    ::v-deep h1
-        font-family: var(--stello-font-headings)
 
 .img
     object-fit: contain
