@@ -17,9 +17,7 @@ import {defineComponent} from 'vue-demi'
 import {parse_float, mimic_formatting} from '@/services/utils/numbers'
 
 import type {Chart, ChartOptions, ScriptableContext} from 'chart.js'
-const chartjs_promise = import('chart.js')
-const chartjs_labels_promise = import('chartjs-plugin-datalabels')
-const chartjs_annotation_promise = import('chartjs-plugin-annotation')
+const chartjs_promise = import('./SharedChart')
 
 
 export default defineComponent({
@@ -390,22 +388,20 @@ export default defineComponent({
         async register(){
             // Load extensions for chart module
             const chartjs = await chartjs_promise
-            const chartjs_labels = await chartjs_labels_promise
-            const chartjs_annotation = await chartjs_annotation_promise
             chartjs.Chart.register(
-                chartjs.LineController,
                 chartjs.BarController,
+                chartjs.LineController,
+                chartjs.DoughnutController,
                 chartjs.CategoryScale,
                 chartjs.LinearScale,
                 chartjs.BarElement,
                 chartjs.PointElement,
                 chartjs.LineElement,
                 chartjs.ArcElement,
-                chartjs.DoughnutController,
                 chartjs.Filler,
                 chartjs.Tooltip,
-                chartjs_labels.default,
-                chartjs_annotation.default,
+                chartjs.plugin_datalabels,
+                chartjs.plugin_annotation,
             )
         },
 
@@ -418,8 +414,6 @@ export default defineComponent({
 
             // Access to chart modules (already ready since waited for register)
             const chartjs = await chartjs_promise
-            const chartjs_labels = await chartjs_labels_promise
-            const chartjs_annotation = await chartjs_annotation_promise
 
             // If chart already exists, destroy it
             if (this.$options['chart']){
@@ -430,7 +424,7 @@ export default defineComponent({
             const context = (this.$refs['canvas'] as HTMLCanvasElement).getContext('2d')!
             this.$options['chart'] = new chartjs.Chart(context, {
                 type: this.type,
-                plugins: [chartjs_labels.default, chartjs_annotation.default],
+                plugins: [chartjs.plugin_datalabels, chartjs.plugin_annotation],
                 data: {
                     labels: this.thresh_data.map(item => item.label),
                     datasets: [{data: this.data_nums}],
