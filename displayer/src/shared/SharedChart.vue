@@ -4,9 +4,9 @@
 div.root
     template(v-if='data.length')
         h2(v-if='title') {{ title }}
-        canvas(ref='canvas')
+        canvas(ref='canvas' @click='click')
         div.cap(v-if='caption') {{ caption }}
-    svg.placeholder(v-else viewBox='0 0 24 24')
+    svg.placeholder(v-else @click='click' viewBox='0 0 24 24')
         path(d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z')
 
 </template>
@@ -55,6 +55,8 @@ export default defineComponent({
             default: true,
         },
     },
+
+    emits: ['click'],
 
     chart: null,  // Not in data to prevent Vue from making reactive which messes up Chart internals
 
@@ -440,6 +442,11 @@ export default defineComponent({
                 options: this.chart_options,
             })
         },
+
+        click(){
+            // Emit event when chart clicked
+            this.$emit('click')
+        },
     },
 })
 
@@ -451,11 +458,15 @@ export default defineComponent({
 .root
     text-align: center
 
+canvas
+    cursor: pointer
+
 h2
     text-align: center
 
 .placeholder
     max-width: 300px
+    cursor: pointer
     path
         fill: hsla(0, 0%, 50%, 0.5)
 
