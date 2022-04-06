@@ -36,7 +36,7 @@ v-card
         //- Disable animation while editing so chart doesn't constantly jump around
         shared-chart.chart(:type='content.chart' :data='content.data' :threshold='content.threshold'
             :title='content.title' :caption='content.caption' :dark='$store.state.dark'
-            :animate='false')
+            :animate='false' class='stello-displayer-styles')
 
     v-card-actions
         app-btn(@click='dismiss') Done
