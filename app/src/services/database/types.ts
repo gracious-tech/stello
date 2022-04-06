@@ -233,7 +233,7 @@ export interface ContentFile {
 export interface ContentChart {
     // NOTE Number values expect a number string (5%, $5, etc) which will be stripped for calcs
     type:'chart'
-    chart:'doughnut'|'bar'|'line'
+    chart:'bar'|'line'|'doughnut'
     data:{number:string, label:string, hue:number}[]
     threshold:string
     title:string

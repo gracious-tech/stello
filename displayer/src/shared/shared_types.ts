@@ -23,8 +23,8 @@ export interface PublishedSection<TContent extends PublishedSectionContent=Publi
     content:TContent
 }
 
-export type PublishedSectionContent =
-    PublishedContentText|PublishedContentImages|PublishedContentVideo|PublishedContentPage
+export type PublishedSectionContent = PublishedContentText|PublishedContentImages|
+    PublishedContentVideo|PublishedContentChart|PublishedContentPage
 
 export interface PublishedContentText {
     type:'text'
@@ -47,6 +47,15 @@ export interface PublishedContentVideo {
     caption:string
     start:number|null
     end:number|null
+}
+
+export interface PublishedContentChart {
+    type:'chart'
+    chart:'bar'|'line'|'doughnut'
+    data:{number:string, label:string, hue:number}[]
+    threshold:string
+    title:string
+    caption:string
 }
 
 export interface PublishedContentPage {

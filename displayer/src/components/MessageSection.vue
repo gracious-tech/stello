@@ -11,6 +11,9 @@ teleport(to='.stello-displayer' :disabled='!fullscreen')
                 @fullscreen='fullscreen = !fullscreen')
             SharedVideo(v-if='content.type === "video"' :format='content.format' :id='content.id'
                 :caption='content.caption' :start='content.start' :end='content.end')
+            SharedChart(v-if='content.type === "chart"' :type='content.chart' :data='content.data'
+                :threshold='content.threshold' :title='content.title' :caption='content.caption'
+                :dark='dark')
             SectionPagebait(v-if='content.type === "page"' :page='section')
         SectionRespond(:section='section' :subsection='subsection')
         svg.close(v-if='fullscreen' @click='fullscreen = false' viewBox='0 0 24 24')
@@ -27,14 +30,16 @@ import {computed, PropType, ref, watch, onUnmounted, provide, defineComponent} f
 import SectionSlideshow from './SectionSlideshow.vue'
 import SectionPagebait from './SectionPagebait.vue'
 import SharedVideo from '../shared/SharedVideo.vue'
+import SharedChart from '../shared/SharedChart.vue'
 import SectionRespond from './SectionRespond.vue'
 import {PublishedSection} from '../shared/shared_types'
 import {section_classes} from '../shared/shared_functions'
+import {store} from '@/services/store'
 
 
 export default defineComponent({
 
-    components: {SectionSlideshow, SharedVideo, SectionRespond, SectionPagebait},
+    components: {SectionSlideshow, SharedVideo, SharedChart, SectionRespond, SectionPagebait},
 
     props: {
         section: {
@@ -90,6 +95,7 @@ export default defineComponent({
             subsection,
             on_displayed_change,
             fullscreen,
+            dark: computed(() => store.state.dict.dark),
         }
     },
 })

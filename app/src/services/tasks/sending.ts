@@ -409,43 +409,44 @@ async function process_section(section_id:string, pub_assets:PublishedAsset[],
     // WARN Avoid deep copying sections in case includes sensitive data (e.g. added in future)
     //      (also avoids duplicating blobs in memory)
     const section = (await self.app_db.sections.get(section_id))!
+    const content = section.content  // Commonly accessed
 
     // Handle page
-    if (section.content.type === 'page'){
-        if (section.content.image){
+    if (content.type === 'page'){
+        if (content.image){
             // Pagebait width/height is dynamic but does have approximate limits
             // Given maximums are based on expected use and slight chance of very minor mistarget
-            await process_image(pub_assets, section.id, section.content.image, 500*2, 300*2, true)
+            await process_image(pub_assets, section.id, content.image, 500*2, 300*2, true)
         }
         return {
             id: section.id,
             respondable: false,
             content: {
                 type: 'page',
-                button: section.content.button,
-                headline: section.content.headline,
-                desc: section.content.desc,
-                image: section.content.image ? section.id : null,
+                button: content.button,
+                headline: content.headline,
+                desc: content.desc,
+                image: content.image ? section.id : null,
                 sections:
-                    await process_sections(pub_assets, section.content.sections, tmpl_variables),
+                    await process_sections(pub_assets, content.sections, tmpl_variables),
             },
         }
 
     // Handle text
-    } else if (section.content.type === 'text'){
+    } else if (content.type === 'text'){
         return {
             id: section.id,
             respondable: section.respondable_final,
             content: {
                 type: 'text',
-                html: update_template_values(section.content.html, tmpl_variables, '-'),
-                standout: section.content.standout,
+                html: update_template_values(content.html, tmpl_variables, '-'),
+                standout: content.standout,
             },
         }
 
     // Handle video
-    } else if (section.content.type === 'video'){
-        if (!section.content.format || !section.content.id){
+    } else if (content.type === 'video'){
+        if (!content.format || !content.id){
             return null
         }
         return {
@@ -453,34 +454,52 @@ async function process_section(section_id:string, pub_assets:PublishedAsset[],
             respondable: section.respondable_final,
             content: {
                 type: 'video',
-                format: section.content.format,
-                id: section.content.id,
-                caption: section.content.caption,
-                start: section.content.start,
-                end: section.content.end,
+                format: content.format,
+                id: content.id,
+                caption: content.caption,
+                start: content.start,
+                end: content.end,
+            },
+        }
+
+    // Handle chart
+    } else if (content.type === 'chart'){
+        if (!content.data.length){
+            return null
+        }
+        return {
+            id: section.id,
+            respondable: section.respondable_final,
+            content: {
+                type: 'chart',
+                chart: content.chart,
+                data: content.data.map(({label, number, hue}) => ({label, number, hue})),
+                threshold: content.threshold,
+                title: content.title,
+                caption: content.caption,
             },
         }
 
     // Handle images
-    } else if (section.content.type === 'images'){
+    } else if (content.type === 'images'){
 
         // Exclude if no images
-        if (!section.content.images.length){
+        if (!content.images.length){
             return null
         }
 
         // Work out max width/height for all images
         const max_width = SECTION_IMAGE_WIDTH
         // Determine max height from first image's dimensions
-        const base_size = await blob_image_size(section.content.images[0]!.data)
+        const base_size = await blob_image_size(content.images[0]!.data)
         const base_ratio = base_size.width / base_size.height
         const max_height = max_width / base_ratio
 
         // Create assets for each image and collect other metadata into an images array
         const images:PublishedImage[] = []
-        for (const image of section.content.images){
+        for (const image of content.images){
             await process_image(pub_assets, image.id, image.data, max_width, max_height,
-                section.content.crop)
+                content.crop)
             images.push({
                 id: image.id,
                 caption: image.caption,
