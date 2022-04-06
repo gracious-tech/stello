@@ -35,6 +35,9 @@ export function mimic_formatting(model:string, value:number){
     const suffix = (model.match(/.*[\d](.*)/)?.[1] ?? '').replace(/[.-]*/g, '')
     // Determine if negative sign needed
     const minus = value < 0 ? '-' : ''
+    // Convert absolute number to string with thousand separators
+    // NOTE toLocaleString may be unpredictable but with just a raw positive number should be ok
+    const number = Math.abs(value).toLocaleString()
     // Put together
-    return `${minus}${prefix}${Math.abs(value)}${suffix}`
+    return `${minus}${prefix}${number}${suffix}`
 }
