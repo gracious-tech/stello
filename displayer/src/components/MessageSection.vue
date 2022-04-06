@@ -13,7 +13,7 @@ teleport(to='.stello-displayer' :disabled='!fullscreen')
                 :caption='content.caption' :start='content.start' :end='content.end')
             SharedChart(v-if='content.type === "chart"' :type='content.chart' :data='content.data'
                 :threshold='content.threshold' :title='content.title' :caption='content.caption'
-                :dark='dark')
+                :dark='dark' @click='fullscreen = !fullscreen')
             SectionPagebait(v-if='content.type === "page"' :page='section')
         SectionRespond(:section='section' :subsection='subsection')
         svg.close(v-if='fullscreen' @click='fullscreen = false' viewBox='0 0 24 24')
