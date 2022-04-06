@@ -4,6 +4,182 @@
 @import './reactions'
 
 
+.stello-displayer, .stello-displayer-styles
+    // Styles that can be reused in any context
+    @include stello_vars
+
+    // INHERITED
+
+    line-height: 1.65
+    overflow-wrap: break-word  // Prevent layout breaks due to long words (like URLs)
+    font-family: var(--stello-font)
+    font-size: 18px
+    @media (min-width: $stello_full_plus_sidebar)
+        font-size: 20px
+
+
+    // REGULAR ELEMENTS
+
+    p, blockquote, h1, h2, ul, ol
+        margin-top: 0  // Override browser default
+        margin-bottom: 0.8em
+
+    h1, h2
+        font-family: var(--stello-font-headings)
+
+    h1:not(:first-child), h2:not(:first-child)
+        margin-top: 1.2em  // Headings in middle of content should have extra spacing above
+
+    h1
+        // WARN Deprecated since after v1.1.0, only used for existing published messages
+        font-size: 1.5em  // Relative to container size (which changes by screen size)
+
+    h2
+        font-size: 1.25em  // Relative to container size (which changes by screen size)
+
+    small
+        display: block  // Wrapped is <p> for symantics but display wise need this to be block too
+        font-size: 0.8em
+        opacity: 0.8  // WARN compounds with existing opacity in text color
+        margin-left: 1.5em
+        margin-bottom: 0.8rem  // Restore same margin as <p> (by being relative to root font size)
+
+    // Caligraphy fonts have much more vertical padding due to long strokes which reduces size
+    &.style-beautiful
+        h1
+            font-size: 2.5em
+        h2
+            font-size: 2em
+        h1, h2
+            margin-bottom: 0.2em
+
+    ul, ol
+        // WARN Check .wrap-left list customisations when making changes
+        padding-left: 2em  // Give root list extra padding to stand out from other text
+        ul, ol
+            padding-left: 1em
+            font-size: 0.9em  // Only slight decrease as will compound each level down
+            margin-bottom: 0
+        // Change ordered list style per level (unordered style already changes)
+        ol
+            list-style-type: lower-alpha  // TODO Support i18n
+            ol
+                list-style-type: lower-roman
+        // Tiptap uses <p> elements within <li>s, so disable the usual margins
+        p
+            margin-bottom: 0
+
+    .btn-text, .btn-icon
+        border-style: none
+        user-select: none
+        color: inherit  // Chrome doesn't inherit by default
+
+        &:focus
+            outline-style: none
+
+        &:not([disabled])
+            &:hover
+                cursor: pointer
+                background-color: rgba(#888, 0.4)
+            &:active
+                background-color: rgba(#888, 0.6)
+
+    .btn-text  // Avoid `button` so don't mess up editor Vuetify ones etc
+        display: inline-flex
+        align-items: center
+        padding: 8px 16px
+        border-radius: var(--stello-radius)
+        font-family: ui-sans-serif, system-ui, sans-serif
+        font-size: 14px
+        font-weight: bold
+        background-color: rgba(#888, 0.2)
+
+        &:disabled
+            opacity: 0.5
+
+        &.s-primary:not(:disabled)
+            background-color: var(--stello-hue-heavy)
+
+    .btn-icon  // Avoid `button` so don't mess up editor Vuetify ones etc
+        padding: 12px
+        background-color: transparent
+        border-radius: 50%
+
+        img, svg
+            display: block
+            width: 24px
+            height: 24px
+
+            path
+                fill: currentColor
+
+    blockquote
+        // Style <p> rather than <blockquote> so can wrap around other content when needed
+        margin: 0.8rem 0
+        padding: 0
+        border-style: none
+        font-size: 0.9em
+
+        p
+            display: flex  // Works better for wrapping purposes
+            margin: 0 0 0 1rem  // Doesn't affect when wrapping to right but not important anyway
+            padding: 0 0.2rem 0.8rem 0.8rem
+            border-left: 2px solid var(--stello-hue)
+            background-color: hsl(0, 0%, 50%, 0.1)
+
+            &:first-child
+                padding-top: 0.8rem  // First <p> needs as otherwise touching bg color edge
+
+    a
+        color: var(--stello-hue)
+        cursor: pointer  // Links without href are buttons
+        text-decoration: none
+        &:hover
+            text-decoration: underline
+
+    iframe, img
+        // Prevent these elements from having implicit bottom padding due to being 'inline'
+        display: block
+
+    iframe
+        border-style: none
+
+    hr
+        display: flex  // Stops line overlapping floated sections
+        border-style: solid
+        border-color: rgba(#888, 0.5)
+        border-width: 1px 0 0 0
+
+    mark
+        color: inherit
+        background-color: rgba(100%, 100%, 0%, 75%)
+    @media screen
+        &.dark mark
+            // NOTE Still brightish for dark mode as highlight known for being bright yellow
+            background-color: rgba(100%, 100%, 0%, 30%)
+
+    .cap  // Avoid Vuetify's caption class
+        text-align: center
+        opacity: 0.6
+        font-size: 0.75em
+        line-height: 1.2  // Minimize distance from wrapped text
+        padding-top: 10px
+        overflow: hidden  // Triggers word wrap
+
+
+    // UTILS
+
+    .ui
+        user-select: none
+        font-family: ui-sans-serif, system-ui, sans-serif
+        font-size: 16px
+
+        @media print
+            display: none
+
+
+
+
 .stello-displayer
     // Styles that are specific to the stello-displayer container and other specific blocks
 
@@ -198,179 +374,3 @@
         // Can use wide pagebait when viewport wide enough and section isn't half-width
         .srow.single .pagebait, .pagebait-editable .pagebait
             @include pagebait-wide
-
-
-
-
-.stello-displayer, .stello-displayer-styles
-    // Styles that can be reused in any context
-    @include stello_vars
-
-    // INHERITED
-
-    line-height: 1.65
-    overflow-wrap: break-word  // Prevent layout breaks due to long words (like URLs)
-    font-family: var(--stello-font)
-    font-size: 18px
-    @media (min-width: $stello_full_plus_sidebar)
-        font-size: 20px
-
-
-    // REGULAR ELEMENTS
-
-    p, blockquote, h1, h2, ul, ol
-        margin-top: 0  // Override browser default
-        margin-bottom: 0.8em
-
-    h1, h2
-        font-family: var(--stello-font-headings)
-
-    h1:not(:first-child), h2:not(:first-child)
-        margin-top: 1.2em  // Headings in middle of content should have extra spacing above
-
-    h1
-        // WARN Deprecated since after v1.1.0, only used for existing published messages
-        font-size: 1.5em  // Relative to container size (which changes by screen size)
-
-    h2
-        font-size: 1.25em  // Relative to container size (which changes by screen size)
-
-    small
-        display: block  // Wrapped is <p> for symantics but display wise need this to be block too
-        font-size: 0.8em
-        opacity: 0.8  // WARN compounds with existing opacity in text color
-        margin-left: 1.5em
-        margin-bottom: 0.8rem  // Restore same margin as <p> (by being relative to root font size)
-
-    // Caligraphy fonts have much more vertical padding due to long strokes which reduces size
-    &.style-beautiful
-        h1
-            font-size: 2.5em
-        h2
-            font-size: 2em
-        h1, h2
-            margin-bottom: 0.2em
-
-    ul, ol
-        // WARN Check .wrap-left list customisations when making changes
-        padding-left: 2em  // Give root list extra padding to stand out from other text
-        ul, ol
-            padding-left: 1em
-            font-size: 0.9em  // Only slight decrease as will compound each level down
-            margin-bottom: 0
-        // Change ordered list style per level (unordered style already changes)
-        ol
-            list-style-type: lower-alpha  // TODO Support i18n
-            ol
-                list-style-type: lower-roman
-        // Tiptap uses <p> elements within <li>s, so disable the usual margins
-        p
-            margin-bottom: 0
-
-    .btn-text, .btn-icon
-        border-style: none
-        user-select: none
-        color: inherit  // Chrome doesn't inherit by default
-
-        &:focus
-            outline-style: none
-
-        &:not([disabled])
-            &:hover
-                cursor: pointer
-                background-color: rgba(#888, 0.4)
-            &:active
-                background-color: rgba(#888, 0.6)
-
-    .btn-text  // Avoid `button` so don't mess up editor Vuetify ones etc
-        display: inline-flex
-        align-items: center
-        padding: 8px 16px
-        border-radius: var(--stello-radius)
-        font-family: ui-sans-serif, system-ui, sans-serif
-        font-size: 14px
-        font-weight: bold
-        background-color: rgba(#888, 0.2)
-
-        &:disabled
-            opacity: 0.5
-
-        &.s-primary:not(:disabled)
-            background-color: var(--stello-hue-heavy)
-
-    .btn-icon  // Avoid `button` so don't mess up editor Vuetify ones etc
-        padding: 12px
-        background-color: transparent
-        border-radius: 50%
-
-        img, svg
-            display: block
-            width: 24px
-            height: 24px
-
-            path
-                fill: currentColor
-
-    blockquote
-        // Style <p> rather than <blockquote> so can wrap around other content when needed
-        margin: 0.8rem 0
-        padding: 0
-        border-style: none
-        font-size: 0.9em
-
-        p
-            display: flex  // Works better for wrapping purposes
-            margin: 0 0 0 1rem  // Doesn't affect when wrapping to right but not important anyway
-            padding: 0 0.2rem 0.8rem 0.8rem
-            border-left: 2px solid var(--stello-hue)
-            background-color: hsl(0, 0%, 50%, 0.1)
-
-            &:first-child
-                padding-top: 0.8rem  // First <p> needs as otherwise touching bg color edge
-
-    a
-        color: var(--stello-hue)
-        cursor: pointer  // Links without href are buttons
-        text-decoration: none
-        &:hover
-            text-decoration: underline
-
-    iframe, img
-        // Prevent these elements from having implicit bottom padding due to being 'inline'
-        display: block
-
-    iframe
-        border-style: none
-
-    hr
-        display: flex  // Stops line overlapping floated sections
-        border-style: solid
-        border-color: rgba(#888, 0.5)
-        border-width: 1px 0 0 0
-
-    mark
-        color: inherit
-        background-color: rgba(100%, 100%, 0%, 75%)
-    @media screen
-        &.dark mark
-            // NOTE Still brightish for dark mode as highlight known for being bright yellow
-            background-color: rgba(100%, 100%, 0%, 30%)
-
-    .cap  // Avoid Vuetify's caption class
-        text-align: center
-        opacity: 0.6
-        font-size: 0.75em
-        line-height: 1.2  // Minimize distance from wrapped text
-        padding-top: 10px
-        overflow: hidden  // Triggers word wrap
-
-
-    // UTILS
-
-    .ui
-        user-select: none
-        font-family: ui-sans-serif, system-ui, sans-serif
-        font-size: 16px
-
-        @media print
-            display: none
