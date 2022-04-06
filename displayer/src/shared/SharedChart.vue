@@ -2,9 +2,12 @@
 <template lang='pug'>
 
 div.root
-    h2(v-if='title') {{ title }}
-    canvas(ref='canvas')
-    div.cap(v-if='caption') {{ caption }}
+    template(v-if='data.length')
+        h2(v-if='title') {{ title }}
+        canvas(ref='canvas')
+        div.cap(v-if='caption') {{ caption }}
+    svg.placeholder(v-else viewBox='0 0 24 24')
+        path(d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z')
 
 </template>
 
@@ -344,7 +347,7 @@ export default defineComponent({
                             label: tip => {
                                 const number = this.thresh_data[tip.dataIndex]!.number
                                 const float = this.thresh_data[tip.dataIndex]!.float
-                                if (this.perceived_total === null){
+                                if (!this.perceived_total){  // Can't be null or zero
                                     return number
                                 }
                                 // Add what percent this item is of total
@@ -420,6 +423,11 @@ export default defineComponent({
                 ;(this.$options['chart'] as Chart).destroy()
             }
 
+            // Canvas won't be available if showing a placeholder
+            if (!this.$refs['canvas']){
+                return
+            }
+
             // Create chart
             const context = (this.$refs['canvas'] as HTMLCanvasElement).getContext('2d')!
             this.$options['chart'] = new chartjs.Chart(context, {
@@ -440,7 +448,15 @@ export default defineComponent({
 
 <style lang='sass' scoped>
 
+.root
+    text-align: center
+
 h2
     text-align: center
+
+.placeholder
+    max-width: 300px
+    path
+        fill: hsla(0, 0%, 50%, 0.5)
 
 </style>
