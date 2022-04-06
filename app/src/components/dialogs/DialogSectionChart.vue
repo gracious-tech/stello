@@ -3,14 +3,15 @@
 
 v-card
 
-    v-card-title Chart Settings
+    v-card-text(class='pt-6')
+        //- NOTE No title & all fields dense/outlined to save space so can see both chart & data
 
-    v-card-text
-
-        app-text(v-model='title' label="Title")
-        app-textarea(v-model='caption' label="Caption" :rows='1' @keydown.enter.prevent dense)
+        app-text(v-model='title' label="Chart title" dense outlined)
+        app-textarea(v-model='caption' label="Caption" :rows='1' @keydown.enter.prevent dense
+            outlined)
 
         app-text(v-model='threshold' label="Threshold" placeholder="Number / % / $" class='mb-4'
+            dense outlined
             hint="A budget/goal/limit/etc that all other numbers will be relative to (optional)")
 
         div.item(v-for='row of rows' class='d-flex')
