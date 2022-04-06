@@ -5,26 +5,12 @@
 
 
 .stello-displayer
-
-    @include stello_vars
-
-    // ROOT STYLES
+    // Styles that are specific to the stello-displayer container and other specific blocks
 
     padding-bottom: 100px
-    line-height: 1.65
-    overflow-wrap: break-word  // Prevent layout breaks due to long words (like URLs)
-
-    font-size: 18px
-    @media (min-width: $stello_full_plus_sidebar)
-        font-size: 20px
-
     background-color: var(--stello-bg)
     background-repeat: repeat
     background-attachment: local  // Bg moves the same as content does
-
-    font-family: var(--stello-font)
-    h1, h2
-        font-family: var(--stello-font-headings)
 
     // Hide all backgrounds and make pure black/white when printing
     @media print
@@ -214,11 +200,30 @@
             @include pagebait-wide
 
 
+
+
+.stello-displayer, .stello-displayer-styles
+    // Styles that can be reused in any context
+    @include stello_vars
+
+    // INHERITED
+
+    line-height: 1.65
+    overflow-wrap: break-word  // Prevent layout breaks due to long words (like URLs)
+    font-family: var(--stello-font)
+    font-size: 18px
+    @media (min-width: $stello_full_plus_sidebar)
+        font-size: 20px
+
+
     // REGULAR ELEMENTS
 
     p, blockquote, h1, h2, ul, ol
         margin-top: 0  // Override browser default
         margin-bottom: 0.8em
+
+    h1, h2
+        font-family: var(--stello-font-headings)
 
     h1:not(:first-child), h2:not(:first-child)
         margin-top: 1.2em  // Headings in middle of content should have extra spacing above
