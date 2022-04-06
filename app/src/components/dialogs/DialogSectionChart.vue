@@ -33,7 +33,7 @@ v-card
             v-radio(label="Breakdown" value='doughnut' color='accent')
 
         //- Disable animation while editing so chart doesn't constantly jump around
-        shared-chart(:type='content.chart' :data='content.data' :threshold='content.threshold'
+        shared-chart.chart(:type='content.chart' :data='content.data' :threshold='content.threshold'
             :title='content.title' :caption='content.caption' :dark='$store.state.dark'
             :animate='false')
 
@@ -169,6 +169,9 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+@import 'src/styles/utils'
+
+
 .item ::v-deep .v-text-field__details
     display: none
 
@@ -180,5 +183,9 @@ export default class extends Vue {
     margin: 4px 8px
     min-width: 100px
     min-height: 36px
+
+.chart
+    @include themed(background-color, #eee, #111)  // Should be same as displayer content bg
+    padding: 18px 0  // Since bg different from dialog, don't let title/caption touch edge
 
 </style>
