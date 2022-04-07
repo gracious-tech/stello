@@ -446,7 +446,10 @@ export default defineComponent({
 
         click(){
             // Emit event when chart clicked
-            this.$emit('click')
+            // NOTE Only if hover supported as otherwise need to click chart to show tooltips
+            if (self.matchMedia('(any-hover: hover)').matches){
+                this.$emit('click')
+            }
         },
     },
 })
