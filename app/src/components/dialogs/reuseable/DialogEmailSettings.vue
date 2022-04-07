@@ -115,8 +115,9 @@ const i18n = {
         hint: "This will usually be either 465 or 587",
     },
     smtp_starttls: {
-        label: "Use STARTTLS",
-        hint: "Usually required if using port 587 (full TLS otherwise)",
+        label: "STARTTLS",
+        label_false: "TLS",
+        hint: "STARTTLS is usually required when using port 587",
     },
 }
 
