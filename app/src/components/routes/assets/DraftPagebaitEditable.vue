@@ -11,10 +11,8 @@ div.pagebait-editable
                 maxlength='150' rows='1' :placeholder='button ? "Button..." : "Headline..."')
             textarea.desc(v-if='!button' v-model='desc' @keydown.enter.prevent
                 @input='textarea_input' maxlength='400' rows='1' placeholder="Description...")
-    div(class='d-flex justify-center align-center ui')
-        span Article style
-        v-switch(v-model='button' class='ml-4 mr-3')
-        span Button style
+    app-switch(v-model='button' class='justify-center' label_false="Article style"
+        label="Button style")
 
 </template>
 
@@ -177,12 +175,6 @@ export default class extends Vue {
 
     textarea
         resize: none
-
-
-::v-deep .v-input.v-input--switch .v-input--selection-controls__input div:not([aria-disabled])
-    // Make switch look active whether true or false
-    // NOTE Overly specific to override existing style
-    color: var(--primary) !important
 
 
 </style>
