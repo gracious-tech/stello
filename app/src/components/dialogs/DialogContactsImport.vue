@@ -53,13 +53,19 @@ v-card
 
         div(v-else-if='source === "email"')
             img(src='@/assets/guides/gmail_save_email.png')
-            p(class='mt-4 text-body-1') If you have been sending newsletters as regular emails with a long list of addresses in the TO/CC/BCC fields, Stello can automatically import those contacts for you. You simply need to save a copy of the last email you sent and load it into Stello.
+            p(class='mt-4 text-body-1')
+                | If you have been sending newsletters as regular emails with a long list of
+                |  addresses in the TO/CC/BCC fields, Stello can automatically import those contacts
+                |  for you. You simply need to save a copy of the last email you sent and load it
+                |  into Stello.
             p(class='text-center')
                 app-file(@input='from_file' :accept='file_accept') Load email file
 
 
         div(v-else-if='source === "other"')
-            p(class='text-body-1') Open your contacts list and export them as a CSV or vCard file, then load it into Stello.
+            p(class='text-body-1')
+                | Open your contacts list and export them as a CSV or vCard file,
+                |  then load it into Stello.
             p(class='text-center')
                 app-file(@input='from_file' :accept='file_accept') Load file
             p.supported(class='text-center')
@@ -105,25 +111,12 @@ v-card
 
 import papaparse from 'papaparse'
 import PostalMime from 'postal-mime'
-import * as zip from '@zip.js/zip.js'
-import zip_worker from '@zip.js/zip.js/dist/z-worker?url'  // Worker must be separate local script
 import {Component, Vue, Watch} from 'vue-property-decorator'
 
+import {zip} from '@/services/misc/zip'
 import {drop} from '@/services/utils/exceptions'
 import {oauth_pretask_new_usage} from '@/services/tasks/oauth'
 import {extract_contacts_from_vcard} from '@/services/misc/vcard'
-
-
-// Configure zip module to use static local worker scripts rather than blobs to avoid CSP issues
-// NOTE Must pass absolute URL otherwise zip.js will try resolve relative to own script and mess up
-// WARN URL must work in both dev and prod (have very different paths!)
-const zip_worker_path = new URL(zip_worker, self.location.href).toString()
-zip.configure({
-    workerScripts: {
-        deflate: [zip_worker_path],
-        inflate: [zip_worker_path],
-    },
-})
 
 
 @Component({})
@@ -217,8 +210,8 @@ export default class extends Vue {
             if (!zip_entries.length){
                 return
             }
-            extension = get_ext(zip_entries[0].filename)
-            text = await zip_entries[0].getData(new zip.TextWriter()) as string
+            extension = get_ext(zip_entries[0]!.filename)
+            text = await zip_entries[0]!.getData!(new zip.TextWriter()) as string
         } else {
             text = await file.text()
         }
@@ -302,7 +295,7 @@ export default class extends Vue {
         }))
     }
 
-    accept_contacts(contacts:{name?:string, email?:string}[]):void{
+    accept_contacts(contacts:{name:string|null, email:string|null}[]):void{
         // Take contacts from parsed input, normalise values, and accept only those with some value
         this.contacts = contacts.map(contact => {
             const name = (contact.name || '').trim()
