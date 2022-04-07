@@ -7,4 +7,4 @@ cd "$(dirname "$(dirname "$0")")"
 # NOTE Uses a lot of memory so need to increase node's default
 # NOTE Avoid linting shared dir twice (lint via displayer since typings work better with Vue 3)
 # NOTE ironically the TS plugin has trouble parsing .eslintrc.js!
-NODE_OPTIONS="--max-old-space-size=4096" node_modules/.bin/eslint --ext .js,.ts,.vue --ignore-path=.gitignore --ignore-pattern="app/src/shared/**/*" --ignore-pattern=".eslintrc.js" "$@" .
+NODE_OPTIONS="--max-old-space-size=4096" node_modules/.bin/eslint --ext .js,.ts,.vue --ignore-path=.gitignore --ignore-pattern="app/src/shared/**/*" --ignore-pattern=".eslintrc.js" "${@:-.}"
