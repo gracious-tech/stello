@@ -226,9 +226,10 @@ html
     background-color: transparent !important
 
 
-.v-application--wrap .v-list, .v-virtual-scroll
+.v-application--wrap .v-list, .v-dialog__content .v-list, .v-virtual-scroll
     // Default to transparent bg for lists (as usually the main item on page)
     // NOTE .v-application--wrap avoids disabling bg for menus (which are outside of app wrap)
+    // WARN dialogs are also outside app wrap, so must be specified separately
     background-color: transparent
 
     .v-list-item__action
