@@ -48,7 +48,8 @@ v-stepper(:value='setup_step' @change='change_step')
             img.decor(src='@/assets/decor/setup_email.png')
             h3(class='text-h6 my-6') Which email address do you want to send from?
             p(class='text--secondary body-2 mb-12') Stello will use it to send messages on your
-                |  behalf, and notify you of any replies.
+                |  behalf, and notify you of any replies.<br>You can use the same email address for
+                |  multiple accounts and change it at any time.
             div.email_done(v-if='profile.smtp_ready')
                 div(class='row align-center justify-center mb-1 text-h5')
                     strong(@click='show_email_dialog("init")' class='clickable') {{ profile.email }}
