@@ -3,7 +3,8 @@
 <template lang='pug'>
 
 div(:class='{both: !!label_false}' class='d-flex align-center')
-    span.label_false(v-if='label_false' @click='toggle' class='v-label mr-2') {{ label_false }}
+    span.label_false(v-if='label_false' @click='toggle' class='v-label mr-2'
+        :class='$store.state.dark ? "theme--dark" : "theme--light"') {{ label_false }}
     v-switch(
         v-bind='$attrs'
         v-model='wrapped_value'
