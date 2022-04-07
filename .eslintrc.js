@@ -27,6 +27,7 @@ module.exports = {
         'plugin:import/typescript',
         'plugin:vue/recommended',
         'plugin:vue/vue3-recommended',
+        'plugin:vue-pug-sfc/recommended',
     ],
     rules: {
 
