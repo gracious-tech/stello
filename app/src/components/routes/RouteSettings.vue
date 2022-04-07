@@ -12,17 +12,16 @@ div
                 app-svg(name='icon_info' class='mr-3')
                 | Most settings are in sending accounts
 
-        h1(class='text-h6') Preferences
-        v-switch(v-model='dark' label="Dark theme" color='accent' persistent-hint
-            hint="Use dark colors for user interface")
-
-        hr(class='mt-16')
-
         RouteSettingsProfiles
 
         hr(class='mt-16')
 
         RouteSettingsContacts
+
+        hr(class='mt-16')
+
+        h1(class='text-h6') Preferences
+        app-switch(v-model='dark' label="Dark theme" hint="Use dark colors for user interface")
 
         hr(class='mt-16')
 
