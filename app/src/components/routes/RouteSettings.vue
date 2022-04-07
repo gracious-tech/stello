@@ -7,11 +7,6 @@ div
 
     app-content(class='pa-6')
 
-        div.note
-            div(class='text-body-2 app-bg-primary-relative')
-                app-svg(name='icon_info' class='mr-3')
-                | Most settings are in sending accounts
-
         RouteSettingsProfiles
 
         hr(class='mt-16')
@@ -29,6 +24,15 @@ div
         p(class='my-4')
             app-btn(to='storage/' color='' small) Storage manager
 
+        hr(class='mt-16')
+
+        v-alert(v-if='show_help' color='warning' outlined class='text-center')
+            | Find most settings within your sending account above
+            br
+            small (such as notification preferences, message appearance, and security settings)
+        div(v-else class='text-center')
+            app-btn(@click='show_help = true' outlined) More settings
+
 </template>
 
 
@@ -45,6 +49,8 @@ import RouteSettingsContacts from './assets/RouteSettingsContacts.vue'
 })
 export default class extends Vue {
 
+    show_help = false
+
     get dark(){
         return this.$store.state.dark
     }
@@ -59,17 +65,6 @@ export default class extends Vue {
 
 
 <style lang='sass' scoped>
-
-
-.note
-    margin-bottom: 36px
-    text-align: center
-
-    > div
-        padding: 6px 12px
-        border-radius: 24px
-        display: inline-flex
-        align-items: center
 
 
 </style>
