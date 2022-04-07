@@ -2,8 +2,8 @@
 
 <template lang='pug'>
 
-div(:class='{both: !!label_false}')
-    div(class='d-flex align-center mt-5')
+div(:class='{both: !!label_false}' class='d-flex flex-column mb-6')
+    div(class='d-inline-flex align-center')
         span(v-if='label_false' @click='toggle' class='v-label mr-2'
             :class='$store.state.dark ? "theme--dark" : "theme--light"') {{ label_false }}
         v-switch(v-bind='$attrs' v-model='wrapped_value' :color='$attrs["color"] || "accent"'
@@ -11,7 +11,7 @@ div(:class='{both: !!label_false}')
         span(@click='toggle' class='v-label ml-2'
             :class='$store.state.dark ? "theme--dark" : "theme--light"') {{ label }}
     //- Show own hint so can span whole length across custom labels
-    div.hint(class='v-messages mb-5') {{ hint }}
+    div.hint(class='d-inline-flex v-messages') {{ hint }}
 
 </template>
 
