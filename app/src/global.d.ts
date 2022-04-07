@@ -36,6 +36,19 @@ declare module '*?raw-svg' {
 // Third-party modules that are missing types
 
 
+declare module 'postal-mime' {
+
+    interface Contact {
+        name:string
+        address:string
+    }
+
+    export default class PostalMime {
+        parse(text:string):Promise<{to?:Contact[], cc?:Contact[], bcc:Contact[]}>
+    }
+}
+
+
 declare module 'dnm-croppr' {
     // WARN May be outdated and different to fork of croppr
 
