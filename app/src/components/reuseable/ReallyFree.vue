@@ -2,7 +2,7 @@
 <template lang='pug'>
 
 a(@click='click' class='noselect')
-    template(v-if='clicks === 0') Are you #[em really] “free”?
+    template(v-if='clicks === 0') Are you <em>really</em> “free”?
     template(v-else-if='clicks === 1') Are you going to show me ads?
     template(v-else-if='clicks === 2') Are you tracking me?
     template(v-else-if='clicks === 3') Are you tracking my readers?
