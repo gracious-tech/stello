@@ -212,7 +212,7 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
         const msg_section_ids = cycle(msg.draft.sections.flat() as MinOne<string>)
         const msg_subsection_ids = cycle([null, section_image.content.images[0]!.id, null, null])
         for (const msg_copy of await db.copies.list_for_msg(msg.id)){
-            if (Math.random() < 0.2){
+            if (Math.random() < 0.1){
                 await db.reply_create(random_reply(), random_date(), msg_copy.resp_token,
                     null, null, '', '')
             }
