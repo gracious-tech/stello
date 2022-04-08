@@ -8,12 +8,12 @@ teleport(to='.stello-displayer' :disabled='!fullscreen')
             div(v-if='content.type === "text"' v-html='content.html')
             SectionSlideshow(v-if='content.type === "images"' :content='content'
                 :first_hero='first_hero' @displayed='on_displayed_change'
-                @fullscreen='fullscreen = !fullscreen')
+                @fullscreen='toggle_fullscreen')
             SharedVideo(v-if='content.type === "video"' :format='content.format' :id='content.id'
                 :caption='content.caption' :start='content.start' :end='content.end')
             SharedChart(v-if='content.type === "chart"' :type='content.chart' :data='content.data'
                 :threshold='content.threshold' :title='content.title' :caption='content.caption'
-                :dark='dark' @click='fullscreen = !fullscreen')
+                :dark='dark' @click='toggle_fullscreen')
             SectionFiles(v-if='content.type === "files"' :id='section.id' :content='content')
             SectionPagebait(v-if='content.type === "page"' :page='section')
         SectionRespond(:section='section' :subsection='subsection')
@@ -67,6 +67,15 @@ export default defineComponent({
         const fullscreen = ref(false)
         provide('fullscreen', fullscreen)
 
+        // Method for toggling fullscreen value
+        const multi_col_limit = 700 + 48*2  // WARN Keep in sync with displayer styles
+        const toggle_fullscreen = () => {
+            // WARN Viewport width can change so always recheck
+            const is_single_col = self.document.documentElement.clientWidth < multi_col_limit
+            // Only allow disabling if image already taking up whole viewport width (single col)
+            fullscreen.value = is_single_col ? false : !fullscreen.value
+        }
+
         // Disabling of page scroll during fullscreen
         const set_page_scroll = (value:boolean) => {
             // NOTE Applying on <html> doesn't work for Safari
@@ -98,6 +107,7 @@ export default defineComponent({
             subsection,
             on_displayed_change,
             fullscreen,
+            toggle_fullscreen,
             dark: computed(() => store.state.dict.dark),
         }
     },
@@ -149,6 +159,14 @@ export default defineComponent({
             .buttons
                 cursor: zoom-out  // Clicking middle now does reverse of zoom-in
 
+            // Give headings/caption margin so don't touch viewport edge
+            .cap
+                margin-left: 24px
+                margin-right: 24px
+            h2
+                margin-left: 48px  // Greater to not overlap close button
+                margin-right: 48px
+
     .respondbar
 
         :deep(.position)
@@ -160,8 +178,8 @@ export default defineComponent({
     .close
         // Style the close button so that it floats at top right
         position: fixed
-        top: 16px
-        right: 16px
+        top: 24px
+        right: 24px
         width: 36px
         height: 36px
         opacity: 0.5
