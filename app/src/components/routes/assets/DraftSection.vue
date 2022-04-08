@@ -25,8 +25,7 @@ section(@click.self='focus_editor' :class='classes')
             :threshold='content.threshold' :title='content.title' :caption='content.caption'
             :dark='$store.state.dark_message' @click='modify')
 
-        div(v-if='content.type === "files"' class='text-center')
-            button(@click='modify' class='btn-text s-primary') {{ content.label || "Download" }}
+        draft-section-files(v-if='content.type === "files"' :content='content' @click='modify')
 
         shared-pagebait(v-if='content.type === "page"' :button='content.button'
             :headline='page_headline' :desc='content.desc' :image='content.image'
@@ -42,6 +41,7 @@ section(@click.self='focus_editor' :class='classes')
 import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import DraftAddSection from './DraftAddSection.vue'
+import DraftSectionFiles from './DraftSectionFiles.vue'
 import DraftSectionRespond from './DraftSectionRespond.vue'
 import SharedVideo from '@/shared/SharedVideo.vue'
 import SharedChart from '@/shared/SharedChart.vue'
@@ -59,7 +59,7 @@ import {blob_image_size} from '@/services/utils/image'
 
 @Component({
     components: {DraftAddSection, DraftSectionRespond, SharedSlideshow, SharedVideo, SharedChart,
-        SharedPagebait, SharedHero},
+        DraftSectionFiles, SharedPagebait, SharedHero},
     inject: ['theme_style_props'],
 })
 export default class extends Vue {

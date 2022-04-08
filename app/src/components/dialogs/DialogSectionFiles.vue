@@ -39,7 +39,10 @@ v-card
 
             div(class='stello-displayer-styles text-center my-6' :style='theme_style_props'
                     :class='style')
-                input(v-model='label' class='btn-text s-primary')
+                div(class='btn-text s-primary')
+                    div.contents
+                        shared-files-icon(:download='will_download')
+                        input(v-model='label')
 
             app-switch(v-if='section.files_can_open' v-model='download' class='align-center'
                 label="Download" label_false="Open in tab")
@@ -55,6 +58,7 @@ v-card
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
+import SharedFilesIcon from '@/shared/SharedFilesIcon.vue'
 import {Section} from '@/services/database/sections'
 import {ContentFiles} from '@/services/database/types'
 import {partition} from '@/services/utils/strings'
@@ -66,7 +70,9 @@ function mb(bytes:number){
 }
 
 
-@Component({})
+@Component({
+    components: {SharedFilesIcon},
+})
 export default class extends Vue {
 
     @Prop({type: Section, required: true}) declare readonly section:Section<ContentFiles>
@@ -114,6 +120,10 @@ export default class extends Vue {
     set download(value){
         this.content.download = value
         this.save()
+    }
+
+    get will_download(){
+        return this.download || !this.section.files_can_open
     }
 
     get files(){
@@ -196,8 +206,7 @@ export default class extends Vue {
 .name ::v-deep .v-text-field__details
     display: none
 
-.btn-text
-    cursor: text !important
+.btn-text input
     text-align: center
 
 </style>
