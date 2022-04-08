@@ -114,6 +114,30 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
     })
     await db.sections.set(section_vimeo)
 
+    // Create a chart section
+    const section_chart = await db.sections.create_object({
+        type: 'chart',
+        chart: 'bar',
+        title: "Example Chart",
+        caption: "This is an example of a chart!",
+        threshold: '$10,000',
+        data: [
+            {label: "Fuel", number: '$8,000', hue: 0},
+            {label: "Food", number: '$5,000', hue: 180},
+            {label: "Rent", number: '$11,000', hue: 90},
+        ],
+    })
+    await db.sections.set(section_chart)
+
+    // Create a files section
+    const section_files = await db.sections.create_object({
+        type: 'files',
+        label: "Download example image",
+        download: true,
+        files: [{data: image_blob, name: "Example image", ext: '.jpg'}],
+    })
+    await db.sections.set(section_files)
+
     // Create a page section
     const section_page = await db.sections.create_object({
         type: 'page',
@@ -132,6 +156,7 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
     draft.sections = [
         [section_text.id, section_image.id],
         [section_youtube.id, section_vimeo.id],
+        [section_chart.id, section_files.id],
         [section_page.id],
     ]
     draft.recipients.include_contacts = contacts.slice(0, 10 * multiplier).map(c => c.id)
