@@ -209,7 +209,9 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
 
     // Create responses
     for (const msg of messages){
-        const msg_section_ids = cycle(msg.draft.sections.flat() as MinOne<string>)
+        // NOTE Responses disabled for pages
+        const msg_section_ids = cycle(msg.draft.sections.flat()
+            .filter(id => id !== section_page.id) as MinOne<string>)
         const msg_subsection_ids = cycle([null, section_image.content.images[0]!.id, null, null])
         for (const msg_copy of await db.copies.list_for_msg(msg.id)){
             if (Math.random() < 0.1){
