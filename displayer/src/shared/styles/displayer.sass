@@ -101,6 +101,20 @@
         &.s-primary:not(:disabled)
             background-color: var(--stello-hue-heavy)
 
+        .contents
+            // .contents div only needed for displayer or when displaying a prefixed icon
+            display: flex
+            align-items: center
+
+            .icon
+                display: inline-flex
+                width: 20px
+                height: 20px
+                margin-right: 8px
+
+                path
+                    fill: currentColor
+
     .btn-icon  // Avoid `button` so don't mess up editor Vuetify ones etc
         padding: 12px
         background-color: transparent

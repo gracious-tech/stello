@@ -9,10 +9,13 @@ div.addbar(:class='{visible}')
         app-btn(@click='add("images")' icon='image' data-tip="Add images")
         app-btn(@click='add("video")' icon='video' data-tip="Add video")
         app-btn(@click='add("chart")' icon='insert_chart' data-tip="Add chart")
+        app-btn(@click='add("files")' icon='attach_file' data-tip="Add files")
+        div.sep &nbsp;
         app-btn(@click='add("page")' icon='library_books' data-tip="Add page")
-        //- app-btn(icon='attach_file')
-        app-btn(v-if='can_paste' @click='add("paste")' icon='content_paste' color='primary'
-            data-tip="Paste section")
+        template(v-if='can_paste')
+            div.sep &nbsp;
+            app-btn(@click='add("paste")' icon='content_paste' color='primary'
+                data-tip="Paste section")
 
 </template>
 
@@ -57,6 +60,11 @@ export default class extends Vue {
 
     .buttons
         display: none
+
+        .sep
+            border-left: 1px solid hsla(0, 0%, 50%, 0.5)
+            display: inline-block
+            width: 1px
 
     &.visible, &:hover
         .plus

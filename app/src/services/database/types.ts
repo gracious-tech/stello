@@ -184,12 +184,12 @@ export interface RecordSection<TContent extends RecordSectionContent=RecordSecti
 }
 
 export type RecordSectionContent =
-    ContentText|ContentImages|ContentVideo|ContentChart|ContentPage  // ContentFile
+    ContentText|ContentImages|ContentVideo|ContentChart|ContentFiles|ContentPage
 
 export interface ContentText {
     type:'text'
     html:string
-    standout:null|'subtle'|'distinct'|'notice'|'important'
+    standout:null|'distinct'|'notice'|'important'
 }
 
 export interface ContentImages {
@@ -223,10 +223,10 @@ export interface ContentVideo {
     end:number|null
 }
 
-export interface ContentFile {
-    type:'file'
-    data:Blob
-    filename:string
+export interface ContentFiles {
+    type:'files'
+    files:{data:Blob, name:string, ext:string}[]
+    label:string
     download:boolean  // Whether to force download or allow preview in browser (if supported)
 }
 

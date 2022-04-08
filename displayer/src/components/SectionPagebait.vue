@@ -29,19 +29,20 @@ export default defineComponent({
 
     setup(props){
 
-        // Unpack page prop for sake of type casting (can't do above due to MessageSection.vue use)
-        const page = props.page as PublishedSection<PublishedContentPage>
+        // Wrap page prop for sake of type casting (can't do above due to MessageSection.vue use)
+        // WARN Can't just assign to props.page as would lose reactivity
+        const page = computed(() => props.page as PublishedSection<PublishedContentPage>)
 
         // Opening the page
         const open_page = () => {
-            store.change_page(page)
+            store.change_page(page.value)
         }
 
         // Get image (if exists)
         const image = ref<Blob|null>(null)
-        if (page.content.image){
+        if (page.value.content.image){
             const asset_type = store.state.webp_supported ? 'webp' : 'jpeg'
-            const asset_id = page.content.image + (asset_type === 'jpeg' ? 'j' : '')
+            const asset_id = page.value.content.image + (asset_type === 'jpeg' ? 'j' : '')
             void store.get_asset(asset_id).then(decrypted => {
                 if (decrypted){
                     image.value = buffer_to_blob(decrypted, `image/${asset_type}`)
@@ -50,9 +51,9 @@ export default defineComponent({
         }
 
         // Expose template's requirements
-        const button = computed(() => page.content.button)
-        const headline = computed(() => page.content.headline)
-        const desc = computed(() => page.content.desc)
+        const button = computed(() => page.value.content.button)
+        const headline = computed(() => page.value.content.headline)
+        const desc = computed(() => page.value.content.desc)
         return {button, headline, desc, image, open_page}
     },
 })

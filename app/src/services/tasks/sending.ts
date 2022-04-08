@@ -16,6 +16,7 @@ import {HostUser} from '../hosts/types'
 import type {PublishedCopyBase, PublishedAsset, PublishedCopy, PublishedSection, PublishedImage,
     PublishedContentText} from '@/shared/shared_types'
 import {render_invite_html} from '../misc/invites'
+import {zip} from '@/services/misc/zip'
 import {gen_variable_items, update_template_values, TemplateVariables, msg_max_reads_value}
     from '../misc/templates'
 import {EmailTask, new_email_task} from '../email/email'
@@ -515,6 +516,51 @@ async function process_section(section_id:string, pub_assets:PublishedAsset[],
                 ratio_width: base_size.width,  // May be smaller if resized (just for ratio)
                 ratio_height: base_size.height,  // May be smaller if resized (just for ratio)
                 hero: section.is_hero,  // Providing 'is_hero' rather than just hero option value
+            },
+        }
+
+    // Handle files
+    } else if (content.type === 'files'){
+
+        // Exclude if no files
+        if (!content.files.length){
+            return null
+        }
+
+        // Get the data and file properties
+        let data:ArrayBuffer
+        let filename:string
+        let mimetype:string
+        if (content.files.length === 1){
+            data = await content.files[0]!.data.arrayBuffer()
+            filename = content.files[0]!.name + content.files[0]!.ext
+            mimetype = content.files[0]!.data.type
+        } else {
+            // Multiple files so need to combine into a zip
+            const ziper = new zip.ZipWriter(new zip.Uint8ArrayWriter())
+            for (const file of content.files){
+                await ziper.add(file.name + file.ext, new zip.BlobReader(file.data))
+            }
+            data = (await ziper.close() as Uint8Array).buffer
+            filename = content.label + '.zip'
+            mimetype = 'application/zip'
+        }
+
+        // Add file data to published assets
+        pub_assets.push({
+            id: section.id,
+            data,
+        })
+
+        return {
+            id: section.id,
+            respondable: section.respondable_final,
+            content: {
+                type: 'files',
+                filename,
+                mimetype,
+                label: content.label,
+                download: content.download || !section.files_can_open,
             },
         }
     }

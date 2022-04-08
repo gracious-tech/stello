@@ -24,7 +24,7 @@ export interface PublishedSection<TContent extends PublishedSectionContent=Publi
 }
 
 export type PublishedSectionContent = PublishedContentText|PublishedContentImages|
-    PublishedContentVideo|PublishedContentChart|PublishedContentPage
+    PublishedContentVideo|PublishedContentChart|PublishedContentFiles|PublishedContentPage
 
 export interface PublishedContentText {
     type:'text'
@@ -56,6 +56,14 @@ export interface PublishedContentChart {
     threshold:string
     title:string
     caption:string
+}
+
+export interface PublishedContentFiles {
+    type:'files'
+    filename:string
+    mimetype:string
+    label:string
+    download:boolean
 }
 
 export interface PublishedContentPage {

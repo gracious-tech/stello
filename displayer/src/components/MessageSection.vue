@@ -14,6 +14,7 @@ teleport(to='.stello-displayer' :disabled='!fullscreen')
             SharedChart(v-if='content.type === "chart"' :type='content.chart' :data='content.data'
                 :threshold='content.threshold' :title='content.title' :caption='content.caption'
                 :dark='dark' @click='fullscreen = !fullscreen')
+            SectionFiles(v-if='content.type === "files"' :id='section.id' :content='content')
             SectionPagebait(v-if='content.type === "page"' :page='section')
         SectionRespond(:section='section' :subsection='subsection')
         svg.close(v-if='fullscreen' @click='fullscreen = false' viewBox='0 0 24 24')
@@ -28,6 +29,7 @@ teleport(to='.stello-displayer' :disabled='!fullscreen')
 import {computed, PropType, ref, watch, onUnmounted, provide, defineComponent} from 'vue'
 
 import SectionSlideshow from './SectionSlideshow.vue'
+import SectionFiles from './SectionFiles.vue'
 import SectionPagebait from './SectionPagebait.vue'
 import SharedVideo from '../shared/SharedVideo.vue'
 import SharedChart from '../shared/SharedChart.vue'
@@ -39,7 +41,8 @@ import {store} from '@/services/store'
 
 export default defineComponent({
 
-    components: {SectionSlideshow, SharedVideo, SharedChart, SectionRespond, SectionPagebait},
+    components: {SectionSlideshow, SharedVideo, SharedChart, SectionFiles, SectionRespond,
+        SectionPagebait},
 
     props: {
         section: {

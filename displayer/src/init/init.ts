@@ -11,6 +11,7 @@ import {store} from '../services/store'
 import {database} from '../services/database'
 import {error_to_string} from '../services/utils/exceptions'
 import App from '../components/App.vue'
+import AppBtn from '../components/AppBtn.vue'
 import AppProgress from '../components/AppProgress.vue'
 
 
@@ -58,6 +59,7 @@ self.app_vue.config.warnHandler = (msg, vm, trace) => {
 
 
 // Register global components
+self.app_vue.component('AppBtn', AppBtn)
 self.app_vue.component('AppProgress', AppProgress)
 
 

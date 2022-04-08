@@ -23,15 +23,15 @@ export class Section<TContent
             return this.respondable
         }
         if (this.content.type === 'text'){
-            const standout = this.content.standout
-            if (standout === 'subtle' || standout === 'important'){
-                return false  // Subtle and important unlikely to be appropriate for comments
+            if (this.content.standout === 'important'){
+                return false  // Important unlikely to be appropriate for comments
             }
             if (this.content.html.length < 250){  // NOTE Includes html markup
                 return false  // Short sections unlikely appropriate for comments
             }
-        }
-        if (this.is_hero){
+        } else if (this.content.type === 'files'){
+            return false  // Files open externally so not natural to go back and comment on
+        } else if (this.content.type === 'images' && this.is_hero){
             return false  // Hero images usually decorative or section dividers rather than content
         }
         return true
@@ -46,6 +46,17 @@ export class Section<TContent
         // Whether section is an image hero
         return this.content.type === 'images' && this.content.images.length === 1
             && this.content.hero
+    }
+
+    get files_can_open():boolean|null{
+        // Whether files type can be opened in a tab
+        // NOTE Currently only supporting "open" option for PDFs
+        //      Images/videos/etc can be embedded in message, and anything else likely unopenable
+        if (this.content.type !== 'files'){
+            return null
+        }
+        return this.content.files.length === 1 &&
+            this.content.files[0]!.data.type === 'application/pdf'
     }
 }
 
@@ -125,6 +136,13 @@ export class DatabaseSections {
                 threshold: '100%',
                 title: '',
                 caption: '',
+            }
+        } else if (type === 'files'){
+            content = {
+                type,
+                files: [],
+                label: '',
+                download: false,  // Only relevant for openable types like PDF
             }
         } else if (type === 'page'){
             content = {

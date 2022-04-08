@@ -25,6 +25,9 @@ section(@click.self='focus_editor' :class='classes')
             :threshold='content.threshold' :title='content.title' :caption='content.caption'
             :dark='$store.state.dark_message' @click='modify')
 
+        div(v-if='content.type === "files"' class='text-center')
+            button(@click='modify' class='btn-text s-primary') {{ content.label || "Download" }}
+
         shared-pagebait(v-if='content.type === "page"' :button='content.button'
             :headline='page_headline' :desc='content.desc' :image='content.image'
             @click.native='modify')
