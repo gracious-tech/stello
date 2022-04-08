@@ -150,4 +150,7 @@ export default class extends Vue {
 .empty
     text-align: center
 
+.app-switch
+    margin-bottom: 0
+
 </style>

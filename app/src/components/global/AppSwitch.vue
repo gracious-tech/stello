@@ -2,7 +2,7 @@
 
 <template lang='pug'>
 
-div(:class='{both: !!label_false}' class='d-flex flex-column mb-6')
+div.app-switch(:class='{both: !!label_false}' class='d-flex flex-column')
     div(class='d-inline-flex align-center')
         span(v-if='label_false' @click='toggle' class='v-label mr-2'
             :class='$store.state.dark ? "theme--dark" : "theme--light"') {{ label_false }}
@@ -11,7 +11,7 @@ div(:class='{both: !!label_false}' class='d-flex flex-column mb-6')
         span(@click='toggle' class='v-label ml-2'
             :class='$store.state.dark ? "theme--dark" : "theme--light"') {{ label }}
     //- Show own hint so can span whole length across custom labels
-    div.hint(class='d-inline-flex v-messages') {{ hint }}
+    div.hint(v-if='hint' class='d-inline-flex v-messages') {{ hint }}
 
 </template>
 
@@ -50,6 +50,9 @@ export default class extends Vue {
 
 
 <style lang='sass' scoped>
+
+.app-switch
+    margin-bottom: 24px
 
 .v-label
     // Clicking labels toggles switch
