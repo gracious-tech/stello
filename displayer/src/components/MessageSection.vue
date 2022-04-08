@@ -152,6 +152,7 @@ export default defineComponent({
 
         :deep(.root)
             height: 100%  // Prevent overflow of container
+            overflow-y: auto  // Allow scrolling if goes off page (important for caption etc)
 
             .slideshow
                 border-radius: 0  // Remove rounded corners since no x margin anymore
