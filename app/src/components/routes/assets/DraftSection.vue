@@ -25,7 +25,8 @@ section(@click.self='focus_editor' :class='classes')
             :threshold='content.threshold' :title='content.title' :caption='content.caption'
             :dark='$store.state.dark_message' @click='modify')
 
-        draft-section-files(v-if='content.type === "files"' :content='content' @click='modify')
+        draft-section-files(v-if='content.type === "files"' :label='content.label'
+            :download='section.files_will_download' @click='modify')
 
         shared-pagebait(v-if='content.type === "page"' :button='content.button'
             :headline='page_headline' :desc='content.desc' :image='content.image'

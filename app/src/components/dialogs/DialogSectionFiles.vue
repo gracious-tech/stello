@@ -41,7 +41,7 @@ v-card
                     :class='style')
                 div(class='btn-text s-primary')
                     div.contents
-                        shared-files-icon(:download='will_download')
+                        shared-files-icon(:download='section.files_will_download')
                         input(v-model='label')
 
             app-switch(v-if='section.files_can_open' v-model='download' class='align-center'
@@ -120,10 +120,6 @@ export default class extends Vue {
     set download(value){
         this.content.download = value
         this.save()
-    }
-
-    get will_download(){
-        return this.download || !this.section.files_can_open
     }
 
     get files(){

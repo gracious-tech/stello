@@ -58,6 +58,14 @@ export class Section<TContent
         return this.content.files.length === 1 &&
             this.content.files[0]!.data.type === 'application/pdf'
     }
+
+    get files_will_download():boolean|null{
+        // Whether will initiate download (rather than open) regardless if download 'false'
+        if (this.content.type !== 'files'){
+            return null
+        }
+        return this.content.download || !this.files_can_open
+    }
 }
 
 

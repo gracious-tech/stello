@@ -4,8 +4,8 @@
 div(class='text-center')
     button(@click='$emit("click")' class='btn-text s-primary')
         div.contents
-            shared-files-icon(:download='content.download')
-            | {{ content.label || "Download" }}
+            shared-files-icon(:download='download')
+            | {{ label || "Download" }}
 
 </template>
 
@@ -15,7 +15,6 @@ div(class='text-center')
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
 import SharedFilesIcon from '@/shared/SharedFilesIcon.vue'
-import {ContentFiles} from '@/services/database/types'
 
 
 @Component({
@@ -23,7 +22,8 @@ import {ContentFiles} from '@/services/database/types'
 })
 export default class extends Vue {
 
-    @Prop({type: Object, required: true}) declare readonly content:ContentFiles
+    @Prop({type: String, required: true}) declare readonly label:string
+    @Prop({type: Boolean, required: true}) declare readonly download:boolean
 
 }
 
