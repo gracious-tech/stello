@@ -10,10 +10,11 @@ v-card(class='my-8')
             app-list-item(@click='archive_all' :disabled='all_archived') Archive all
             app-list-item(@click='remove_all' class='error--text') Delete all
 
-    div.section_content(v-if='!sectionless'
+    div.section_content(v-if='!sectionless' class='stello-displayer-styles'
             :class='{img: section_image, expanded: section_expanded}')
-        img(v-if='section_image' :src='section_image')
-        div(v-else v-html='section_text' class='ma-4 text--secondary')
+        shared-chart(v-if='section_chart_props' v-bind='section_chart_props')
+        img(v-else-if='section_image' :src='section_image')
+        div(v-else v-html='section_html' class='ma-4 text--secondary')
 
     //- NOTE Not showing expand button if no section data, as will only show very short note
     div.expand(v-if='!sectionless && section' class='d-flex justify-end')
@@ -32,15 +33,17 @@ v-card(class='my-8')
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
+import SharedChart from '@/shared/SharedChart.vue'
 import RouteRepliesReplaction from '@/components/routes/assets/RouteRepliesReplaction.vue'
 import {Reply} from '@/services/database/replies'
 import {Reaction} from '@/services/database/reactions'
 import {Section} from '@/services/database/sections'
 import {request_json} from '@/services/utils/http'
+import {escape_for_html} from '@/services/utils/strings'
 
 
 @Component({
-    components: {RouteRepliesReplaction},
+    components: {RouteRepliesReplaction, SharedChart},
 })
 export default class extends Vue {
 
@@ -92,6 +95,21 @@ export default class extends Vue {
         return this.first.msg_title
     }
 
+    get section_chart_props():Record<string, unknown>|undefined{
+        // Props for chart component if section is a chart
+        if (this.section?.content.type !== 'chart'){
+            return undefined
+        }
+        return {
+            type: this.section.content.chart,
+            data: this.section.content.data,
+            threshold: this.section.content.threshold,
+            title: this.section.content.title,
+            caption: this.section.content.caption,
+            dark: this.$store.state.dark,
+        }
+    }
+
     get section_image():string|null{
         // Return url for an image that represents the section (if any)
         // TODO Show heros using shared-hero component so text also included?
@@ -112,13 +130,17 @@ export default class extends Vue {
         return null
     }
 
-    get section_text(){
+    get section_html(){
         // Text content for the section (as HTML)
         if (this.section?.content.type === 'text'){
             return this.section.content.html
+        } else if (this.section?.content.type === 'files'){
+            return `<div class='btn-text'>
+                ${escape_for_html(this.section.content.label || "Download")}
+            </div>`
         }
         return `<small><em>
-            Responses to an unknown section (original message has been deleted)
+            Responses to an unknown section (original message may have been deleted)
         </em></small>`
     }
 
@@ -201,7 +223,7 @@ export default class extends Vue {
 
     &:not(.expanded)
         // Clip content when not expanded
-        height: 160px
+        max-height: 160px
         overflow-y: hidden
 
 
