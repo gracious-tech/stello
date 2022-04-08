@@ -7,9 +7,6 @@ v-card
 
     v-card-text
 
-        div(class='text-center')
-            app-file(@input='add_files' multiple) Add files
-
         v-list
             v-list-item(v-for='file of files' dense)
                 v-list-item-content
@@ -18,6 +15,9 @@ v-card
                     div {{ file.megabytes }}
                 v-list-item-action
                     app-btn(@click='file.remove' icon='remove' color='error')
+
+        div(class='text-center mb-4')
+            app-file(@input='add_files' multiple) Add files
 
         p(v-if='files.length > 1' class='warning--text text-center')
             | Multiple files will be combined into a zip file
