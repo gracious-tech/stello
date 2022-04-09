@@ -294,8 +294,8 @@ export default class RouteDraft extends Vue {
     async load_unsubscribes(){
         // Load unsubscribes for profile (if known)
         this.unsubscribes = []  // Clear previous
-        if (this.draft!.profile){
-            this.unsubscribes = await self.app_db.unsubscribes.list_for_profile(this.draft!.profile)
+        if (this.draft?.profile){
+            this.unsubscribes = await self.app_db.unsubscribes.list_for_profile(this.draft.profile)
         }
     }
 
