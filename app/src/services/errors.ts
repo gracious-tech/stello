@@ -103,3 +103,24 @@ Vue.config.warnHandler = (msg, vm, trace) => {
     console.error(error)
     rollbar.critical(error)  // Vue won't actually throw in production; just shows fail bar for dev
 }
+
+
+// Database failure handling
+export function handle_db_error(error:unknown):void{
+    if (! (error instanceof Error) || error.name !== 'VersionError'){
+        throw error  // Unknown error so report
+    }
+    // Version error due to opening an old version of Stello after already using a more recent one
+    self.document.body.insertAdjacentHTML('beforeend', `
+        <div class="version-error">
+            <h1>Old version of Stello opened</h1>
+            <p>It looks like you have more than one version of Stello on your device.</p>
+            <ol>
+                <li>Delete this version and use the more recent one, or</li>
+                <li>Update Stello if you see the prompt to do so, or</li>
+                <li><a href="https://stello.news">Download</a> the latest version</li>
+            </ol>
+        </div>
+    `)
+    throw error
+}

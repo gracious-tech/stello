@@ -1,6 +1,7 @@
 
 // Init error reporting
-import '@/services/errors'
+// NOTE All imported just to make sure non-exports don't get tree-shaken
+import * as error_handling from '@/services/errors'
 
 // Third-party
 import Vue, {CreateElement} from 'vue'
@@ -240,4 +241,4 @@ void open_db().then(async connection => {
     if (self.app_store.state.usage_installed === null){
         self.app_store.commit('dict_set', ['usage_installed', new Date()])
     }
-})
+}).catch(error_handling.handle_db_error)
