@@ -181,7 +181,7 @@ function dev_throwing(){
 // IPC handlers
 
 
-ipcMain.handle('test_email_settings', async (event, settings, auth=true) => {
+ipcMain.handle('test_email_settings', async (event, settings:EmailSettings, auth=true) => {
     // Tests provided settings to see if they work and returns either null or error string
 
     // Delay during dev so can test UI realisticly
