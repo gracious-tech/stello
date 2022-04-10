@@ -210,6 +210,9 @@ ipcMain.handle('test_email_settings', async (event, settings:EmailSettings, auth
 ipcMain.handle('smtp_send', async (
     event, settings:EmailSettings, email:Email):Promise<EmailError|null> => {
     // Send email and return null for success, else error
+    // NOTE nodemailer auto includes standard headers (including Message-ID)
+    // NOTE Since no alternate plain text, get slight spam rating but too little to worry about
+    //      "0.1 BODY: Message only has text/html MIME parts"
 
     // Simulate network delay during development (between 0-2 secs)
     if (!app.isPackaged){
