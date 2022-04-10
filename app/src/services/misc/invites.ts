@@ -7,6 +7,8 @@ import {replace_without_overlap} from '@/services/utils/strings'
 import {buffer_to_url64} from '@/services/utils/coding'
 
 
+// WARN Don't use 'em' sizing as SpamAssassin thinks it's hiding words when less than 0 (e.g. 0.8em)
+// See https://github.com/apache/spamassassin/blob/d092a416336117b34ca49ef57be31b8c0b5b0422/rulesrc/sandbox/jhardin/20_misc_testing.cf#L2569
 export const INVITE_HTML_MAX_WIDTH = 600
 export const INVITE_IMG_HEIGHT = INVITE_HTML_MAX_WIDTH / 3
 export const INVITE_HTML_CONTAINER_STYLES =
@@ -36,10 +38,10 @@ export function render_invite_html(contents:string, url:string, image:string,
             <p>&nbsp;</p>
             <p style='text-align: center; color: #aaaaaa;'>
                 <a href='${html_escape(unsub_url)}' style='color: #aaaaaa;'>
-                    <small style='font-size: 0.8em;'>Unsubscribe</small></a>
+                    <small>Unsubscribe</small></a>
                 |
                 <a href='${html_escape(address_url)}' style='color: #aaaaaa;'>
-                    <small style='font-size: 0.8em;'>Change email address</small></a>
+                    <small>Change email address</small></a>
             </p>
         `
     }
