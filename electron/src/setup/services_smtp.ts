@@ -94,8 +94,15 @@ function normalize_nodemailer_error(error:unknown):EmailError{
     // Map nodemailer codes to app codes
     const error_obj = error as NodeMailerError
     let code:EmailError['code'] = 'unknown'
-    const is_tmp_error = typeof error_obj.responseCode === 'number'
-        && error_obj.responseCode >= 400 && error_obj.responseCode < 500
+
+    // Determine if a tmp error regardless of protocol stage (may succeed if retried in future)
+    // NOTE ProtonMail uses a permanent error code for tmp throttling :/
+    // e.g. EMESSAGE 554 5.0.0
+    //      "Error: transaction failed, blame it on the weather: Sending limit has been reached!
+    //      ProtonMail is not for bulk emailing or spamming. Please try again in a few hours."
+    const is_tmp_error = (typeof error_obj.responseCode === 'number'
+        && error_obj.responseCode >= 400 && error_obj.responseCode < 500)
+        || error_obj.message.toLowerCase().includes('sending limit')
 
     if (error_obj.code === 'EDNS'){
         // Either DNS server couldn't find name, or had trouble communicating with DNS server
