@@ -74,7 +74,7 @@ export class HostUserAwsBase extends StorageBaseAws {
             Key: `messages/${this.user}/${path}`,
             Body: data instanceof Blob ? data : new Uint8Array(data),
             ContentType: (data instanceof Blob ? data.type : null) || 'application/octet-stream',
-            CacheControl: 'no-store',
+            CacheControl: 'no-store',  // Never keep copy/cache of messages
             Tagging: tagging.join('&'),
         })
     }
@@ -120,6 +120,7 @@ export class HostUserAwsBase extends StorageBaseAws {
             Key: `config/${this.user}/config`,
             ContentType: 'application/octet-stream',
             Body: new Uint8Array(config),
+            CacheControl: 'no-store',  // Don't cache configs so changes have immediate effect
         })
     }
 
