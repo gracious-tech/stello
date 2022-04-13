@@ -36,7 +36,7 @@ div
 
         app-textarea(v-model='notes' :readonly='synced' @click='synced_change_notes' label="Notes")
 
-        app-switch(v-model='multiple' label="Messages to this contact will go to many people"
+        app-switch(v-model='multiple' label="This is a mailing list (multiple recipients)"
             hint="Hides unsubscribe links & always allows infinite message opens until expiry")
 
         app-select(v-if='!probably_new' v-model='unsubscribes_profiles' :items='profiles_ui'
