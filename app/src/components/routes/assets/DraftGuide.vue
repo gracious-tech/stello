@@ -25,7 +25,7 @@ div.root
 
         h2(class='text-h6') Sections
         p Stello organises messages into sections, which can be text #[app-svg(name='icon_subject')], images #[app-svg(name='icon_image')], video #[app-svg(name='icon_video')], chart #[app-svg(name='icon_insert_chart')], files #[app-svg(name='icon_attach_file')], or pages #[app-svg(name='icon_library_books')]. This gives several advantages, such as being able to rearrange sections, allow recipients to comment on individual sections, and giving your message a more logical flow. You can still just write one long section if you prefer.
-        p Add sections with the #[app-svg(name='icon_add')] menu and customise them with #[app-svg(name='icon_settings')].
+        p Add sections with the #[app-svg(name='icon_add')] menu and customise them with #[app-svg(name='icon_settings')]. Cut a section #[app-svg(name='icon_content_cut')] to remove it, or alternatively paste it #[app-svg(name='icon_content_paste')] in a different place or into a different draft entirely.
         video(src='@/assets/guides/editor_clips/sections.webm' autoplay loop)
 
         h2(class='text-h6') Responses
