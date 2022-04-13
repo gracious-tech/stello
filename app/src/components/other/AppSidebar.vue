@@ -27,7 +27,7 @@ nav.sidebar(class='app-bg-primary')
     v-list(dark)
         v-divider
         app-list-item(to='/settings/') Settings
-        app-list-item(href='https://gracious.tech/support/stello/') Help
+        app-list-item(href='https://stello.news/guide/') Guide
         app-list-item(to='/about/') About
 
 
