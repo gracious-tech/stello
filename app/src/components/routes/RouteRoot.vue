@@ -12,6 +12,11 @@ div
 
         v-card(class='pa-4')
             v-card-title(class='justify-center') New &amp; upcoming features
+            div(class='text-center')
+                p
+                    | Lots of new features have recently been added to Stello!
+                    | <br>Check them all out in the example message in the new Stello Guide.
+                app-btn(href='https://stello.news/guide/' raised small) Stello Guide
             v-list
                 v-subheader Now available
                 v-list-item(v-for='feature of added' :key='feature.title')
@@ -61,27 +66,19 @@ export default class extends Vue {
 
     added = [
         {
-            title: "Edit and redact images",
-            desc: "Do simple image editing within Stello and redact parts of images",
+            title: "File attachments",
+            desc: "Add encrypted files to your messages for readers to open/download",
         },
         {
-            title: "Quick reply to responses",
-            desc: "Send replies without leaving the list of responses",
-        },
-        {
-            title: `Customise message color and style`,
-            desc: "New options available in sending accounts",
-        },
-        {
-            title: "Add pages to messages",
-            desc: "Turn your message into a news site with articles and subpages",
-        },
-        {
-            title: "Create a banner image",
-            desc: "Single images can be turned into banners with text overlayed",
+            title: "Charts",
+            desc: "Add interactive charts to messages",
         },
     ]
     todo = [
+        {
+            title: "Auto-resume sending",
+            desc: "Automatically finish sending when interrupted by an account limit",
+        },
         {
             title: "Sync with another device",
             desc: "Access Stello from a phone or another computer",
@@ -89,10 +86,6 @@ export default class extends Vue {
         {
             title: "Encrypted videos",
             desc: "Add videos directly rather than using third-party sites like Youtube",
-        },
-        {
-            title: "File attachments",
-            desc: "Add encrypted files to your messages for readers to open/download",
         },
         {
             title: "Edit message after sending",
