@@ -4,7 +4,6 @@ import nodemailer from 'nodemailer'
 
 import {sleep} from '../utils/async'
 import {Email, EmailSettings, EmailError} from '../native_types'
-import {CustomError} from '../utils/exceptions'
 
 
 interface SmtpSettings {
@@ -72,9 +71,9 @@ function smtp_transport(settings:SmtpSettings){
 }
 
 
-interface NodeMailerError extends CustomError {
+interface NodeMailerError {
     // See https://github.com/nodemailer/nodemailer/blob/master/lib/smtp-connection/index.js
-    message:string
+    message?:string  // Unlike regular error objects this can actually be undefined at times!
     code?:string
     response?:string
     responseCode?:number
@@ -102,7 +101,7 @@ function normalize_nodemailer_error(error:unknown):EmailError{
     //      ProtonMail is not for bulk emailing or spamming. Please try again in a few hours."
     const is_tmp_error = (typeof error_obj.responseCode === 'number'
         && error_obj.responseCode >= 400 && error_obj.responseCode < 500)
-        || error_obj.message.toLowerCase().includes('sending limit')
+        || error_obj.message?.toLowerCase().includes('sending limit')
 
     if (error_obj.code === 'EDNS'){
         // Either DNS server couldn't find name, or had trouble communicating with DNS server
@@ -153,7 +152,7 @@ function normalize_nodemailer_error(error:unknown):EmailError{
     }
 
     // NOTE error_obj.message already includes error_obj.response (if it exists)
-    return {code, details: `${error_obj.code ?? ''}: ${error_obj.message}`}
+    return {code, details: `${error_obj.code ?? ''}: ${error_obj.message ?? ''}`}
 }
 
 
