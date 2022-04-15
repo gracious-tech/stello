@@ -30,6 +30,9 @@ export * as icon_subheading         from '@/assets/icons/subheading.svg?raw-svg'
 export * as icon_checkbox_null      from '@/assets/icons/checkbox_null.svg?raw-svg'
 export * as icon_auto_awesome       from '@/assets/icons/auto_awesome.svg?raw-svg'
 export * as icon_face_retouching_off from '@/assets/icons/face_retouching_off.svg?raw-svg'
+export * as icon_pending            from '@/assets/icons/pending.svg?raw-svg'
+export * as icon_schedule_send      from '@/assets/icons/schedule_send.svg?raw-svg'
+export * as icon_cancel_schedule_send from '@/assets/icons/cancel_schedule_send.svg?raw-svg'
 export * as icon_content_paste      from '@/assets/icons/content_paste.svg?raw-svg'  // New version
 export * as icon_short_text         from '@/assets/icons/short_text.svg?raw-svg'  // New fixed
 
