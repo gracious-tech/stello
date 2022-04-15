@@ -57,16 +57,12 @@ export default defineComponent({
             // Open/download file via detached <a>
             const blob = buffer_to_blob(decrypted, props.content.mimetype)
             const element = self.document.createElement('a')
-            element.href = URL.createObjectURL(blob)
+            element.href = URL.createObjectURL(blob)  // Not revoking as causes bugs and not needed
             element.target = '_blank'
             if (props.content.download){
                 element.download = props.content.filename
             }
             element.click()
-
-            // Dereference blob so will be garbage collected after download
-            // NOTE Also prevents downloading file after opening in a browser tab
-            URL.revokeObjectURL(element.href)
 
             downloading.value = false
         }
