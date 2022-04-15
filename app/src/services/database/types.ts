@@ -227,7 +227,6 @@ export interface ContentFiles {
     type:'files'
     files:{data:Blob, name:string, ext:string}[]
     label:string
-    download:boolean  // Whether to force download or allow preview in browser (if supported)
 }
 
 export interface ContentChart {

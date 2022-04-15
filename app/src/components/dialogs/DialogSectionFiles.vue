@@ -35,18 +35,12 @@ v-card
                     v-list-item-action
                         v-list-item-title {{ file.megabytes }}
 
-        template(v-if='files.length')
-
-            div(class='stello-displayer-styles text-center my-6' :style='theme_style_props'
-                    :class='style')
-                div(class='btn-text s-primary')
-                    div.contents
-                        shared-files-icon(:download='section.files_will_download')
-                        input(v-model='label')
-
-            app-switch(v-if='section.files_can_open' v-model='download' class='align-center'
-                label="Download" label_false="Open in tab")
-
+        div(v-if='files.length' class='stello-displayer-styles text-center my-6'
+                :style='theme_style_props' :class='style')
+            div(class='btn-text s-primary')
+                div.contents
+                    shared-files-icon(:download='section.files_download')
+                    input(v-model='label')
 
     v-card-actions
         app-btn(@click='dismiss') Done
@@ -114,14 +108,6 @@ export default class extends Vue {
         this.save()
     }
 
-    get download(){
-        return this.content.download
-    }
-    set download(value){
-        this.content.download = value
-        this.save()
-    }
-
     get files(){
         // Access to attached files and methods to manipulate them
         // eslint-disable-next-line @typescript-eslint/no-this-alias -- set can't be arrow fn
@@ -175,7 +161,7 @@ export default class extends Vue {
 
             // Use file name for label if not set yet
             if (!this.label){
-                const verb = this.section.files_can_open && !this.download ? "Open" : "Download"
+                const verb = this.section.files_download ? "Download" : "Open"
                 this.label = `${verb} ${name}`
             }
         }

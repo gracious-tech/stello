@@ -560,7 +560,7 @@ async function process_section(section_id:string, pub_assets:PublishedAsset[],
                 filename,
                 mimetype,
                 label: content.label,
-                download: section.files_will_download!,
+                download: section.files_download!,
             },
         }
     }

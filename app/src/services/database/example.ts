@@ -133,7 +133,6 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
     const section_files = await db.sections.create_object({
         type: 'files',
         label: "Download example image",
-        download: true,
         files: [{data: image_blob, name: "Example image", ext: '.jpg'}],
     })
     await db.sections.set(section_files)
