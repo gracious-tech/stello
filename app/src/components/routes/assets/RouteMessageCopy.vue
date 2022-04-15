@@ -3,10 +3,11 @@
 
 v-list-item
 
-    v-list-item-action
-        app-btn(v-if='copy.status === "manual"' @click='copy_invite_and_mark' :icon='status_icon'
-            :disabled='!profile' data-tip="Copy invite and mark as sent")
-        app-btn(v-else-if='copy.status === "error"' :to='to' :icon='status_icon' color='error'
+    //- NOTE data-tip doesn't work directly on <svg> so must be on container
+    v-list-item-action(:data-tip='status_tip')
+        app-btn(v-if='copy.status === "pending_copy"' @click='copy_invite_and_mark'
+            :icon='status_icon' :disabled='!profile' data-tip="Copy invite and mark as sent")
+        app-btn(v-else-if='copy.status === "send_error"' :to='to' :icon='status_icon' color='error'
             data-tip="Change email address")
         app-svg(v-else :name='`icon_${status_icon}`' :class='status_class' class='mx-3')
 
@@ -18,7 +19,8 @@ v-list-item
 
     v-list-item-action(class='ml-0')
         app-menu-more(v-if='profile')
-            app-list-item(@click='copy_invite' :disabled='copy.expired') Copy invite
+            app-list-item(@click='copy_invite' :disabled='copy.expired || !copy.uploaded')
+                | Copy invite
             app-list-item(@click='retract' :disabled='copy.expired' class='error--text') Retract
 
 </template>
@@ -48,26 +50,41 @@ export default class extends Vue {
 
     get status_icon(){
         // An icon to represent the sending status of the copy
+        if (this.copy.status === 'invited')
+            return 'check_circle'
         if (this.copy.status === 'expired')
             return 'delete'
-        if (this.copy.status === 'manual')
+        if (this.copy.status === 'send_error')
+            return 'cancel_schedule_send'
+        if (this.copy.status === 'pending_send')
+            return 'schedule_send'
+        if (this.copy.status === 'pending_copy')
             return 'mark_chat_read'
-        if (this.copy.status === 'error')
-            return 'error'
-        if (this.copy.status === 'success')
-            return 'check_circle'
-        return 'help'
+        return 'pending'
     }
 
     get status_class(){
         // Some statuses need special styling
-        if (this.copy.status === 'success')
+        if (this.copy.status === 'invited')
             return 'accent--text'
-        if (this.copy.status === 'error')
+        if (this.copy.status === 'send_error')
             return 'error--text'
-        if (this.copy.status === 'expired')
+        if (this.copy.status === 'pending_upload' || this.copy.status === 'expired')
             return 'text--secondary'
         return null
+    }
+
+    get status_tip(){
+        // Explain what the status means
+        if (this.copy.status === 'invited')
+            return "Message has been sent"
+        if (this.copy.status === 'expired')
+            return "Message has expired"
+        if (this.copy.status === 'pending_send')
+            return "Waiting to send"
+        if (this.copy.status === 'pending_upload')
+            return "Message not ready yet"
+        return ''
     }
 
     async copy_invite(){

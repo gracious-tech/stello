@@ -28,17 +28,17 @@ export class MessageCopy implements RecordMessageCopy {
         return this.contact_name.trim() || this.contact_address.trim() || "[Nameless]"
     }
 
-    get status():'pending'|'manual'|'error'|'success'|'expired'{
+    get status():'pending_upload'|'pending_send'|'pending_copy'|'send_error'|'invited'|'expired'{
         // Return a status code for the sending of the copy
         if (this.expired)
             return 'expired'
-        if (this.invited === false)
-            return 'error'
         if (this.invited === true)
-            return 'success'
-        if (this.uploaded && !this.contact_address)
-            return 'manual'
-        return 'pending'
+            return 'invited'
+        if (this.contact_address && this.invited === false)
+            return 'send_error'  // Only if address still present as might fail and then rm address
+        if (this.uploaded)
+            return this.contact_address ? 'pending_send' : 'pending_copy'
+        return 'pending_upload'
     }
 }
 
