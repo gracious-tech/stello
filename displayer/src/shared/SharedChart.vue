@@ -384,42 +384,17 @@ export default defineComponent({
     },
 
     mounted(){
-        // Start loading/registering chart module and request first draw
-        this.register_promise = this.register()
         void this.redraw()
     },
 
     methods: {
 
-        async register(){
-            // Load extensions for chart module
-            const chartjs = await chartjs_promise
-            chartjs.Chart.register(
-                chartjs.BarController,
-                chartjs.LineController,
-                chartjs.DoughnutController,
-                chartjs.CategoryScale,
-                chartjs.LinearScale,
-                chartjs.BarElement,
-                chartjs.PointElement,
-                chartjs.LineElement,
-                chartjs.ArcElement,
-                chartjs.Filler,
-                chartjs.Tooltip,
-                chartjs.plugin_datalabels,
-                chartjs.plugin_annotation,
-            )
-        },
-
         async redraw(){
             // Redraw chart (have to recreate whole thing to avoid bugs)
             // NOTE Can specify chart type in dataset but changing it dynamically is buggy
 
-            // Ensure have setup chart module already
-            await this.register_promise
-
-            // Access to chart modules (already ready since waited for register)
-            const chartjs = await chartjs_promise
+            // Get access to chart modules
+            const chartjs = await (await chartjs_promise).exports_promise
 
             // If chart already exists, destroy it
             if (this.$options['chart']){
