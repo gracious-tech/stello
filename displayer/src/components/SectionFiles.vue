@@ -4,14 +4,14 @@
 div.root
     AppBtn(@click='click' :progress='downloading' :error='error' class='s-primary')
         SharedFilesIcon(:download='content.download')
-        | {{ label || "Download" }}
+        | {{ label }}
 
 </template>
 
 
 <script lang='ts'>
 
-import {PropType, defineComponent, ref} from 'vue'
+import {PropType, defineComponent, ref, computed} from 'vue'
 
 import SharedFilesIcon from '@/shared/SharedFilesIcon.vue'
 import {store} from '../services/store'
@@ -39,40 +39,46 @@ export default defineComponent({
         // State
         const downloading = ref(false)
         const error = ref(false)
+        const url = ref<string>()
+
+        const label = computed(() => {
+            // Safari doesn't allow virtual <a> click unless url already ready (not async)
+            // So Safari users will have to click twice, one to download and one to save/open
+            // So indicate via the label when the file is ready to save/open
+            if (url.value){
+                return `Click to ${props.content.download ? "save" : "open"}`
+            }
+            return props.content.label || "Download"
+        })
 
         const click = async () => {
 
-            // Reset state
-            downloading.value = true
-            error.value = false
-
-            // Get the asset's data
-            const decrypted = await store.get_asset(props.id)
-            if (!decrypted){
-                error.value = true
+            // Get the asset's data if haven't yet
+            if (!url.value){
+                downloading.value = true
+                error.value = false
+                const decrypted = await store.get_asset(props.id)
+                if (!decrypted){
+                    error.value = true
+                } else {
+                    const blob = buffer_to_blob(decrypted, props.content.mimetype)
+                    url.value = URL.createObjectURL(blob)  // NOTE Not revoking as causes bugs
+                }
                 downloading.value = false
-                return
             }
 
-            // Open/download file via detached <a>
-            const blob = buffer_to_blob(decrypted, props.content.mimetype)
+            // Save/open file via detached <a>
+            // NOTE This won't work on Safari if just did async download, so user must click again
             const element = self.document.createElement('a')
-            element.href = URL.createObjectURL(blob)  // Not revoking as causes bugs and not needed
-            element.target = '_blank'
+            element.href = url.value
+            // element.target = '_blank'
             if (props.content.download){
                 element.download = props.content.filename
             }
             element.click()
-
-            downloading.value = false
         }
 
-        return {
-            label: props.content.label,
-            click,
-            downloading,
-            error,
-        }
+        return {label, click, downloading, error}
     },
 })
 
