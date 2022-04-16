@@ -43,7 +43,7 @@ export default defineComponent({
 <style lang='sass' scoped>
 
 button
-    display: grid !important
+    display: inline-grid !important
     justify-items: center
 
     > *
@@ -53,19 +53,17 @@ button
         background-color: rgba(#f00, 0.3) !important
 
     &.progress
-
-        .AppProgress
-            visibility: visible
-
         .contents
             visibility: hidden
 
     .AppProgress
-        visibility: hidden
         width: 20px
         height: 20px
 
         :deep(circle)
             stroke: currentColor !important
+
+    &:not(.progress) .AppProgress
+        display: none
 
 </style>
