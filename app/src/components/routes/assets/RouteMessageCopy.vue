@@ -59,19 +59,19 @@ export default class extends Vue {
         if (this.copy.status === 'pending_send')
             return 'schedule_send'
         if (this.copy.status === 'manual')
-            return 'mark_chat_read'
+            return 'chat'
         return 'pending'
     }
 
     get status_class(){
-        // Some statuses need special styling
+        // Give status icons color that indicates what action needs taking
         if (this.copy.status === 'invited')
             return 'accent--text'
         if (this.copy.status === 'invalid_address')
             return 'error--text'
-        if (this.copy.status === 'pending_upload' || this.copy.status === 'expired')
-            return 'text--secondary'
-        return null
+        if (this.copy.status === 'manual')
+            return null
+        return 'text--secondary'  // Faded for pending and expired since can't take action on them
     }
 
     get status_tip(){
