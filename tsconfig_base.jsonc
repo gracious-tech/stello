@@ -9,6 +9,7 @@
         "experimentalDecorators": true,  // Allow @decorators
         "skipLibCheck": true,  // Mostly avoids checking node_modules (but see docs)
         "types": [],  // Disables auto-including types modules of '@types/*' (e.g. node)
+        "jsx": "preserve",  // Volar needs for typechecking pug templates (for some reason)
         // Strict checking
         "strict": true,
         "allowUnreachableCode": false,  // Must be a mistake
