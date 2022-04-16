@@ -5,9 +5,9 @@ v-list-item
 
     //- NOTE data-tip doesn't work directly on <svg> so must be on container
     v-list-item-action(:data-tip='status_tip')
-        app-btn(v-if='copy.status === "pending_copy"' @click='copy_invite_and_mark'
+        app-btn(v-if='copy.status === "manual"' @click='copy_invite_and_mark'
             :icon='status_icon' :disabled='!profile' data-tip="Copy invite and mark as sent")
-        app-btn(v-else-if='copy.status === "send_error"' :to='to' :icon='status_icon' color='error'
+        app-btn(v-else-if='copy.status === "invalid_address"' :to='to' :icon='status_icon' color='error'
             data-tip="Change email address")
         app-svg(v-else :name='`icon_${status_icon}`' :class='status_class' class='mx-3')
 
@@ -54,11 +54,11 @@ export default class extends Vue {
             return 'check_circle'
         if (this.copy.status === 'expired')
             return 'delete'
-        if (this.copy.status === 'send_error')
+        if (this.copy.status === 'invalid_address')
             return 'cancel_schedule_send'
         if (this.copy.status === 'pending_send')
             return 'schedule_send'
-        if (this.copy.status === 'pending_copy')
+        if (this.copy.status === 'manual')
             return 'mark_chat_read'
         return 'pending'
     }
@@ -67,7 +67,7 @@ export default class extends Vue {
         // Some statuses need special styling
         if (this.copy.status === 'invited')
             return 'accent--text'
-        if (this.copy.status === 'send_error')
+        if (this.copy.status === 'invalid_address')
             return 'error--text'
         if (this.copy.status === 'pending_upload' || this.copy.status === 'expired')
             return 'text--secondary'

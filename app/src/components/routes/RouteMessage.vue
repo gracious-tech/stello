@@ -147,13 +147,13 @@ export default class extends Vue {
     }
 
     get some_still_pending(){
-        // Whether some copies are still pending upload / email attempt
-        return this.copies.some(c => c.status === 'pending')
+        // Whether some copies haven't yet tried to be sent
+        return this.copies.some(c => c.status === 'pending_upload' || c.status === 'pending_send')
     }
 
     get automated_sending_done(){
         // Whether only manual sending remains (if any)
-        return !this.copies.some(c => c.status === 'pending' || c.status === 'error')
+        return !this.some_still_pending && !this.copies.some(c => c.status === 'invalid_address')
     }
 
     get manual_sending_done(){
@@ -170,7 +170,8 @@ export default class extends Vue {
     get copies_sorted(){
         // A sorted view of the copies that reacts to status changes
         // NOTE Still keeps original sorting by name as secondary sort
-        const status_order = ['error', 'manual', 'pending', 'success', 'expired']
+        const status_order:MessageCopy['status'][] =
+            ['invalid_address', 'manual', 'pending_upload', 'pending_send', 'invited', 'expired']
         const sorted = [...this.copies]
         sorted.sort((a, b) => status_order.indexOf(a.status) - status_order.indexOf(b.status))
         return sorted

@@ -28,16 +28,16 @@ export class MessageCopy implements RecordMessageCopy {
         return this.contact_name.trim() || this.contact_address.trim() || "[Nameless]"
     }
 
-    get status():'pending_upload'|'pending_send'|'pending_copy'|'send_error'|'invited'|'expired'{
+    get status():'pending_upload'|'pending_send'|'manual'|'invalid_address'|'invited'|'expired'{
         // Return a status code for the sending of the copy
         if (this.expired)
             return 'expired'
         if (this.invited === true)
             return 'invited'
         if (this.contact_address && this.invited === false)
-            return 'send_error'  // Only if address still present as might fail and then rm address
+            return 'invalid_address'  // Only if address still present as could rm after fail
         if (this.uploaded)
-            return this.contact_address ? 'pending_send' : 'pending_copy'
+            return this.contact_address ? 'pending_send' : 'manual'
         return 'pending_upload'
     }
 }
