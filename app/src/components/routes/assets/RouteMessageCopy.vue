@@ -5,10 +5,10 @@ v-list-item
 
     //- NOTE data-tip doesn't work directly on <svg> so must be on container
     v-list-item-action(:data-tip='status_tip')
-        app-btn(v-if='copy.status === "manual"' @click='copy_invite_and_mark'
-            :icon='status_icon' :disabled='!profile' data-tip="Copy invite and mark as sent")
-        app-btn(v-else-if='copy.status === "invalid_address"' :to='to' :icon='status_icon' color='error'
-            data-tip="Change email address")
+        app-btn(v-if='copy.status === "manual"' @click='copy_invite_and_mark' :icon='status_icon'
+            :disabled='!profile')
+        app-btn(v-else-if='copy.status === "invalid_address"' :to='to' :icon='status_icon'
+            color='error')
         app-svg(v-else :name='`icon_${status_icon}`' :class='status_class' class='mx-3')
 
     v-list-item-content
@@ -80,10 +80,14 @@ export default class extends Vue {
             return "Message has been sent"
         if (this.copy.status === 'expired')
             return "Message has expired"
+        if (this.copy.status === 'invalid_address')
+            return "Change email address"
         if (this.copy.status === 'pending_send')
             return "Waiting to send"
         if (this.copy.status === 'pending_upload')
             return "Message not ready yet"
+        if (this.copy.status === 'manual')
+            return "Copy invite and mark as sent"
         return ''
     }
 
