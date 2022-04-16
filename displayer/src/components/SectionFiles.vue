@@ -55,16 +55,16 @@ export default defineComponent({
 
             // Get the asset's data if haven't yet
             if (!url.value){
-                downloading.value = true
                 error.value = false
+                downloading.value = true
                 const decrypted = await store.get_asset(props.id)
+                downloading.value = false
                 if (!decrypted){
                     error.value = true
-                } else {
-                    const blob = buffer_to_blob(decrypted, props.content.mimetype)
-                    url.value = URL.createObjectURL(blob)  // NOTE Not revoking as causes bugs
+                    return
                 }
-                downloading.value = false
+                const blob = buffer_to_blob(decrypted, props.content.mimetype)
+                url.value = URL.createObjectURL(blob)  // NOTE Not revoking as causes bugs
             }
 
             // Save/open file via detached <a>
