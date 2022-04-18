@@ -63,7 +63,11 @@ export default defineComponent({
                     error.value = true
                     return
                 }
-                const blob = buffer_to_blob(decrypted, props.content.mimetype)
+                // Give generic mimetype if requesting download so iOS 12 doesn't try open in tab
+                // (iOS 12 doesn't support the download attribute)
+                const mimetype =
+                    props.content.download ? 'application/octet-stream' : props.content.mimetype
+                const blob = buffer_to_blob(decrypted, mimetype)
                 url.value = URL.createObjectURL(blob)  // NOTE Not revoking as causes bugs
             }
 
