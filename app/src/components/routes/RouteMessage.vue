@@ -59,7 +59,6 @@ div
 import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import RouteMessageCopy from './assets/RouteMessageCopy.vue'
-import DialogGenericConfirm from '../dialogs/generic/DialogGenericConfirm.vue'
 import {sort} from '@/services/utils/arrays'
 import {Message} from '@/services/database/messages'
 import {MessageCopy} from '@/services/database/copies'
