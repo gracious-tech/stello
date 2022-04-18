@@ -77,9 +77,15 @@ export default defineComponent({
             //      So user will need to click one more time in such cases
             const element = self.document.createElement('a')
             element.href = url.value
-            // element.target = '_blank'
             if (props.content.download){
                 element.download = props.content.filename
+            } else {
+                // WARN target='_blank' prevents download and open on iOS 12
+                // Ironic but only using _blank if download attr is supported as will rule out ios12
+                // NOTE Test not actually related to the download attr since opening not downloading
+                if ('download' in element){
+                    element.target = '_blank'
+                }
             }
             element.click()
         }
