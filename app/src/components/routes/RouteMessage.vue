@@ -37,7 +37,7 @@ div
                 div(v-else-if='num_still_pending || num_invalid' class='text-center mt-3')
                     template(v-if='num_still_pending')
                         span(class='error--text') {{ num_still_pending }} messages could not be sent
-                        app-btn(@click='show_help_dialog' small) Why?
+                        app-btn(href='https://stello.news/guide/sending/' small) Why?
                     span(v-else class='error--text mr-3') Some recipients have invalid addresses
                     | |
                     app-btn(@click='send_all' small) Finish sending
@@ -188,26 +188,6 @@ export default class extends Vue {
     async send_all(){
         // Ensure all copies have been uploaded, and all emails sent
         void this.$tm.start_send_message(this.msg_id)
-    }
-
-    show_help_dialog():void{
-        // Show dialog with troubleshooting info on sending failures
-        this.$store.dispatch('show_dialog', {
-            component: DialogGenericConfirm,
-            props: {
-                title: "Why some messages don't send",
-                text: `
-                    If some of your messages have sent but others haven't,
-                    this is usually due to the limits of your email account.
-                    Free accounts (such as Gmail and Outlook) are especially limited to only a few
-                    hundred emails per day, and aren't allowed to send messages rapidly.
-                    You may find waiting and trying again after an hour (or worst case a day)
-                    resolves the issue. If not, let us know.
-                `,
-                cancel: "Close",
-                confirm: null,
-            },
-        })
     }
 
     // WATCHES
