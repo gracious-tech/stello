@@ -63,7 +63,7 @@ export default defineComponent({
                     error.value = true
                     return
                 }
-                // Give generic mimetype if requesting download so iOS 12 doesn't try open in tab
+                // Give generic mimetype if requesting download so iOS 12 doesn't display some types
                 // (iOS 12 doesn't support the download attribute)
                 const mimetype =
                     props.content.download ? 'application/octet-stream' : props.content.mimetype
@@ -71,23 +71,24 @@ export default defineComponent({
                 url.value = URL.createObjectURL(blob)  // NOTE Not revoking as causes bugs
             }
 
-            // Save/open file via detached <a>
-            // NOTE This won't work on iOS 12 (both download & open) or iOS 15 (open only)
-            //      if file just downloaded as the download delay prevents further virtual click
+            // Save/open file
+            // WARN Must test across all browsers if ever change (including iOS Chrome/Safari)
+            // There are two ways to trigger open/download of files: <a> and window.open
+            // Both have pros+cons and behaviour across browsers and OS are complex (fun!)
+            // In general, window.open works in more circumstances but can't name downloaded files
+            // NOTE Following won't trigger on iOS 12 (both download & open) or iOS 15 (open only)
+            //      if file just downloaded as the download delay prevents further nav/click
             //      So user will need to click one more time in such cases
             const element = self.document.createElement('a')
-            element.href = url.value
-            if (props.content.download){
+            if (props.content.download && 'download' in element){
+                // Download attribute is supported so use that so can give file a name
+                element.href = url.value
                 element.download = props.content.filename
+                element.click()
             } else {
-                // WARN target='_blank' prevents download and open on iOS 12
-                // Ironic but only using _blank if download attr is supported as will rule out ios12
-                // NOTE Test not actually related to the download attr since opening not downloading
-                if ('download' in element){
-                    element.target = '_blank'
-                }
+                // window.open has better browser support than <a> for blob urls (esp. when _blank)
+                self.open(url.value, '_blank')
             }
-            element.click()
         }
 
         return {label, click, downloading, error}
