@@ -42,8 +42,8 @@ export default defineComponent({
         const url = ref<string>()
 
         const label = computed(() => {
-            // Safari doesn't allow virtual <a> click unless url already ready (not async)
-            // So Safari users will have to click twice, one to download and one to save/open
+            // iOS sometimes doesn't allow virtual <a> click unless url already ready (not async)
+            // So some iOS users will have to click twice, one to download and one to save/open
             // So indicate via the label when the file is ready to save/open
             if (url.value){
                 return `Click to ${props.content.download ? "save" : "open"}`
@@ -68,7 +68,9 @@ export default defineComponent({
             }
 
             // Save/open file via detached <a>
-            // NOTE This won't work on Safari if just did async download, so user must click again
+            // NOTE This won't work on iOS 12 (both download & open) or iOS 15 (open only)
+            //      if file just downloaded as the download delay prevents further virtual click
+            //      So user will need to click one more time in such cases
             const element = self.document.createElement('a')
             element.href = url.value
             // element.target = '_blank'
