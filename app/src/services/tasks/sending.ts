@@ -10,7 +10,7 @@ import {concurrent} from '@/services/utils/async'
 import {resize_bitmap, blob_image_size} from '@/services/utils/image'
 import {bitmap_to_bitcanvas, blob_to_bitmap, canvas_to_blob, buffer_to_url64, string_to_utf8}
     from '../utils/coding'
-import {encrypt_sym, export_key} from '../utils/crypt'
+import {encrypt_sym, export_key, generate_token} from '../utils/crypt'
 import {SECTION_IMAGE_WIDTH} from '../misc'
 import {HostUser} from '../hosts/types'
 import type {PublishedCopyBase, PublishedAsset, PublishedCopy, PublishedSection, PublishedImage,
@@ -538,8 +538,11 @@ async function process_section(section_id:string, pub_assets:PublishedAsset[],
         } else {
             // Multiple files so need to combine into a zip
             const ziper = new zip.ZipWriter(new zip.Uint8ArrayWriter())
+            const taken:string[] = []
             for (const file of content.files){
-                await ziper.add(file.name + file.ext, new zip.BlobReader(file.data))
+                const token = taken.includes(file.name + file.ext) ? ' ' + generate_token() : ''
+                await ziper.add(file.name + token + file.ext, new zip.BlobReader(file.data))
+                taken.push(file.name + file.ext)
             }
             data = (await ziper.close() as Uint8Array).buffer
             filename = content.label + '.zip'
