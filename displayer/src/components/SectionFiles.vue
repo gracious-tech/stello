@@ -82,6 +82,8 @@ export default defineComponent({
             const element = self.document.createElement('a')
             if (props.content.download && 'download' in element){
                 // Download attribute is supported so use that so can give file a name
+                // TODO iOS Chrome/others? can't download blobs at all
+                //      See https://bugs.webkit.org/show_bug.cgi?id=216918
                 element.href = url.value
                 element.download = props.content.filename
                 element.click()
