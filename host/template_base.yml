@@ -171,6 +171,11 @@ Resources:
             # strict-transport-security: Tell browsers to only ever use HTTPS for future requests
             # content-security-policy: Prevent requests to other origins & inline attacks etc
             # WARN Keep CSP in sync with displayer's meta tag CSP
+            # NOTE 'unsafe-hashes' & 'sha256-tbWZ...' is for Chrome 100's PDF viewer
+            #       See https://bugs.chromium.org/p/chromium/issues/detail?id=1117326
+            #       This allows any element to have style="position:absolute; left: 0; top: 0;"
+            #       Not ideal, but low risk, only allows moving something to top left of window
+            #       TODO Rm once Chrome fixes the issue and enough users update Chrome to that ver.
             FunctionCode: !Sub |
                 function handler(event){
                     event.response.headers['referrer-policy'] = {value: 'no-referrer'}
@@ -189,7 +194,7 @@ Resources:
                             + "default-src 'none';"
                             + "img-src 'self' blob:;"
                             + "script-src 'self';"
-                            + "style-src 'self' 'sha256-m3bHFeKa8uX6CBIajTT4DOIbdgboFfvwKX4j4PBJobM=';"
+                            + "style-src 'self' 'sha256-m3bHFeKa8uX6CBIajTT4DOIbdgboFfvwKX4j4PBJobM=' 'unsafe-hashes' 'sha256-tbWZ4NP1341cpcrZVDn7B3o9bt/muXgduILAnC0Zbaw=';"
                             + "connect-src 'self' https://api.${InputDomainGeneric} https://api.${InputDomainBranded} https://api.${InputDomainUnbranded} https://${MessagesBucket.RegionalDomainName} https://api.rollbar.com;"
                             + "frame-src https://www.youtube-nocookie.com https://player.vimeo.com;"
                     }
