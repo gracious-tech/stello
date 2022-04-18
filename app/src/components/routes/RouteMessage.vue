@@ -34,9 +34,9 @@ div
                             :disabled='!!sending_task.aborted' color='error' small)
                         | {{ sending_task.aborted ? "Stopping" : "Stop" }}
 
-                div(v-else-if='!automated_sending_done' class='text-center mt-3')
-                    template(v-if='some_still_pending')
-                        span(class='error--text') Some messages could not be sent
+                div(v-else-if='num_still_pending || num_invalid' class='text-center mt-3')
+                    template(v-if='num_still_pending')
+                        span(class='error--text') {{ num_still_pending }} messages could not be sent
                         app-btn(@click='show_help_dialog' small) Why?
                     span(v-else class='error--text mr-3') Some recipients have invalid addresses
                     | |
@@ -146,14 +146,15 @@ export default class extends Vue {
         return Math.floor(this.num_copies_read / this.copies.length * 100)
     }
 
-    get some_still_pending(){
-        // Whether some copies haven't yet tried to be sent
-        return this.copies.some(c => c.status === 'pending_upload' || c.status === 'pending_send')
+    get num_still_pending(){
+        // How many copies haven't yet been uploaded or haven't yet been sent (if eligable)
+        return this.copies
+            .filter(c => c.status === 'pending_upload' || c.status === 'pending_send').length
     }
 
-    get automated_sending_done(){
-        // Whether only manual sending remains (if any)
-        return !this.some_still_pending && !this.copies.some(c => c.status === 'invalid_address')
+    get num_invalid(){
+        // How many copies couldn't be sent due to invalid addresses
+        return this.copies.filter(c => c.status === 'invalid_address').length
     }
 
     get manual_sending_done(){
