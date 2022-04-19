@@ -15,9 +15,10 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 @Component({})
 export default class extends Vue {
 
-    @Prop({type: Boolean}) declare readonly value:boolean
+    @Prop({type: Boolean}) declare readonly value:boolean|null
 
     get icon(){
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         return `checkbox_${this.value}`  // Expecting true|false|null
     }
 
