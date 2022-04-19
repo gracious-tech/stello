@@ -11,7 +11,7 @@ export class MessageCopy implements RecordMessageCopy {
     resp_token!:string
     uploaded!:boolean
     uploaded_latest!:boolean
-    invited!:boolean
+    invited!:boolean|null
     expired!:boolean
     contact_id!:string
     contact_name!:string
