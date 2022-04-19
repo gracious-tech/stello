@@ -5,6 +5,9 @@ div
     v-toolbar
         app-btn(to='../' icon='arrow_back')
         v-toolbar-title {{ message && message.draft.title }}
+        v-spacer
+        app-menu-more
+            app-list-item(@click='open_resend_dialog' :disabled='!!sending_task') Resend some emails
 
     app-content(v-if='!message' class='text-center pt-10')
         h1(class='text--secondary text-h6') Message does not exist
@@ -58,6 +61,7 @@ div
 
 import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
+import DialogResend from '@/components/dialogs/specific/DialogResend.vue'
 import RouteMessageCopy from './assets/RouteMessageCopy.vue'
 import {sort} from '@/services/utils/arrays'
 import {Message} from '@/services/database/messages'
@@ -187,6 +191,19 @@ export default class extends Vue {
     async send_all(){
         // Ensure all copies have been uploaded, and all emails sent
         void this.$tm.start_send_message(this.msg_id)
+    }
+
+    open_resend_dialog(){
+        // Open dialog for setting invited to null for copies that got bounce messages
+        void this.$store.dispatch('show_dialog', {
+            component: DialogResend,
+            props: {
+                // Show only copies that could have bounced (have address and no reads)
+                copies: this.copies.filter(copy => copy.invited && copy.contact_address
+                    && !this.reads_by_copy[copy.id]?.length),
+            },
+            wide: true,
+        })
     }
 
     // WATCHES

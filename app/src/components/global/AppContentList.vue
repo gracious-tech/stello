@@ -33,18 +33,20 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+</style>
+
+
+<style lang='sass'>
+
 @import 'src/styles/utils.sass'
 
-
-.v-virtual-scroll
-
-    ::v-deep .v-virtual-scroll__container
-        position: relative
-        max-width: $content-width
-        width: 100%
-        margin-left: auto
-        margin-right: auto
-        margin-bottom: 100px  // Show some space after scrolling to bottom
-
+// Styles specific to when used as main page contents
+.docked .v-virtual-scroll .v-virtual-scroll__container
+    position: relative
+    max-width: $content-width
+    width: 100%
+    margin-left: auto
+    margin-right: auto
+    margin-bottom: 100px  // Show some space after scrolling to bottom
 
 </style>
