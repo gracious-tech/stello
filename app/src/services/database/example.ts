@@ -122,9 +122,9 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
         caption: "This is an example of a chart!",
         threshold: '$10,000',
         data: [
-            {label: "Fuel", number: '$8,000', hue: 0},
-            {label: "Food", number: '$5,000', hue: 180},
-            {label: "Rent", number: '$11,000', hue: 90},
+            {id: '1', label: "Fuel", number: '$8,000', hue: 0},
+            {id: '2', label: "Food", number: '$5,000', hue: 180},
+            {id: '3', label: "Rent", number: '$11,000', hue: 90},
         ],
     })
     await db.sections.set(section_chart)

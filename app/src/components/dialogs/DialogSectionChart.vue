@@ -14,7 +14,7 @@ v-card
             dense outlined
             hint="A budget/goal/limit/etc that all other numbers will be relative to (optional)")
 
-        div.item(v-for='row of rows' class='d-flex')
+        div.item(v-for='row of rows' :key='row.id' class='d-flex')
             app-text(v-model='row.label' placeholder="Label" class='mr-4' dense outlined)
             app-text.number(v-model='row.number' placeholder="Number" dense outlined)
             app-menu-more.hue(:color='row.color' icon='palette')
@@ -52,6 +52,7 @@ import SharedChart from '@/shared/SharedChart.vue'
 import {Section} from '@/services/database/sections'
 import {ContentChart} from '@/services/database/types'
 import {range} from '@/services/utils/iteration'
+import {generate_token} from '@/services/utils/crypt'
 
 
 @Component({
@@ -106,6 +107,7 @@ export default class extends Vue {
         const component = this
         return this.content.data.map((row, i) => {
             return {
+                id: row.id,
                 get number(){
                     return row.number
                 },
@@ -150,7 +152,7 @@ export default class extends Vue {
         // NOTE Repeating +150 will cycle through all eventually (+60/90/120 would never reach some)
         const hue = ((this.content.data.at(-1)?.hue ?? 0) + 150) % 360
 
-        this.content.data.push({number: '', label: '', hue})
+        this.content.data.push({id: generate_token(), number: '', label: '', hue})
         this.save()
     }
 
