@@ -76,8 +76,8 @@ export default class extends Vue {
     ]
     todo = [
         {
-            title: "Auto-resume sending",
-            desc: "Automatically finish sending when interrupted by an account limit",
+            title: "Reduce issues with sending limits",
+            desc: "Additional techniques to reduce the chance of hitting a sending limit",
         },
         {
             title: "Sync with another device",
@@ -86,6 +86,10 @@ export default class extends Vue {
         {
             title: "Encrypted videos",
             desc: "Add videos directly rather than using third-party sites like Youtube",
+        },
+        {
+            title: "Add polls to messages",
+            desc: "Get your readers to vote and only you see the results",
         },
         {
             title: "Edit message after sending",
