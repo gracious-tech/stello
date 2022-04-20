@@ -13,13 +13,15 @@ v-dialog(:value='show' @input='close_detected' :fullscreen='fullscreen' :persist
 
 import {Component, Vue, Watch} from 'vue-property-decorator'
 
+import {StateTmpDialog} from '@/services/store/types'
+
 
 @Component({})
 export default class extends Vue {
 
     show = false
-    dialog = null
-    timeout = null
+    dialog:StateTmpDialog|null = null
+    timeout:number|null = null
 
     get fullscreen(){
         // Return whether dialog should take up whole screen or leave border
@@ -41,7 +43,7 @@ export default class extends Vue {
         return this.dialog?.tall === true ? 'tall' : ''
     }
 
-    @Watch('$store.state.tmp.dialog') watch_dialog(value){
+    @Watch('$store.state.tmp.dialog') watch_dialog(value:StateTmpDialog){
         // Handle change or removal of dialog to show
 
         // If previously set a delayed change to `this.dialog`, prevent it from overriding new value
@@ -59,7 +61,7 @@ export default class extends Vue {
         } else {
             this.timeout = setTimeout(() => {
                 this.dialog = value
-            }, 500)
+            }, 500) as unknown as number
         }
     }
 
@@ -71,7 +73,7 @@ export default class extends Vue {
         }
     }
 
-    close_request(value:any){
+    close_request(value:unknown){
         // The mounted dialog has requested to be closed and resolved with the given value
         if (this.$store.state.tmp.dialog){
             this.$store.state.tmp.dialog.resolve(value)
