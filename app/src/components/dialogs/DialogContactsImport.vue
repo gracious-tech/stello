@@ -2,6 +2,11 @@
 <template lang='pug'>
 
 v-card
+
+    v-dialog(:value='progress !== null' persistent)
+        dialog-generic-wait(title="Importing contacts..." :progress='progress'
+            :total='selected.length')
+
     v-card-title Import Contacts
 
     div.csv_controls(v-if='type === "csv" && contacts.length')
@@ -114,13 +119,16 @@ import papaparse from 'papaparse'
 import PostalMime from 'postal-mime'
 import {Component, Vue, Watch} from 'vue-property-decorator'
 
+import DialogGenericWait from '@/components/dialogs/generic/DialogGenericWait.vue'
 import {zip} from '@/services/misc/zip'
 import {drop} from '@/services/utils/exceptions'
 import {oauth_pretask_new_usage} from '@/services/tasks/oauth'
 import {extract_contacts_from_vcard} from '@/services/misc/vcard'
 
 
-@Component({})
+@Component({
+    components: {DialogGenericWait},
+})
 export default class extends Vue {
 
     readonly file_accept = 'text/*,application/zip,.vcf,.vcard,.csv,.eml,.zip'
@@ -133,6 +141,7 @@ export default class extends Vue {
     csv_column_name2:string|null = null
     csv_column_email:string|null = null
     contacts:{id:string, name:string, email:string, include:boolean}[] = []
+    progress:number|null = null
 
     get selected(){
         // The contacts that have been selected
@@ -320,10 +329,13 @@ export default class extends Vue {
 
     async import_selected(){
         // Import the selected contacts and place them all in a new group
+        this.progress = 0
 
         // Create all contacts and collect their data
-        const contacts = await Promise.all(this.selected.map(contact => {
-            return self.app_db.contacts.create(contact.name, contact.email)
+        const contacts = await Promise.all(this.selected.map(async contact => {
+            const record = await self.app_db.contacts.create(contact.name, contact.email)
+            this.progress! += 1
+            return record
         }))
 
         // Create a new group for all the contacts
