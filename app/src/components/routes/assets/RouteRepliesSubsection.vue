@@ -101,7 +101,7 @@ export default class extends Vue {
             return undefined
         }
         return {
-            id: this.section.id,
+            id: 'subsection' + this.section.id,  // Prefixed in case later show multiple times
             type: this.section.content.chart,
             data: this.section.content.data,
             threshold: this.section.content.threshold,

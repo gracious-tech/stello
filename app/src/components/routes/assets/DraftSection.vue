@@ -23,7 +23,7 @@ section(@click.self='focus_editor' :class='classes')
 
         shared-chart(v-if='content.type === "chart"' :type='content.chart' :data='content.data'
             :threshold='content.threshold' :title='content.title' :caption='content.caption'
-            :dark='$store.state.dark_message' :id='section.id' @click='modify')
+            :dark='$store.state.dark_message' :id='"draft" + section.id' @click='modify')
 
         draft-section-files(v-if='content.type === "files"' :label='content.label'
             :download='section.files_download' @click='modify')
