@@ -120,11 +120,11 @@ export const Note = Node.create({
     defining: true,  // Pasted text should go within (rather than replace) notes
 
     parseHTML(){
-        return [{tag: 'p', context: 'paragraph/small'}]
+        return [{tag: 'div.small'}]
     },
 
     renderHTML(){
-        return ['p', ['small', 0]]
+        return ['div', {class: 'small'}, ['small', 0]]
     },
 
     addCommands(){
