@@ -504,20 +504,16 @@ export default class extends Vue {
 
     do_selected_delete():void{
         // Delete selected contacts (but only those not part of a service account)
-        for (const item of this.contacts_selected_internal){
-            void self.app_db.contacts.remove(item.contact.id)
-        }
-
-        // Notify how many deleted/skipped
-        const count = this.contacts_selected_internal.length
-        const skipped = this.contacts_selected.length - count
-        const skipped_text = skipped ? `(skipped ${skipped} synced contacts)` : ''
-        void this.$store.dispatch('show_snackbar', `Deleted ${count} contacts ${skipped_text}`)
+        const ids = this.contacts_selected_internal.map(c => c.contact.id)
+        void self.app_db.contacts.remove(ids)
 
         // Remove deleted from list
-        for (const item of this.contacts_selected_internal){
-            remove_item(this.contacts, item)
-        }
+        this.contacts = this.contacts.filter(item => !ids.includes(item.contact.id))
+
+        // Notify how many deleted/skipped
+        const skipped = this.contacts_selected.length
+        const skipped_text = skipped ? `(skipped ${skipped} synced contacts)` : ''
+        void this.$store.dispatch('show_snackbar', `Deleted ${ids.length} contacts ${skipped_text}`)
     }
 
     do_selected_export():void{

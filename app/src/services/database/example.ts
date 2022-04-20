@@ -41,10 +41,10 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
     const last_names = ['Andrews', 'Beaver', 'Chapman', 'Driver', 'Edmonds', 'Fudge',
         'Goods', 'Harvard', '', '', '', '']
     const contacts = await Promise.all([...range(100 * multiplier)].map(async i => {
-        const contact = await db.contacts.create(
-            `${sample(first_names)!} ${sample(last_names)!}`.trim(),
-            Math.random() < 0.2 ? '' : `blackhole+stello${i}@gracious.tech`,
-        )
+        const contact = await db.contacts.create({
+            name: `${sample(first_names)!} ${sample(last_names)!}`.trim(),
+            address: Math.random() < 0.2 ? '' : `blackhole+stello${i}@gracious.tech`,
+        })
         // Sometimes unsubscribe them
         if (Math.random() < 0.2){
             await db.unsubscribes.set({

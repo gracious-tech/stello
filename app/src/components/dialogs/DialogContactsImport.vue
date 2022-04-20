@@ -3,9 +3,8 @@
 
 v-card
 
-    v-dialog(:value='progress !== null' persistent)
-        dialog-generic-wait(title="Importing contacts..." :progress='progress'
-            :total='selected.length')
+    v-dialog(:value='progress' persistent)
+        dialog-generic-wait(title="Importing contacts...")
 
     v-card-title Import Contacts
 
@@ -141,7 +140,7 @@ export default class extends Vue {
     csv_column_name2:string|null = null
     csv_column_email:string|null = null
     contacts:{id:string, name:string, email:string, include:boolean}[] = []
-    progress:number|null = null
+    progress = false
 
     get selected(){
         // The contacts that have been selected
@@ -329,14 +328,11 @@ export default class extends Vue {
 
     async import_selected(){
         // Import the selected contacts and place them all in a new group
-        this.progress = 0
+        this.progress = true
 
         // Create all contacts and collect their data
-        const contacts = await Promise.all(this.selected.map(async contact => {
-            const record = await self.app_db.contacts.create(contact.name, contact.email)
-            this.progress! += 1
-            return record
-        }))
+        const contacts = await self.app_db.contacts.create(
+            this.selected.map(contact => ({name: contact.name, address: contact.email})))
 
         // Create a new group for all the contacts
         const date = new Date()

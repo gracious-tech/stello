@@ -4,6 +4,14 @@ import {generate_token} from '@/services/utils/crypt'
 import {partition} from '../utils/strings'
 
 
+interface ContactCreateArgs{
+    name?:string
+    address?:string
+    service_account?:string
+    service_id?:string
+}
+
+
 export class Contact implements RecordContact {
 
     // Stello owned
@@ -92,55 +100,52 @@ export class DatabaseContacts {
         })
     }
 
-    async create(name='', address='', service_account=null, service_id=null):Promise<Contact>{
-        // Create a new contact and save to db
-        const contact = this.create_object()
-        contact.name = name
-        contact.address = address
-        contact.service_account = service_account
-        contact.service_id = service_id
-        await this._conn.add('contacts', contact)
-        return contact
+    async create(input?:ContactCreateArgs):Promise<Contact>
+    async create(input:ContactCreateArgs[]):Promise<Contact[]>
+    async create(input:ContactCreateArgs|ContactCreateArgs[]={}):Promise<Contact|Contact[]>{
+        // Create new contacts and save to db
+
+        // Normalise input
+        input = Array.isArray(input) ? input : [input]
+
+        // Start transaction and get store
+        const transaction = this._conn.transaction('contacts', 'readwrite')
+        const store_contacts = transaction.objectStore('contacts')
+
+        // Add contacts
+        const contacts = []
+        for (const item of input){
+            const contact = this.create_object()
+            contact.name = item.name ?? ''
+            contact.address = item.address ?? ''
+            contact.service_account = item.service_account ?? null
+            contact.service_id = item.service_id ?? null
+            void store_contacts.add(contact)
+            contacts.push(contact)
+        }
+        await transaction.done
+
+        return contacts.length === 1 ? contacts[0]! : contacts
     }
 
-    async remove(id:string):Promise<void>{
-        // Remove the contact and certain linked objects
-        // NOTE Will not remove refs to contact within already sent messages
 
-        // Start transaction and get stores
-        const transaction = this._conn.transaction(['contacts', 'groups', 'drafts'], 'readwrite')
+    async remove(ids:string|string[]):Promise<void>{
+        // Remove the contact/s
+        // NOTE Doesn't remove contacts from groups/drafts etc (stale ids filtered when loaded)
+
+        // Normalise input
+        ids = typeof ids === 'string' ? [ids] : ids
+
+        // Start transaction and get store
+        const transaction = this._conn.transaction('contacts', 'readwrite')
         const store_contacts = transaction.objectStore('contacts')
-        const store_groups = transaction.objectStore('groups')
-        const store_drafts = transaction.objectStore('drafts')
 
-        // Remove the actual contact
-        void store_contacts.delete(id)
-
-        // Remove the contact from groups
-        for (const group of await store_groups.getAll()){
-            // Filter contact out of group's contacts and if changed then save changes
-            const filtered_contacts = group.contacts.filter(val => val !== id)
-            if (filtered_contacts.length !== group.contacts.length){
-                group.contacts = filtered_contacts
-                void store_groups.put(group)
-            }
-        }
-
-        // Remove the contact from drafts
-        for (const draft of await store_drafts.getAll()){
-            // Filter contact out of draft's recipients and if changed then save changes
-            const filtered_include = draft.recipients.include_contacts.filter(val => val !== id)
-            const filtered_exclude = draft.recipients.exclude_contacts.filter(val => val !== id)
-            if (filtered_include.length !== draft.recipients.include_contacts.length ||
-                    filtered_exclude.length !== draft.recipients.exclude_contacts.length){
-                draft.recipients.include_contacts = filtered_include
-                draft.recipients.exclude_contacts = filtered_exclude
-                void store_drafts.put(draft)
-            }
+        // Remove the contacts
+        for (const id of ids){
+            void store_contacts.delete(id)
         }
 
         // Task done when transaction completes
         await transaction.done
-
     }
 }
