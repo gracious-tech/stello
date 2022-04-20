@@ -1,4 +1,5 @@
 
+import {Component} from 'vue'
 import {Route} from 'vue-router'
 
 import {RecordSection} from '@/services/database/types'
@@ -52,8 +53,8 @@ export interface AppStoreState {
 }
 
 export interface StateTmpDialog {
-    component:object
-    props?:object
+    component:Component
+    props?:Record<string, unknown>
     persistent?:boolean
     wide?:boolean
     tall?:boolean
