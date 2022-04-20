@@ -7,34 +7,35 @@ v-card
     div.csv_controls(v-if='type === "csv" && contacts.length')
         p(class='text-center warning--text') Confirm columns are correct
         div.columns
-            app-select(v-model='csv_column_name' :items='csv_columns' label="Name column"
+            app-select(v-model='csv_column_name' :items='csv_columns_optional' label="Name column"
                 dense outlined)
             app-select(v-model='csv_column_name2' :items='csv_columns_optional'
-                label="Last Name (if needed)" dense outlined)
+                label="Last name (if needed)" dense outlined)
             app-select(v-model='csv_column_email' :items='csv_columns' label="Email column"
                 dense outlined)
 
+    v-list.header(v-if='contacts.length')
+        v-list-item
+            v-list-item-action
+                app-btn-checkbox(:value='toggle_all_value' :disabled='!contacts.length'
+                    @click='toggle_all')
+            v-list-item-content
+                v-list-item-title(class='text--secondary') Full name
+            v-list-item-content
+                v-list-item-title(class='text--secondary') Email Address
+
     v-card-text
 
-        v-simple-table(v-if='contacts.length' dense fixed-header)
-            thead
-                tr
-                    th
-                        app-btn-checkbox(:value='toggle_all_value' :disabled='!contacts.length'
-                            @click='toggle_all')
-                    th Name
-                    th Email Address
-            tbody
-                tr(v-for='contact of contacts_visible')
-                    td
-                        app-btn-checkbox(:value='contact.include'
-                            @click='contact.include = !contact.include')
-                    td(v-text='contact.name')
-                    td(v-text='contact.email')
-            tfoot(v-if='contacts.length > contacts_visible.length')
-                tr
-                    td(colspan='3' class='text-center')
-                        app-btn(@click='limit_visible = false') Show all
+        app-content-list(v-if='contacts.length' :items='contacts' height='48')
+            template(#default='{item, height_styles}')
+                v-list-item(:key='item.id' :style='height_styles')
+                    v-list-item-action
+                        app-btn-checkbox(:value='item.include'
+                            @click='item.include = !item.include')
+                    v-list-item-content
+                        v-list-item-title {{ item.name }}
+                    v-list-item-content
+                        v-list-item-title {{ item.email }}
 
 
         div(v-else-if='source === "mailchimp"')
@@ -131,13 +132,7 @@ export default class extends Vue {
     csv_column_name:string|null = null
     csv_column_name2:string|null = null
     csv_column_email:string|null = null
-    contacts:{name:string, email:string, include:boolean}[] = []
-    limit_visible = true  // So don't make UI laggy if user won't check them all anyway
-
-    get contacts_visible(){
-        // The contacts present in the DOM
-        return this.limit_visible ? this.contacts.slice(0, 100) : this.contacts
-    }
+    contacts:{id:string, name:string, email:string, include:boolean}[] = []
 
     get selected(){
         // The contacts that have been selected
@@ -297,12 +292,22 @@ export default class extends Vue {
 
     accept_contacts(contacts:{name:string|null, email:string|null}[]):void{
         // Take contacts from parsed input, normalise values, and accept only those with some value
-        this.contacts = contacts.map(contact => {
+
+        // Process input by cleaning and generating id
+        const processed = contacts.map(contact => {
             const name = (contact.name || '').trim()
             const email = (contact.email || '').trim()
+            // Ensure contacts unique by email (and if no email then by name)
+            const id = email || name
             // Default to only selecting those with email addresses
-            return {name, email, include: !!email}
-        }).filter(contact => contact.name || contact.email)
+            return {id, name, email, include: !!email}
+        })
+
+        // Only accept unique contacts and exclude empty
+        this.contacts = processed.filter((contact, i) => {
+            // Accept if current item is first with its id
+            return contact.id && processed.findIndex(c => c.id === contact.id) === i
+        })
     }
 
     toggle_all(){
@@ -344,10 +349,18 @@ export default class extends Vue {
 
 @import 'src/styles/utils.sass'
 
+.v-card__title
+    padding-bottom: 0 !important
+
+.header, .csv_controls, .v-card__text
+    // Ensure all have same padding so align correctly
+    padding: 0 24px
+
+.header
+    font-weight: bold
+    border-bottom: 1px solid hsla(0, 0%, 50%, 0.5)
 
 .csv_controls
-    margin: 12px 0
-    padding: 0 24px
     font-weight: 500
 
     .columns
