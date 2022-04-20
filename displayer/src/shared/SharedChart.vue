@@ -24,9 +24,17 @@ import type {Chart, ChartOptions, ScriptableContext} from 'chart.js'
 const chartjs_promise = import('./SharedChart')
 
 
+// Store instances outside of Vue to keep non-reactive (Vue reactivity conflicts with ChartJS)
+const INSTANCES:Record<string, Chart> = {}
+
+
 export default defineComponent({
 
     props: {
+        id: {
+            type: String,
+            required: true,  // Used simply for identifying instance in non-reactive object
+        },
         type: {
             type: String as PropType<'bar'|'line'|'doughnut'>,
             required: true,
@@ -58,8 +66,6 @@ export default defineComponent({
     },
 
     emits: ['click'],
-
-    chart: null,  // Not in data to prevent Vue from making reactive which messes up Chart internals
 
     data(){
         return {
@@ -387,6 +393,14 @@ export default defineComponent({
         void this.redraw()
     },
 
+    beforeDestroy(){  // eslint-disable-line vue/no-deprecated-destroyed-lifecycle -- Vue 2
+        this.destroy_instance()
+    },
+
+    beforeUnmount(){  // Vue 3
+        this.destroy_instance()
+    },
+
     methods: {
 
         async redraw(){
@@ -397,9 +411,7 @@ export default defineComponent({
             const chartjs = await (await chartjs_promise).exports_promise
 
             // If chart already exists, destroy it
-            if (this.$options['chart']){
-                ;(this.$options['chart'] as Chart).destroy()
-            }
+            this.destroy_instance()
 
             // Canvas won't be available if showing a placeholder
             if (!this.$refs['canvas']){
@@ -408,7 +420,7 @@ export default defineComponent({
 
             // Create chart
             const context = (this.$refs['canvas'] as HTMLCanvasElement).getContext('2d')!
-            this.$options['chart'] = new chartjs.Chart(context, {
+            INSTANCES[this.id] = new chartjs.Chart(context, {
                 type: this.type,
                 plugins: [chartjs.plugin_datalabels, chartjs.plugin_annotation],
                 data: {
@@ -424,6 +436,14 @@ export default defineComponent({
             // NOTE Only if hover supported as otherwise need to click chart to show tooltips
             if (self.matchMedia('(any-hover: hover)').matches){
                 this.$emit('click')
+            }
+        },
+
+        destroy_instance(){
+            // Destroy existing chart instance
+            if (this.id in INSTANCES){
+                INSTANCES[this.id]!.destroy()
+                delete INSTANCES[this.id]
             }
         },
     },

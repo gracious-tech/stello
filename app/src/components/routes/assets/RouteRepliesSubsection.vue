@@ -101,6 +101,7 @@ export default class extends Vue {
             return undefined
         }
         return {
+            id: this.section.id,
             type: this.section.content.chart,
             data: this.section.content.data,
             threshold: this.section.content.threshold,
