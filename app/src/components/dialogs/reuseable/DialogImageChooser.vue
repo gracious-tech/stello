@@ -16,7 +16,8 @@ v-card
 
         v-card-text.suggestions(v-if='suggestions.length' class='text-center')
             h1(class='text-subtitle-2 mb-2 text-left') From existing...
-            img(v-for='image of suggestions_ui' :src='image.url' @click='image.choose')
+            img(v-for='image of suggestions_ui' :key='image.url' :src='image.url'
+                @click='image.choose')
 
         v-card-actions(class='d-flex flex-column')
             app-security-alert(v-if='invite') Image encrypted and expires with message
