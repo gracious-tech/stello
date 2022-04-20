@@ -6,7 +6,7 @@ form(v-if='allow_replies' @submit.prevent='send_reply' class='ui')
 
     div.prev(v-if='replies.length')
         strong Replied:&nbsp;
-        template(v-for='(reply, i) of replies')
+        template(v-for='(reply, i) of replies' :key='reply.getTime()')
             | {{ i === 0 ? '' : ', ' }}
             span(:title='reply.toLocaleTimeString()') {{ reply.toLocaleDateString() }}
         | &nbsp;(only author can see)

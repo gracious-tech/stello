@@ -12,7 +12,7 @@ v-text-field(
     filled
 )
     //- WARN Doesn't support scoped slots yet (see https://stackoverflow.com/questions/50891858/)
-    slot(v-for='slot in other_slots' :name='slot' :slot='slot')
+    slot(v-for='slot in other_slots' :key='slot' :name='slot' :slot='slot')
     template(#append)
         slot(name='append')
         app-security-icon(v-if='security' :msg='security')

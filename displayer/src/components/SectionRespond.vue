@@ -12,7 +12,7 @@ div.respondbar(v-if='allow_comments || allow_reactions' @mouseenter='have_hovere
             form.popup(@submit.prevent='send_comment')
                 div.prev(v-if='replies.length')
                     strong Commented:&nbsp;
-                    template(v-for='(reply, i) of replies')
+                    template(v-for='(reply, i) of replies' :key='reply.getTime()')
                         | {{ i === 0 ? '' : ', ' }}
                         span(:title='reply.toLocaleTimeString()') {{ reply.toLocaleDateString() }}
                 div.last(v-if='last_sent_contents') {{ last_sent_contents }}
@@ -32,7 +32,8 @@ div.respondbar(v-if='allow_comments || allow_reactions' @mouseenter='have_hovere
             div.popup
                 div.reactions
                     //- WARN iOS blurs before click event which prevents it (mousedown before blur)
-                    button(v-for='reaction of reaction_options' @mousedown='react_with(reaction)')
+                    button(v-for='reaction of reaction_options' :key='reaction'
+                            @mousedown='react_with(reaction)')
                         //- Stop animations when popup hidden to reduce CPU usage
                         ReactionSvg.reaction(:reaction='reaction'
                             :chosen='reaction === chosen_reaction' :playing='react_popup_visible')
@@ -138,8 +139,7 @@ export default defineComponent({
                 void database.reply_add(msg.id, section, subsection)
 
                 // Blur focus so popup disappears (if not hovered)
-                // @ts-ignore blur is a valid method
-                self.document.activeElement?.blur()
+                ;(self.document.activeElement as HTMLElement|undefined)?.blur()
             }
         }
 
@@ -170,8 +170,7 @@ export default defineComponent({
             // Try send reaction
 
             // Prevent popup from staying open due to gaining focus
-            // @ts-ignore blur is a valid method
-            self.document.activeElement?.blur()
+            ;(self.document.activeElement as HTMLElement|undefined)?.blur()
 
             // If setting to same value as have already, then is disabling rather than setting
             if (type === chosen_reaction.value){

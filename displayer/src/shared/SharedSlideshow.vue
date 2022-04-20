@@ -6,7 +6,8 @@ div.root(:class='{multiple}')
     div.slideshow
         svg.aspect(:viewBox='aspect_svg_viewbox')
         div.scroller(ref='scroller' @scroll='event => recalc_current()')
-            div.item(v-for='style of images_ui' :data-image='style.image' :class='style.size_class')
+            div.item(v-for='image of images_ui' :key='image.id' :data-image='image.url'
+                    :class='image.size_class')
                 div.buttons(@click.self='$emit("img_click")')
                     div.prev(v-if='multiple' @click='prev')
                     div.next(v-if='multiple' @click='next')
@@ -16,8 +17,9 @@ div.root(:class='{multiple}')
             button(@click.stop='button.activate' :data-image='button.image')
 
     div.cap_parent
-        div.cap(v-for='(caption, i) of captions' v-show='caption' :class='{active: current === i}')
-            | {{ caption }}
+        div.cap(v-for='(caption, i) of captions' :key='caption.id' v-show='caption.text'
+                :class='{active: current === i}')
+            | {{ caption.text }}
 
 </template>
 
@@ -97,18 +99,20 @@ export default defineComponent({
             return '0 0 48 24'  // Placeholder's size
         },
 
-        images_ui():{image:string, size_class:string}[]{
+        images_ui():{id:string, url:string, size_class:string}[]{
             // Get UI view of images that returns styles for their display
             if (this.empty){
                 return [{
-                    image: `url(${PLACEHOLDER})`,
+                    id: 'empty',
+                    url: `url(${PLACEHOLDER})`,
                     size_class: 'cover',
                 }]
             }
             return this.images.map(image => {
                 const url = this.object_urls[image.id]?.url || PLACEHOLDER
                 return {
-                    image: `url(${url})`,
+                    id: image.id,
+                    url: `url(${url})`,
                     size_class: this.crop || url === PLACEHOLDER ? 'cover' : 'contain',
                 }
             })
@@ -124,13 +128,16 @@ export default defineComponent({
             return this.images.length > 1
         },
 
-        captions():string[]{
+        captions():{id:string, text:string}[]{
             // All captions as a list
             if (this.empty){
                 // No images added, must be in editor, so display help text
-                return ["No images added yet"]
+                return [{id: 'empty', text: "No images added yet"}]
             }
-            return this.images.map(item => item.caption?.trim())
+            return this.images.map(item => ({
+                id: item.id,
+                text: item.caption?.trim(),
+            }))
         },
 
         buttons():{id:string, image:string, activate:()=>void}[]{
