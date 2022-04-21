@@ -15,7 +15,7 @@ div
 
         hr(class='mt-16')
 
-        h1(class='text-h6') Preferences
+        h1(class='text-h6 mb-4') Preferences
         app-switch(v-model='dark' label="Dark theme" label_false="Light theme")
 
         hr(class='mt-16')

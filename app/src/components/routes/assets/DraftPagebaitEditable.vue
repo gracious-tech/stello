@@ -11,7 +11,7 @@ div.pagebait-editable
                 maxlength='150' rows='1' :placeholder='button ? "Button..." : "Headline..."')
             textarea.desc(v-if='!button' v-model='desc' @keydown.enter.prevent
                 @input='textarea_input' maxlength='400' rows='1' placeholder="Description...")
-    app-switch(v-model='button' class='justify-center' label_false="Article style"
+    app-switch(v-model='button' class='align-center mt-6 mb-3' label_false="Article style"
         label="Button style")
 
 </template>
