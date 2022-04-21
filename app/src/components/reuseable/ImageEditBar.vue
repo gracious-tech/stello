@@ -151,9 +151,15 @@ export default class extends Vue {
                 // Blur region and put back in original canvas
 
                 // Draw the region onto another canvas with greatly reduced size
-                // SECURITY 30x less pixels
-                const reduced_width = Math.round(img_data.width / 30)
-                const reduced_height = Math.round(img_data.height / 30)
+                /* NOTE No matter what image resolution is, reduce it to an image of 30 pixels
+                        Such that redaction has same effect whether high res or very high res photo
+                        Either the height or width will be reduced to 30 pixels (which ever longer)
+                            And then the other dimension is relative to the larger
+                            So that can't exceed 30 pixels and redacted area pixels look square
+                */
+                const largest_side = canvas.width > canvas.height ? canvas.width : canvas.height
+                const reduced_width = Math.round(region.width / largest_side * 30)
+                const reduced_height = Math.round(region.height / largest_side * 30)
                 const reduced_region = new OffscreenCanvas(reduced_width, reduced_height)
                 // Decrease contrast to make colors slightly less distinct
                 reduced_region.getContext('2d')!.filter = 'contrast(80%)'
@@ -162,6 +168,7 @@ export default class extends Vue {
 
                 // Draw again onto a larger canvas
                 // So that final non-smooth/pixelated draw will have more/smaller pixels/squares
+                // NOTE While this region will be 60 pixels it will only have the data of 30 pixels
                 const reduced_region2 = new OffscreenCanvas(reduced_width*2, reduced_height*2)
                 reduced_region2.getContext('2d')!.drawImage(
                     reduced_region, 0, 0, reduced_width*2, reduced_height*2)
