@@ -107,7 +107,7 @@ The displayer component of Stello is a webpage that examines the fragment identi
 
 It does all of this via JavaScript with nothing done server-side.
 
-## Responding ([view source]((displayer/src/services/responses.ts)))
+## Responding ([view source](displayer/src/services/responses.ts))
 Responses are encrypted using the public key stored in the config file. Some data is not encrypted when it is needed by the responder function (such as to expire a message it needs to know its id).
 
 <small>Users can optionally configure responses to be sent unencrypted to the responder function so that the contents can be sent in notification emails, but the contents is then still encrypted before being stored in the responses bucket.</small>
