@@ -70,7 +70,7 @@ In the non-self-hosted setup a CDN is required to:
 The CDN is configured to serve the same files (the displayer) for every subdomain, and the displayer is configured to use the subdomain it is hosted on as the prefix for the URL the messages are fetched from. This means that despite the displayer being static files served from the same bucket it will still have a unique origin per user (for browser storage), preventing accessing message keys (stored in browser) across subdomains or across subdirectories of the messages bucket.
 
 
-## Accounts
+## Accounts ([view source](host/accounts/src/handle_create.ts))
 Self-hosting users are granted full permissions for all the resources that belong to them where as Gracious Tech users are only granted permissions they currently need and cannot access bucket subdirectories of other users.
 
 Gracious Tech hosting stores the following information about users:
@@ -84,7 +84,7 @@ Stello auto-generates a password for Gracious Tech users and stores it internall
 Because the email address is hashed the user cannot be contacted unless they initiate contact and their address is matched with the hash, and therefore stay anonymous unless they choose to initiate contact.
 
 
-## Config
+## Config ([view source](app/src/services/tasks/configs.ts))
 When a Stello account is created or updated, config files will be uploaded to both the messages bucket (for displayer to access) and responses bucket (for responder function to access).
 
 Sensitive data includes:
@@ -93,7 +93,7 @@ Sensitive data includes:
 
 Config files are encrypted with a key that is included in every message URL. The displayer uses this key to decrypt the displayer's config and it also passes the key onto the responder when sending responses so it can in turn decrypt the responder's config. This ensures the contents of config files is protected while in storage and the key is never stored in cloud services and only temporarily available in memory.
 
-## Send
+## Sending ([view source](app/src/services/tasks/sending.ts))
 For every message that is sent, a unique copy with a unique key is created for every recipient and the key is never reused. The entire contents of the message is included in every copy except for some large assets (like images and files) which are encrypted using a key that is shared with all copies.
 
 Symmetric encryption is used and the key is included in the fragment identifier of the URL which takes the form:
@@ -102,20 +102,20 @@ Symmetric encryption is used and the key is included in the fragment identifier 
 
 Since the fragment identifier is by nature of browsers never sent over HTTP the secrets are never transmitted to the server storing the encrypted messages.
 
-## View
+## Viewing ([view source](displayer/src/services/store.ts))
 The displayer component of Stello is a webpage that examines the fragment identifier, fetches the message identified in it, and decrypts it with the secret which is also included in the fragment identifier. It then displays the message by rendering it as HTML.
 
 It does all of this via JavaScript with nothing done server-side.
 
-## Respond
+## Responding ([view source]((displayer/src/services/responses.ts)))
 Responses are encrypted using the public key stored in the config file. Some data is not encrypted when it is needed by the responder function (such as to expire a message it needs to know its id).
 
 <small>Users can optionally configure responses to be sent unencrypted to the responder function so that the contents can be sent in notification emails, but the contents is then still encrypted before being stored in the responses bucket.</small>
 
 Responses are not able to be kept by the person responding and are lost to them once the browser session ends, so that the Stello user has complete control of all information sent and received rather than recipients.
 
-## Cryptography
-AES-GCM is used for symmetric encryption and RSA-OAEP is used for asymmetric encryption (in combination with AES-GCM).
+## Cryptography ([view source](app/src/services/utils/crypt.ts))
+AES-GCM is used for symmetric encryption and RSA-OAEP is used for asymmetric encryption (in combination with AES-GCM). SHA-256 is used for hashes.
 
 ### End-to-end encryption
 
@@ -124,4 +124,4 @@ Stello is end-to-end encrypted in the sense that the platform that stores and tr
 1. Most people use email to send Stello messages and so Stello is in many ways only as secure as the platform used to send the links to the Stello messages (though it does add expiry)
 2. The decryption code is served by the server that also stores the encrypted files, such that an infiltrated server could modify the decryption code to transmit unencrypted data somewhere
     * An encrypted messaging app publishing a malicious app update would be similar to this, though harder to pull off
-    * A Content Security Policy header has been added to prevent the transmission of data to an external server
+    * A [Content Security Policy header](host/template_base.yml) has been added to prevent the transmission of data to an external server
