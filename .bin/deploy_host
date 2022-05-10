@@ -4,6 +4,10 @@ set -e
 cd "$(dirname "$(dirname "$0")")"
 
 
+# Note deploy env
+echo "Deploying to ${1:-dev} environment"
+
+
 # Build cloudformation template
 node_modules/.bin/ts-node host/template_builder.ts
 
