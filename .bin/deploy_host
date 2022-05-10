@@ -5,7 +5,8 @@ cd "$(dirname "$(dirname "$0")")"
 
 
 # Note deploy env
-echo "Deploying to ${1:-dev} environment"
+env=${1:-dev}
+echo "Deploying to $env environment"
 
 
 # Build cloudformation template
@@ -17,7 +18,7 @@ node_modules/.bin/ts-node host/template_builder.ts
 
 
 # Load in env vars for deployment
-source deploy_host_${1:-dev}.env
+source deploy_host_${env}.env
 read -s -p "AWS_SECRET_ACCESS_KEY: "
 export AWS_SECRET_ACCESS_KEY="$REPLY"
 echo  # Password input doesn't look like it worked otherwise (as silenced)
@@ -26,7 +27,7 @@ echo "Deploying..."
 
 # Deploy services
 cd host
-sam deploy --no-fail-on-empty-changeset --config-file template_input.toml --config-env deployed_${1:-dev}
+sam deploy --no-fail-on-empty-changeset --config-file template_input.toml --config-env deployed_${env}
 
 
 # SetPrincipalTagAttributeMap not supported by CloudFormation yet
