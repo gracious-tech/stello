@@ -3,8 +3,12 @@
 set -e
 cd "$(dirname "$(dirname "$0")")"
 
+# Note deploy env
+env=${1:-dev}
+echo "Deploying displayer to $env environment"
+
 # Load in env vars for deployment
-source deploy_host_${1:-dev}.env
+source deploy_host_${env}.env
 read -s -p "AWS_SECRET_ACCESS_KEY: "
 export AWS_SECRET_ACCESS_KEY="$REPLY"
 echo  # Password input doesn't look like it worked otherwise (as silenced)
