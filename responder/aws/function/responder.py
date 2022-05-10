@@ -50,7 +50,6 @@ if SELF_HOSTED:
 else:
     DOMAIN_BRANDED = os.environ['stello_domain_branded']
     DOMAIN_UNBRANDED = os.environ['stello_domain_unbranded']
-    DOMAIN_GENERIC = os.environ['stello_domain_generic']
 
 
 # Setup Rollbar
@@ -99,8 +98,6 @@ def entry(api_event, context):
         allowed_root = DOMAIN_BRANDED
         if root_origin == DOMAIN_UNBRANDED:
             allowed_root = DOMAIN_UNBRANDED
-        if root_origin == DOMAIN_GENERIC:
-            allowed_root = DOMAIN_GENERIC
         allowed_origin = f'https://{user}.{allowed_root}'
 
     # If origin not allowed, 403 to prevent further processing of the request

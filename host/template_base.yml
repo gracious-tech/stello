@@ -10,8 +10,6 @@ Parameters:
         Type: String
     InputRollbarAccounts:
         Type: String
-    InputDomainGeneric:  # TODO Remove start of July 2022
-        Type: String
     InputDomainBranded:
         Type: String
     InputDomainUnbranded:
@@ -75,7 +73,6 @@ Resources:
                     -   AllowedMethods: [GET]
                         # NOTE CORS Doesn't allow wildcard subdomain so S3 will return exact value
                         AllowedOrigins:
-                            -   !Join ['', ['https://*.', !Ref InputDomainGeneric]]
                             -   !Join ['', ['https://*.', !Ref InputDomainBranded]]
                             -   !Join ['', ['https://*.', !Ref InputDomainUnbranded]]
             LifecycleConfiguration:
@@ -129,7 +126,6 @@ Resources:
                 Enabled: true
                 HttpVersion: http2  # Requires TLS 1.2
                 Aliases:
-                    -   !Join ['', ['*.', !Ref InputDomainGeneric]]
                     -   !Join ['', ['*.', !Ref InputDomainBranded]]
                     -   !Join ['', ['*.', !Ref InputDomainUnbranded]]
                 DefaultRootObject: index.html
@@ -195,7 +191,7 @@ Resources:
                             + "img-src 'self' blob:;"
                             + "script-src 'self';"
                             + "style-src 'self' 'sha256-m3bHFeKa8uX6CBIajTT4DOIbdgboFfvwKX4j4PBJobM=' 'unsafe-hashes' 'sha256-tbWZ4NP1341cpcrZVDn7B3o9bt/muXgduILAnC0Zbaw=';"
-                            + "connect-src 'self' https://api.${InputDomainGeneric} https://api.${InputDomainBranded} https://api.${InputDomainUnbranded} https://${MessagesBucket.RegionalDomainName} https://api.rollbar.com;"
+                            + "connect-src 'self' https://api.${InputDomainBranded} https://api.${InputDomainUnbranded} https://${MessagesBucket.RegionalDomainName} https://api.rollbar.com;"
                             + "frame-src https://www.youtube-nocookie.com https://player.vimeo.com;"
                     }
                     return event.response
@@ -222,21 +218,6 @@ Resources:
             DomainName: !Join ['', ['api.', !Ref InputDomainUnbranded]]
             Stage: !Ref Gateway.Stage
 
-    GatewayDomainApi:
-        # TODO Rm
-        Type: AWS::ApiGatewayV2::ApiMapping
-        Properties:
-            ApiId: !Ref Gateway
-            DomainName: !Join ['', ['api.', !Ref InputDomainGeneric]]
-            Stage: !Ref Gateway.Stage
-
-    GatewayDomainMap:
-        # TODO Rm (last used in v1.0.3)
-        Type: AWS::ApiGatewayV2::ApiMapping
-        Properties:
-            ApiId: !Ref Gateway
-            DomainName: !Join ['', ['api.at.', !Ref InputDomainGeneric]]
-            Stage: !Ref Gateway.Stage
 
     # RESPONDER
 
@@ -263,7 +244,6 @@ Resources:
                     stello_rollbar_responder: !Ref InputRollbarResponder
                     stello_domain_branded: !Ref InputDomainBranded
                     stello_domain_unbranded: !Ref InputDomainUnbranded
-                    stello_domain_generic: !Ref InputDomainGeneric
 
     InviterImage:
         # NOTE For simpler deployment, inviter code is embedded in responder
@@ -288,7 +268,6 @@ Resources:
                     stello_rollbar_responder: !Ref InputRollbarResponder
                     stello_domain_branded: !Ref InputDomainBranded
                     stello_domain_unbranded: !Ref InputDomainUnbranded
-                    stello_domain_generic: !Ref InputDomainGeneric
             Policies:
                 -   Version: '2012-10-17'
                     Statement:
@@ -318,7 +297,6 @@ Resources:
                     stello_rollbar_responder: !Ref InputRollbarResponder
                     stello_domain_branded: !Ref InputDomainBranded
                     stello_domain_unbranded: !Ref InputDomainUnbranded
-                    stello_domain_generic: !Ref InputDomainGeneric
             Policies:
                 -   Version: '2012-10-17'
                     Statement:
@@ -359,7 +337,6 @@ Resources:
                     stello_rollbar_responder: !Ref InputRollbarResponder
                     stello_domain_branded: !Ref InputDomainBranded
                     stello_domain_unbranded: !Ref InputDomainUnbranded
-                    stello_domain_generic: !Ref InputDomainGeneric
             Policies:
                 -   Version: '2012-10-17'
                     Statement:
@@ -400,7 +377,6 @@ Resources:
                     stello_rollbar_responder: !Ref InputRollbarResponder
                     stello_domain_branded: !Ref InputDomainBranded
                     stello_domain_unbranded: !Ref InputDomainUnbranded
-                    stello_domain_generic: !Ref InputDomainGeneric
             Policies:
                 -   Version: '2012-10-17'
                     Statement:
@@ -441,7 +417,6 @@ Resources:
                     stello_rollbar_responder: !Ref InputRollbarResponder
                     stello_domain_branded: !Ref InputDomainBranded
                     stello_domain_unbranded: !Ref InputDomainUnbranded
-                    stello_domain_generic: !Ref InputDomainGeneric
             Policies:
                 -   Version: '2012-10-17'
                     Statement:
@@ -475,7 +450,6 @@ Resources:
                     stello_rollbar_responder: !Ref InputRollbarResponder
                     stello_domain_branded: !Ref InputDomainBranded
                     stello_domain_unbranded: !Ref InputDomainUnbranded
-                    stello_domain_generic: !Ref InputDomainGeneric
             Policies:
                 -   Version: '2012-10-17'
                     Statement:
@@ -509,7 +483,6 @@ Resources:
                     stello_rollbar_responder: !Ref InputRollbarResponder
                     stello_domain_branded: !Ref InputDomainBranded
                     stello_domain_unbranded: !Ref InputDomainUnbranded
-                    stello_domain_generic: !Ref InputDomainGeneric
             Policies:
                 -   Version: '2012-10-17'
                     Statement:
