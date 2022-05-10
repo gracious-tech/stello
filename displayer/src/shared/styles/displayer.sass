@@ -10,7 +10,7 @@
 
     // INHERITED
 
-    line-height: 1.65
+    line-height: 1.65  // Update p/h1 min-height if change this
     overflow-wrap: break-word  // Prevent layout breaks due to long words (like URLs)
     font-family: var(--stello-font)
     font-size: 18px
@@ -20,6 +20,9 @@
 
 
     // REGULAR ELEMENTS
+
+    p, h1
+        min-height: 1.65em  // Prevent empty paragraphs/headings from not having any height
 
     p, blockquote, h1, h2, ul, ol
         margin-top: 0  // Override browser default
