@@ -9,7 +9,7 @@ div
 
     div.filters(class='app-bg-primary-relative')
         div.inner(class='d-flex justify-space-around align-center pa-3')
-            app-switch(v-model='filter_current' label="Hide archived" dark)
+            app-switch(v-model='filter_current' label="Hide archived" dark class='mb-0 mr-2')
             app-select(v-model='filter_contact' :items='contacts_ui' label="Contact" outlined dense
                 clearable append-icon='' dark)
             app-select(v-model='filter_message' :items='messages_ui' label="Message" outlined dense
