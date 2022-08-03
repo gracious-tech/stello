@@ -232,6 +232,9 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+@import 'src/styles/utils.sass'
+
+
 .root
 
     // Default to displaying top elements over each other (menu and image)
@@ -243,7 +246,7 @@ export default class extends Vue {
     .menu
         visibility: hidden
         opacity: 0.5
-        background-color: rgba(black, 0.7)
+        @include themed(background-color, #fffd, #000d)
         border-radius: 24px
         margin: 12px
         z-index: 10  // Appear over Croppr
