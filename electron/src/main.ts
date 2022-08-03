@@ -3,14 +3,27 @@
 // Setup error reporting before all else
 import './setup/errors'
 
+import {join} from 'path'
 // WARN Electron overrides `fs` module with magic for asar files, which breaks `access()` test
-import {promises as fs, constants as fs_constants} from 'original-fs'
+import {promises as fs, constants as fs_constants, existsSync} from 'original-fs'
 
 import {app, BrowserWindow, dialog, session} from 'electron'
 import {autoUpdater} from 'electron-updater'
 
 import {get_path, TESTING} from './utils/config'
 import {activate_app, open_window} from './utils/window'
+
+
+// Determine where app is, whether a single file (appimage) or a dir
+// NOTE If an AppImage, need to set to the AppImage file rather than currently unpackaged code
+const app_path = process.env['APPIMAGE'] || app.getAppPath()
+
+
+// Portable support (if data dir exists next to app then use it)
+const portable_data = join(app_path, '../', 'stello_data')
+if (existsSync(portable_data)){
+    app.setPath('userData', portable_data)
+}
 
 
 // Don't open if another instance of Stello is already running
@@ -78,8 +91,6 @@ void app.whenReady().then(async () => {
         setInterval(check_for_updates, 1000 * 60 * 60 * 24)
 
         // Warn if app cannot overwrite itself (and .'. can't update)
-        // NOTE If an AppImage, need to test the AppImage file rather than currently unpackaged code
-        const app_path = process.env['APPIMAGE'] || app.getAppPath()
         try {
             await fs.access(app_path, fs_constants.W_OK)
         } catch (error){
