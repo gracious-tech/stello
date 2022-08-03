@@ -5,11 +5,15 @@ div
     v-toolbar
         app-btn(to='../' icon='arrow_back')
         template(v-if='draft')
-            input.msg-title(v-model.trim='title' placeholder="Subject...")
+            input.msg-title(v-model.trim='title' placeholder="Type subject here...")
             app-btn(v-if='draft.template' @click='copy_to_draft' fab icon='post_add'
                 data-tip="Use for new draft" data-tip-instant)
             app-btn(v-else @click='send' :class='{barrier: sending_barrier}' icon='send' fab
                 :data-tip='sending_barrier' data-tip-instant)
+
+    div(v-if='draft && draft.template'
+            class='text-center pa-2 text-caption warning font-weight-bold')
+        | This is only a template (use it for a new draft to send it)
 
     div.meta(v-if='draft' class='app-bg-primary-relative')
         div.inner(class='d-flex align-center')
