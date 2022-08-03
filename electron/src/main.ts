@@ -51,21 +51,31 @@ void app.whenReady().then(async () => {
     let update_downloaded = false
     if (app.isPackaged && (process.platform === 'darwin' || process.env['APPIMAGE'])){
 
-        // Check for updates
-        // WARN Always do this, otherwise can end up with an unupdatable installation
-        //      e.g. `fs.access` test in past has had a bug and was actually fine to update
+        // Configure auto-updater
         autoUpdater.setFeedURL({
             provider: 'generic',
             url: 'https://releases.encrypted.news/electron/',
         })
-        void autoUpdater.checkForUpdatesAndNotify().then(result => {
-            // Update variable when download done
-            result?.downloadPromise?.then(() => {
-                update_downloaded = true
-                // Notify app
-                BrowserWindow.getAllWindows()[0]?.webContents.send('update_ready')
+        const check_for_updates = () => {
+            if (update_downloaded){
+                return  // Don't repeat if already downloaded an update
+            }
+            void autoUpdater.checkForUpdatesAndNotify().then(result => {
+                // Update variable when download done
+                void result?.downloadPromise?.then(() => {
+                    update_downloaded = true
+                    // Notify app
+                    BrowserWindow.getAllWindows()[0]?.webContents.send('update_ready')
+                })
             })
-        })
+        }
+
+        // Check for updates
+        // WARN Always do this, otherwise can end up with an unupdatable installation
+        //      e.g. `fs.access` test in past has had a bug and was actually fine to update
+        check_for_updates()
+        // Check every day, as Mac users especially often leave programs open forever
+        setInterval(check_for_updates, 1000 * 60 * 60 * 24)
 
         // Warn if app cannot overwrite itself (and .'. can't update)
         // NOTE If an AppImage, need to test the AppImage file rather than currently unpackaged code
