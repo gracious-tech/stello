@@ -15,12 +15,21 @@ import {activate_app, open_window} from './utils/window'
 
 
 // Determine where app is, whether a single file (appimage) or a dir
+/* getAppPath() results differ by env:
+    dev: stello_app/electron
+    Linux: tmp location (use APPIMAGE env var)
+    Mac: Stello.app/Contents/Resources/app.asar
+    Windows: StelloByGraciousTech/app/resources/app.asar
+*/
 // NOTE If an AppImage, need to set to the AppImage file rather than currently unpackaged code
-const app_path = process.env['APPIMAGE'] || app.getAppPath()
+let app_path = join(app.getAppPath(), '..')
+if (app.isPackaged){
+    app_path = process.env['APPIMAGE'] || join(app.getAppPath(), '..', '..', '..')
+}
 
 
 // Portable support (if data dir exists next to app then use it)
-const portable_data = join(app_path, '../', 'stello_data')
+const portable_data = join(app_path, '..', 'stello_data')
 if (existsSync(portable_data)){
     app.setPath('userData', portable_data)
 }
