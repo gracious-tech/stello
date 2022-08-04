@@ -58,5 +58,5 @@ export interface StateTmpDialog {
     persistent?:boolean
     wide?:boolean
     tall?:boolean
-    resolve:(v?:unknown)=>void
+    resolve?:(v?:unknown)=>void  // Added by show_dialog action
 }

@@ -82,7 +82,7 @@ async function get_store_options(db:Database):Promise<StoreOptions<AppStoreState
                 if (state.tmp.dialog.persistent && !dialog.persistent){
                     return  // Ignore request to open dialog
                 } else {
-                    state.tmp.dialog.resolve()
+                    state.tmp.dialog.resolve!()
                 }
             }
 

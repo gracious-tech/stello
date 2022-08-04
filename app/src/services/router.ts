@@ -73,7 +73,7 @@ export function get_router(store:Store<AppStoreState>){
 
         // Close any dialogs that are open (simplifies adding links in dialogs)
         if (store.state.tmp.dialog){
-            store.state.tmp.dialog.resolve()
+            store.state.tmp.dialog.resolve!()
         }
     }))
 
