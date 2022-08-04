@@ -9,12 +9,13 @@ div
         //- Steps component inserts username field here
 
     h2(class='text-subtitle-2 mb-0 mt-8') Emailed invitation
-    app-invite-html(v-model='invite_tmpl_email' :image='invite_image' :profile='profile'
-        @change_image='change_image')
+    app-invite-html(v-model='invite_tmpl_email' :button='invite_button' :image='invite_image'
+        :profile='profile' @input_button='invite_button = $event' @change_image='change_image')
     template(v-if='!steps')
         h2(class='text-subtitle-2 mb-0 mt-8') Emailed reply
-        app-invite-html(v-model='reply_invite_tmpl_email' :image='reply_invite_image'
-            :profile='profile' @change_image='change_reply_image' reply)
+        app-invite-html(v-model='reply_invite_tmpl_email' :button='reply_invite_button'
+            :image='reply_invite_image' :profile='profile'
+            @input_button='reply_invite_button = $event' @change_image='change_reply_image')
         app-invite-text(v-model='invite_tmpl_clipboard' :context='{sender: sender_name}')
 
 </template>
@@ -80,6 +81,22 @@ export default class extends Vue {
     }
     set reply_invite_tmpl_email(value){
         this.profile.options.reply_invite_tmpl_email = value
+        void this.save()
+    }
+
+    get invite_button(){
+        return this.profile.msg_options_identity.invite_button
+    }
+    set invite_button(value){
+        this.profile.msg_options_identity.invite_button = value
+        void this.save()
+    }
+
+    get reply_invite_button(){
+        return this.profile.options.reply_invite_button
+    }
+    set reply_invite_button(value){
+        this.profile.options.reply_invite_button = value
         void this.save()
     }
 

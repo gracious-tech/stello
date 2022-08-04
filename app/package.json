@@ -27,6 +27,7 @@
     "chart.js": "^3.7.1",
     "chartjs-plugin-annotation": "^1.4.0",
     "chartjs-plugin-datalabels": "^2.0.0",
+    "chroma-js": "^2.4.2",
     "date-fns": "^2.25.0",
     "dnm-croppr": "^2.7.3",
     "idb": "^6.1.5",
@@ -49,6 +50,7 @@
     "vuex": "^3.6.2"
   },
   "devDependencies": {
+    "@types/chroma-js": "^2.1.4",
     "@types/lodash": "^4.14.177",
     "@types/papaparse": "^5.3.1",
     "@types/pug": "^2.0.5",
@@ -109,6 +111,7 @@
         "chart.js",
         "chartjs-plugin-annotation",
         "chartjs-plugin-datalabels",
+        "chroma-js",
         "date-fns",
         "dnm-croppr",
         "idb/with-async-ittr.js",

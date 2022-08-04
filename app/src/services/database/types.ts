@@ -73,6 +73,7 @@ export interface RecordProfile {
         invite_image:Blob
         invite_tmpl_email:string
         invite_tmpl_clipboard:string
+        invite_button:string
     }
     msg_options_security:{
         lifespan:number  // NOTE may be Infinity
@@ -137,6 +138,7 @@ export interface RecordProfileOptions {
     reaction_options:('like'|'love'|'yay'|'pray'|'laugh'|'wow'|'sad')[]
     reply_invite_image:Blob  // Used for inheritance for replies instead of invite_image
     reply_invite_tmpl_email:string  // Used for inheritance for replies instead of invite_tmpl_email
+    reply_invite_button:string
     theme_style:ThemeStyle
     theme_color:ThemeColor
 }
@@ -159,6 +161,7 @@ export interface RecordDraft {
         invite_image:Blob|null
         invite_tmpl_email:string|null
         invite_tmpl_clipboard:null  // TODO remove, not used
+        invite_button:string  // No null as empty string triggers inheritance
     }
     options_security:{
         lifespan:number|null  // NOTE may be Infinity (null used for inheritance)

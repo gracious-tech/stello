@@ -1,4 +1,5 @@
 
+import chroma from 'chroma-js'
 import {escape as html_escape} from 'lodash'  // Avoid deprecated global `escape()`
 
 import {MessageCopy} from '@/services/database/copies'
@@ -7,21 +8,41 @@ import {replace_without_overlap} from '@/services/utils/strings'
 import {buffer_to_url64} from '@/services/utils/coding'
 
 
-// WARN Don't use 'em' sizing as SpamAssassin thinks it's hiding words when less than 0 (e.g. 0.8em)
-// See https://github.com/apache/spamassassin/blob/d092a416336117b34ca49ef57be31b8c0b5b0422/rulesrc/sandbox/jhardin/20_misc_testing.cf#L2569
+// Invite dimensions
 export const INVITE_HTML_MAX_WIDTH = 600
 export const INVITE_IMG_HEIGHT = INVITE_HTML_MAX_WIDTH / 3
-export const INVITE_HTML_CONTAINER_STYLES =
-    `border-radius: 12px; max-width: ${INVITE_HTML_MAX_WIDTH}px; margin: 0 auto;`
-    + 'background-color: rgba(127, 127, 127, 0.15);'
-// NOTE Some clients (e.g. Thunderbird) don't respect img aspect ratio, so max-height helps control
-export const INVITE_HTML_IMAGE_STYLES =
-    `border-radius: 12px 12px 0 0; width: 100%; height: auto; border-bottom: 1px solid #cccccc;`
-    + `max-height: ${INVITE_IMG_HEIGHT}px; background-color: #ddeeff`
 
 
-export function render_invite_html(contents:string, url:string, image:string,
-        reply:boolean, encrypted_address?:string):string{
+export function gen_invite_styles(hue:number){
+    // Generate styles for the different elements in a HTML invite
+
+    // Get RGB hex values for hue (since Outlook can't understand anything else)
+    // NOTE Sometimes still use rgba/hsla etc if can't do via hex and not super important
+    // NOTE lightness exact middle to support both light/dark themes
+    const bg_color = chroma.hsl(hue, 0.2, 0.5).hex()
+    const button_color = chroma.hsl(hue, 0.8, 0.5).hex()
+
+    // WARN Don't use 'em' as SpamAssassin thinks it's hiding words when less than 0 (e.g. 0.8em)
+    // See https://github.com/apache/spamassassin/blob/d092a416336117b34ca49ef57be31b8c0b5b0422/rulesrc/sandbox/jhardin/20_misc_testing.cf#L2569
+    return {
+        container: `border-radius: 12px; max-width: ${INVITE_HTML_MAX_WIDTH}px; margin: 0 auto;`
+            + 'background-color: rgba(127, 127, 127, 0.15);',
+        // NOTE Some clients (e.g. Thunderbird) don't respect img aspect ratio, so max-height helps
+        image: `border-radius: 12px 12px 0 0; width: 100%; height: auto;`
+            + `background-color: ${bg_color}`
+            + `border-bottom: 1px solid #888888; max-height: ${INVITE_IMG_HEIGHT}px;`,
+        hr: `margin: 0; border-style: solid; border-color: #888888;`
+            + `border-width: 1px 0 0 0;`,
+        action: `border-radius: 0 0 12px 12px; padding: 36px 0; text-align: center;`
+            + `background-color: ${bg_color};`,
+        button: `padding: 12px 0; border-radius: 12px; text-decoration: none;`
+            + `font-family: sans-serif; background-color: ${button_color};`,
+    }
+}
+
+
+export function render_invite_html(contents:string, url:string, image:string, button:string,
+        hue:number, encrypted_address?:string):string{
     // Render a HTML invite template with the provided contents
     // NOTE Header image must be wrapped in <a> to prevent gmail showing download button for it
     // NOTE Styles are inline so preserved when replying/forwarding
@@ -29,6 +50,17 @@ export function render_invite_html(contents:string, url:string, image:string,
     // NOTE Some styles must be directly on elements to not be overriden (e.g. color on <a>)
     // NOTE Outlook desktop is the worst client and some things (bg etc) don't work on it
     // WARN Must always test on Outlook desktop/iMail/Gmail/Thunderbird/etc whenever changed
+
+    // Notes for action area
+    // NOTE Button gets lighter colors in dark mode, but won't show up in app's previews
+    // NOTE &nbsp; used instead of horizontal padding as Outlook doesn't support padding
+    // NOTE mso-text-raise is used to add vertical padding for Outlook
+    //      First nbsp is raised 20pt to add that much vertical space, actual text half to center
+
+    // Generate styles
+    const styles = gen_invite_styles(hue)
+
+    // Generate HTML for subscription links if address provided
     let subscription_links = ''
     if (encrypted_address){
         const unsub_url = `${url},unsub,${encrypted_address}`
@@ -51,55 +83,29 @@ export function render_invite_html(contents:string, url:string, image:string,
         <html>
         <head>
             <meta name='color-scheme' content='light dark'>
-            <style>
-                @media (prefers-color-scheme: dark){
-                    .button {
-                        background-color: #bbddff !important;
-                        color: #000000 !important;
-                    }
-                }
-            </style>
         </head>
         <body style='padding-top: 4px; padding-bottom: 150px;'>
-            <div style='${INVITE_HTML_CONTAINER_STYLES}'>
+            <div style='${styles.container}'>
                 <a href='${html_escape(url)}'>
                     <img src='${html_escape(image)}' height='${INVITE_IMG_HEIGHT}'
-                        width='${INVITE_HTML_MAX_WIDTH}' style='${INVITE_HTML_IMAGE_STYLES}'>
+                        width='${INVITE_HTML_MAX_WIDTH}' style='${styles.image}'>
                 </a>
                 <div style='padding: 16px;'>
                     ${contents}
                 </div>
-                ${render_invite_html_action(url, reply)}
+                <hr style='${styles.hr}'>
+                <div style='${styles.action}'>
+                    <a href='${html_escape(url)}' style='${styles.button}'>
+                        <span style='mso-text-raise: 20pt;'>&nbsp;</span>
+                        &nbsp;
+                        <strong style='mso-text-raise: 10pt;'>${html_escape(button)}</strong>
+                        &nbsp;&nbsp;
+                    </a>
+                </div>
             </div>
             ${subscription_links}
         </body>
         </html>
-    `
-}
-
-
-export function render_invite_html_action(url:string, reply:boolean):string{
-    // Return html for the action footer of a html invite
-    // NOTE Button gets lighter colors in dark mode, but won't show up in app's previews
-    // NOTE &nbsp; used instead of horizontal padding as Outlook doesn't support padding
-    // NOTE mso-text-raise is used to add vertical padding for Outlook
-    //      First nbsp is raised 20pt to add that much vertical space, actual text half to center
-    return `
-        <hr style='margin: 0; border-style: solid; border-color: #cccccc; border-width: 1px 0 0 0;'>
-
-        <div style='border-radius: 0 0 12px 12px; background-color: rgba(87, 127, 167, 0.3);
-                padding: 36px 0; text-align: center;'>
-
-            <a class='button' href='${html_escape(url)}' style='background-color: #114488;
-                    color: #ffffff; padding: 12px 0; border-radius: 12px; text-decoration: none;
-                    font-family: sans-serif;'>
-                <span style='mso-text-raise: 20pt;'>&nbsp;</span>
-                &nbsp;
-                <strong style='mso-text-raise: 10pt;'>Open ${reply ? "Reply" : "Message"}</strong>
-                &nbsp;&nbsp;
-            </a>
-
-        </div>
     `
 }
 

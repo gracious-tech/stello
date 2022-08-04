@@ -6,7 +6,7 @@ import {AppDatabaseConnection, VersionChangeTransaction} from './types'
 import {to_12_from_1plus, to_12_from_1plus_async} from './migrations_pre12'
 
 
-export const DATABASE_VERSION = 17
+export const DATABASE_VERSION = 18
 
 
 export async function migrate(transaction:VersionChangeTransaction,
@@ -28,6 +28,8 @@ export async function migrate(transaction:VersionChangeTransaction,
         await to_16(transaction)
     if (old_version < 17)
         await to_17(transaction)
+    if (old_version < 18)
+        await to_18(transaction)
 }
 
 
@@ -223,6 +225,25 @@ export async function to_17(transaction:VersionChangeTransaction){
     // New allow_comments option for profiles
     for await (const cursor of transaction.objectStore('profiles')){
         cursor.value.options.allow_comments = cursor.value.options.allow_replies
+        await cursor.update(cursor.value)
+    }
+}
+
+
+export async function to_18(transaction:VersionChangeTransaction){
+
+    // Add invite_button properties to profiles and drafts
+    for await (const cursor of transaction.objectStore('profiles')){
+        cursor.value.msg_options_identity.invite_button = "Open Message"
+        cursor.value.options.reply_invite_button = "Open Reply"
+        await cursor.update(cursor.value)
+    }
+    for await (const cursor of transaction.objectStore('drafts')){
+        cursor.value.options_identity.invite_button = ''
+        await cursor.update(cursor.value)
+    }
+    for await (const cursor of transaction.objectStore('messages')){
+        cursor.value.draft.options_identity.invite_button = ''
         await cursor.update(cursor.value)
     }
 }

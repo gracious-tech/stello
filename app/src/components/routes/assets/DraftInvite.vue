@@ -3,8 +3,9 @@
 
 div.invite(class='d-flex' :class='{"flex-column": draft_tmpl}')
     template(v-if='draft_tmpl')
-        app-invite-html.custom(v-model='draft_tmpl' :image='image' :profile='profile' :draft='draft'
-            @change_image='change_image' :reply='!!draft.reply_to')
+        app-invite-html.custom(v-model='draft_tmpl' :button='invite_button'
+            :button_default='default_button' :image='image' :profile='profile' :draft='draft'
+            @change_image='change_image' @input_button='invite_button = $event')
         div(class='text-center mb-2')
             app-btn(@click='revert' small color='') Revert to default
     template(v-else)
@@ -49,6 +50,14 @@ export default class extends Vue {
         return URL.createObjectURL(this.image)
     }
 
+    get invite_button():string{
+        return this.draft.options_identity.invite_button
+    }
+    set invite_button(value:string){
+        this.draft.options_identity.invite_button = value
+        this.save()
+    }
+
     get draft_tmpl():string|null{
         // Access to draft's customised invite tmpl for email
         return this.draft.options_identity.invite_tmpl_email
@@ -76,6 +85,12 @@ export default class extends Vue {
             "CONTACT'S NAME", "CONTACT'S FULL NAME", sender_name, this.draft.title, new Date(),
             max_reads, lifespan,
         ))
+    }
+
+    get default_button():string{
+        // The default text for the button, depending on if a reply or not
+        return this.draft.reply_to ? this.profile.options.reply_invite_button
+            : this.profile.msg_options_identity.invite_button
     }
 
     async change_image():Promise<void>{

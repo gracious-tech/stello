@@ -113,6 +113,15 @@ export class Sender {
         return (this.msg.draft.options_identity.invite_image ?? default_image).arrayBuffer()
     }
 
+    get invite_button():string{
+        // Get invite button text, accounting for inheritance from profile
+        const default_button = this.msg.draft.reply_to
+            ? this.profile.options.reply_invite_button
+            : this.profile.msg_options_identity.invite_button
+        // WARN Value will be '' to inherit so must use `||` and not `??`
+        return this.msg.draft.options_identity.invite_button || default_button
+    }
+
     get invite_tmpl_email():string{
         // Get invite tmpl for email, accounting for inheritance from profile
         const default_tmpl = this.msg.draft.reply_to
@@ -368,8 +377,8 @@ export class Sender {
             from: {name: this.sender_name, address: this.profile.email},
             reply_to: this.profile.smtp_reply_to,
             subject: this.msg.draft.title,
-            html: render_invite_html(contents, url, image, !!this.msg.draft.reply_to,
-                encrypted_address),
+            html: render_invite_html(contents, url, image, this.invite_button,
+                this.profile.options.theme_color.h, encrypted_address),
         })
 
         // Update copy

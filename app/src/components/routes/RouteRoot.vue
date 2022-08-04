@@ -12,13 +12,8 @@ div
 
         v-card(class='pa-4')
             v-card-title(class='justify-center') New &amp; upcoming features
-            div(class='text-center')
-                p
-                    | Lots of new features have recently been added to Stello!
-                    | <br>Check them all out in the example message in the new Stello Guide.
-                app-btn(href='https://stello.news/guide/' raised small) Stello Guide
             v-list
-                v-subheader Now available
+                v-subheader Recently added
                 v-list-item(v-for='feature of added' :key='feature.title')
                     v-list-item-content
                         v-list-item-title {{ feature.title }}
@@ -66,12 +61,8 @@ export default class extends Vue {
 
     added = [
         {
-            title: "File attachments",
-            desc: "Add encrypted files to your messages for readers to open/download",
-        },
-        {
-            title: "Charts",
-            desc: "Add interactive charts to messages",
+            title: "Customise invitation buttons",
+            desc: 'Replace "Open Message" with text of your choice',
         },
     ]
     todo = [

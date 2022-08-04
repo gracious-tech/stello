@@ -18,6 +18,7 @@ export class Draft implements RecordDraft {
         invite_image:Blob|null
         invite_tmpl_email:string|null
         invite_tmpl_clipboard:null  // TODO rm, not used
+        invite_button:string
     }
     options_security!:{
         lifespan:number|null
@@ -76,6 +77,7 @@ export class DatabaseDrafts {
                 invite_image: null,
                 invite_tmpl_email: null,
                 invite_tmpl_clipboard: null,
+                invite_button: '',
             },
             options_security:{
                 // null to inherit from profile

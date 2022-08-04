@@ -5,7 +5,7 @@ import 'fake-indexeddb/auto'  // WARN Must import before indexeddb accessed
 import {expect, test} from '@playwright/test'
 
 import {migrate, migrate_async, DATABASE_VERSION, to_12_from_0, _to1_creates, to_13, to_14,
-    to_14_async, to_15, to_16, to_17} from './migrations'
+    to_14_async, to_15, to_16, to_17, to_18} from './migrations'
 import {STORES_V12, STORES_LATEST, test_stores, open_db, to_12_from_1, to_12_from_11}
     from './migrations.test_utils'
 
@@ -189,6 +189,33 @@ test.describe('migrate', async () => {
         // Expect allow_comments to exist and default to same as allow_replies
         expect((await db.get('profiles', 'true'))?.options.allow_comments).toBe(true)
         expect((await db.get('profiles', 'false'))?.options.allow_comments).toBe(false)
+    })
+
+    test('to_18', async () => {
+
+        // Setup
+        let db = await open_db('to_18', 17, async t => {
+            await to_12_from_0(t)
+            await to_13(t)
+            await to_14(t)
+            await to_15(t)
+            await to_16(t)
+            await to_17(t)
+        })
+        await db.put('profiles', {id: 'id', options: {}, msg_options_identity: {}} as any)
+        await db.put('drafts', {id: 'id', options_identity: {}} as any)
+        await db.put('messages', {id: 'id', draft: {options_identity: {}}} as any)
+
+        // Migrate
+        db.close()
+        db = await open_db('to_18', 18, to_18)
+
+        // Expect invite_button properties to exist
+        expect((await db.get('profiles', 'id'))?.msg_options_identity.invite_button)
+            .toBe("Open Message")
+        expect((await db.get('profiles', 'id'))?.options.reply_invite_button).toBe("Open Reply")
+        expect((await db.get('drafts', 'id'))?.options_identity.invite_button).toBe('')
+        expect((await db.get('messages', 'id'))?.draft.options_identity.invite_button).toBe('')
     })
 
 })

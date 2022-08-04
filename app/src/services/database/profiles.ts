@@ -100,6 +100,7 @@ export class Profile implements RecordProfile {
         invite_image:Blob
         invite_tmpl_email:string
         invite_tmpl_clipboard:string
+        invite_button:string
     }
     msg_options_security!:{
         lifespan:number
@@ -356,6 +357,7 @@ export class DatabaseProfiles {
                     <p>Hi <span data-mention data-id='contact_hello'></span>,</p>
                     <p><span data-mention data-id='sender_name'></span> has replied to you.</p>
                 `,
+                reply_invite_button: "Open Reply",
                 theme_style: 'modern',
                 theme_color: this.get_default_theme_color(),
             },
@@ -370,6 +372,7 @@ export class DatabaseProfiles {
                 invite_tmpl_clipboard: ""
                     + "Hi CONTACT, please see below for latest news. Regards, SENDER"
                     + "\n\nSUBJECT\nLINK",
+                invite_button: "Open Message",
             },
             msg_options_security: {
                 lifespan: 7,

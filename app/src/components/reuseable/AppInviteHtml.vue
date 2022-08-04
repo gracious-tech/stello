@@ -1,15 +1,18 @@
 
 <template lang='pug'>
 
-div.root(:style='container_styles')
+div.root(:style='styles.container')
     div.header(data-tip="Change invitation image" data-tip-instant)
-        img(:src='image_src' height='0' :style='image_styles' @click='$emit("change_image")')
+        img(:src='image_src' height='0' :style='styles.image' @click='$emit("change_image")')
     app-html.input(ref='editor' :value='value' :variables='variables'
         @input='$emit("input", $event)')
     div.security(class='d-flex align-items-center justify-end warning--text')
         app-svg(name='icon_error')
         span(class='ml-1 noselect') Invitation text never expires
-    div.action(v-html='action_html')
+    hr(:style='styles.hr')
+    div(:style='styles.action')
+        input.button(:value='button' :placeholder='button_default' :style='styles.button'
+            @input='button_input')
 
 </template>
 
@@ -19,8 +22,7 @@ div.root(:style='container_styles')
 import {Component, Prop, Vue} from 'vue-property-decorator'
 
 import {gen_variable_items} from '@/services/misc/templates'
-import {INVITE_HTML_CONTAINER_STYLES, INVITE_HTML_IMAGE_STYLES, render_invite_html_action}
-    from '@/services/misc/invites'
+import {gen_invite_styles} from '@/services/misc/invites'
 import {Profile} from '@/services/database/profiles'
 import {Draft} from '@/services/database/drafts'
 
@@ -29,13 +31,11 @@ import {Draft} from '@/services/database/drafts'
 export default class extends Vue {
 
     @Prop(String) declare readonly value:string
+    @Prop(String) declare readonly button:string
+    @Prop({type: String, default: ''}) declare readonly button_default:string
     @Prop({type: Blob}) declare readonly image:Blob
     @Prop({type: Profile, required: true}) declare readonly profile:Profile
     @Prop({type: Draft, default: null}) declare readonly draft:Draft
-    @Prop({type: Boolean, default: false}) declare readonly reply:boolean
-
-    container_styles = INVITE_HTML_CONTAINER_STYLES
-    image_styles = INVITE_HTML_IMAGE_STYLES
 
     get variables(){
         // Get template variables with actual and example data (where needed)
@@ -49,13 +49,22 @@ export default class extends Vue {
             max_reads, lifespan)
     }
 
+    get styles(){
+        return gen_invite_styles(this.profile.options.theme_color.h)
+    }
+
     get image_src(){
         return URL.createObjectURL(this.image)
     }
 
-    get action_html(){
-        // Get the html needed to render the action footer
-        return render_invite_html_action("", this.reply)
+    button_input(event:Event){
+        // Emit changes to button text
+        const target = event.target as HTMLInputElement
+        this.$emit("input_button", target.value)
+
+        // Autogrow width
+        target.style.width = '1px'  // Needed or will never reduce
+        target.style.width = `${target.scrollWidth}px`
     }
 }
 
@@ -99,7 +108,14 @@ export default class extends Vue {
         width: 20px
         height: 20px
 
-.action
-    pointer-events: none  // Don't allow clicking open button
+.button
+    padding-left: 12px !important  // Added via &nbsp; in actual emails
+    padding-right: 12px !important  // Added via &nbsp; in actual emails
+    font-weight: bold  // Added via <strong> in actual emails
+    // Below added for nice UX, will actually just be exact width of text when sent
+    text-align: center
+    width: 140px
+    min-width: 140px
+    max-width: 100%
 
 </style>
