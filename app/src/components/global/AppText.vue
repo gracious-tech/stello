@@ -11,8 +11,6 @@ v-text-field(
     :spellcheck='spellcheck'
     filled
 )
-    //- WARN Doesn't support scoped slots yet (see https://stackoverflow.com/questions/50891858/)
-    slot(v-for='slot in other_slots' :name='slot' :slot='slot')
     template(#append)
         slot(name='append')
         app-security-icon(v-if='security' :msg='security')
@@ -40,11 +38,6 @@ export default class extends Vue {
     }
     set wrapped_value(value){
         this.$emit('input', value)
-    }
-
-    get other_slots(){
-        // Get slots that aren't already manually defined in template
-        return Object.keys(this.$slots).filter(s => s !== 'append')
     }
 }
 
