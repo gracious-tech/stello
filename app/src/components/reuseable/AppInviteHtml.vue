@@ -13,6 +13,8 @@ div.root(:style='styles.container')
     div(:style='styles.action')
         input.button(:value='button' :placeholder='button_default' :style='styles.button'
             @input='button_input')
+        div(v-if='button_unchanged' class='text-caption pt-2')
+            | (change button to "Latest News" or something more personal)
 
 </template>
 
@@ -55,6 +57,12 @@ export default class extends Vue {
 
     get image_src(){
         return URL.createObjectURL(this.image)
+    }
+
+    get button_unchanged(){
+        // Whether button is _probably_ (not exactly) still the default
+        return this.button === "Open Message" ||
+            (!this.button && this.button_default === "Open Message")
     }
 
     button_input(event:Event){
