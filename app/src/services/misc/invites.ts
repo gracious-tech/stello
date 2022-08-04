@@ -36,7 +36,7 @@ export function gen_invite_styles(hue:number){
         action: `border-radius: 0 0 12px 12px; padding: 36px 0; text-align: center;`
             + `background-color: ${bg_color};`,
         button: `padding: 12px 0; border-radius: 12px; text-decoration: none;`
-            + `font-family: sans-serif; background-color: ${button_color};`,
+            + `font-family: sans-serif; background-color: ${button_color}; color: #ffffff;`,
     }
 }
 
