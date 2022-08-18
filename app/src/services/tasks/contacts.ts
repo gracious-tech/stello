@@ -174,7 +174,7 @@ export async function taskless_contact_addresses(oauth:OAuth, service_id:string)
 // GOOGLE
 
 interface GooglePersonsListResp {
-    connections:GooglePerson[]
+    connections?:GooglePerson[]  // May not exist if none
     nextSyncToken:string
     nextPageToken:string
     totalItems:number
@@ -296,7 +296,7 @@ async function contacts_sync_google_full(task:Task, oauth:OAuth):Promise<Record<
         })) as GooglePersonsListResp
 
         // Save the contacts
-        for (const person of resp_data.connections){
+        for (const person of (resp_data.connections ?? [])){
 
             // Extract relevant data
             const service_id = partition(person.resourceName, '/')[1]  // Google appends 'people/'
