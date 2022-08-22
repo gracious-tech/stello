@@ -51,35 +51,54 @@ v-card
         app-password(v-model='tmp_pass' :error='error && !tmp_pass' v-bind='$t("smtp_pass")'
             class='external-hint')
         p(class='hint text--secondary body-2')
-            template(v-if='not_detected')
-                | We recommend using an "#[app-a(:href='url_app_pass') app password]" rather than your normal password, if your email account supports them.
-            template(v-else)
-                | Don't use your normal password (which probably won't work). Instead, ensure you have #[app-a(:href='url_two_step') Two-Step Verification] enabled and create a new #[app-a(:href='url_app_pass') "app password"].
+            template(v-if='not_detected').
+                We recommend using an "#[app-a(:href='url_app_pass') app password]" rather than
+                your normal password, if your email account supports them.
+            template(v-else).
+                Don't use your normal password (which probably won't work). Instead, ensure you
+                have #[app-a(:href='url_two_step') Two-Step Verification] enabled and create a
+                new #[app-a(:href='url_app_pass') "app password"].
         app-text(v-if='!profile.smtp_detected' v-model='smtp_user' v-bind='$t("smtp_user")'
             :placeholder='profile.smtp_settings.user' persistent-placeholder)
-        app-security-alert Never give your email password to anything you don't fully trust. Stello encrypts your password, it stays on your device, and is only used to send emails (not read them). And this can be checked as Stello is open-source.
+        app-security-alert.
+            Never give your email password to anything you don't fully trust.
+            Stello encrypts your password, it stays on your device, and is only used to send emails
+            (not read them). And this can be checked as Stello is open-source.
 
     v-alert(v-if='error' colored-border border='left' color='error' class='ma-4 mb-0')
         h1(class='text-h6 mb-3') Could not connect
         ul(class='body-2')
             template(v-if='error.code === "network"')
                 li Make sure you are connected to the Internet
-                li If you have anti-virus that scans emails (e.g. AVG) you may need to #[app-a(href='https://stello.news/guide/antivirus/') reconfigure it]
+                li.
+                    If you have anti-virus that scans emails (e.g. AVG) you may need to
+                    #[app-a(href='https://stello.news/guide/problem-connecting/') reconfigure it]
             template(v-if='error.code === "port" && not_detected')
                 li The port number given is incorrect
             template(v-if='error.code === "dns" && not_detected')
-                li Your server name is likely incorrect (#[app-a(:href='smtp_settings_search') search for correct settings])
+                li.
+                    Your server name is likely incorrect
+                    (#[app-a(:href='smtp_settings_search') search for correct settings])
             template(v-if='error.code === "starttls_required" && not_detected && !smtp_starttls')
                 li Try enabling STARTTLS
             template(v-if='error.code === "tls_required" && not_detected && smtp_starttls')
                 li Try disabling STARTTLS
             template(v-if='error.code === "auth"')
-                li Your {{ not_detected ? "username" : "email address" }} and/or password is incorrect
-                li You may need to use an #[app-a(:href='url_app_pass') "app password"] rather than your normal password
+                li.
+                    Your {{ not_detected ? "username" : "email address" }} and/or password is
+                    incorrect
+                li
+                    | You may need to use an #[app-a(:href='url_app_pass') "app password"] rather
+                    | than your normal password
                     ul
-                        li You may need to enable #[app-a(:href='url_two_step') Two-Step Verification] before creating an app password
+                        li.
+                            You may need to enable
+                            #[app-a(:href='url_two_step') Two-Step Verification]
+                            before creating an app password
             template(v-if='error.code === "timeout"')
-                li(v-if='not_detected') Your server name or port may be incorrect (#[app-a(:href='smtp_settings_search') search for correct settings])
+                li(v-if='not_detected').
+                    Your server name or port may be incorrect
+                    (#[app-a(:href='smtp_settings_search') search for correct settings])
                 li Your Internet connection may be very slow
         p(class='text-center mt-3')
             app-btn(:href='error_support_url' small) Contact Support
