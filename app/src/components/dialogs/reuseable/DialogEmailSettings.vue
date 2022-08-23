@@ -445,7 +445,7 @@ export default class extends Vue {
 
     oauth_signin(issuer:OAuthIssuer, email?:string):void{
         // Signin using oauth and close dialog (since task manager will handle redirect)
-        oauth_pretask_new_usage('send_oauth_setup', [this.profile.id], issuer, email)
+        void oauth_pretask_new_usage('send_oauth_setup', [this.profile.id], issuer, email)
         this.$emit('close')
     }
 

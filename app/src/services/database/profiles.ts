@@ -12,9 +12,6 @@ import {HOST_STORAGE_VERSION} from '@/services/hosts/common'
 import {external_decrypt} from '@/services/misc/external_crypt'
 
 
-export type ProfileEmailSettings = Omit<RecordProfileSmtp, 'pass'> & {pass:string}
-
-
 export interface SmtpProvider {
     host:string
     port:number
@@ -157,7 +154,7 @@ export class Profile implements RecordProfile {
         return (this.smtp_detected && SMTP_PROVIDERS[this.smtp_detected]) || null
     }
 
-    get smtp_settings():ProfileEmailSettings{
+    get smtp_settings(){
         // Return final smtp settings after accounting for defaults
         // WARN Does not include password as it requires async decryption
         const oauth = this.smtp.oauth  // Used when creating transport id (not actually smtp)
@@ -268,7 +265,7 @@ export class Profile implements RecordProfile {
         throw new Error('impossible')
     }
 
-    async get_authed_smtp_settings():Promise<ProfileEmailSettings>{
+    async get_authed_smtp_settings(){
         // Get smtp_settings with password included
         return {
             ...this.smtp_settings,
