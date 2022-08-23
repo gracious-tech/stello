@@ -80,13 +80,13 @@ interface PretaskMeta {
 }
 
 
-interface AuthCompletion<Meta=Record<string, unknown>> {
+interface AuthCompletion<Meta=unknown> {
     auth:{
         issuer:OAuthIssuer,
         issuer_config:Record<string, unknown>,
         issuer_id:string,
         email:string,
-        name:string,
+        name:string|null,
         scope_sets:ScopeSet[]
         token_refresh:ArrayBuffer,
         token_access:ArrayBuffer,
@@ -272,10 +272,10 @@ async function oauth_authorize_complete(url:string):Promise<AuthCompletion>{
     return {
         auth: {
             issuer,
-            issuer_config,
+            issuer_config: issuer_config as unknown as Record<string, unknown>,
             issuer_id: id_info.sub,
-            email: id_info.email,
-            name: id_info.name,  // Probably won't exist without `profile` scope, but pass anyway
+            email: id_info.email ?? '',
+            name: id_info.name ?? null,  // Though probably won't exist without `profile` scope
             scope_sets: granted_scope_sets,
             token_refresh: await external_encrypt(token_resp.refreshToken ?? ''),
             token_access: await external_encrypt(token_resp.accessToken ?? ''),
@@ -416,7 +416,7 @@ export async function oauth_pretask_process(url:string):Promise<void>{
         }
     } else {
         // This must be a new usage task, so add the newly auth'd oauth's id as first param
-        meta.task[1].unshift(oauth_instance.id)
+        meta.task[1] = [oauth_instance.id, ...(meta.task[1] ?? [])]
     }
 
     // Start the task, which will make use of the new auth
@@ -456,7 +456,8 @@ export async function oauth_refresh(oauth:OAuth):Promise<void>{
         if (error instanceof TypeError){
             throw new MustReconnect()
         } else if (error instanceof appauth.AppAuthError){
-            if (error.extras?.error === 'invalid_grant'){  // e.g. expired/revoked/etc
+            // Check if need to reauth (expired/revoked/etc)
+            if ((error.extras as {error?:string}|undefined)?.error === 'invalid_grant'){
                 // See https://tools.ietf.org/html/rfc6749#section-5.2
                 throw new MustReauthenticate()
             }
@@ -487,7 +488,8 @@ export async function oauth_revoke(oauth:OAuth):Promise<void>{
         if (error instanceof TypeError){  // Likely thrown by fetch
             throw new MustReconnect()
         } else if (error instanceof appauth.AppAuthError){
-            if (error.extras?.error === 'invalid_grant'){  // e.g. expired/revoked/etc
+            // Check if expired/revoked/etc
+            if ((error.extras as {error?:string}|undefined)?.error === 'invalid_grant'){
                 return  // If not authenticated then job already done!
             }
         }
