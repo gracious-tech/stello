@@ -240,21 +240,21 @@ export default class extends Vue {
 
     get url_app_pass():string{
         // Return app pass url if provider is known
-        if (this.profile.smtp_detected){
+        if (this.profile.smtp_detected_config?.app_pass){
             return this.profile.smtp_detected_config.app_pass.url
         }
         // Provider unknown so search instead
-        const query = `Create app password "${this.profile.email_domain}"`
+        const query = `Create app password "${this.profile.email_domain ?? ''}"`
         return 'https://duckduckgo.com/?q=' + encodeURIComponent(query)
     }
 
     get url_two_step():string{
         // Return two step url if provider is known
-        if (this.profile.smtp_detected){
+        if (this.profile.smtp_detected_config?.app_pass){
             return this.profile.smtp_detected_config.app_pass.url_two_step
         }
         // Provider unknown so search instead
-        const query = `Two-Step Verification "${this.profile.email_domain}"`
+        const query = `Two-Step Verification "${this.profile.email_domain ?? ''}"`
         return 'https://duckduckgo.com/?q=' + encodeURIComponent(query)
     }
 
@@ -275,7 +275,7 @@ export default class extends Vue {
 
     get smtp_settings_search():string{
         // Get url for a search for smtp settings for the email's domain
-        const query = `smtp server port "${this.profile.email_domain}"`
+        const query = `smtp server port "${this.profile.email_domain ?? ''}"`
         return 'https://duckduckgo.com/?q=' + encodeURIComponent(query)
     }
 
