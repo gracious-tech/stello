@@ -62,7 +62,7 @@ export class HostUserAwsBase extends StorageBaseAws {
         // Determine tags
         const tagging:string[] = []
         if (lifespan !== Infinity){
-            lifespan = enforce_range(lifespan, 1, 365)  // Should have checked already, but do again
+            lifespan = enforce_range(lifespan, 1, 365*2)  // Should have checked already, do again
             tagging.push(`stello-lifespan=${lifespan}`)
         }
         if (max_reads !== Infinity){

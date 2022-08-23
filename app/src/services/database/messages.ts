@@ -36,8 +36,8 @@ export class Message implements RecordMessage {
         if (this.lifespan === Infinity){
             return Infinity
         }
-        // Any limited lifespan must be 1-365, otherwise it won't match an AWS tag and won't apply
-        return enforce_range(this.lifespan, 1, 365)
+        // Any limited lifespan must be 1-365*2, otherwise it won't match an AWS tag and won't apply
+        return enforce_range(this.lifespan, 1, 365*2)
     }
 
     get safe_lifespan_remaining():number{
