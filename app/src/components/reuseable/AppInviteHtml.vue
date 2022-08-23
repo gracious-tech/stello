@@ -11,8 +11,8 @@ div.root(:style='styles.container')
         span(class='ml-1 noselect') Invitation text never expires
     hr(:style='styles.hr')
     div(:style='styles.action')
-        input.button(:value='button' :placeholder='button_default' :style='styles.button'
-            @input='button_input')
+        input.button(ref='button' :value='button' :placeholder='button_default'
+            :style='styles.button' @input='button_input')
         div(v-if='button_unchanged' class='text-caption pt-2')
             | (change button to "Latest News" or something more personal)
 
@@ -38,6 +38,12 @@ export default class extends Vue {
     @Prop({type: Blob}) declare readonly image:Blob
     @Prop({type: Profile, required: true}) declare readonly profile:Profile
     @Prop({type: Draft, default: null}) declare readonly draft:Draft
+
+    mounted(){
+        // Expand button-like input to fit contents when first mounted
+        const element = this.$refs['button'] as HTMLInputElement
+        element.style.width = `${element.scrollWidth}px`
+    }
 
     get variables(){
         // Get template variables with actual and example data (where needed)
