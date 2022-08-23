@@ -130,10 +130,10 @@ export class DatabaseSections {
                 chart: 'bar',
                 data: [
                     // Start with some data so chart is actually visible and type choice meaningful
-                    {id: generate_token(), label: '', number: '60%', hue: 150},
-                    {id: generate_token(), label: '', number: '30%', hue: 300},
+                    {id: generate_token(), label: '', number: '$600', hue: 150},
+                    {id: generate_token(), label: '', number: '$800', hue: 300},
                 ],
-                threshold: '100%',
+                threshold: '$1,000',
                 title: '',
                 caption: '',
             }

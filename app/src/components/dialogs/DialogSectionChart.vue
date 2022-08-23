@@ -12,11 +12,11 @@ v-card
 
         app-text(v-model='threshold' label="Threshold" placeholder="Number / % / $" class='mb-4'
             dense outlined
-            hint="A budget/goal/limit/etc that all other numbers will be relative to (optional)")
+            hint="A budget/goal/limit/etc (optional)")
 
         div.item(v-for='row of rows' :key='row.id' class='d-flex')
             app-text(v-model='row.label' placeholder="Label" class='mr-4' dense outlined)
-            app-text.number(v-model='row.number' placeholder="Number" dense outlined)
+            app-text.number(v-model='row.number' placeholder="Num / % / $" dense outlined)
             app-menu-more.hue(:color='row.color' icon='palette')
                 app-list-item.hue(v-for='hue of hues' @click='row.hue = hue'
                     :color='`hsl(${hue}, 50%, 50%)`' :input-value='true')
