@@ -139,6 +139,12 @@ export default class extends Vue {
             return null
         }
         if (url.hostname.endsWith('youtube.com')){
+            if (url.pathname.includes('/shorts/')){
+                return {
+                    format: 'iframe_youtube',
+                    id: url.pathname.split('/')[2] ?? '',
+                }
+            }
             return {
                 format: 'iframe_youtube',
                 id: url.searchParams.get('v') ?? '',
