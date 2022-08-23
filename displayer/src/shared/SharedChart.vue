@@ -356,7 +356,8 @@ export default defineComponent({
                             label: tip => {
                                 const number = this.thresh_data[tip.dataIndex]!.number
                                 const float = this.thresh_data[tip.dataIndex]!.float
-                                if (!this.perceived_total){  // Can't be null or zero
+                                if (!this.perceived_total || number.includes('%')){
+                                    // Just show number if can't work out % or number already a %
                                     return number
                                 }
                                 // Add what percent this item is of total
