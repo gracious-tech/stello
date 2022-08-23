@@ -1,10 +1,11 @@
 
 <template lang='pug'>
 
-template(v-if='prev || next')
-    h2.title(class='ui') Other Messages
+div(v-if='prev || next' class='ui')
+    div.published {{ current_date }}
+    h2.title Other Messages
 
-    div.history(class='ui')
+    div.history
         div.prev(v-if='prev')
             a(@click='prev.load') ← {{ prev.label }}
             span {{ prev.date }}
@@ -31,6 +32,10 @@ export default defineComponent({
             const i = store.state.history.findIndex(item => item.id === store.state.msg?.id)
             return i === -1 ? null : i
         })
+        const current_date = computed(() => {
+            return current.value === null ? '' : store.state.history[current.value]!.published
+                .toLocaleDateString(undefined, {dateStyle: 'full'})
+        })
 
         // Data needed for prev/next buttons
         const prev = computed(() => {
@@ -42,7 +47,7 @@ export default defineComponent({
             const item = store._state.history[prev_i]!
             return {
                 label: item.title,
-                date: item.published.toLocaleDateString(),
+                date: item.published.toLocaleDateString(undefined, {dateStyle: 'medium'}),
                 load: () => {
                     store.change_transition('prev')
                     void store.change_msg(item.id, item.secret_url64, item.title,
@@ -58,7 +63,7 @@ export default defineComponent({
             const item = store._state.history[current.value + 1]!
             return {
                 label: item.title,
-                date: item.published.toLocaleDateString(),
+                date: item.published.toLocaleDateString(undefined, {dateStyle: 'medium'}),
                 load: () => {
                     store.change_transition('next')
                     void store.change_msg(item.id, item.secret_url64, item.title,
@@ -68,7 +73,7 @@ export default defineComponent({
         })
 
         // Expose
-        return {prev, next}
+        return {prev, next, current_date}
     },
 })
 
@@ -79,6 +84,11 @@ export default defineComponent({
 
 @import 'src/shared/styles/utils'
 
+.published
+    text-align: center
+    font-size: 0.8em !important
+    opacity: 0.8
+    margin-top: 20px
 
 .title
     margin-top: 50px !important
