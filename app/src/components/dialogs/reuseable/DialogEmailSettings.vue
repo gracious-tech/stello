@@ -374,7 +374,7 @@ export default class extends Vue {
             // Especially useful for the many domains using Google email hosting
             // WARN Cannot detect all, as some use 3p filters that obscure the real host
             // e.g. https://help.proofpoint.com/Proofpoint_Essentials/Email_Security/Administrator_Topics/hostedemailservices/Configuring_Office_365_for_Proofpoint_Essentials
-            if (!this.profile.smtp_detected){
+            if (!this.profile.smtp_detected && this.profile.email_domain){
                 const mx_domain = (await self.app_native.dns_mx(this.profile.email_domain))[0]
                 if (mx_domain){
                     for (const provider of Object.values(SMTP_PROVIDERS)){
