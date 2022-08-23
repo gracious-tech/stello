@@ -106,6 +106,7 @@ export default class extends Vue {
                 replaction: this.replaction,
                 name: this.name,
             },
+            persistent: true,  // Prevent accidental lose of text (disables Esc and outside click)
         })
     }
 
