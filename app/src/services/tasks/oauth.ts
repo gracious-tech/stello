@@ -76,7 +76,7 @@ interface InternalData {
 
 interface PretaskMeta {
     task:TaskStartArgs,
-    oauth_id:string,
+    oauth_id:string|null,
 }
 
 
@@ -155,7 +155,7 @@ class CustomQueryStringUtils extends appauth.BasicQueryStringUtils {
 }
 
 
-async function oauth_authorize_init(issuer:OAuthIssuer, scope_sets:string[], meta:unknown={},
+async function oauth_authorize_init(issuer:OAuthIssuer, scope_sets:ScopeSet[], meta:unknown={},
         email?:string):Promise<void>{
     // Authenticate with given issuer using OAuth2
 
@@ -261,10 +261,10 @@ async function oauth_authorize_complete(url:string):Promise<AuthCompletion>{
 
     // Determine which scope sets have been granted
     const granted_scopes = (token_resp.scope ?? '').split(' ')
-    const granted_scope_sets = []
+    const granted_scope_sets:ScopeSet[] = []
     for (const [scope_set, scope_set_scopes] of Object.entries(OAUTH_SUPPORTED[issuer].scopes)){
         if (scope_set_scopes.every(scope => granted_scopes.includes(scope))){
-            granted_scope_sets.push(scope_set)
+            granted_scope_sets.push(scope_set as ScopeSet)
         }
     }
 
@@ -291,7 +291,7 @@ async function oauth_authorize_complete(url:string):Promise<AuthCompletion>{
 
 
 export async function oauth_pretask_new_usage(task_name:'contacts_oauth_setup'|'send_oauth_setup',
-    extra_params:string[], issuer:OAuthIssuer, email?:string):Promise<void>{
+        extra_params:string[], issuer:OAuthIssuer, email?:string):Promise<void>{
     // Setup a new usage of an oauth, either using an existing auth or a new one
     // NOTE The chosen oauth's id will be passed as the first parameter when executing the task
 
@@ -300,7 +300,7 @@ export async function oauth_pretask_new_usage(task_name:'contacts_oauth_setup'|'
 
     // Init array for which scope sets will be requested
     // NOTE May add existing (if any) for issuers that don't support incremental grants
-    const final_scope_sets = [scope_set]
+    const final_scope_sets = scope_set ? [scope_set] : []
 
     // Get existing auths for this issuer
     let existing = (await self.app_db.oauths.list()).filter(oauth => oauth.issuer === issuer)
@@ -313,12 +313,12 @@ export async function oauth_pretask_new_usage(task_name:'contacts_oauth_setup'|'
     // WARN If don't check and issuer doesn't support incremental grants, could lose existing scopes
     if (!email && existing.length){
         // User's desired account may already be present so ask them if it is
-        const choice:OAuth = await self.app_store.dispatch('show_dialog', {
+        const choice = await self.app_store.dispatch('show_dialog', {
             component: DialogOAuthExisting,
             props: {
                 oauths: existing,
             },
-        })
+        }) as OAuth
         if (choice === undefined){
             return  // Cancel auth entirely as user changed their mind
         }
@@ -335,13 +335,13 @@ export async function oauth_pretask_new_usage(task_name:'contacts_oauth_setup'|'
             // Matching auth exists, so use it's id for task's first param
             const task_args:[string, string[]] = [task_name, [matching_auth.id, ...extra_params]]
             // If existing scope sets already includes requested then can reuse existing auth
-            if (matching_auth.scope_sets.includes(scope_set)){
+            if (!scope_set || matching_auth.scope_sets.includes(scope_set)){
                 // No new scopes are being requested so skip reauthorization
                 // WARN Assumes existing auth is still valid (if not, can handle via failed tasks)
-                task_manager.start(...task_args)
+                void task_manager.start(...task_args)
             } else {
                 // New scopes are being requested
-                oauth_pretask_reauth(task_args, matching_auth)
+                void oauth_pretask_reauth(task_args, matching_auth)
             }
             // Have handled already, so return
             return
@@ -359,7 +359,8 @@ export async function oauth_pretask_reauth(task:TaskStartArgs, oauth:OAuth):Prom
 
     // Detect task's required scope set
     // NOTE `scope_set_for_task()` important when referred from `oauth_pretask_new_usage()`
-    const scope_sets = [scope_set_for_task(task[0])]
+    const required_scope_set = scope_set_for_task(task[0])
+    const scope_sets = required_scope_set ? [required_scope_set] : []
 
     // Detect scopes needed for existing usages
     // WARN Important as some issuer's (like Google) don't support incremental grants and would

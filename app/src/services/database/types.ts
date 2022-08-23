@@ -52,8 +52,8 @@ export interface RecordOAuth {
     token_access_expires:Date|null  // When access token will expire (null = doesn't expire)
     // Contact syncing
     contacts_sync:boolean  // Whether to read contacts of this account if possible
-    contacts_sync_last:Date
-    contacts_sync_token:string  // Token representing last sync so can do partials
+    contacts_sync_last:Date|null
+    contacts_sync_token:string|null  // Token representing last sync so can do partials
 }
 
 
