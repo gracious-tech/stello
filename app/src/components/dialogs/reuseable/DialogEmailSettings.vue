@@ -282,7 +282,7 @@ export default class extends Vue {
     get error_support_url():string{
         // Get support url with debugging info for current error
         let desc = "I was trying to...\n\nBut...\n\n\n----------TECHNICAL DETAILS----------\n"
-            + `Email error: ${this.error.code}\nDetails: ${this.error.details}`
+            + `Email error: ${this.error!.code}\nDetails: ${this.error!.details}`
         if (this.error_report_id){
             desc += `\nError report: ${this.error_report_id}`
         }

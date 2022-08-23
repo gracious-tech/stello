@@ -8,7 +8,7 @@ export interface NativeInterface {
     dns_mx(host:string):Promise<string[]>
     os_encrypt(secret:string):Promise<ArrayBuffer|null>
     os_decrypt(encrypted:ArrayBuffer):Promise<string|null>
-    test_email_settings(settings:EmailSettings, auth?:boolean):Promise<EmailError|undefined>
+    test_email_settings(settings:EmailSettings, auth?:boolean):Promise<EmailError|null>
     smtp_send(settings:EmailSettings, email:Email):Promise<EmailError|null>
 
     // Listeners

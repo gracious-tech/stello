@@ -34,10 +34,10 @@ const native_electron:NativeInterface = {
         return ipcRenderer.invoke('os_decrypt', encrypted) as Promise<string|null>
     },
 
-    async test_email_settings(settings:EmailSettings, auth=true):Promise<EmailError|undefined>{
+    async test_email_settings(settings:EmailSettings, auth=true):Promise<EmailError|null>{
         // Tests provided settings to see if they work and returns either null or error string
         const error =
-            await ipcRenderer.invoke('test_email_settings', settings, auth) as EmailError|undefined
+            await ipcRenderer.invoke('test_email_settings', settings, auth) as EmailError|null
         if (error){
             console.warn(error)
         }
