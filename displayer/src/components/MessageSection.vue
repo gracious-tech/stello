@@ -175,6 +175,10 @@ export default defineComponent({
             margin-left: 24px
             margin-right: 24px
 
+        :deep(.react_container .position)
+            // Prevent reactions from being too far away from button when comments disabled
+            right: auto
+
 
     .close
         // Style the close button so that it floats at top right

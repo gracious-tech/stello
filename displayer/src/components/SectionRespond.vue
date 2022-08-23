@@ -314,7 +314,7 @@ export default defineComponent({
                 display: flex
 
     .position
-        right: 0
+        right: 0  // NOTE Overriden when section fullscreen
 
     .reactions
         display: flex
