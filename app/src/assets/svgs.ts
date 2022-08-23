@@ -35,6 +35,7 @@ export * as icon_schedule_send      from '@/assets/icons/schedule_send.svg?raw-s
 export * as icon_cancel_schedule_send from '@/assets/icons/cancel_schedule_send.svg?raw-svg'
 export * as icon_content_paste      from '@/assets/icons/content_paste.svg?raw-svg'  // New version
 export * as icon_short_text         from '@/assets/icons/short_text.svg?raw-svg'  // New fixed
+export * as icon_compare_arrows     from '@/assets/icons/compare_arrows.svg?raw-svg'  // Fixed
 
 // Material icons
 export * as icon_brightness_4       from 'md-icon-svgs/brightness_4.svg?raw-svg'
@@ -47,7 +48,6 @@ export * as icon_unfold_less        from 'md-icon-svgs/unfold_less.svg?raw-svg'
 export * as icon_archive            from 'md-icon-svgs/archive.svg?raw-svg'
 export * as icon_swap_horiz         from 'md-icon-svgs/swap_horiz.svg?raw-svg'
 export * as icon_expand_more        from 'md-icon-svgs/expand_more.svg?raw-svg'
-export * as icon_compare_arrows     from 'md-icon-svgs/compare_arrows.svg?raw-svg'
 export * as icon_cloud_download     from 'md-icon-svgs/cloud_download.svg?raw-svg'
 export * as icon_settings           from 'md-icon-svgs/settings.svg?raw-svg'
 export * as icon_arrow_back         from 'md-icon-svgs/arrow_back.svg?raw-svg'
