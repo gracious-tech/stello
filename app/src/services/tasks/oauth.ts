@@ -16,7 +16,8 @@ Which makes them ideal for handling via tasks only
 //     }
 // }
 import * as appauth from '@openid/appauth/src'
-import {AuthorizationServiceConfiguration} from '@openid/appauth'
+import {AuthorizationServiceConfiguration, AuthorizationServiceConfigurationJson}
+    from '@openid/appauth'
 
 import DialogOAuthExisting from '@/components/dialogs/specific/DialogOAuthExisting.vue'
 import {OAuth} from '../database/oauths'
@@ -69,7 +70,7 @@ interface InternalData {
     code_verifier:string
     // Custom
     issuer:OAuthIssuer
-    meta:Record<string, any>
+    meta:Record<string, unknown>
 }
 
 
@@ -79,10 +80,10 @@ interface PretaskMeta {
 }
 
 
-interface AuthCompletion<Meta=Record<string, any>> {
+interface AuthCompletion<Meta=Record<string, unknown>> {
     auth:{
         issuer:OAuthIssuer,
-        issuer_config:Record<string, any>,
+        issuer_config:Record<string, unknown>,
         issuer_id:string,
         email:string,
         name:string,
@@ -182,13 +183,13 @@ async function oauth_authorize_init(issuer:OAuthIssuer, scope_sets:string[], met
         scope: scopes.join(' '),
         extras: {
             // These extras are supported by all issuers
-            login_hint: email,  // Auto-select/fill correct address if known
+            ...email ? {login_hint: email} : {},  // Auto-select/fill correct address if known
             // NOTE prompt is not supported by Google for desktop apps, but may in future
             prompt: email ? 'consent' : 'select_account',  // Ask which account if adding a new one
             ...issuer_config.code_request_extras,
         },
         // Add data that's needed in complete step but stored securely internally
-        internal: {issuer, meta} as any,  // AppAuth's type requires strings, but can take anything
+        internal: {issuer, meta} as Record<string, string>,  // AppAuth has wrong type, can take any
     }))
 }
 
@@ -202,8 +203,9 @@ async function oauth_authorize_complete(url:string):Promise<AuthCompletion>{
         throw new Error("No pending auth request")
     }
     const issuer_config_json =
-        self.localStorage.getItem(`${auth_handle_key}_appauth_authorization_service_configuration`)
-    const issuer_config = new AuthorizationServiceConfiguration(JSON.parse(issuer_config_json))
+        self.localStorage.getItem(`${auth_handle_key}_appauth_authorization_service_configuration`)!
+    const issuer_config = new AuthorizationServiceConfiguration(
+        JSON.parse(issuer_config_json) as AuthorizationServiceConfigurationJson)
 
     // Give redirect handler what it needs, as if was actually just redirected (as it expects)
     const loc = new URL(url) as unknown as appauth.LocationLike
@@ -216,12 +218,12 @@ async function oauth_authorize_complete(url:string):Promise<AuthCompletion>{
 
     // Wait on a promise that will resolve when handler has completed processing the authorization
     const [auth_request, auth_resp] = await new Promise
-            <[appauth.AuthorizationRequest, appauth.AuthorizationResponse]>((resolve, reject) => {
-        auth_notifier.setAuthorizationListener((request, response, error) => {
-            error ? reject(error) : resolve([request, response])
+        <[appauth.AuthorizationRequest, appauth.AuthorizationResponse]>((resolve, reject) => {
+            auth_notifier.setAuthorizationListener((request, response, error) => {
+                error ? reject(error) : resolve([request, response!])
+            })
+            void auth_handler.completeAuthorizationRequestIfPossible()
         })
-        auth_handler.completeAuthorizationRequestIfPossible()
-    })
 
     // Extract issuer from internal data
     const internal = auth_request.internal as unknown as InternalData
@@ -258,7 +260,7 @@ async function oauth_authorize_complete(url:string):Promise<AuthCompletion>{
     const id_info = jwt_to_object(token_resp.idToken!) as IDToken
 
     // Determine which scope sets have been granted
-    const granted_scopes = token_resp.scope.split(' ')
+    const granted_scopes = (token_resp.scope ?? '').split(' ')
     const granted_scope_sets = []
     for (const [scope_set, scope_set_scopes] of Object.entries(OAUTH_SUPPORTED[issuer].scopes)){
         if (scope_set_scopes.every(scope => granted_scopes.includes(scope))){
@@ -280,7 +282,7 @@ async function oauth_authorize_complete(url:string):Promise<AuthCompletion>{
             token_access_expires: token_resp.expiresIn === undefined ? null :
                 new Date((token_resp.issuedAt + token_resp.expiresIn) * 1000),
         },
-        meta: internal.meta as unknown as Record<string, any>,
+        meta: internal.meta as unknown as Record<string, unknown>,
     }
 }
 
@@ -418,7 +420,7 @@ export async function oauth_pretask_process(url:string):Promise<void>{
 
     // Start the task, which will make use of the new auth
     // NOTE Requested permissions may not have been granted, but let failed task UI handle that
-    task_manager.start(...meta.task)
+    void task_manager.start(...meta.task)
 }
 
 
@@ -562,7 +564,7 @@ export async function oauth_request(oauth:OAuth, url:string, params?:Record<stri
 // HELPERS
 
 
-export function scope_set_for_task(task_name:string):ScopeSet{
+export function scope_set_for_task(task_name:string):ScopeSet|null{
     // Return the scope set required for given task name
     if (task_name.startsWith('contacts_')){
         return 'contacts'
