@@ -7,6 +7,7 @@ import {Message} from '../database/messages'
 import {Profile} from '../database/profiles'
 import {MessageCopy} from '../database/copies'
 import {concurrent} from '@/services/utils/async'
+import {email_address_like} from '@/services/utils/misc'
 import {resize_bitmap, blob_image_size} from '@/services/utils/image'
 import {bitmap_to_bitcanvas, blob_to_bitmap, canvas_to_blob, buffer_to_url64, string_to_utf8}
     from '../utils/coding'
@@ -350,36 +351,43 @@ export class Sender {
             return
         }
 
-        // Generate email objects from copies
-        const max_reads = copy.contact_multiple ? Infinity : this.msg.safe_max_reads
-        const contents = update_template_values(this.invite_tmpl_email, {
-            ...this.tmpl_variables,
-            contact_hello: {value: copy.contact_hello},
-            contact_name: {value: copy.contact_name},
-            msg_max_reads: {value: msg_max_reads_value(max_reads)},
-        }, '-')
-        const url = this.profile.view_url(this.shared_secret_64, copy.id,
-            await export_key(copy.secret))
-        const secret_sse_url64 = buffer_to_url64(await export_key(copy.secret_sse))
-        const image =
-            `${this.profile.api}inviter/image?user=${this.profile.user}&copy=${copy.id}&k=${secret_sse_url64}`
-        const address_buffer = string_to_utf8(JSON.stringify({address: copy.contact_address}))
-        let encrypted_address:string|undefined = undefined
-        if (!copy.contact_multiple){  // Don't show subscription links if multiple people
-            encrypted_address = buffer_to_url64(await encrypt_sym(address_buffer,
-                this.profile.host_state.secret))
-        }
+        // Only attempt send if at least has some possibility of being an email address
+        //      SMTP errors are very hard to catch & a single bad address can interrupt all sending
+        //      Some users import contacts incorrectly, so avoid confusion with basic validation
+        let accepted = false
+        if (email_address_like(copy.contact_address.trim())){
 
-        // Send using oauth or regular SMTP (SMTP requires native platform's help)
-        const accepted = await this.email_client.send({
-            id: copy.id,  // Use copy's id for email id for matching later
-            to: {name: copy.contact_name, address: copy.contact_address},
-            from: {name: this.sender_name, address: this.profile.email},
-            reply_to: this.profile.smtp_reply_to,
-            subject: this.msg.draft.title,
-            html: render_invite_html(contents, url, image, this.invite_button,
-                this.profile.options.theme_color.h, encrypted_address),
-        })
+            // Generate data needed for the email
+            const max_reads = copy.contact_multiple ? Infinity : this.msg.safe_max_reads
+            const contents = update_template_values(this.invite_tmpl_email, {
+                ...this.tmpl_variables,
+                contact_hello: {value: copy.contact_hello},
+                contact_name: {value: copy.contact_name},
+                msg_max_reads: {value: msg_max_reads_value(max_reads)},
+            }, '-')
+            const url = this.profile.view_url(this.shared_secret_64, copy.id,
+                await export_key(copy.secret))
+            const secret_sse_url64 = buffer_to_url64(await export_key(copy.secret_sse))
+            const image = `${this.profile.api}inviter/image?user=${this.profile.user}`
+                + `&copy=${copy.id}&k=${secret_sse_url64}`
+            const address_buffer = string_to_utf8(JSON.stringify({address: copy.contact_address}))
+            let encrypted_address:string|undefined = undefined
+            if (!copy.contact_multiple){  // Don't show subscription links if multiple people
+                encrypted_address = buffer_to_url64(await encrypt_sym(address_buffer,
+                    this.profile.host_state.secret))
+            }
+
+            // Send using oauth or regular SMTP (SMTP requires native platform's help)
+            accepted = await this.email_client.send({
+                id: copy.id,  // Use copy's id for email id for matching later
+                to: {name: copy.contact_name, address: copy.contact_address},
+                from: {name: this.sender_name, address: this.profile.email},
+                reply_to: this.profile.smtp_reply_to,
+                subject: this.msg.draft.title,
+                html: render_invite_html(contents, url, image, this.invite_button,
+                    this.profile.options.theme_color.h, encrypted_address),
+            })
+        }
 
         // Update copy
         copy.invited = accepted

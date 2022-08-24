@@ -47,7 +47,7 @@ export async function get_clipboard_text():Promise<string|null>{
 
 
 export function email_address_like(input:string):boolean{
-    // Whether given input looks like an email address (for UI purposes, not validation)
+    // Whether given input looks like an email address (for UI purposes & bare-minimum validation)
     return /^[^\s@]+@[^\s@]+$/.test(input)
 }
 
