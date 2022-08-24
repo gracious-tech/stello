@@ -37,3 +37,4 @@ aws cloudfront create-invalidation --distribution-id "${CF_DIST}" --paths "/*"
 
 # Must manually publish for Windows
 echo "IMPORTANT: Now manually publish using Windows store too"
+echo "https://stello-releases.s3-us-west-2.amazonaws.com/electron/stello.appx"
