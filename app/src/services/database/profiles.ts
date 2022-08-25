@@ -71,7 +71,7 @@ export const SMTP_PROVIDERS:{[provider:string]:SmtpProvider} = {
         },
     },
     psmail: {
-        host: 'mail.psmail.net',
+        host: 'partner-mx.psmail.net',
         port: 465,
         starttls: false,
         domains: ['psmail.net', 'psmx.org'],
