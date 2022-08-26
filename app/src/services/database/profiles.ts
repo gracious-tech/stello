@@ -74,7 +74,7 @@ export const SMTP_PROVIDERS:{[provider:string]:SmtpProvider} = {
         host: 'partner-mx.psmail.net',
         port: 465,
         starttls: false,
-        domains: ['psmail.net', 'psmx.org'],
+        domains: ['psmail.net', 'psmx.org', 'psmx.asia', 'fastzip.net', 'realcoolmail.com'],
         app_pass: {
             url: 'https://info.psmail.net/xsupport/device-password/',
             url_two_step: 'https://info.psmail.net/xsupport/software-token/',
