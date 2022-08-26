@@ -95,6 +95,8 @@ v-card
                             You may need to enable
                             #[app-a(:href='url_two_step') Two-Step Verification]
                             before creating an app password
+                li(v-if='profile.smtp_detected === "psmail"')
+                    | PSMail may not yet support sending using an alias (use your login address)
             template(v-if='error.code === "timeout"')
                 li(v-if='not_detected').
                     Your server name or port may be incorrect
