@@ -30,7 +30,7 @@ div
                     v-radio(value='c' label="Christian causes" color='accent')
                     div(v-if='plan === "c"' class='ml-6')
                         v-checkbox(v-model='christian_jesus' color='accent'
-                            label="Jesus is our God and only saviour")
+                            label="Jesus is God and our only saviour")
                         v-checkbox(v-model='christian_bible' color='accent'
                             label="The Bible is our ultimate authority on knowing God and his will")
                     v-radio(value='other' label="Other" color='accent')
