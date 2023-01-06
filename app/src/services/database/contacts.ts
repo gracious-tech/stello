@@ -105,8 +105,8 @@ export class DatabaseContacts {
     async create(input:ContactCreateArgs|ContactCreateArgs[]={}):Promise<Contact|Contact[]>{
         // Create new contacts and save to db
 
-        // Normalise input
-        input = Array.isArray(input) ? input : [input]
+        // Detect type of input
+        const is_array = Array.isArray(input)
 
         // Start transaction and get store
         const transaction = this._conn.transaction('contacts', 'readwrite')
@@ -114,7 +114,7 @@ export class DatabaseContacts {
 
         // Add contacts
         const contacts = []
-        for (const item of input){
+        for (const item of (is_array ? input : [input])){
             const contact = this.create_object()
             contact.name = item.name ?? ''
             contact.address = item.address ?? ''
@@ -125,7 +125,7 @@ export class DatabaseContacts {
         }
         await transaction.done
 
-        return contacts.length === 1 ? contacts[0]! : contacts
+        return is_array ? contacts : contacts[0]!
     }
 
 
