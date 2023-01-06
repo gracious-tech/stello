@@ -272,6 +272,14 @@ export default class extends Vue {
         if (!this.csv_column_email)
             this.csv_column_email = this.csv_columns[0]!
 
+        // Better to not have a name than to set it as the same as the email address
+        if (this.csv_column_name === this.csv_column_email){
+            this.csv_column_name = null
+        }
+        if (this.csv_column_name2 === this.csv_column_email){
+            this.csv_column_name2 = null
+        }
+
         // Do initial conversion to contacts (user may change selected columns after this)
         this.apply_csv_columns()
     }
