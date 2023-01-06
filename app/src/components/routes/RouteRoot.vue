@@ -27,13 +27,12 @@ div
                         v-list-item-title {{ feature.title }}
                         v-list-item-subtitle {{ feature.desc }}
                     v-list-item-icon
-                        app-svg(name='icon_money' color='#fa5788')
+                        app-svg(name='icon_pending' color='#fa5788')
             v-divider
             div(class='text-center my-6')
                 p(class='text-body-2')
-                    | Good news! You can use Stello for free thanks to generous supporters
-                    | who've funded the work so far.
-                    | Are you able to help fund more features for others to use too?
+                    | Every feature added to Stello is made free for everyone.
+                    | Help fund more features that we can all benefit from.
                 app-btn(href='https://give.gracious.tech' color='#fa5788' raised small)
                     | Funding progress
 
