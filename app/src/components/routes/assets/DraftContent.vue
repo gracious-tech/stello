@@ -106,7 +106,7 @@ export default class extends Vue {
         let section:Section
         if (type === 'paste'){
             for (const section of this.$store.state.tmp.cut_section){
-                void self.app_db.sections.set(section)
+                await self.app_db.sections.set(section)
             }
             section = new Section(this.$store.state.tmp.cut_section[0] as RecordSection)
             this.$store.commit('tmp_set', ['cut_section', null])
