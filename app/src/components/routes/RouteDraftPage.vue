@@ -9,7 +9,7 @@ div
             span(class='ellipsis pl-2') {{ draft_title }}
         v-spacer
         app-menu-more
-            app-list-item(@click='delete_page' class='error--text') Delete page
+            app-list-item(@click='delete_page' class='error--text') Cut page
 
     div.stello-displayer(v-if='draft' :class='displayer_classes' :style='theme_style_props')
         draft-pagebait-editable(:page='page')
@@ -101,7 +101,7 @@ export default class RouteDraftPage extends Vue {
     }
 
     async delete_page(){
-        // Delete this page
+        // Delete this page (and store as a cut_section)
         if (this.parent_page_id){
             // Remove from parent page sections array
             const parent =
@@ -113,7 +113,8 @@ export default class RouteDraftPage extends Vue {
             rm_section_id(this.draft!.sections, this.page_id)
             await self.app_db.drafts.set(this.draft!)
         }
-        await self.app_db.sections.remove(this.page_id)
+        const removed_sections = await self.app_db.sections.remove(this.page_id)
+        this.$store.commit('tmp_set', ['cut_section', removed_sections])
         void this.$router.push('../')
     }
 
