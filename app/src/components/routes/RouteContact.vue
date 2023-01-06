@@ -27,7 +27,7 @@ div
 
         //- WARN Application logic currently depends on address being trimmed
         app-text(v-model.trim='address' :readonly='synced' @click='synced_change_email'
-            label="Email address")
+            label="Email address" :rules='[email_address_like]')
 
         app-select(v-model='groups' :items='possible_groups_items' multiple label="Groups")
             template(#append-item)
@@ -56,6 +56,7 @@ import DialogGenericText from '../dialogs/generic/DialogGenericText.vue'
 import DialogGenericConfirm from '../dialogs/generic/DialogGenericConfirm.vue'
 import DialogContactEmail from '../dialogs/specific/DialogContactEmail.vue'
 import {partition} from '@/services/utils/strings'
+import {email_address_like} from '@/services/utils/misc'
 import {Contact} from '@/services/database/contacts'
 import {Group} from '@/services/database/groups'
 import {OAuth} from '@/services/database/oauths'
@@ -77,6 +78,8 @@ export default class extends Vue {
     oauth:OAuth = null
     changed = false
     probably_new = true  // Doesn't change after first load
+
+    email_address_like = email_address_like  // Expose util to template
 
     created(){
         // Load data from db
