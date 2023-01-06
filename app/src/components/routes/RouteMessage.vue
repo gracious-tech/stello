@@ -134,7 +134,8 @@ export default class extends Vue {
             Vue.set(map, copy.id, [])
         }
         for (const read of this.reads){
-            map[read.copy_id]!.push(read)
+            // WARN Using `?` to avoid possible race condition that seemed to come up
+            map[read.copy_id]?.push(read)
         }
         return map
     }
