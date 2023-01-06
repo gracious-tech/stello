@@ -138,6 +138,11 @@ export default class extends Vue {
         const region_mode = this.region_mode
         this.reset_region()
 
+        // Don't do anything if invalid region
+        if (region.width <= 0 || region.height <= 0){
+            return
+        }
+
         // Update the image
         void this.update_image(canvas => {
 
