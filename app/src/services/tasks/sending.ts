@@ -426,7 +426,11 @@ async function process_section(section_id:string, pub_assets:PublishedAsset[],
     // Take section and produce publishable form and any assets required
     // WARN Avoid deep copying sections in case includes sensitive data (e.g. added in future)
     //      (also avoids duplicating blobs in memory)
-    const section = (await self.app_db.sections.get(section_id))!
+    const section = await self.app_db.sections.get(section_id)
+    if (!section){
+        self.app_report_error("Section data missing (process_section)")
+        return null
+    }
     const content = section.content  // Commonly accessed
 
     // Handle page

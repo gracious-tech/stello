@@ -188,7 +188,11 @@ export async function rm_sections(sections_store:SectionsStore, section_ids:Sect
     await Promise.all(section_ids.flat().map(async section_id => {
 
         // Get and remove section
-        const section = (await sections_store.get(section_id))!
+        const section = await sections_store.get(section_id)
+        if (!section){
+            self.app_report_error("Section data missing (rm_sections)")
+            return
+        }
         removed.push(section)
         void sections_store.delete(section_id)  // Can wait on transaction later if needed
 
@@ -204,16 +208,34 @@ export async function rm_sections(sections_store:SectionsStore, section_ids:Sect
 
 export async function copy_sections(sections_store:SectionsStore, section_ids:SectionIds){
     // Recursively copy given sections and return ids of the copies
-    return Promise.all(section_ids.map(row => {
-        return Promise.all(row.map(async old_id => {
-            const section = (await sections_store.get(old_id))!
+    const new_section_ids:SectionIds = []
+
+    for (const row of section_ids){
+        const new_row:string[] = []
+
+        for (const old_id of row){
+            const section = await sections_store.get(old_id)
+
+            // Account for section possibly not existing (i.e. corruption)
+            if (!section){
+                self.app_report_error("Section data missing (copy_sections)")
+                continue
+            }
+
             section.id = generate_token()  // Change id of the section
             if (section.content.type === 'page'){
                 section.content.sections =
                     await copy_sections(sections_store, section.content.sections)
             }
             void sections_store.put(section)  // Save to db under the new id
-            return section.id  // Replace old id in the sections nested array
-        }))
-    })) as Promise<SectionIds>
+            new_row.push(section.id)  // Replace old id in the sections nested array
+        }
+
+        // Only add the row if at least one section (in case couldn't read data)
+        if (new_row.length){
+            new_section_ids.push(new_row as [string]|[string, string])
+        }
+    }
+
+    return new_section_ids
 }
