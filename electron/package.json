@@ -18,7 +18,7 @@
     "devDependencies": {
         "@types/nodemailer": "^6.4.4",
         "electron": "^16.0.1",
-        "electron-builder": "^22.13.1",
+        "electron-builder": "^23.6.0",
         "electron-notarize": "^1.1.1",
         "esbuild": "^0.13.14",
         "png-to-ico": "^2.1.2"
