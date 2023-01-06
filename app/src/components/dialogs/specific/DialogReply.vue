@@ -90,6 +90,7 @@ export default class extends Vue {
     async send(){
         // Create and send
         const draft = await this.create_reply_draft()
+        let did_send = false
 
         // Since not going to RouteDraft have to ensure profile & contact still exist manually
         if (! await self.app_db.contacts.get(this.replaction.contact_id)){
@@ -106,10 +107,11 @@ export default class extends Vue {
             // No issues so can send straight away
             const msg = await self.app_db.draft_to_message(draft.id)
             void this.$tm.start_send_message(msg.id)
+            did_send = true
         }
 
         // Will either send or go to draft, so always close dialog
-        this.$emit('close')
+        this.$emit('close', did_send)
     }
 }
 

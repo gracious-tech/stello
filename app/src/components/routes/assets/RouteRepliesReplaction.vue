@@ -98,9 +98,9 @@ export default class extends Vue {
         void self.app_db[this.replaction.is_reply ? 'replies' : 'reactions'].set(this.replaction)
     }
 
-    reply_by_stello(){
+    async reply_by_stello(){
         // Open reply dialog
-        void this.$store.dispatch('show_dialog', {
+        const did_reply = await this.$store.dispatch('show_dialog', {
             component: DialogReply,
             props: {
                 replaction: this.replaction,
@@ -108,6 +108,11 @@ export default class extends Vue {
             },
             persistent: true,  // Prevent accidental lose of text (disables Esc and outside click)
         })
+        if (did_reply){
+            // Update cached replaction to match db version (as set by `draft_to_message`)
+            // WARN If don't then an archive action will reset `replied` to false
+            this.replaction.replied = true
+        }
     }
 
     remove():void{
