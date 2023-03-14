@@ -6,8 +6,9 @@ div
         app-btn(to='../' icon='arrow_back')
         v-toolbar-title {{ message && message.draft.title }}
         v-spacer
-        app-menu-more
+        app-menu-more(v-if='message')
             app-list-item(@click='open_resend_dialog' :disabled='!!sending_task') Resend some emails
+            app-list-item(@click='copy_to_draft') Copy to new draft
 
     app-content(v-if='!message' class='text-center pt-10')
         h1(class='text--secondary text-h6') Message does not exist
@@ -66,6 +67,7 @@ import RouteMessageCopy from './assets/RouteMessageCopy.vue'
 import {sort} from '@/services/utils/arrays'
 import {Message} from '@/services/database/messages'
 import {MessageCopy} from '@/services/database/copies'
+import {Draft} from '@/services/database/drafts'
 import {Read} from '@/services/database/reads'
 import {Profile} from '@/services/database/profiles'
 import {Task} from '@/services/tasks/tasks'
@@ -192,6 +194,12 @@ export default class extends Vue {
     async send_all(){
         // Ensure all copies have been uploaded, and all emails sent
         void this.$tm.start_send_message(this.msg_id)
+    }
+
+    async copy_to_draft(){
+        // Create a new draft from this message
+        const copy = await self.app_db.draft_copy(new Draft(this.message!.draft), false)
+        void this.$router.push({name: 'draft', params: {draft_id: copy.id}})
     }
 
     open_resend_dialog(){
