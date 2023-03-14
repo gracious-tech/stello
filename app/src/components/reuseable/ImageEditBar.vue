@@ -166,8 +166,9 @@ export default class extends Vue {
                             So that can't exceed 30 pixels and redacted area pixels look square
                 */
                 const largest_side = canvas.width > canvas.height ? canvas.width : canvas.height
-                const reduced_width = Math.round(region.width / largest_side * 30)
-                const reduced_height = Math.round(region.height / largest_side * 30)
+                // WARN ceil required to avoid possibility of zero
+                const reduced_width = Math.ceil(region.width / largest_side * 30)
+                const reduced_height = Math.ceil(region.height / largest_side * 30)
                 const reduced_region = new OffscreenCanvas(reduced_width, reduced_height)
                 // Decrease contrast to make colors slightly less distinct
                 reduced_region.getContext('2d')!.filter = 'contrast(80%)'
