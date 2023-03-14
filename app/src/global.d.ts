@@ -54,6 +54,7 @@ declare module 'dnm-croppr' {
 
     export interface CropprOptions {
         aspectRatio?: number|undefined
+        maxAspectRatio?: number|undefined
         maxSize?: SizeValue
         minSize?: SizeValue
         startSize?: SizeValue|undefined

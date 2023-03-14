@@ -103,10 +103,13 @@ export default class extends Vue {
                 startPosition: [0.2, 0.2],  // Don't start under accept/cancel buttons in middle
             })
         } else {
-            // If locked to an aspect use that, otherwise make initial selection 80% of whole
+            // Either enforce an exact aspect or otherwise allow a reasonable range
             this.croppr = new Croppr(target, {
+                // If not an exact aspect, default to a size a bit smaller than current
                 startSize: this.aspect ? undefined : [0.8, 0.8],
-                aspectRatio: this.aspect,
+                // Allow very landscape and moderately portrait, as tall images hard to edit/see
+                aspectRatio: this.aspect ?? 0.75,  // Default to min 0.75 (portrait)
+                maxAspectRatio: this.aspect ? undefined : 4,  // If not exact, max 4 (landscape)
             })
         }
     }
