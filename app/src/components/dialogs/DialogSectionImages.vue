@@ -4,10 +4,10 @@
 v-card
 
     v-card-title
-        app-file(@input='add_files' accept='image/*' multiple) Select image
-        app-btn(@click='paste_images') Paste image
+        app-file(@input='add_files' :disabled='full' accept='image/*' multiple) Select image
+        app-btn(@click='paste_images' :disabled='full') Paste image
         app-switch(v-if='images.length === 1' v-model='hero' label="Banner style")
-        app-switch(v-else-if='images.length > 1' v-model='crop' label="Make same size")
+        app-switch(v-else-if='images.length > 1' v-model='crop' label="Crop to same size")
 
     v-card-text
         dialog-section-images-item(v-for='(item, i) of images' :key='item.id' :section='section'
@@ -50,6 +50,12 @@ export default class extends Vue {
 
     get images(){
         return this.content.images
+    }
+
+    get full(){
+        // Whether the slideshow is full and no more images may be added
+        // 8 is the max before buttons start to shrink size on mobile and half-width sections
+        return this.content.images.length >= 8
     }
 
     get crop(){
