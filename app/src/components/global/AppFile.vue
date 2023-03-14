@@ -2,9 +2,9 @@
 
 <template lang='pug'>
 
-label(class='v-btn v-btn--flat v-btn--text v-size--default accent--text' :class='label_classes')
+label(class='v-btn v-btn--flat v-btn--text v-size--default' :class='label_classes')
     slot
-    input(@change='changed' type='file' :accept='accept' :multiple='multiple')
+    input(@change='changed' type='file' :accept='accept' :multiple='multiple' :disabled='disabled')
 
 </template>
 
@@ -19,12 +19,17 @@ export default class extends Vue {
 
     @Prop({type: String, default: ''}) declare readonly accept:string
     @Prop({type: Boolean, default: false}) declare readonly multiple:boolean
+    @Prop({type: Boolean, default: false}) declare readonly disabled:boolean
 
     get label_classes():string[]{
         // Return appropriate classes for label to make it look like a button
         const classes = [this.$vuetify.theme.dark ? 'theme--dark' : 'theme--light']
-        if (this.$attrs['color']){
+        if (this.disabled){
+            classes.push('v-btn--disabled')
+        } else if (this.$attrs['color']){
             classes.push(`${this.$attrs['color']}--text`)
+        } else {
+            classes.push('accent--text')
         }
         return classes
     }
