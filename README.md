@@ -1,7 +1,10 @@
 # στέλλω
 
-This is the source code for [Stello](https://stello.news).
+This is the source code for [Stello](https://stello.news), a cross-platform app for sending secure and interactive newsletters. Stello is freely given under the MIT No Attribution license.
 
+<a href='https://copy.church/licenses/free-equiv/'><img src='https://copy.church/badges/brand/lcc/free-equiv.svg' alt="Let's copy, church. Public domain equivalent."></a>
+
+&nbsp;
 
 ## Components
 
