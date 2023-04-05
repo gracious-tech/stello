@@ -1,0 +1,11 @@
+#!/bin/bash
+# Build and run unpackaged electron with real SMTP connections
+set -e
+cd "$(dirname "$(dirname "$0")")"
+
+
+.bin/build_electron
+cd electron
+echo -e "\e[0;31m WARNING: SMTP connections will connect to real hosts \e[0m"
+# NOTE --disable-gpu set just to silence some warnings
+STELLO_SMTP_LOCALHOST="false" node_modules/.bin/electron --disable-gpu .

@@ -59,7 +59,7 @@ function smtp_transport(settings:SmtpSettings){
     }
 
     // Send to localhost during development
-    if (!app.isPackaged){
+    if (!app.isPackaged && process.env['STELLO_SMTP_LOCALHOST'] !== "false"){
         config.host = 'localhost'
         config.port = 25
         config.secure = false
