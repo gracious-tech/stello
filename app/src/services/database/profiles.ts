@@ -336,6 +336,7 @@ export class DatabaseProfiles {
                 starttls: false,
             },
             options: {
+                send_to_self: 'yes_without_replies_email',
                 notify_mode: 'replies',
                 notify_include_contents: false,
                 allow_replies: true,

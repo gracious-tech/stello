@@ -15,10 +15,12 @@ div
         v-card
             v-card-text
                 p(class='body-2 text--secondary' v-t='"email.p1"')
-                h6.address(class='text-center text-h6')
+                h6.address(class='text-center text-h6 mb-6')
                     span(v-if='profile.smtp_ready') {{ profile.email }}
                     app-btn(@click='show_email_dialog')
                         | {{ profile.smtp_ready ? "Change" : "Connect email account" }}
+                app-select(v-bind='$t("send_to_self")' v-model='send_to_self'
+                    :items='send_to_self_items' select)
 
 
         h2 Responses
@@ -92,6 +94,10 @@ const i18n = {
     email: {
         p1: `Stello uses your email address to send messages
             and receive notifications about replies.`,
+    },
+    send_to_self: {
+        label: "Always include self as a recipient",
+        hint: "Allows you to view sent messages and see what your recipients see",
     },
     // Identity
     identity: {
@@ -200,6 +206,12 @@ export default class extends Vue {
 
     profile:Profile = null as unknown as Profile  // Avoid having to type profile as optional
     groups_ui:{text:string, value:string}[] = []
+    send_to_self_items = [
+        {value: 'no', text: "No"},
+        {value: 'yes_without_email', text: "Enable link"},
+        {value: 'yes_without_replies_email', text: "Enable link + send email (except replies)"},
+        {value: 'yes', text: "Enable link + send email"},
+    ]
     notify_mode_items = [
         {value: 'none', text: "None"},
         {value: 'first_new_reply', text: "Once until Stello opened"},
@@ -250,6 +262,14 @@ export default class extends Vue {
     }
 
     // OPTIONS
+
+    get send_to_self(){
+        return this.profile.options.send_to_self
+    }
+    set send_to_self(value){
+        this.profile.options.send_to_self = value
+        this.save()
+    }
 
     get notify_mode(){
         return this.profile.options.notify_mode

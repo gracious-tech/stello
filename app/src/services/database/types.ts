@@ -123,6 +123,7 @@ export type ThemeColor = {h:number, s:number, l:number}  // HSL (0-360, 0-1, 0-1
 
 export interface RecordProfileOptions {
     // Options that can't be changed per-message
+    send_to_self:'no'|'yes_without_email'|'yes_without_replies_email'|'yes'
     notify_mode:'none'|'first_new_reply'|'replies'|'replies_and_reactions'
     notify_include_contents:boolean  // Only applicable to replies & replies_and_reactions
     allow_replies:boolean

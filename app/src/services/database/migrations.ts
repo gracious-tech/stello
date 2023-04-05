@@ -6,7 +6,7 @@ import {AppDatabaseConnection, VersionChangeTransaction} from './types'
 import {to_12_from_1plus, to_12_from_1plus_async} from './migrations_pre12'
 
 
-export const DATABASE_VERSION = 18
+export const DATABASE_VERSION = 19
 
 
 export async function migrate(transaction:VersionChangeTransaction,
@@ -30,6 +30,8 @@ export async function migrate(transaction:VersionChangeTransaction,
         await to_17(transaction)
     if (old_version < 18)
         await to_18(transaction)
+    if (old_version < 19)
+        await to_19(transaction)
 }
 
 
@@ -244,6 +246,17 @@ export async function to_18(transaction:VersionChangeTransaction){
     }
     for await (const cursor of transaction.objectStore('messages')){
         cursor.value.draft.options_identity.invite_button = ''
+        await cursor.update(cursor.value)
+    }
+}
+
+
+export async function to_19(transaction:VersionChangeTransaction){
+
+    // Add send_to_self to profiles
+    for await (const cursor of transaction.objectStore('profiles')){
+        // Default to link only as many existing users would have added themselves as a contact
+        cursor.value.options.send_to_self = 'yes_without_email'
         await cursor.update(cursor.value)
     }
 }
