@@ -46,7 +46,7 @@ export async function external_decrypt(encrypted:ArrayBuffer):Promise<string>{
     }
 
     // Not necessarily a problem, but report so can monitor frequency of credentials loss
-    self.app_report_error("External decrypt failed")
+    self.app_report_error(new Error("External decrypt failed"))
 
     // Couldn't decrypt so must get new credentials
     throw new MustReauthenticate()
