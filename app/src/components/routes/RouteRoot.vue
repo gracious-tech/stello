@@ -33,8 +33,9 @@ div
                 p(class='text-body-2')
                     | Every feature added to Stello is made free for everyone.
                     | Help fund more features that we can all benefit from.
-                app-btn(href='https://give.gracious.tech' color='#fa5788' raised small)
-                    | Funding progress
+                div(class='my-3')
+                    app-btn(href='https://give.gracious.tech' color='#fa5788' raised small)
+                        | Funding progress
 
         div(class='mt-15 text-body-2 opacity-secondary text-center') Version {{ version }}
 
