@@ -60,12 +60,8 @@ export default class extends Vue {
 
     added = [
         {
-            title: "Customise invitation buttons",
-            desc: 'Replace "Open Message" with text of your choice',
-        },
-        {
-            title: "Portable mode",
-            desc: "Store Stello's data in an external drive (see \"Backup\" section of guide)",
+            title: "View sent messages",
+            desc: "You no longer need to copy a sent message to view it",
         },
     ]
     todo = [
