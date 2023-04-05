@@ -37,8 +37,6 @@ div
                     | Funding progress
 
         div(class='mt-15 text-body-2 opacity-secondary text-center') Version {{ version }}
-        div.really(class='mt-3 text-center pb-15 mb-15')
-            really-free
 
 </template>
 
@@ -48,13 +46,12 @@ div
 import {Component, Vue} from 'vue-property-decorator'
 
 import app_config from '@/app_config.json'
-import ReallyFree from '@/components/reuseable/ReallyFree.vue'
 import RouteRootAddressRequests from './assets/RouteRootAddressRequests.vue'
 import RouteRootResendRequests from './assets/RouteRootResendRequests.vue'
 
 
 @Component({
-    components: {RouteRootAddressRequests, RouteRootResendRequests, ReallyFree},
+    components: {RouteRootAddressRequests, RouteRootResendRequests},
 })
 export default class extends Vue {
 
