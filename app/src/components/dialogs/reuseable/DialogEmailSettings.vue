@@ -163,6 +163,7 @@ const SMTPLESS:Record<string, string> = {
 
 const SMTPLESS_DOMAINS:Record<string, string> = {
     'protonmail.com': 'protonmail',
+    'proton.me': 'protonmail',
     'pm.me': 'protonmail',
     'tutanota.com': 'tutanota',
     'tutanota.de': 'tutanota',
