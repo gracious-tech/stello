@@ -14,7 +14,7 @@ export interface RecordState {
 // Contact
 
 export interface RecordContact {
-    id:string
+    id:string  // NOTE 'self' is a special id related to send_to_self config
     created:Date
     name:string
     name_hello:string

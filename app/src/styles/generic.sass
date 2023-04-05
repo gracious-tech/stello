@@ -430,6 +430,11 @@ html
     opacity: 1 !important
 [data-tip]:not([data-tip-instant]):hover::after, [data-tip]:not([data-tip-instant]):focus::after
     transition-delay: 500ms
+[data-tip-below]::after
+    top: auto !important
+    bottom: -10px
+[data-tip-below]:hover::after, [data-tip-below]:focus::after
+    bottom: -$tooltip_height - 6
 
 
 // Fixes for displayer (prevent app/Vuetify from overriding displayer styles)

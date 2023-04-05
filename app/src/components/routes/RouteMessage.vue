@@ -6,6 +6,8 @@ div
         app-btn(to='../' icon='arrow_back')
         v-toolbar-title {{ message && message.draft.title }}
         v-spacer
+        app-btn(@click='view_own_copy' icon='visibility' :disabled='!own_copy'
+            data-tip="View copy sent to self" data-tip-below)
         app-menu-more(v-if='message')
             app-list-item(@click='open_resend_dialog' :disabled='!!sending_task') Resend some emails
             app-list-item(@click='copy_to_draft') Copy to new draft
@@ -64,7 +66,7 @@ import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import DialogResend from '@/components/dialogs/specific/DialogResend.vue'
 import RouteMessageCopy from './assets/RouteMessageCopy.vue'
-import {sort} from '@/services/utils/arrays'
+import {remove_match, sort} from '@/services/utils/arrays'
 import {Message} from '@/services/database/messages'
 import {MessageCopy} from '@/services/database/copies'
 import {Draft} from '@/services/database/drafts'
@@ -72,6 +74,7 @@ import {Read} from '@/services/database/reads'
 import {Profile} from '@/services/database/profiles'
 import {Task} from '@/services/tasks/tasks'
 import {time_between} from '@/services/misc'
+import {gen_view_url} from '@/services/misc/invites'
 
 
 @Component({
@@ -85,6 +88,7 @@ export default class extends Vue {
     copies:MessageCopy[] = []
     reads:Read[] = []
     profile:Profile|null = null
+    own_copy:MessageCopy|null = null
 
     async created(){
         // Get message and copies from db
@@ -93,6 +97,10 @@ export default class extends Vue {
             return
         }
         const copies = await self.app_db.copies.list_for_msg(this.msg_id)
+
+        // Remove own copy (if it exists) from list so doesn't appear in UI or affect stats
+        this.own_copy = remove_match(copies, c => c.contact_id === 'self') ?? null
+
         sort(copies, 'display')
         this.copies = copies
 
@@ -213,6 +221,14 @@ export default class extends Vue {
             },
             wide: true,
         })
+    }
+
+    async view_own_copy(){
+        // Open the copy that was sent to self
+        if (this.own_copy && this.profile){
+            const url = await gen_view_url(this.own_copy, this.profile)
+            self.open(url, '_blank')
+        }
     }
 
     // WATCHES

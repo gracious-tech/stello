@@ -2,6 +2,7 @@
 import chroma from 'chroma-js'
 import {escape as html_escape} from 'lodash'  // Avoid deprecated global `escape()`
 
+import {Profile} from '@/services/database/profiles'
 import {MessageCopy} from '@/services/database/copies'
 import {export_key} from '@/services/utils/crypt'
 import {replace_without_overlap} from '@/services/utils/strings'
@@ -152,15 +153,22 @@ export async function get_text_invite_for_copy(copy:MessageCopy):Promise<string>
     const sender = msg.draft.options_identity.sender_name
         || profile.msg_options_identity.sender_name
 
-    // Encode shared secret
-    const shared_secret_64 = buffer_to_url64(
-        await export_key(profile.host_state.shared_secret))
-
     // Render invite
     return render_invite_text(template, {
         contact: copy.contact_hello,
         sender: sender,
         title: msg.draft.title,
-        url: profile.view_url(shared_secret_64, copy.id, await export_key(copy.secret)),
+        url: await gen_view_url(copy, profile),
     })
+}
+
+
+export async function gen_view_url(copy:MessageCopy, profile:Profile):Promise<string>{
+    // Generate view URL from copy and profile records
+
+    // Encode shared secret
+    const shared_secret_64 = buffer_to_url64(
+        await export_key(profile.host_state.shared_secret))
+
+    return profile.view_url(shared_secret_64, copy.id, await export_key(copy.secret))
 }

@@ -4,7 +4,7 @@ import {openDB} from 'idb/with-async-ittr.js'
 import {AppDatabaseSchema, AppDatabaseConnection, RecordReplaction, RecordDraft,
     RecordDraftPublished} from './types'
 import {DatabaseState} from './state'
-import {DatabaseContacts} from './contacts'
+import {DatabaseContacts, Contact} from './contacts'
 import {DatabaseGroups} from './groups'
 import {DatabaseOAuths} from './oauths'
 import {DatabaseProfiles, Profile} from './profiles'
@@ -143,10 +143,33 @@ export class Database {
         const contacts = await this.contacts.list()
         const unsubs = await this.unsubscribes.list_for_profile(draft.profile!)
         const recipients = get_final_recipients(draft, contacts, await this.groups.list(), unsubs)
+        if (profile.options.send_to_self !== 'no'){
+            recipients.push('self')  // Add special 'self' id to trigger creating a copy for self
+        }
         const copies = await Promise.all(recipients.map(async contact_id => {
 
             // Get the contact's data
-            const contact = contacts.find(c => c.id === contact_id)!
+            let contact:Contact
+            if (contact_id !== 'self'){
+                // Not the special 'self' contact so get contact's data from db
+                contact = contacts.find(c => c.id === contact_id)!
+            } else {
+                // Create a tmp contact for self that always has same id but never saved in db
+                const send_to_self = profile.options.send_to_self
+                contact = new Contact({
+                    id: 'self',
+                    created: new Date(),
+                    name: profile.msg_options_identity.sender_name,
+                    name_hello: '',
+                    address: send_to_self === 'yes'
+                        || (send_to_self === 'yes_without_replies_email' && !draft.reply_to)
+                        ? profile.email : '',
+                    notes: '',
+                    service_account: null,
+                    service_id: null,
+                    multiple: true,  // So can't unsubscribe and unlimited opens
+                })
+            }
 
             // Generate secret and derive response token from it
             // NOTE Response token is derived from secret in case message has expired
