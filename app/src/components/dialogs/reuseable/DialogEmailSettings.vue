@@ -377,7 +377,7 @@ export default class extends Vue {
             // Especially useful for the many domains using Google email hosting
             // WARN Cannot detect all, as some use 3p filters that obscure the real host
             // e.g. https://help.proofpoint.com/Proofpoint_Essentials/Email_Security/Administrator_Topics/hostedemailservices/Configuring_Office_365_for_Proofpoint_Essentials
-            if (!this.profile.smtp_detected && this.profile.email_domain){
+            if (!this.profile.smtp_detected && !this.smtpless && this.profile.email_domain){
                 const mx_domain = (await self.app_native.dns_mx(this.profile.email_domain))[0]
                 if (mx_domain){
                     for (const provider of Object.values(SMTP_PROVIDERS)){
@@ -398,6 +398,9 @@ export default class extends Vue {
         // Go to next setup step depending on whether settings were detected or not
         if (this.profile.smtp_detected){
             this.setup = this.profile.smtp_oauth_supported ? 'signin' : 'password'
+        } else if (this.smtpless){
+            // Host doesn't support standard SMTP, so require manual settings and show warning
+            this.setup = 'settings'
         } else if (this.profile.smtp.pass){
             // Password has already been set, so host settings may already work so don't guess them
             this.setup = 'settings'
