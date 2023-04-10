@@ -43,7 +43,7 @@ export default defineComponent({
 div
     position: absolute
     right: 0
-    z-index: 100
+    z-index: 1  // WARN Greater than 8 and button will overlap dropdowns from app toolbar
     padding: 12px
     margin: 12px
     opacity: 0.3
