@@ -4,6 +4,7 @@ import {Store} from 'vuex'
 
 import RouteRoot from '@/components/routes/RouteRoot.vue'
 import RouteAbout from '@/components/routes/RouteAbout.vue'
+import RouteGive from '@/components/routes/RouteGive.vue'
 import RouteSettings from '@/components/routes/RouteSettings.vue'
 import RouteProfile from '@/components/routes/RouteProfile.vue'
 import RouteStorage from '@/components/routes/RouteStorage.vue'
@@ -36,6 +37,7 @@ const routes:RouteConfig[] = [
     {path: '/settings/profiles/:profile_id/', component: RouteProfile, name: 'profile', props:true},
     {path: '/settings/storage/', component: RouteStorage},
     {path: '/about/', component: RouteAbout},
+    {path: '/give/', component: RouteGive},
     {path: '*', component: RouteInvalid},
 ]
 
