@@ -1,6 +1,7 @@
 
 import {app, BrowserWindow, session, shell} from 'electron'
 
+import store from './store'
 import {get_path, TESTING, CONFIG} from './config'
 
 
@@ -31,10 +32,16 @@ export async function open_window(){
         await window_session.clearStorageData()
     }
 
+    // Remember previous window position
+    let win_bounds = {width: 1000, height: 800}
+    if (store.state.window_bounds){
+        // SECURITY Prevent injecting arbitrary params into BrowserWindow constructor
+        win_bounds = (({width, height, x, y}) => ({width, height, x, y}))(store.state.window_bounds)
+    }
+
     // Open window
     const window = new BrowserWindow({
-        width: 1000,
-        height: 800,
+        ...win_bounds,
         icon: get_path('assets/icon.png'),
         backgroundColor: '#000000',  // Avoid white flash before first paint
         webPreferences: {
@@ -42,6 +49,11 @@ export async function open_window(){
             session: window_session,
         },
     })
+
+    // Remember if was previously maximized
+    if (store.state.window_maximized){
+        window.maximize()
+    }
 
     // Hide menu bar (but don't remove menu so can still open dev tools with shortcut on production)
     // NOTE Doesn't work on macOS since menu is part of system bar
@@ -134,6 +146,13 @@ export async function open_window(){
         } else {
             callback({responseHeaders: headers})
         }
+    })
+
+    // Save window position when closed
+    window.on('close', () => {
+        store.state.window_bounds = window.getNormalBounds()
+        store.state.window_maximized = window.isMaximized()
+        void store.save()
     })
 
     return window
