@@ -96,8 +96,8 @@ const i18n = {
             and receive notifications about replies.`,
     },
     send_to_self: {
-        label: "Always include self as a recipient",
-        hint: "Allows you to view sent messages and see what your recipients see",
+        label: "Send a copy of all messages to self",
+        hint: `This allows you to view sent messages the way your recipients see them. An extra message will be uploaded that only you can access.`,
     },
     // Identity
     identity: {
@@ -208,9 +208,10 @@ export default class extends Vue {
     groups_ui:{text:string, value:string}[] = []
     send_to_self_items = [
         {value: 'no', text: "No"},
-        {value: 'yes_without_email', text: "Enable link"},
-        {value: 'yes_without_replies_email', text: "Enable link + send email (except replies)"},
-        {value: 'yes', text: "Enable link + send email"},
+        {value: 'yes_without_email', text: "Enable viewing"},
+        {value: 'yes_without_replies_email',
+            text: "Enable viewing + send email (except for replies)"},
+        {value: 'yes', text: "Enable viewing + send email"},
     ]
     notify_mode_items = [
         {value: 'none', text: "None"},
