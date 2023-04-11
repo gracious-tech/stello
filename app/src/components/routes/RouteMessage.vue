@@ -7,7 +7,7 @@ div
         v-toolbar-title {{ message && message.draft.title }}
         v-spacer
         app-btn(@click='view_own_copy' icon='visibility' :disabled='!own_copy'
-            data-tip="View copy sent to self" data-tip-below)
+            data-tip="View online" data-tip-below)
         app-menu-more(v-if='message')
             app-list-item(@click='open_resend_dialog' :disabled='!!sending_task') Resend some emails
             app-list-item(@click='copy_to_draft') Copy to new draft
