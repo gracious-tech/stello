@@ -12,7 +12,8 @@ v-list-item(:to='to')
             | {{ published_relative }}
         div.expires(v-if='expires_relative' :title='expires_exact' class='mt-1')
             | {{ expires_relative }}
-    v-list-item-action
+    v-list-item-action(class='flex-row align-center')
+        app-btn.view(@click.prevent='view_own_copy' icon='visibility' data-tip="View online")
         app-menu-more
             app-list-item(@click='copy') Copy to new draft
             app-list-item(@click='retract' :disabled='msg.expired' class='error--text')
@@ -30,6 +31,7 @@ import DialogGenericConfirm from '@/components/dialogs/generic/DialogGenericConf
 import {Draft} from '@/services/database/drafts'
 import {Message} from '@/services/database/messages'
 import {time_between} from '@/services/misc'
+import {gen_view_url} from '@/services/misc/invites'
 
 
 @Component({})
@@ -76,6 +78,29 @@ export default class extends Vue {
             return this.msg.expires.toLocaleDateString()
         }
         return ''
+    }
+
+    async view_own_copy(){
+        // Open the copy that was sent to self
+        const own_copy = (await self.app_db.copies.list_for_msg(this.msg.id))
+            .find(c => c.contact_id === 'self')
+        const profile = await self.app_db.profiles.get(this.msg.draft.profile)
+        if (own_copy && profile){
+            const url = await gen_view_url(own_copy, profile)
+            self.open(url, '_blank')
+        } else {
+            const confirmed = await this.$store.dispatch('show_dialog', {
+                component: DialogGenericConfirm,
+                props: {
+                    title: "Cannot view online",
+                    text: `You can only view a message online if it was sent to yourself as well (configurable in settings). Would you like to copy it to a new draft to see it in the editor instead?`,
+                    confirm: "Copy to new draft",
+                },
+            })
+            if (confirmed){
+                void this.copy()
+            }
+        }
     }
 
     async copy(){
@@ -165,11 +190,12 @@ export default class extends Vue {
 
 .v-list-item
 
-    ::v-deep .menu-more-btn
-        visibility: hidden
+    ::v-deep .menu-more-btn, .view
+        opacity: 0.1
 
-    &:hover ::v-deep .menu-more-btn
-        visibility: visible
+    &:hover
+        ::v-deep .menu-more-btn, .view
+            opacity: 1
 
     .right
         font-size: 12px
