@@ -207,7 +207,8 @@ export class Sender {
 
         // Get copies
         const copies = await this._get_copies()
-        task.upcoming(copies.length)
+        // NOTE Subtract 1 from count if sending to self so user isn't confused by stated total
+        task.upcoming(copies.length - (copies.some(c => c.contact_id === 'self') ? 1 : 0))
         task.show_count = true
 
         // Check if aborted before uploading copies
