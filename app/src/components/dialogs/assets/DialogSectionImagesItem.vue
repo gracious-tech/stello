@@ -28,7 +28,7 @@ div.dialog-section-images-item(class='my-5')
 
 <script lang='ts'>
 
-import {Component, Vue, Prop} from 'vue-property-decorator'
+import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import SharedHero from '@/shared/SharedHero.vue'
 import ImageEditBar from '@/components/reuseable/ImageEditBar.vue'
@@ -46,13 +46,15 @@ export default class extends Vue {
     @Prop({type: Object, required: true}) declare readonly theme_style_props:Record<string, string>
     @Prop({type: String, required: true}) declare readonly aspect:string
 
+    img_src = ''
+
+    async destroyed(){
+        URL.revokeObjectURL(this.img_src)
+    }
+
     get item(){
         // Return individual image object represented by this component
         return this.section.content.images[this.item_index]!
-    }
-
-    get img_src(){
-        return URL.createObjectURL(this.item.data)
     }
 
     get caption(){
@@ -99,6 +101,11 @@ export default class extends Vue {
                 aspect-ratio: ${this.aspect};
             }
         </style>`
+    }
+
+    @Watch('item.data', {immediate: true}) watch_data(){
+        URL.revokeObjectURL(this.img_src)
+        this.img_src = URL.createObjectURL(this.item.data)
     }
 
     image_edited(blob:Blob){

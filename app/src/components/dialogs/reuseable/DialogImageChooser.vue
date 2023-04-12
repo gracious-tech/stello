@@ -58,6 +58,13 @@ export default class extends Vue {
     image:Blob|null = null
     have_edited = false
 
+    destroyed(){
+        // WARN This assumes suggestions doesn't change while dialog open
+        for (const suggestion of this.suggestions_ui){
+            URL.revokeObjectURL(suggestion.url)
+        }
+    }
+
     get suggestions_ui():{url:string, choose():void}[]{
         return this.suggestions.map(blob => {
             return {

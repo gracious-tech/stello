@@ -37,21 +37,38 @@ export default defineComponent({
         },
     },
 
+    data(){
+        return {
+            image_url: '',
+        }
+    },
+
     watch: {
         image: {
             immediate: true,
             handler(){
                 // Once div available in DOM, apply bg image (done via JS due to CSP)
                 // NOTE If no image then image div won't be rendered at all
+                URL.revokeObjectURL(this.image_url)
                 if (this.image && !this.button){
-                    const image_url = URL.createObjectURL(this.image)
+                    this.image_url = URL.createObjectURL(this.image)
                     void this.$nextTick(() => {
                         const div = this.$refs['image'] as HTMLDivElement
-                        div.style.backgroundImage = `url(${image_url})`
+                        div.style.backgroundImage = `url(${this.image_url})`
                     })
+                } else {
+                    this.image_url = ''
                 }
             },
         },
+    },
+
+    destroyed(){  // eslint-disable-line vue/no-deprecated-destroyed-lifecycle -- Vue 2
+        URL.revokeObjectURL(this.image_url)
+    },
+
+    unmounted(){  // Vue 3
+        URL.revokeObjectURL(this.image_url)
     },
 })
 

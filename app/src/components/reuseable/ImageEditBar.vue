@@ -48,6 +48,7 @@ export default class extends Vue {
     unfiltered:OffscreenCanvas|null = null
     active_filter:string|null = null
     region_mode:'crop'|'redact'|null = null
+    region_target_src = ''
     croppr:Croppr|null = null
     cropped = false  // Whether have cropped yet (only relevant if aspect ratio given)
 
@@ -64,6 +65,11 @@ export default class extends Vue {
         if (this.aspect){
             this.start_region('crop')
         }
+    }
+
+    destroyed(){
+        // Ensure tmp blob used for region always revoked (in case destroyed while region active)
+        URL.revokeObjectURL(this.region_target_src)
     }
 
     get filters(){
@@ -90,7 +96,7 @@ export default class extends Vue {
         // Create tmp img to pass to Croppr since it expects an img attached to DOM (later delete)
         // WARN Mustn't reuse target as Croppr doesn't remove event listeners properly and will fail
         const target = self.document.createElement('img')
-        target.src = URL.createObjectURL(this.blob)
+        target.src = this.region_target_src = URL.createObjectURL(this.blob)
         target.classList.add('croppr-target')
         this.$el.appendChild(target)
 

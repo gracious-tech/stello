@@ -44,6 +44,7 @@ export default defineComponent({
     data(){
         return {
             relative_height: 500,  // Height that results in same aspect as image when width 1000
+            image_url: '',
         }
     },
 
@@ -51,9 +52,6 @@ export default defineComponent({
         view_box(){
             // Dynamic viewbox to keep same aspect ratio as image
             return `0 0 1000 ${this.relative_height}`
-        },
-        image_url(){
-            return this.image.data && URL.createObjectURL(this.image.data)
         },
         clip_path(){
             // Path spec to use to clip image and text (only clips bottom)
@@ -91,6 +89,10 @@ export default defineComponent({
         'image.data': {
             immediate: true,
             async handler(){
+                // Generate URL for the image blob
+                URL.revokeObjectURL(this.image_url)
+                this.image_url = this.image.data ? URL.createObjectURL(this.image.data) : ''
+
                 // Recalculate relative height whenever image changes
                 if (this.aspect){
                     // Aspect will be directly provided in displayer
@@ -103,6 +105,14 @@ export default defineComponent({
                 }
             },
         },
+    },
+
+    destroyed(){  // eslint-disable-line vue/no-deprecated-destroyed-lifecycle -- Vue 2
+        URL.revokeObjectURL(this.image_url)
+    },
+
+    unmounted(){  // Vue 3
+        URL.revokeObjectURL(this.image_url)
     },
 })
 

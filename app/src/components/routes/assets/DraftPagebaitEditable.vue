@@ -28,23 +28,20 @@ import {SECTION_IMAGE_WIDTH} from '@/services/misc'
 
 
 // Generate a placeholder image
-const PLACEHOLDER = URL.createObjectURL(
-    new Blob(
-        [`
-        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="24" viewBox="0 0 48 24">
-            <path fill="#00000055" d="
-                m14 4c-1.1 0-2.2157 0.92136-2 2v5h1v-5c0-0.4714 0.5286-1 1-1h9v-1zm11 0v1h9c0.4714
-                0 1.0924 0.53775 1 1v5h1v-5c0-1.1-0.9-2-2-2zm2.5 4c-0.83 0-1.5 0.67-1.5 1.5s0.67
-                1.5 1.5 1.5 1.5-0.67 1.5-1.5-0.67-1.5-1.5-1.5zm-6.5 2-5 6h16l-4-4-3.0293 2.7109zm-9
-                3v5c0 1.1 0.9 2 2 2h9v-1h-9c-0.4714 0-1.0924-0.53775-1-1v-5zm23 0v5c0 0.4714-0.5286
-                1-1 1h-9v1h9c1.1 0 2-0.9 2-2v-5z
-            "/>
-        </svg>
-        `],
-        {type: 'image/svg+xml'},
-    ),
+const PLACEHOLDER = new Blob(
+    [`
+    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="24" viewBox="0 0 48 24">
+        <path fill="#00000055" d="
+            m14 4c-1.1 0-2.2157 0.92136-2 2v5h1v-5c0-0.4714 0.5286-1 1-1h9v-1zm11 0v1h9c0.4714
+            0 1.0924 0.53775 1 1v5h1v-5c0-1.1-0.9-2-2-2zm2.5 4c-0.83 0-1.5 0.67-1.5 1.5s0.67
+            1.5 1.5 1.5 1.5-0.67 1.5-1.5-0.67-1.5-1.5-1.5zm-6.5 2-5 6h16l-4-4-3.0293 2.7109zm-9
+            3v5c0 1.1 0.9 2 2 2h9v-1h-9c-0.4714 0-1.0924-0.53775-1-1v-5zm23 0v5c0 0.4714-0.5286
+            1-1 1h-9v1h9c1.1 0 2-0.9 2-2v-5z
+        "/>
+    </svg>
+    `],
+    {type: 'image/svg+xml'},
 )
-
 
 
 @Component({})
@@ -52,8 +49,14 @@ export default class extends Vue {
 
     @Prop({type: Section, required: true}) declare readonly page:Section<ContentPage>
 
+    image_url = ''
+
     mounted(){
         this.autogrow_all()
+    }
+
+    destroyed(){
+        URL.revokeObjectURL(this.image_url)
     }
 
     get button(){
@@ -139,11 +142,12 @@ export default class extends Vue {
 
     @Watch('page.content.image', {immediate: true}) watch_image(){
         // Once div available in DOM, apply bg image (done via JS due to CSP)
-        const url =
-            this.page.content.image ? URL.createObjectURL(this.page.content.image) : PLACEHOLDER
+        URL.revokeObjectURL(this.image_url)
+        this.image_url = URL.createObjectURL(
+            this.page.content.image ? this.page.content.image : PLACEHOLDER)
         void this.$nextTick(() => {
             const div = this.$refs['image'] as HTMLDivElement
-            div.style.backgroundImage = `url(${url})`
+            div.style.backgroundImage = `url(${this.image_url})`
         })
     }
 

@@ -54,6 +54,7 @@ export function email_address_like(input:string):boolean{
 
 export function download_file(file:File):void{
     // Trigger a download of the given file
+    // TODO Confirm with actual tests if revoking URL causes issue with the download
     download_url(URL.createObjectURL(file), file.name)
 }
 

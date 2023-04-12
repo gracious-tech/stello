@@ -52,7 +52,12 @@ export default class extends Vue {
 
     section:Section|null = null
     section_image_vimeo:string|null = null
+    section_image_blob = ''
     section_expanded = false
+
+    destroyed(){
+        URL.revokeObjectURL(this.section_image_blob)
+    }
 
     async created(){
         // Get the section (if not sectionless)
@@ -118,7 +123,9 @@ export default class extends Vue {
             const images = this.section.content.images
             const image = images.find(i => i.id === this.first.subsection_id)
             if (image){
-                return URL.createObjectURL(image.data)
+                URL.revokeObjectURL(this.section_image_blob)
+                this.section_image_blob = URL.createObjectURL(image.data)
+                return this.section_image_blob
             }
         } else if (this.section?.content.type === 'video'){
             const video_id = this.section.content.id!

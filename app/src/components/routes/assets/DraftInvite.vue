@@ -19,7 +19,7 @@ div.invite(class='d-flex' :class='{"flex-column": draft_tmpl}')
 
 <script lang='ts'>
 
-import {Component, Vue, Prop} from 'vue-property-decorator'
+import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import AppInviteHtml from '@/components/reuseable/AppInviteHtml.vue'
 import DialogImageChooser from '@/components/dialogs/reuseable/DialogImageChooser.vue'
@@ -37,17 +37,18 @@ export default class extends Vue {
     @Prop({type: Draft, required: true}) declare readonly draft:Draft
     @Prop({type: Profile, required: true}) declare readonly profile:Profile
 
+    image_url = ''
+
+    destroyed(){
+        URL.revokeObjectURL(this.image_url)
+    }
+
     get image():Blob{
         // Get invite's image, accounting for inheritance
         const default_image = this.draft.reply_to
             ? this.profile.options.reply_invite_image
             : this.profile.msg_options_identity.invite_image
         return this.draft.options_identity.invite_image ?? default_image
-    }
-
-    get image_url():string{
-        // Access to image via a URL
-        return URL.createObjectURL(this.image)
     }
 
     get invite_button():string{
@@ -91,6 +92,11 @@ export default class extends Vue {
         // The default text for the button, depending on if a reply or not
         return this.draft.reply_to ? this.profile.options.reply_invite_button
             : this.profile.msg_options_identity.invite_button
+    }
+
+    @Watch('image', {immediate: true}) watch_image(){
+        URL.revokeObjectURL(this.image_url)
+        this.image_url = URL.createObjectURL(this.image)
     }
 
     async change_image():Promise<void>{

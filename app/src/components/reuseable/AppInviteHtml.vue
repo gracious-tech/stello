@@ -21,7 +21,7 @@ div.root(:style='styles.container')
 
 <script lang='ts'>
 
-import {Component, Prop, Vue} from 'vue-property-decorator'
+import {Component, Prop, Vue, Watch} from 'vue-property-decorator'
 
 import {gen_variable_items} from '@/services/misc/templates'
 import {gen_invite_styles} from '@/services/misc/invites'
@@ -39,10 +39,16 @@ export default class extends Vue {
     @Prop({type: Profile, required: true}) declare readonly profile:Profile
     @Prop({type: Draft, default: null}) declare readonly draft:Draft
 
+    image_src = ''
+
     mounted(){
         // Expand button-like input to fit contents when first mounted
         const element = this.$refs['button'] as HTMLInputElement
         element.style.width = `${element.scrollWidth}px`
+    }
+
+    destroyed(){
+        URL.revokeObjectURL(this.image_src)
     }
 
     get variables(){
@@ -61,14 +67,15 @@ export default class extends Vue {
         return gen_invite_styles(this.profile.options.theme_color.h)
     }
 
-    get image_src(){
-        return URL.createObjectURL(this.image)
-    }
-
     get button_unchanged(){
         // Whether button is _probably_ (not exactly) still the default
         return this.button === "Open Message" ||
             (!this.button && this.button_default === "Open Message")
+    }
+
+    @Watch('image', {immediate: true}) watch_image(){
+        URL.revokeObjectURL(this.image_src)
+        this.image_src = URL.createObjectURL(this.image)
     }
 
     button_input(event:Event){
