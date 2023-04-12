@@ -1,57 +1,23 @@
 
 
-// Setup error reporting before all else
+// Trigger setup steps
+// WARN Order matters
 import './setup/errors'
+import './setup/init'  // WARN Must happen before all other imports which will rely on path set
+import './setup/menus'
+import './setup/oauths'
+import './setup/services'
+import './setup/services_smtp'
 
-import {join} from 'path'
 // WARN Electron overrides `fs` module with magic for asar files, which breaks `access()` test
-import {promises as fs, constants as fs_constants, existsSync} from 'original-fs'
+import {promises as fs, constants as fs_constants} from 'original-fs'
 
 import {app, BrowserWindow, dialog, session} from 'electron'
 import {autoUpdater} from 'electron-updater'
 
 import {get_path, TESTING} from './utils/config'
 import {activate_app, open_window} from './utils/window'
-
-
-// Determine where app is, whether a single file (appimage) or a dir
-/* getAppPath() results differ by env:
-    dev: stello_app/electron
-    Linux: tmp location (use APPIMAGE env var)
-    Mac: Stello.app/Contents/Resources/app.asar
-    Windows: StelloByGraciousTech/app/resources/app.asar
-*/
-// NOTE If an AppImage, need to set to the AppImage file rather than currently unpackaged code
-let app_path = join(app.getAppPath(), '..')
-if (app.isPackaged){
-    app_path = process.env['APPIMAGE'] || join(app.getAppPath(), '..', '..', '..')
-}
-
-
-// Portable support (if data dir exists next to app then use it)
-const portable_data = join(app_path, '..', 'stello_data')
-if (existsSync(portable_data)){
-    app.setPath('userData', portable_data)
-}
-
-
-// Don't open if another instance of Stello is already running
-// NOTE The other instance will receive an event and focus itself instead
-if (!app.requestSingleInstanceLock()){
-    app.quit()
-    process.exit()  // Avoid executing any further (as `app.quit()` is async)
-}
-
-
-// SECURITY Enable sandboxing of renderers
-app.enableSandbox()
-
-
-// Setup app
-import './setup/menus'
-import './setup/oauths'
-import './setup/services'
-import './setup/services_smtp'
+import {app_path} from './utils/paths'
 
 
 // Setup that relies on ready event
