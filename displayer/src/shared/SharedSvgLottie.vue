@@ -74,6 +74,9 @@ export default defineComponent({
                     // WARN Must parse per use as lottie manipulates the data & reuse -> memory leak
                     animationData: JSON.parse(lottie_cache[this.url]!) as unknown,
                 })
+
+                // Start at most appropriate frame (see below too)
+                this.lottie_instance[this.playing ? 'goToAndPlay' : 'goToAndStop']('rest')
             },
         },
 
@@ -81,7 +84,9 @@ export default defineComponent({
         playing: {
             handler(playing){
                 if (this.lottie_instance){
-                    playing ? this.lottie_instance.play() : this.lottie_instance.pause()
+                    // Pause on most appropriate frame for conveying the meaning of the emoji
+                    // NOTE Expects lottie JSON to have marker called 'rest'
+                    this.lottie_instance[playing ? 'goToAndPlay' : 'goToAndStop']('rest')
                 }
             },
         },
