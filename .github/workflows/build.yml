@@ -50,9 +50,6 @@ jobs:
                     cache: 'npm'
                     cache-dependency-path: '**/package-lock.json'
             -   run: .bin/all_node npm ci
-            -   run: .bin/reactions
-                env:
-                    REACTIONS_PASSWORD: ${{ secrets.REACTIONS_PASSWORD }}
             -   run: .bin/build_responder_aws
             -   run: .bin/build_displayer
                 env:

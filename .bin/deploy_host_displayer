@@ -14,11 +14,6 @@ export AWS_SECRET_ACCESS_KEY="$REPLY"
 echo  # Password input doesn't look like it worked otherwise (as silenced)
 echo "Uploading..."
 
-# Add proprietary reactions
-read -s -p "REACTIONS_PASSWORD: "
-REACTIONS_PASSWORD="$REPLY" .bin/reactions
-echo
-
 # Do fresh build of displayer
 .bin/build_displayer
 

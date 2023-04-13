@@ -9,8 +9,4 @@ pipenv sync
 .bin/all_node npm ci
 
 
-# Load reactions
-.bin/reactions
-
-
 # TODO Create dev configs (see .gitignore)

@@ -28,7 +28,6 @@ node_modules/
 /displayer/dist/
 /displayer/dist_compressed/
 /displayer/public/dev/
-/displayer/public/displayer/reactions/
 
 /responder/aws/.aws-sam/
 /responder/aws/.dev_env.json
