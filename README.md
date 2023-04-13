@@ -128,3 +128,10 @@ Stello is end-to-end encrypted in the sense that the platform that stores and tr
 2. The decryption code is served by the server that also stores the encrypted files, such that an infiltrated server could modify the decryption code to transmit unencrypted data somewhere
     * An encrypted messaging app publishing a malicious app update would be similar to this, though harder to pull off
     * A [Content Security Policy header](host/template_base.yml) has been added to prevent the transmission of data to an external server
+
+
+# Credits
+
+Attribution for assets not already identifiable in package.json files:
+
+ * [Animated reactions (CC BY)](https://googlefonts.github.io/noto-emoji-animation/)
