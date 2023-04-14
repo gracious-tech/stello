@@ -5,10 +5,11 @@ v-card
 
     v-card-title Chose which reactions readers can use
 
-    v-card-text
-        SharedSvgAnimated.reaction(v-for='reaction of possibilities' :key='reaction'
-            :url='reaction_url(reaction)' :class='{chosen: chosen.includes(reaction)}'
-            @click.native='choose(reaction)')
+    v-card-text(:class='{maxed: chosen.length >= limit}')
+        div(v-for='group of possibilities')
+            SharedSvgAnimated.reaction(v-for='reaction of group' :key='reaction'
+                :url='reaction_url(reaction)' :playing='false'
+                :class='{chosen: chosen.includes(reaction)}' @click.native='choose(reaction)')
 
     v-card-actions
         app-btn(@click='$emit("close")') Cancel
@@ -33,11 +34,25 @@ export default class extends Vue {
 
     @Prop({type: Array, required: true}) declare readonly reaction_options:string[]
 
-    possibilities = ['like', 'love', 'yay', 'pray', 'laugh', 'wow', 'sad']
+    possibilities = [
+        // Positive
+        ['like', 'love', 'smile', 'heart_eyes', 'star_struck', 'peace'],
+        // Celebrate
+        ['yay', 'party', 'clap', 'celebrate', 'cheers', 'cowboy'],
+        // Humour
+        ['laugh', 'lol', 'silly', 'drool', 'yum', 'melt'],
+        // Impressed
+        ['wow', 'mind_blown', 'cool', 'money', 'fire', 'muscle'],
+        // Negative
+        ['sad', 'disappointed', 'cry', 'grimace', 'angry', 'dislike'],
+        // Other
+        ['pray', 'crossed_fingers', 'evil', 'poo', 'crash', 'emergency'],
+    ]
 
     chosen:string[] = []
 
     reaction_url = reaction_url
+    limit = 10
 
     created(){
         this.chosen = [...this.reaction_options]
@@ -46,7 +61,7 @@ export default class extends Vue {
     choose(reaction:string){
         if (this.chosen.includes(reaction)){
             remove_item(this.chosen, reaction)
-        } else if (this.chosen.length < 8){
+        } else if (this.chosen.length < this.limit){
             this.chosen.push(reaction)
         }
     }
@@ -54,7 +69,7 @@ export default class extends Vue {
     apply(){
         // Create new list with chosen reactions sorted in same order as in possibilities
         const sorted = []
-        for (const reaction of this.possibilities){
+        for (const reaction of this.possibilities.flat()){
             if (this.chosen.includes(reaction)){
                 sorted.push(reaction)
             }
@@ -71,11 +86,16 @@ export default class extends Vue {
 
 .v-card__text
     display: flex
+    flex-wrap: wrap
+    justify-content: space-around
+
+    &.maxed .reaction:not(.chosen)
+        filter: grayscale(1)
 
 .reaction
     width: 48px !important
     height: 48px !important
-    margin-right: 12px
+    margin-bottom: 12px
     cursor: pointer
     border-radius: 12px
 
