@@ -69,3 +69,11 @@ export function section_classes<T extends SectionLike>(section:T):string[]{
     }
     return classes
 }
+
+
+export function reaction_url(reaction:string, prefix=''):string{
+    // Get URL for given reaction code
+    const svg_reactions = ['pray']
+    const ext = svg_reactions.includes(reaction) ? 'svg' : 'json'
+    return `${prefix}reactions/${reaction}.${ext}`
+}

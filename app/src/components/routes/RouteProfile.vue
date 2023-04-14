@@ -29,6 +29,9 @@ div
                 app-switch(v-bind='$t("allow_replies")' v-model='allow_replies')
                 app-switch(v-bind='$t("allow_comments")' v-model='allow_comments')
                 app-switch(v-bind='$t("allow_reactions")' v-model='allow_reactions')
+                div.reactions(:class='{allowed: allow_reactions}')
+                    SharedSvgAnimated(v-for='url of reaction_urls' :key='url' :url='url'
+                        :playing='false')
                 app-switch(v-bind='$t("smtp_no_reply")' v-model='smtp_no_reply'
                     :hint='smtp_no_reply_hint')
                 app-select(v-bind='$t("notify_mode")' v-model='notify_mode'
@@ -187,6 +190,7 @@ const i18n = {
 
 import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
+import SharedSvgAnimated from '@/shared/SharedSvgAnimated.vue'
 import DialogEmailSettings from '@/components/dialogs/reuseable/DialogEmailSettings.vue'
 import RouteProfileIdentity from '@/components/routes/assets/RouteProfileIdentity.vue'
 import ProfileTheme from '@/components/reuseable/ProfileTheme.vue'
@@ -194,10 +198,11 @@ import RouteProfileSteps from '@/components/routes/assets/RouteProfileSteps.vue'
 import {Profile} from '@/services/database/profiles'
 import {Task, task_manager} from '@/services/tasks/tasks'
 import {generate_lifespan_options} from '@/services/misc'
+import {reaction_url} from '@/shared/shared_functions'
 
 
 @Component({
-    components: {RouteProfileIdentity, RouteProfileSteps, ProfileTheme},
+    components: {RouteProfileIdentity, RouteProfileSteps, ProfileTheme, SharedSvgAnimated},
     i18n: {messages: {en: i18n}},
 })
 export default class extends Vue {
@@ -260,6 +265,11 @@ export default class extends Vue {
     get lifespan_options(){
         // List of lifespan options for UI to make selection simpler
         return generate_lifespan_options(this.profile.max_lifespan)
+    }
+
+    get reaction_urls(){
+        // Chosen reactions as a list of urls
+        return this.profile.options.reaction_options.map(reaction => reaction_url(reaction))
     }
 
     // OPTIONS
@@ -440,5 +450,17 @@ h2
 .address
     // Stand out more by removing usual opacity
     @include themed(color, black, white)
+
+.reactions
+    display: flex
+    margin: 24px 0
+
+    &:not(.allowed)
+        filter: grayscale(0.8)
+
+    > *
+        width: 48px !important
+        height: 48px !important
+        margin-right: 12px
 
 </style>

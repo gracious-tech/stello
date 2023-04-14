@@ -33,6 +33,7 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 
 import DialogReply from '@/components/dialogs/specific/DialogReply.vue'
 import SharedSvgAnimated from '@/shared/SharedSvgAnimated.vue'
+import {reaction_url} from '@/shared/shared_functions'
 import {Reply} from '@/services/database/replies'
 import {Reaction} from '@/services/database/reactions'
 import {time_between} from '@/services/misc'
@@ -75,8 +76,7 @@ export default class extends Vue {
         // Return url for reaction (if any)
         if (this.is_reply)
             return null
-        const ext = this.replaction.content === 'pray' ? 'svg' : 'json'
-        return `reactions/${this.replaction.content}.${ext}`
+        return reaction_url(this.replaction.content)
     }
 
     get sent_informal(){

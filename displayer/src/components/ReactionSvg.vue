@@ -1,11 +1,7 @@
 
 <template lang='pug'>
 
-SharedSvgAnimated(
-    :url='`displayer/reactions/${reaction}.${reaction === "pray" ? "svg" : "json"}`'
-    :class='{chosen}'
-    :playing='playing'
-)
+SharedSvgAnimated(:url='url' :class='{chosen}' :playing='playing')
 
 </template>
 
@@ -15,6 +11,7 @@ SharedSvgAnimated(
 import {defineComponent} from 'vue'
 
 import SharedSvgAnimated from '../shared/SharedSvgAnimated.vue'
+import {reaction_url} from '../shared/shared_functions'
 
 
 export default defineComponent({
@@ -33,6 +30,12 @@ export default defineComponent({
         playing: {
             type: Boolean,
             default: true,
+        },
+    },
+
+    computed: {
+        url(){
+            return reaction_url(this.reaction, 'displayer/')
         },
     },
 })
