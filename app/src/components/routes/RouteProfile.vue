@@ -29,9 +29,9 @@ div
                 app-switch(v-bind='$t("allow_replies")' v-model='allow_replies')
                 app-switch(v-bind='$t("allow_comments")' v-model='allow_comments')
                 app-switch(v-bind='$t("allow_reactions")' v-model='allow_reactions')
-                div.reactions(:class='{allowed: allow_reactions}')
+                div.reactions(:class='{allowed: allow_reactions}' @click='show_reactions_dialog')
                     SharedSvgAnimated(v-for='url of reaction_urls' :key='url' :url='url'
-                        :playing='false')
+                        :playing='false' :hover='allow_reactions')
                 app-switch(v-bind='$t("smtp_no_reply")' v-model='smtp_no_reply'
                     :hint='smtp_no_reply_hint')
                 app-select(v-bind='$t("notify_mode")' v-model='notify_mode'
@@ -192,6 +192,7 @@ import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import SharedSvgAnimated from '@/shared/SharedSvgAnimated.vue'
 import DialogEmailSettings from '@/components/dialogs/reuseable/DialogEmailSettings.vue'
+import DialogReactions from '@/components/dialogs/reuseable/DialogReactions.vue'
 import RouteProfileIdentity from '@/components/routes/assets/RouteProfileIdentity.vue'
 import ProfileTheme from '@/components/reuseable/ProfileTheme.vue'
 import RouteProfileSteps from '@/components/routes/assets/RouteProfileSteps.vue'
@@ -423,6 +424,23 @@ export default class extends Vue {
         })
     }
 
+    async show_reactions_dialog(){
+        // Show dialog for choosing reactions
+        if (!this.allow_reactions){
+            return
+        }
+        const options = await this.$store.dispatch('show_dialog', {
+            component: DialogReactions,
+            props: {
+                reaction_options: [...this.profile.options.reaction_options],
+            },
+        }) as string[]|undefined
+        if (options){
+            this.profile.options.reaction_options = options
+            this.save(true)
+        }
+    }
+
     toggle_auto_exclude(value:boolean){
         // Handle toggle of auto exclude switch
         this.profile.options.auto_exclude_threshold = value ? 5 : null
@@ -454,9 +472,11 @@ h2
 .reactions
     display: flex
     margin: 24px 0
+    cursor: pointer
 
     &:not(.allowed)
         filter: grayscale(0.8)
+        cursor: inherit
 
     > *
         width: 48px !important
