@@ -1,14 +1,13 @@
 
 <template lang='pug'>
 
-div.root(@mouseenter='hovering = true' @mouseleave='hovering = false')
+div.root
     hr
     div.meta(class='d-flex align-center')
 
         a.author(@click='to_contact' class='font-weight-medium') {{ name }}
 
-        SharedSvgAnimated.reaction(v-if='!is_reply' :url='reaction_url'
-            :playing='unread || hovering')
+        SharedSvgAnimated.reaction(v-if='!is_reply' :url='reaction_url' :playing='unread')
 
         div.sent(:title='sent_formal' class='flex'
             :class='unread ? "app-fg-accent-relative" : "text--secondary"') {{ sent_informal }}
@@ -48,7 +47,6 @@ export default class extends Vue {
     @Prop({type: String}) declare readonly name:string|undefined
 
     unread = false  // Preservation of initial value before marking as read during `created`
-    hovering = false
 
     async created(){
         if (!this.replaction.read){
