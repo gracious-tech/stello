@@ -1,7 +1,8 @@
 
 <template lang='pug'>
 
-component.root(:is='comp' :url='url' :playing='playing')
+component.root(:is='comp' :url='url' :playing='playing_final' @mouseenter.native='hovering = true'
+    @mouseleave.native='hovering = false')
 
 </template>
 
@@ -25,11 +26,24 @@ export default defineComponent({
             type: Boolean,
             default: true,
         },
+        hover: {  // Whether to always play on hover
+            type: Boolean,
+            default: true,
+        },
+    },
+
+    data(){
+        return {
+            hovering: false,
+        }
     },
 
     computed: {
         comp():typeof SharedSvgLottie|typeof SharedSvgCss{
             return this.url.toLowerCase().endsWith('.json') ? SharedSvgLottie : SharedSvgCss
+        },
+        playing_final(){
+            return this.playing || (this.hover && this.hovering)
         },
     },
 })
