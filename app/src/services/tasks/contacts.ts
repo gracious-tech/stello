@@ -63,13 +63,15 @@ export async function contacts_sync(task:Task):Promise<void>{
     task.fix_oauth = oauth_id
 
     // Call handler specific to the oauth's issuer
-    await HANDLERS[oauth.issuer].sync(task, oauth)
+    await HANDLERS[oauth.issuer]!.sync(task, oauth)
 
     // Update last synced time
     // NOTE Get fresh copy of oauth in case changed during the sync
     oauth = await self.app_db.oauths.get(oauth_id)
-    oauth.contacts_sync_last = new Date()
-    await self.app_db.oauths.set(oauth)
+    if (oauth){
+        oauth.contacts_sync_last = new Date()
+        await self.app_db.oauths.set(oauth)
+    }
 }
 
 
@@ -77,7 +79,7 @@ export async function contacts_change_property(task:Task):Promise<void>{
     // Task for changing a simple property of a contact
 
     // Extract args from task object and get oauth record
-    const [oauth_id, contact_id, property] = task.params as [string, string, string]
+    const [oauth_id, contact_id, property] = task.params as [string, string, 'name'|'notes'|'email']
     const [value] = task.options
     const oauth = await self.app_db.oauths.get(oauth_id)
     if (!oauth){
@@ -95,9 +97,11 @@ export async function contacts_change_property(task:Task):Promise<void>{
     task.fix_oauth = oauth_id
 
     // Call handler specific to the oauth's issuer
-    await HANDLERS[oauth.issuer][`change_${property}`](oauth, contact.service_id, value)
+    // @ts-ignore value's type depends on the method being called
+    await HANDLERS[oauth.issuer]![`change_${property}`](oauth, contact.service_id!, value)
 
     // If all went well, update value in own database
+    // @ts-ignore value's type depends on the method being called
     contact[property] = value
     await self.app_db.contacts.set(contact)
 }
@@ -154,7 +158,7 @@ export async function contacts_remove(task:Task):Promise<void>{
     task.fix_oauth = oauth_id
 
     // Call handler specific to the oauth's issuer
-    await HANDLERS[oauth.issuer].remove(oauth, contact.service_id)
+    await HANDLERS[oauth.issuer]!.remove(oauth, contact.service_id!)
 
     // If all went well, remove contact in own database
     await self.app_db.contacts.remove(contact.id)
@@ -167,7 +171,7 @@ export async function contacts_remove(task:Task):Promise<void>{
 export async function taskless_contact_addresses(oauth:OAuth, service_id:string):Promise<string[]>{
     // Get all the email addresses currently saved in a contact
     // NOTE Services (like Google) may allow duplicate items, so remove them
-    return uniq(await HANDLERS[oauth.issuer].get_addresses(oauth, service_id))
+    return uniq(await HANDLERS[oauth.issuer]!.get_addresses(oauth, service_id))
 }
 
 
@@ -275,7 +279,7 @@ async function contacts_sync_google_full(task:Task, oauth:OAuth):Promise<Record<
 
     // Get list of previously synced contacts for account and map by service's ids
     const existing_contacts = await self.app_db.contacts.list_for_account('google', oauth.issuer_id)
-    const existing_by_id = Object.fromEntries(existing_contacts.map(c => [c.service_id, c]))
+    const existing_by_id = Object.fromEntries(existing_contacts.map(c => [c.service_id!, c]))
 
     // Keep track of final confirmed contacts with mapping from service's id to Stello id
     const confirmed:Record<string, string> = {}
@@ -405,7 +409,7 @@ async function contacts_sync_google_groups(task:Task, oauth:OAuth,
 
     // Get existing groups from db
     const existing_groups = await self.app_db.groups.list_for_account(oauth.issuer, oauth.issuer_id)
-    const existing_by_id = Object.fromEntries(existing_groups.map(g => [g.service_id, g]))
+    const existing_by_id = Object.fromEntries(existing_groups.map(g => [g.service_id!, g]))
 
     // Make batch get requests, as members data isn't returned for list requests
     for (const batch of batches){
