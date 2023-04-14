@@ -90,7 +90,7 @@ export default class extends Vue {
     justify-content: space-around
 
     &.maxed .reaction:not(.chosen)
-        filter: grayscale(1)
+        filter: grayscale(0.8)
 
 .reaction
     width: 48px !important
