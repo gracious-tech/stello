@@ -136,7 +136,7 @@ export interface RecordProfileOptions {
     smtp_no_reply:boolean
     social_referral_ban:boolean
     generic_domain:boolean
-    reaction_options:('like'|'love'|'yay'|'pray'|'laugh'|'wow'|'sad')[]
+    reaction_options:string[]
     reply_invite_image:Blob  // Used for inheritance for replies instead of invite_image
     reply_invite_tmpl_email:string  // Used for inheritance for replies instead of invite_tmpl_email
     reply_invite_button:string
