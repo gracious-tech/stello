@@ -3,12 +3,13 @@
 
 transition(appear)
     div.overlay(v-if='page' @click.self='close')
+        div.toolbar
+            div.toolbar-inner
+                svg(@click='back' viewBox='0 0 24 24')
+                    path(d='M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z')
+                h2(class='ui') {{ page.content.headline }}
         transition(:name='transition' mode='out-in')
             div.container(:key='page.id')
-                div.toolbar
-                    svg(@click='back' viewBox='0 0 24 24')
-                        path(d='M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z')
-                    h2(class='ui') {{ page.content.headline }}
                 div.content
                     MessageContents(:sections='page.content.sections')
 
@@ -92,8 +93,14 @@ export default defineComponent({
     left: 0
     right: 0
     display: flex
-    background-color: #000d  // Always dark
+    flex-direction: column
     z-index: 100
+
+    // Background must go here so doesn't transition with pages
+    background-color: var(--stello-bg)
+    background-image: var(--stello-bg-image)
+    background-repeat: repeat
+    background-attachment: local  // Bg moves the same as content does
 
     // Fade in when open first page
     &.v-enter-active, &.v-leave-active
@@ -101,58 +108,51 @@ export default defineComponent({
     &.v-enter-from, &.v-leave-to
         opacity: 0
 
+    .toolbar
+        background-color: var(--stello-hue-heavy)
+        flex-shrink: 0  // Prevent toolbar getting squished on old Safari
+
+        .toolbar-inner
+            display: flex
+            align-items: center
+            width: 100%
+            max-width: $stello_full_plus_sidebar
+            margin: 0 auto
+
+            svg
+                width: 24px
+                min-width: 24px  // So text doesn't squish
+                padding: 12px
+                border-radius: 50%
+                margin: 0 12px
+                cursor: pointer
+                path
+                    fill: currentColor
+                &:hover
+                    background-color: rgba(#000, 0.2)
+
+                @media (min-width: $stello_full_plus_sidebar)
+                    margin: 8px 12px  // Taller toolbar when not on mobile
+
+            h2
+                font-size: 18px
+                margin: 0
+                margin-right: 24px  // So don't show overflow against edge
+                white-space: nowrap
+                overflow: hidden
+                text-overflow: ellipsis
+
     .container
         width: 100%
-        overflow: hidden
-        display: flex
-        flex-direction: column
-        @include stello_themed(background-color, #eee, #111)  // Same as main message
-
-        .toolbar
-                display: flex
-                align-items: center
-                background-color: var(--stello-hue-medium)
-                width: 100%
-                flex-shrink: 0  // Prevent toolbar getting squished on old Safari
-
-                svg
-                    width: 24px
-                    min-width: 24px  // So text doesn't squish
-                    padding: 12px
-                    border-radius: 50%
-                    margin: 0 12px
-                    cursor: pointer
-                    path
-                        fill: currentColor
-                    &:hover
-                        background-color: rgba(#000, 0.2)
-
-                h2
-                    font-size: 18px
-                    margin: 0
-                    margin-right: 24px  // So don't show overflow against edge
-                    white-space: nowrap
-                    overflow: hidden
+        height: 100%
+        overflow: auto
+        margin: 0 auto
+        @media (min-width: $stello_full_plus_sidebar)
+            padding-bottom: 100px
 
         // NOTE .content inherits same styles as main message .content does
         .content
-            margin: 0
-            overflow-y: auto
-            max-width: none  // Enforced by container instead so scrollbar touches screen edge
-            border-radius: 0  // conflicts with container's radius
-            padding-bottom: 200px  // Don't have page bottom to rely on for scrolling to
-
-        // Appear like a dialog when screen wide
-        // NOTE Tigger before actually reach container edge (hence the + 100)
-        @media (min-width: #{$stello_full_plus_sidebar + 100})
-            margin: 48px auto
-            max-width: $stello_full_plus_sidebar  // Includes scrollbar width
-            border-radius: var(--stello-radius)
-
-            .toolbar
-                border-radius: var(--stello-radius) var(--stello-radius) 0 0
-                svg
-                    margin: 8px 12px  // Taller toolbar when not on mobile
+            // pass
 
 
 // Transitions between pages
