@@ -405,12 +405,15 @@ export class DatabaseProfiles {
     }
 
     async remove(id:string):Promise<void>{
-        // Remove the profile and remove it from drafts
+        // Remove the profile and remove related records
 
         // Start transaction and get stores
-        const transaction = this._conn.transaction(['profiles', 'drafts'], 'readwrite')
+        const transaction = this._conn.transaction(
+            ['profiles', 'drafts', 'unsubscribes', 'subscription_forms'], 'readwrite')
         const store_profiles = transaction.objectStore('profiles')
         const store_drafts = transaction.objectStore('drafts')
+        const store_unsubs = transaction.objectStore('unsubscribes')
+        const store_forms = transaction.objectStore('subscription_forms')
 
         // Remove the actual profile
         void store_profiles.delete(id)
@@ -420,6 +423,19 @@ export class DatabaseProfiles {
             if (draft.profile === id){
                 draft.profile = null
                 void store_drafts.put(draft)
+            }
+        }
+
+        // Remove related unsubscribes
+        // NOTE Previously didn't do this until v1.5.0
+        for (const unsub of await store_unsubs.index('by_profile').getAll(id)){
+            void store_unsubs.delete([id, unsub.contact])
+        }
+
+        // Remove related subscription_forms
+        for (const form of await store_forms.getAll()){
+            if (form.profile === id){
+                void store_forms.delete(form.id)
             }
         }
 
