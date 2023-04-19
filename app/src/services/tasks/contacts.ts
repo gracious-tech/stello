@@ -321,17 +321,17 @@ async function contacts_sync_google_full(task:Task, oauth:OAuth):Promise<Record<
 
                 // Don't update address unless gone (doesn't matter if primary status changed)
                 // NOTE This allows user to select non-primary address without losing it every sync
-                const address_gone = !person.emailAddresses.some(i => i.value === existing.address)
+                const address_gone = !person.emailAddresses?.some(i => i.value === existing.address)
 
                 // Only update if something changed
                 if (address_gone || existing.name !== name || existing.notes !== notes){
                     existing.name = name
                     existing.address = address_gone ? primary_email : existing.address
                     existing.notes = notes
-                    self.app_db.contacts.set(existing)
+                    void self.app_db.contacts.set(existing)
                 }
                 delete existing_by_id[service_id]  // Prevent deletion during final step
-                confirmed[existing.service_id] = existing.id
+                confirmed[existing.service_id!] = existing.id
             } else {
                 const created = self.app_db.contacts.create_object()
                 created.name = name
@@ -394,12 +394,12 @@ async function contacts_sync_google_groups(task:Task, oauth:OAuth,
             a. Current batch has >= 40 groups already (limit for people.getBatchGet is 50)
             b. Current batch has a group and adding next would put it over the total members limit
         */
-        const batch_size = batches[0].length
+        const batch_size = batches[0]!.length
         if (batch_size >= 40 || (batch_size && total_members + group.memberCount! > 1000)){
             total_members = 0
             batches.unshift([group])
         } else {
-            batches[0].push(group)
+            batches[0]!.push(group)
         }
         total_members += group.memberCount!
     }
@@ -432,11 +432,11 @@ async function contacts_sync_google_groups(task:Task, oauth:OAuth,
             // Extract relevant fields
             const service_id = partition(batch_sub_resp.contactGroup.resourceName, '/')[1]
             const name = batch_sub_resp.contactGroup.name || ''
-            const members = batch_sub_resp.contactGroup.memberResourceNames.map(
-                n => partition(n, '/')[1])
+            const members = batch_sub_resp.contactGroup.memberResourceNames?.
+                map(n => partition(n, '/')[1]) ?? []
 
             // Convert array of service's contact ids to Stello ids (and filter out dud members)
-            const contacts = members.map(sid => confirmed[sid]).filter(id => id)
+            const contacts = members.map(sid => confirmed[sid]).filter(id => id) as string[]
 
             // Ignore (and effectively delete) group if no valid contacts (e.g. none with emails)
             if (!contacts.length){
@@ -470,7 +470,7 @@ function google_primary<T extends GoogleListItem>(options?:T[]):T|undefined{
         return undefined // options may be undefined or empty if data wasn't returned by Google
     }
     for (const item of options){
-        if (item.metadata.primary){
+        if (item.metadata?.primary){
             return item
         }
     }
