@@ -26,7 +26,7 @@ teleport(to='.stello-displayer' :disabled='!fullscreen')
 
 <script lang='ts'>
 
-import {computed, PropType, ref, watch, onUnmounted, provide, defineComponent} from 'vue'
+import {computed, PropType, ref, watch, provide, defineComponent} from 'vue'
 
 import SectionSlideshow from './SectionSlideshow.vue'
 import SectionFiles from './SectionFiles.vue'
@@ -83,10 +83,6 @@ export default defineComponent({
         }
         watch(fullscreen, value => {
             set_page_scroll(!value)
-        })
-        onUnmounted(() => {
-            // Ensure page can still scroll after unmount (in case done while fullscreen)
-            set_page_scroll(true)
         })
 
         // Classes to apply to section
