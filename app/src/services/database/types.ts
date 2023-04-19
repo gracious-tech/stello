@@ -145,9 +145,9 @@ export interface RecordProfileOptions {
 }
 
 
-// SubscriptionForm
+// SubscribeForm
 
-export interface RecordSubscriptionForm {
+export interface RecordSubscribeForm {
     id:string
     profile:string
     text:string
@@ -392,9 +392,9 @@ export interface AppDatabaseSchema extends DBSchema {
         key:string,
         value:RecordProfile,
     }
-    subscription_forms:{
+    subscribe_forms:{
         key:string,
-        value:RecordSubscriptionForm,
+        value:RecordSubscribeForm,
     }
     unsubscribes:{
         key:[string, string],

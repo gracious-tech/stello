@@ -260,7 +260,7 @@ export async function to_19(transaction:VersionChangeTransaction){
         await cursor.update(cursor.value)
     }
 
-    // Add subscription_forms and request_subscribe stores
-    transaction.db.createObjectStore('subscription_forms', {keyPath: 'id'})
+    // Add subscribe_forms and request_subscribe stores
+    transaction.db.createObjectStore('subscribe_forms', {keyPath: 'id'})
     transaction.db.createObjectStore('request_subscribe', {keyPath: 'id'})
 }

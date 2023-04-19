@@ -409,11 +409,11 @@ export class DatabaseProfiles {
 
         // Start transaction and get stores
         const transaction = this._conn.transaction(
-            ['profiles', 'drafts', 'unsubscribes', 'subscription_forms'], 'readwrite')
+            ['profiles', 'drafts', 'unsubscribes', 'subscribe_forms'], 'readwrite')
         const store_profiles = transaction.objectStore('profiles')
         const store_drafts = transaction.objectStore('drafts')
         const store_unsubs = transaction.objectStore('unsubscribes')
-        const store_forms = transaction.objectStore('subscription_forms')
+        const store_forms = transaction.objectStore('subscribe_forms')
 
         // Remove the actual profile
         void store_profiles.delete(id)
@@ -432,7 +432,7 @@ export class DatabaseProfiles {
             void store_unsubs.delete([id, unsub.contact])
         }
 
-        // Remove related subscription_forms
+        // Remove related subscribe_forms
         for (const form of await store_forms.getAll()){
             if (form.profile === id){
                 void store_forms.delete(form.id)

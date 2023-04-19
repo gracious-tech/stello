@@ -128,7 +128,7 @@ export const STORES_V12 = {
 
 
 export const STORES_V19 = {
-    subscription_forms: {
+    subscribe_forms: {
         key_path: 'id',
         indexes: {},
     },
