@@ -317,7 +317,7 @@ async function contacts_sync_google_full(task:Task, oauth:OAuth):Promise<Record<
 
             // Either update existing or add new contact
             if (service_id in existing_by_id){
-                const existing = existing_by_id[service_id]
+                const existing = existing_by_id[service_id]!
 
                 // Don't update address unless gone (doesn't matter if primary status changed)
                 // NOTE This allows user to select non-primary address without losing it every sync
@@ -445,13 +445,14 @@ async function contacts_sync_google_groups(task:Task, oauth:OAuth,
 
             // Either update existing or add new group
             if (service_id in existing_by_id){
-                const existing = existing_by_id[service_id]
+                const existing = existing_by_id[service_id]!
                 existing.name = name
                 existing.contacts = contacts
-                self.app_db.groups.set(existing)
+                void self.app_db.groups.set(existing)
                 delete existing_by_id[service_id]  // Prevent deletion during final step
             } else {
-                self.app_db.groups.create(name, contacts, `google:${oauth.issuer_id}`, service_id)
+                void self.app_db.groups.create(name, contacts, `google:${oauth.issuer_id}`,
+                    service_id)
             }
         }
     }
