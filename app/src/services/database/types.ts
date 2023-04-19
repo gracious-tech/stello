@@ -145,6 +145,17 @@ export interface RecordProfileOptions {
 }
 
 
+// SubscriptionForm
+
+export interface RecordSubscriptionForm {
+    id:string
+    profile:string
+    text:string
+    groups:string[]
+    service_account:string|null
+}
+
+
 // Draft
 
 export type SectionIds = ([string]|[string, string])[]
@@ -337,6 +348,14 @@ export interface RecordRequestResend extends RecordResponseCore {
     reason:string
 }
 
+export interface RecordRequestSubscribe extends RecordResponseCore {
+    id:string
+    name:string
+    address:string
+    groups:string[]
+    service_account:string|null
+}
+
 
 // Database
 
@@ -373,6 +392,10 @@ export interface AppDatabaseSchema extends DBSchema {
         key:string,
         value:RecordProfile,
     }
+    subscription_forms:{
+        key:string,
+        value:RecordSubscriptionForm,
+    }
     unsubscribes:{
         key:[string, string],
         value:RecordUnsubscribe,
@@ -388,6 +411,10 @@ export interface AppDatabaseSchema extends DBSchema {
     request_resend:{
         key:[string, string],
         value:RecordRequestResend,
+    }
+    request_subscribe:{
+        key:string,
+        value:RecordRequestSubscribe,
     }
     drafts:{
         key:string,
