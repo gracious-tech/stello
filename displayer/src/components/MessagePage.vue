@@ -159,7 +159,8 @@ export default defineComponent({
 
 @keyframes slide-left-enter
     from
-        transform: translateX(100%)
+        transform: translateX(25%)
+        opacity: 0
     to
         transform: translateX(0)
 
@@ -167,11 +168,13 @@ export default defineComponent({
     from
         transform: translateX(0)
     to
-        transform: translateX(-100%)
+        transform: translateX(-25%)
+        opacity: 0
 
 @keyframes slide-right-enter
     from
-        transform: translateX(-100%)
+        transform: translateX(-25%)
+        opacity: 0
     to
         transform: translateX(0)
 
@@ -179,7 +182,8 @@ export default defineComponent({
     from
         transform: translateX(0)
     to
-        transform: translateX(100%)
+        transform: translateX(25%)
+        opacity: 0
 
 
 .container
@@ -188,15 +192,19 @@ export default defineComponent({
 
     &.out-enter-active
         animation-name: slide-right-enter
+        overflow: hidden
 
     &.out-leave-active
         animation-name: slide-right-leave
+        overflow: hidden
 
     &.in-enter-active
         animation-name: slide-left-enter
+        overflow: hidden
 
     &.in-leave-active
         animation-name: slide-left-leave
+        overflow: hidden
 
 
 </style>
