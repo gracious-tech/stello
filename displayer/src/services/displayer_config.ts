@@ -1,4 +1,6 @@
 
+import {reactive} from 'vue'
+
 import {request} from './utils/http'
 import {partition} from './utils/strings'
 import {url64_to_buffer, utf8_to_string} from './utils/coding'
@@ -108,4 +110,4 @@ class DisplayerConfigAccess {
 
 
 // Export instance of config class so can import and use synchronously
-export const displayer_config = new DisplayerConfigAccess()
+export const displayer_config = reactive(new DisplayerConfigAccess())

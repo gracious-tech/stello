@@ -157,12 +157,22 @@ export class DisplayerStore {
     async change_msg(id:string, secret_url64:string, title:string|null,
             published:Date|null):Promise<void>{
         // Change the current message and generate resp_token for it
+
+        // Generate resp_token
+        let resp_token = ''
+        try {
+            resp_token = buffer_to_url64(await generate_hash(url64_to_buffer(secret_url64), 0))
+        } catch {
+            // secret_url64 is probably not valid base64
+            // Do nothing and let error handling of secret_url64 deal with it in `get_msg_data()`
+        }
+
         this._state.msg = {
             id,
             secret_url64,
             title,
             published,
-            resp_token: buffer_to_url64(await generate_hash(url64_to_buffer(secret_url64), 0)),
+            resp_token,
             data: null,
             data_error: null,
             page: null,
