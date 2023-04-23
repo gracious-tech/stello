@@ -273,11 +273,11 @@ export class Profile implements RecordProfile {
         }
     }
 
-    view_url(config_secret64:string, copy_id:string, secret:ArrayBuffer, action?:string){
-        // Return URL for viewing the given copy
+    view_url(config_secret64:string, copy_id:string, secret:ArrayBuffer|null, action?:string){
+        // Return URL for viewing the given copy (copy_id/secret empty for subscribe forms)
         const domain = this.view_domain
         const path = this.host?.cloud === 'gracious' ? '/' : '/_'
-        const secret64 = buffer_to_url64(secret)
+        const secret64 = secret ? buffer_to_url64(secret) : ''
         action = action ? `,${action}` : ''
         return `https://${domain}${path}#${config_secret64},${copy_id},${secret64}${action}`
     }
