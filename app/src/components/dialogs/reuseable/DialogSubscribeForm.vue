@@ -7,8 +7,8 @@ v-card
     v-card-text
         div(class='mt-4') Message above form:
         app-html.html(v-model='text' class='stello-displayer-styles')
-        app-select(v-model='service_account' :items='service_account_items' select
-            label="Save contacts in")
+        app-select(v-model='service_account' :disabled='service_account_items.length <= 1'
+            :items='service_account_items' select label="Save contacts in")
         app-select(v-model='chosen_groups' :items='groups_items' multiple
             label="Add contacts to groups")
 
