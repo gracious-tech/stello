@@ -261,6 +261,7 @@ export async function to_19(transaction:VersionChangeTransaction){
     }
 
     // Add subscribe_forms and request_subscribe stores
-    transaction.db.createObjectStore('subscribe_forms', {keyPath: 'id'})
+    const subscribe_forms = transaction.db.createObjectStore('subscribe_forms', {keyPath: 'id'})
+    subscribe_forms.createIndex('by_profile', 'profile')
     transaction.db.createObjectStore('request_subscribe', {keyPath: 'id'})
 }

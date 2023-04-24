@@ -395,6 +395,9 @@ export interface AppDatabaseSchema extends DBSchema {
     subscribe_forms:{
         key:string,
         value:RecordSubscribeForm,
+        indexes:{
+            by_profile:string,
+        },
     }
     unsubscribes:{
         key:[string, string],

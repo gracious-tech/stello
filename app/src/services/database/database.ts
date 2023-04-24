@@ -8,6 +8,7 @@ import {DatabaseContacts, Contact} from './contacts'
 import {DatabaseGroups} from './groups'
 import {DatabaseOAuths} from './oauths'
 import {DatabaseProfiles, Profile} from './profiles'
+import {DatabaseSubscribeForms} from './subscribe_forms'
 import {DatabaseUnsubscribes} from './unsubscribes'
 import {DatabaseDrafts, Draft} from './drafts'
 import {DatabaseMessages, Message} from './messages'
@@ -49,6 +50,7 @@ export class Database {
     groups:DatabaseGroups
     oauths:DatabaseOAuths
     profiles:DatabaseProfiles
+    subscribe_forms:DatabaseSubscribeForms
     unsubscribes:DatabaseUnsubscribes
     drafts:DatabaseDrafts
     messages:DatabaseMessages
@@ -65,6 +67,7 @@ export class Database {
         this.groups = new DatabaseGroups(connection)
         this.oauths = new DatabaseOAuths(connection)
         this.profiles = new DatabaseProfiles(connection)
+        this.subscribe_forms = new DatabaseSubscribeForms(connection)
         this.unsubscribes = new DatabaseUnsubscribes(connection)
         this.drafts = new DatabaseDrafts(connection)
         this.messages = new DatabaseMessages(connection)
