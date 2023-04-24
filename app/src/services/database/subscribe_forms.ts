@@ -47,7 +47,7 @@ export class DatabaseSubscribeForms {
         const form = new SubscribeForm({
             id: generate_token(),
             profile,
-            text: '',
+            text: '<h2>Subscribe to newsletter</h2>\n<p>To get our latest news.</p>',
             groups: [],
             service_account: null,
         })
