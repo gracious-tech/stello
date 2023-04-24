@@ -42,15 +42,14 @@ export class DatabaseSubscribeForms {
         await this._conn.put('subscribe_forms', subscribe_form)
     }
 
-    async create(profile:string, text:string, groups:string[],
-            service_account:string|null):Promise<SubscribeForm>{
+    async create(profile:string):Promise<SubscribeForm>{
         // Create a new form
         const form = new SubscribeForm({
             id: generate_token(),
             profile,
-            text,
-            groups,
-            service_account,
+            text: '',
+            groups: [],
+            service_account: null,
         })
         await this._conn.add('subscribe_forms', form)
         return form
