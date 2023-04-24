@@ -89,7 +89,7 @@ div
             v-card-text
                 p(class='body-2 text--secondary' v-t='"subscribe.p1"')
                 route-profile-form(v-for='form of forms' :key='form.id' :profile='profile'
-                    :form='form' :groups='groups' :oauths='contacts_oauths')
+                    :form='form' :groups='groups' :oauths='contacts_oauths' @removed='form_removed')
                 div(class='text-center mt-4')
                     app-btn(@click='new_form') New Form
 
@@ -213,6 +213,7 @@ import {SubscribeForm} from '@/services/database/subscribe_forms'
 import {OAuth} from '@/services/database/oauths'
 import {Task, task_manager} from '@/services/tasks/tasks'
 import {generate_lifespan_options} from '@/services/misc'
+import {remove_item} from '@/services/utils/arrays'
 
 
 @Component({
@@ -453,6 +454,11 @@ export default class extends Vue {
                 oauths: this.contacts_oauths,
             },
         })
+    }
+
+    form_removed(form:SubscribeForm){
+        // Handle removal of form via child component
+        remove_item(this.forms, form)
     }
 }
 
