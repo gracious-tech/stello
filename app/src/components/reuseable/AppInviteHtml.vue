@@ -113,7 +113,7 @@ export default class extends Vue {
         left: 40% !important
 
 .input
-    padding: 24px
+    padding: 16px
 
 .security
     text-align: right
