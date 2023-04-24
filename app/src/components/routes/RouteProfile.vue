@@ -84,6 +84,16 @@ div
                 route-profile-identity(:profile='profile')
 
 
+        h2 Subscription forms
+        v-card
+            v-card-text
+                p(class='body-2 text--secondary' v-t='"subscribe.p1"')
+                route-profile-form(v-for='form of forms' :key='form.id' :profile='profile'
+                    :form='form' :groups='groups' :oauths='contacts_oauths')
+                div(class='text-center mt-4')
+                    app-btn(@click='new_form') New Form
+
+
 </template>
 
 
@@ -182,22 +192,31 @@ const i18n = {
         hint: `This makes it less obvious you're using newsletter software linked
             to a Christian organisation`,
     },
+    // Subscribe
+    subscribe: {
+        p1: "Create forms people can fill in to subscribe to your newsletters.",
+    },
 }
 
 
 import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import DialogEmailSettings from '@/components/dialogs/reuseable/DialogEmailSettings.vue'
+import DialogSubscribeForm from '@/components/dialogs/reuseable/DialogSubscribeForm.vue'
 import RouteProfileIdentity from '@/components/routes/assets/RouteProfileIdentity.vue'
 import ProfileTheme from '@/components/reuseable/ProfileTheme.vue'
 import RouteProfileSteps from '@/components/routes/assets/RouteProfileSteps.vue'
+import RouteProfileForm from '@/components/routes/assets/RouteProfileForm.vue'
 import {Profile} from '@/services/database/profiles'
+import {Group} from '@/services/database/groups'
+import {SubscribeForm} from '@/services/database/subscribe_forms'
+import {OAuth} from '@/services/database/oauths'
 import {Task, task_manager} from '@/services/tasks/tasks'
 import {generate_lifespan_options} from '@/services/misc'
 
 
 @Component({
-    components: {RouteProfileIdentity, RouteProfileSteps, ProfileTheme},
+    components: {RouteProfileIdentity, RouteProfileSteps, ProfileTheme, RouteProfileForm},
     i18n: {messages: {en: i18n}},
 })
 export default class extends Vue {
@@ -205,7 +224,9 @@ export default class extends Vue {
     @Prop({required: true}) declare readonly profile_id:string
 
     profile:Profile = null as unknown as Profile  // Avoid having to type profile as optional
-    groups_ui:{text:string, value:string}[] = []
+    groups:Group[] = []
+    forms:SubscribeForm[] = []
+    contacts_oauths:OAuth[] = []
     send_to_self_items = [
         {value: 'no', text: "No"},
         {value: 'yes_without_email', text: "Enable viewing"},
@@ -222,13 +243,15 @@ export default class extends Vue {
 
     async created(){
         // Get the profile for the given id, and groups (needed for auto_exclude_exempt_groups)
-        const [profile, groups] = await Promise.all([
+        const [profile, groups, forms, oauths] = await Promise.all([
             self.app_db.profiles.get(this.profile_id),
             self.app_db.groups.list(),
+            self.app_db.subscribe_forms.list_for_profile(this.profile_id),
+            self.app_db.oauths.list(),
         ])
-        this.groups_ui = groups.map(g => {
-            return {text: g.display, value: g.id}
-        })
+        this.groups = groups
+        this.forms = forms
+        this.contacts_oauths = oauths.filter(oauth => oauth.contacts_sync)
         this.profile = profile!
     }
 
@@ -376,8 +399,6 @@ export default class extends Vue {
         this.save()
     }
 
-    // WATCH
-
     @Watch('$tm.data.finished') async watch_tm_finished(task:Task):Promise<void>{
         // Listen to task completions and adjust state as needed
         const affect_profile:Record<string, number> = {
@@ -417,6 +438,21 @@ export default class extends Vue {
         // Handle toggle of auto exclude switch
         this.profile.options.auto_exclude_threshold = value ? 5 : null
         this.save()
+    }
+
+    async new_form(){
+        // Create new form and show edit dialog for it
+        const form = await self.app_db.subscribe_forms.create(this.profile_id)
+        this.forms.push(form)
+        void this.$store.dispatch('show_dialog', {
+            component: DialogSubscribeForm,
+            props: {
+                profile: this.profile,
+                form,
+                groups: this.groups,
+                oauths: this.contacts_oauths,
+            },
+        })
     }
 }
 
