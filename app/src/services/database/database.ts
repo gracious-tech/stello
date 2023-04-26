@@ -334,7 +334,7 @@ export class Database {
         return new host_user_class(generated, bucket, region, user)
     }
 
-    async read_create(sent:Date, resp_token:string, ip:string,
+    async read_create(sent:Date, resp_token:string, ip:string|null,
             user_agent:string):Promise<Read|null>{
         // Create a new read
 
