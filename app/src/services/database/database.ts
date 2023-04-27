@@ -404,8 +404,8 @@ export class Database {
     async reaction_create(content:string|null, sent:Date, resp_token:string, section_id:string,
             subsection_id:string|null, ip:string, user_agent:string):Promise<Reaction|null>{
         // Create a new reaction
-        // NOTE content may be null when passed to _gen_replaction but will delete later anyway
-        const reaction = new Reaction(await this._gen_replaction(content!, sent, resp_token,
+        // NOTE If content is null it will be deleted later anyway, so pass as ''
+        const reaction = new Reaction(await this._gen_replaction(content ?? '', sent, resp_token,
             section_id, subsection_id, ip, user_agent))
 
         // Reactions are useless without knowing who from (and can't give unique id either)
@@ -416,8 +416,8 @@ export class Database {
         // Can now set id from other properties so only one reaction per section
         reaction.id = reaction.id_from_properties
 
-        // Null content means must delete any existing reaction with same id
-        if (content === null){
+        // No content means must delete any existing reaction with same id
+        if (!content){
             await this._conn.delete('reactions', reaction.id)
             return null
         }
