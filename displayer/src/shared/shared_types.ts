@@ -1,4 +1,15 @@
 
+// UTIL
+
+// Generic JSON typing
+// See https://github.com/microsoft/TypeScript/issues/1897#issuecomment-338650717
+export type UnknownJson = boolean|number|string|null|UnknownJson[]|{[k:string]:UnknownJson}
+
+// Allows optional chainable of whatever value it may be, since JS permits that
+// See https://github.com/microsoft/TypeScript/issues/37700
+export type UnknownChainable = {[k:string]:UnknownChainable}
+
+
 // PUBLISHED
 
 export interface PublishedCopyBase {

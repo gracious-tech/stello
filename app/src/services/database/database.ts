@@ -358,7 +358,7 @@ export class Database {
     }
 
     async _gen_replaction(content:string, sent:Date, resp_token:string, section_id:string|null,
-            subsection_id:string|null, ip:string, user_agent:string):Promise<RecordReplaction>{
+            subsection_id:string|null, ip:string|null, user_agent:string):Promise<RecordReplaction>{
         // Generate a replaction object that can be used for a reply or reaction
 
         // Construct new object with data already known
@@ -402,7 +402,7 @@ export class Database {
     }
 
     async reaction_create(content:string|null, sent:Date, resp_token:string, section_id:string,
-            subsection_id:string|null, ip:string, user_agent:string):Promise<Reaction|null>{
+            subsection_id:string|null, ip:string|null, user_agent:string):Promise<Reaction|null>{
         // Create a new reaction
         // NOTE If content is null it will be deleted later anyway, so pass as ''
         const reaction = new Reaction(await this._gen_replaction(content ?? '', sent, resp_token,
@@ -427,7 +427,7 @@ export class Database {
     }
 
     async reply_create(content:string, sent:Date, resp_token:string, section_id:string|null,
-            subsection_id:string|null, ip:string, user_agent:string):Promise<Reply>{
+            subsection_id:string|null, ip:string|null, user_agent:string):Promise<Reply>{
         // Create a new reply
         const reply = new Reply(await this._gen_replaction(content, sent, resp_token, section_id,
             subsection_id, ip, user_agent))

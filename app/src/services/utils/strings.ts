@@ -31,3 +31,10 @@ export function escape_for_html(input:string):string{
     // NOTE Option element's constructor's first arg is converted to a text node
     return new Option(input).innerHTML
 }
+
+
+export function str_or_null(input:unknown):string|null{
+    // Convert any value to a string but return null for false-like values (including '')
+    // WARN String(null) === 'null', so check before conversion
+    return input ? String(input) : null
+}
