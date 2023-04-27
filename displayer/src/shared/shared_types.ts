@@ -98,52 +98,15 @@ export interface PublishedAsset {
 
 
 // RESPONSES
+// SECURITY Can't assume types for user-submitted data so can only type data verified by responder
 
-export interface ResponseData {
-    event:ResponseEvent
+export interface PostResponderData {
+    event:{
+        encrypted:string
+        config_secret:string
+        [k:string]:UnknownJson
+    }
     ip:string|null  // May not be available for some setups
-}
-
-export type ResponseEvent = ResponseEventRead|ResponseEventReplaction|ResponseEventSubscription
-    |ResponseEventAddress|ResponseEventResend
-
-export interface ResponseEventRead {
-    user_agent:string
-    resp_token:string
-    copy_id:string  // Only for responder's use
-    has_max_reads:boolean  // Only for responder's use
-}
-
-export interface ResponseEventReplaction {
-    user_agent:string
-    resp_token:string
-    content:string|null  // Reaction can be null to clear any previous
-    section_id:string|null
-    subsection_id:string|null
-}
-
-export interface ResponseEventSubscription {
-    user_agent:string
-    resp_token:string
-    subscribed:boolean
-    sym_encrypted?: {
-        address:string,
-    }
-}
-
-export interface ResponseEventAddress {
-    user_agent:string
-    resp_token:string
-    new_address:string
-    sym_encrypted?: {
-        address:string,  // The old address
-    }
-}
-
-export interface ResponseEventResend {
-    user_agent:string
-    resp_token:string
-    content:string
 }
 
 
