@@ -64,9 +64,9 @@ export class MustRecover extends CustomError {
 
 export class MustInterpret extends CustomError {
     // Use for unknown errors that have data available that could be interpreted
-    data:Record<string, any>
+    data:Record<string, unknown>
 
-    constructor(data:Record<string, any>){
+    constructor(data:Record<string, unknown>){
         // Ensure data available when printed by stringifying as error's message
         super(JSON.stringify(data))
         this.data = data
@@ -77,7 +77,7 @@ export class MustInterpret extends CustomError {
 // HELPERS
 
 
-export function type_of(value:any):string{
+export function type_of(value:unknown):string{
     // Extend typeof to support null and Array
     if (value === null){
         return 'null'  // typeof null === 'object' (bug since JS v1)
@@ -122,15 +122,15 @@ export function validate_chars(value:string, regex_chars:string):void{
 }
 
 
-export function error_to_string(error:any):string{
+export function error_to_string(error:unknown):string{
     // Since thrown errors can be any object in JS, need to carefully extract info from them
 
     // Determine type of error (useful for knowing why can't extract more info from e.g. a string)
     // NOTE Constructor name important for custom error classes (3rd party or own) which may not
     //      inherit from Error properly
-    let type = typeof error
+    let type:string = typeof error
     if (type === 'object'){
-        type = error?.constructor?.name || 'object'
+        type = (error as object)?.constructor?.name || 'object'
     }
 
     // Try get more info
@@ -138,13 +138,15 @@ export function error_to_string(error:any):string{
     try {
         if (error instanceof Error){
             // NOTE `error.name` will be same as constructor name already included above
-            info = `${error.message}\n\n${error.stack}`
+            info = `${error.message}\n\n${error.stack!}`
         } else if (typeof error === 'object'){
             info = JSON.stringify(error, undefined, 4)
         } else {
-            info = `${error}`
+            info = String(error)
         }
-    } catch {}
+    } catch {
+        // Never fail
+    }
 
     return `Error type: ${type}\n${info}`
 }
