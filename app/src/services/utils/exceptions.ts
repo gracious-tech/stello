@@ -77,7 +77,7 @@ export class MustInterpret extends CustomError {
 // HELPERS
 
 
-export function type_of(value:unknown):string{
+export function type_of(value:unknown){
     // Extend typeof to support null and Array
     if (value === null){
         return 'null'  // typeof null === 'object' (bug since JS v1)
