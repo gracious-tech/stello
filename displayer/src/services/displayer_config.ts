@@ -6,12 +6,7 @@ import {partition} from './utils/strings'
 import {url64_to_buffer, utf8_to_string} from './utils/coding'
 import {import_key_asym, import_key_sym, decrypt_sym} from './utils/crypt'
 import {ThemeStyle} from '@/shared/shared_types'
-
-
-export const MSGS_URL =
-    import.meta.env.DEV ? '/dev/' : (import.meta.env.VITE_HOSTED_MSGS_URL ?? '/')
-export const USER =
-    import.meta.env.VITE_HOSTED_MSGS_URL ? self.location.hostname.split('.')[0]! : '_user'
+import {MSGS_URL, USER} from './env'
 
 
 class DisplayerConfigAccess {
