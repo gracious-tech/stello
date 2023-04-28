@@ -106,6 +106,7 @@ export interface RecordProfileHostState {
     shared_secret:CryptoKey  // Private to user & readers; for protecting non-message data
     resp_key:CryptoKeyPair  // Private to user; used to receive data without interception
     displayer_config_uploaded:boolean  // False when it needs updating
+    subscribe_config_uploaded:boolean  // False when it needs updating
     responder_config_uploaded:boolean  // False when it needs updating
 }
 

@@ -328,6 +328,7 @@ export class DatabaseProfiles {
                 shared_secret: await generate_key_sym(true, ['encrypt'], true),
                 resp_key: await generate_key_asym(),
                 displayer_config_uploaded: false,
+                subscribe_config_uploaded: false,
                 responder_config_uploaded: false,
             },
             email: '',

@@ -417,7 +417,9 @@ export default class extends Vue {
     save(affects_config=false){
         // Save changes to profile
         if (affects_config){
+            // TODO Currently not distinguishing between them, but could for slight performance gain
             this.profile.host_state.displayer_config_uploaded = false
+            this.profile.host_state.subscribe_config_uploaded = false
             this.profile.host_state.responder_config_uploaded = false
         }
         void self.app_db.profiles.set(this.profile)
@@ -445,6 +447,10 @@ export default class extends Vue {
         // Create new form and show edit dialog for it
         const form = await self.app_db.subscribe_forms.create(this.profile_id)
         this.forms.push(form)
+
+        // Mark configs as needing update
+        this.save(true)
+
         void this.$store.dispatch('show_dialog', {
             component: DialogSubscribeForm,
             props: {
@@ -459,6 +465,8 @@ export default class extends Vue {
     form_removed(form:SubscribeForm){
         // Handle removal of form via child component
         remove_item(this.forms, form)
+        // Mark configs as needing update
+        this.save(true)
     }
 }
 

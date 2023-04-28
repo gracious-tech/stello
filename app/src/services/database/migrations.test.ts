@@ -230,15 +230,16 @@ test.describe('migrate', async () => {
             await to_17(t)
             await to_18(t)
         })
-        await db.put('profiles', {id: 'id', options: {}} as any)
+        await db.put('profiles', {id: 'id', options: {}, host_state: {}} as any)
         await test_stores(db, STORES_V12)
 
         // Migrate
         db.close()
         db = await open_db('to_19', 19, to_19)
 
-        // Expect send_to_self property to exist
+        // Expect new profile properties to exist
         expect((await db.get('profiles', 'id'))?.options.send_to_self).toBe('yes_without_email')
+        expect((await db.get('profiles', 'id'))?.host_state.subscribe_config_uploaded).toBe(false)
 
         // Expect new stores to exist
         await test_stores(db, {...STORES_V12, ...STORES_V19})
