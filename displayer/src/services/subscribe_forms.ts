@@ -9,20 +9,24 @@ import {SubscribeFormConfig} from '@/shared/shared_types'
 export async function get_form_data(form_id:string):Promise<SubscribeFormConfig|null>{
     // Fetch encrypted form configs and see if one decrypts successfully
 
-    // Convert the form id into a key
-    const secret = await import_key_sym(url64_to_buffer(form_id))
+    try {
+        // Convert the form id into a key
+        const secret = await import_key_sym(url64_to_buffer(form_id))
 
-    // Download forms config
-    const forms = await request<string[]>(`${MSGS_URL}config/${USER}/subscribe`, {}, 'json')
+        // Download forms config
+        const forms = await request<string[]>(`${MSGS_URL}config/${USER}/subscribe`, {}, 'json')
 
-    // See if one decrypts successfully
-    for (const form of forms){
-        try {
-            return JSON.parse(utf8_to_string(await decrypt_sym(url64_to_buffer(form), secret))) as
-                SubscribeFormConfig
-        } catch {
-            // Try next
+        // See if one decrypts successfully
+        for (const form of forms){
+            try {
+                const decrypted = await decrypt_sym(url64_to_buffer(form), secret)
+                return JSON.parse(utf8_to_string(decrypted)) as SubscribeFormConfig
+            } catch {
+                // Try next
+            }
         }
+    } catch {
+        // Return null if anything fails
     }
 
     return null
