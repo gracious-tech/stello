@@ -34,7 +34,7 @@ export interface StoreState {
     msg:MessageAccess|null
     webp_supported:boolean
     transition:'none'|'prev'|'next'
-    dialog:null|{component:Component, props:Record<string, unknown>}
+    dialog:null|{component:Component, props:Record<string, unknown>, persistent:boolean}
 }
 
 export interface MessageAccess {
@@ -136,7 +136,7 @@ export class DisplayerStore {
             const subscribe_form = await get_form_data(hash.subscribe)
             if (subscribe_form){
                 // Show dialog
-                this.dialog_open(DialogSubscribe, {form: subscribe_form})
+                this.dialog_open(DialogSubscribe, {form: subscribe_form}, true)
                 // Get the config secret from the form's data
                 hash.config_secret_url64 = subscribe_form.config_secret_url64
             }
@@ -317,10 +317,10 @@ export class DisplayerStore {
         this._state.transition = transition
     }
 
-    dialog_open(component:Component, props:Record<string, unknown>={}):void{
+    dialog_open(component:Component, props:Record<string, unknown>={}, persistent=false):void{
         // Open a dialog with the given contents
         // NOTE markRaw prevents making already-reactive component reactive
-        this._state.dialog = {component: markRaw(component), props}
+        this._state.dialog = {component: markRaw(component), props, persistent}
     }
 
     dialog_close():void{
