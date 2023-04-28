@@ -151,6 +151,7 @@ export interface RecordSubscribeForm {
     id:string
     profile:string
     text:string
+    accept_message:boolean
     groups:string[]
     service_account:string|null
 }

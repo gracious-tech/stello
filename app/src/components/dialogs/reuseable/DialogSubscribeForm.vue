@@ -11,6 +11,8 @@ v-card
             :items='service_account_items' select label="Save contacts in")
         app-select(v-model='chosen_groups' :items='groups_items' multiple
             label="Add contacts to groups")
+        app-switch(v-model='accept_message' label="Show optional comment field"
+            hint="Use this if you ask people for any extra info when they subscribe")
 
     v-card-actions
         app-btn(@click='done') Done
@@ -41,6 +43,14 @@ export default class extends Vue {
     }
     set text(value:string){
         this.form.text = value
+        this.save()
+    }
+
+    get accept_message(){
+        return this.form.accept_message
+    }
+    set accept_message(value){
+        this.form.accept_message = value
         this.save()
     }
 

@@ -8,6 +8,7 @@ export class SubscribeForm implements RecordSubscribeForm {
     id!:string
     profile!:string
     text!:string
+    accept_message!:boolean
     groups!:string[]
     service_account!:string|null
 
@@ -48,6 +49,7 @@ export class DatabaseSubscribeForms {
             id: generate_token(),
             profile,
             text: '<h2>Subscribe to newsletter</h2>\n<p>To get our latest news.</p>',
+            accept_message: false,
             groups: [],
             service_account: null,
         })
