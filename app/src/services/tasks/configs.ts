@@ -24,6 +24,9 @@ export async function configs_update(task:Task){
         return
     }
 
+    // Get subscribe_forms
+    const forms = await self.app_db.subscribe_forms.list_for_profile(profile_id)
+
     // Prep for upload tasks
     const storage = await self.app_db.new_host_user(profile)
     const resp_key_public = buffer_to_url64(
@@ -67,6 +70,7 @@ export async function configs_update(task:Task){
             allow_resend_requests: profile.options.allow_resend_requests,
             resp_key_public,
             email: profile.email,
+            subscribe_forms: forms.map(form => form.id),  // Added in v1.5.0
         }
         upload_responder = encrypt_sym(
             string_to_utf8(JSON.stringify(config)),

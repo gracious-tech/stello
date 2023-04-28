@@ -1,5 +1,6 @@
 
-import {generate_token} from '@/services/utils/crypt'
+import {buffer_to_url64} from '@/services/utils/coding'
+import {export_key, generate_key_sym} from '@/services/utils/crypt'
 import {AppDatabaseConnection, RecordSubscribeForm} from './types'
 
 
@@ -46,7 +47,9 @@ export class DatabaseSubscribeForms {
     async create(profile:string):Promise<SubscribeForm>{
         // Create a new form
         const form = new SubscribeForm({
-            id: generate_token(),
+            // Use a url64 secret as the id so can perform basic encryption while keeping url short
+            // Rather than including both the form id and secret in a url, the id serves as both
+            id: buffer_to_url64(await export_key(await generate_key_sym(true, [], true))),
             profile,
             text: '<h2>Subscribe to newsletter</h2>\n<p>To get our latest news.</p>',
             accept_message: false,
