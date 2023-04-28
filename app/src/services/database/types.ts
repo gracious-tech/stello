@@ -148,7 +148,7 @@ export interface RecordProfileOptions {
 // SubscribeForm
 
 export interface RecordSubscribeForm {
-    id:string
+    id:string  // Also used for basic encryption of form data
     profile:string
     text:string
     accept_message:boolean

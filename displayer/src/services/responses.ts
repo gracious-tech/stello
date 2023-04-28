@@ -137,3 +137,21 @@ export function respond_resend(resp_token:string, reason:string):Promise<boolean
 
     return respond('resend', data)
 }
+
+
+export function respond_subscribe(form:string, address:string, name:string, content:string)
+        :Promise<boolean>{
+    // Send "subscribe" response
+    const data:PartialResponseData = {
+        form,
+        encrypted: {},
+    }
+
+    // Store data inside/outside encryption depending on notify setting
+    const container = displayer_config.notify_include_contents ? data : data.encrypted
+    container['address'] = address
+    container['name'] = name
+    container['content'] = content  // Use 'content' to match replies/notification logic
+
+    return respond('subscribe', data)
+}
