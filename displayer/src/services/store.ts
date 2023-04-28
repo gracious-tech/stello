@@ -3,6 +3,7 @@ import {reactive, readonly, DeepReadonly, Component, markRaw} from 'vue'
 
 // @ts-ignore For some reason TS imports below fine but says it can't when checking types
 import DialogChangeAddress from '../components/DialogChangeAddress.vue'
+import DialogSubscribe from '../components/DialogSubscribe.vue'
 import {database} from './database'
 import {MessageRecord} from './database_assets'
 import {MSGS_URL, USER} from './env'
@@ -15,6 +16,7 @@ import {generate_hash, decrypt_sym, import_key_sym} from './utils/crypt'
 import {check_webp_support} from './webp'
 import {request, report_http_failure} from './utils/http'
 import {PublishedContentPage, PublishedCopy, PublishedSection} from '@/shared/shared_types'
+import {get_form_data} from '@/services/subscribe_forms'
 
 
 // TYPES
@@ -127,6 +129,17 @@ export class DisplayerStore {
         // NOTE Failed state here possible if doing initial process, and not a 'hashchange' event
         if (self.location.hash && !self.app_failed){
             self.location.hash = ''
+        }
+
+        // If a form id, try and decrypt the data
+        if (hash?.subscribe){
+            const subscribe_form = await get_form_data(hash.subscribe)
+            if (subscribe_form){
+                // Show dialog
+                this.dialog_open(DialogSubscribe, {form: subscribe_form})
+                // Get the config secret from the form's data
+                hash.config_secret_url64 = subscribe_form.config_secret
+            }
         }
 
         // Update displayer config (do for every hash in case changed)
