@@ -436,8 +436,8 @@ def _send_notification(config, resp_type, event, user):
     # NOTE Possible to have race condition where contents should be included but isn't, so check
     if config['notify_include_contents'] and 'content' in event:
 
-        # If content is null, just clearing a previous reaction, so don't notify
-        if event['content'] is None:
+        # If reaction's content is null, just clearing a previous reaction, so don't notify
+        if reaction and event['content'] is None:
             return
 
         subject = "Stello: New reaction" if reaction else "Stello: New reply"
