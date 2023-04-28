@@ -138,7 +138,7 @@ export class DisplayerStore {
                 // Show dialog
                 this.dialog_open(DialogSubscribe, {form: subscribe_form})
                 // Get the config secret from the form's data
-                hash.config_secret_url64 = subscribe_form.config_secret
+                hash.config_secret_url64 = subscribe_form.config_secret_url64
             }
         }
 

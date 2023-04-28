@@ -209,7 +209,9 @@ export class Profile implements RecordProfile {
     get configs_need_uploading(){
         // Return whether configs need uploading (and able to do so)
         return this.setup_complete && (
-            !this.host_state.displayer_config_uploaded || !this.host_state.responder_config_uploaded
+            !this.host_state.displayer_config_uploaded
+            || !this.host_state.subscribe_config_uploaded
+            || !this.host_state.responder_config_uploaded
         )
     }
 

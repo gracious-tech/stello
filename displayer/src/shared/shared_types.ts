@@ -130,3 +130,10 @@ export interface DisplayerConfig {
     theme_style:ThemeStyle
     theme_color:ThemeColor
 }
+
+export interface SubscribeFormConfig {
+    id:string
+    text:string
+    accept_message:boolean
+    config_secret_url64:string
+}

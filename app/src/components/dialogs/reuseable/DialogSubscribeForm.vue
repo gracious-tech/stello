@@ -43,7 +43,7 @@ export default class extends Vue {
     }
     set text(value:string){
         this.form.text = value
-        this.save()
+        this.save(true)
     }
 
     get accept_message(){
@@ -51,7 +51,7 @@ export default class extends Vue {
     }
     set accept_message(value){
         this.form.accept_message = value
-        this.save()
+        this.save(true)
     }
 
     get service_account(){
@@ -90,8 +90,13 @@ export default class extends Vue {
         })
     }
 
-    save(){
+    save(affects_config=false){
         void self.app_db.subscribe_forms.set(this.form)
+        if (affects_config){
+            // Changes to text etc only affect subscribe config, responder config has only ids
+            this.profile.host_state.subscribe_config_uploaded = false
+            void self.app_db.profiles.set(this.profile)
+        }
     }
 
     done(){
