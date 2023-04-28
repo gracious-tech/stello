@@ -75,7 +75,7 @@ export async function configs_update(task:Task){
             }
 
             // Generate the secret from the actual id and encrypt the config data
-            const secret = await import_key_sym(url64_to_buffer(form.id))
+            const secret = await import_key_sym(url64_to_buffer(form.id), false, ['encrypt'])
             const encrypted = await encrypt_sym(string_to_utf8(JSON.stringify(config)), secret)
             return buffer_to_url64(encrypted)
         })).then(strings => storage.upload_subscribe_config(JSON.stringify(strings)))
