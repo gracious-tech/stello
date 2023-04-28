@@ -49,7 +49,7 @@ export class DatabaseSubscribeForms {
         const form = new SubscribeForm({
             // Use a url64 secret as the id so can perform basic encryption while keeping url short
             // Rather than including both the form id and secret in a url, the id serves as both
-            id: buffer_to_url64(await export_key(await generate_key_sym(true, [], true))),
+            id: buffer_to_url64(await export_key(await generate_key_sym(true, undefined, true))),
             profile,
             text: '<h2>Subscribe to newsletter</h2>\n<p>To get our latest news.</p>',
             accept_message: false,
