@@ -78,7 +78,7 @@ async function get_store_options(db:Database):Promise<StoreOptions<AppStoreState
 
             // If a dialog is already open, try close it
             if (state.tmp.dialog){
-                // If existing dialog is persistant and requested one isn't, assume more important
+                // If existing dialog is persistent and requested one isn't, assume more important
                 if (state.tmp.dialog.persistent && !dialog.persistent){
                     return  // Ignore request to open dialog
                 } else {
