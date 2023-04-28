@@ -46,8 +46,7 @@ export default class extends Vue {
 
     async copy_url(){
         // Copy url for form to clipboard and notify user
-        const shared64 = buffer_to_url64(await export_key(this.profile.host_state.shared_secret))
-        const url = this.profile.view_url(shared64, this.form.id, null, 'sub')
+        const url = `${this.profile.view_displayer}#${this.form.id}`
         void self.navigator.clipboard.writeText(url)
         void this.$store.dispatch('show_snackbar', "Link copied (now paste somewhere)")
     }
