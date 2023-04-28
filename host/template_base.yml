@@ -702,6 +702,12 @@ Resources:
                                     'config/${aws:PrincipalTag/username}/config']]
                                 Action: ['s3:PutObject', 's3:DeleteObject']
 
+                            # Put/delete own subscribe config (config prefix not subject to expiry)
+                            -   Effect: Allow
+                                Resource: !Join ['/', [!GetAtt MessagesBucket.Arn,
+                                    'config/${aws:PrincipalTag/username}/subscribe']]
+                                Action: ['s3:PutObject', 's3:DeleteObject']
+
                             # List own responses
                             -   Effect: Allow
                                 Resource: !GetAtt ResponsesBucket.Arn

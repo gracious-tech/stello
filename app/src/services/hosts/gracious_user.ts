@@ -56,7 +56,7 @@ export class HostUserGracious extends HostUserAwsBase implements HostUser {
     async delete_services(task:Task):Promise<void>{
         // Delete all objects belonging to user
         await this._delete_objects(this.bucket, `messages/${this.user}/`)
-        await this.s3.deleteObject({Bucket: this.bucket, Key: `config/${this.user}/config`})
+        await this._delete_objects(this.bucket, `config/${this.user}/`)
         await this._delete_objects(this._bucket_resp_id, `responses/${this.user}/`)
         await this.s3.deleteObject({Bucket: this._bucket_resp_id, Key: `config/${this.user}/config`})
     }
