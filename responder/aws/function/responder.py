@@ -251,11 +251,11 @@ def handle_reaction(user, config, event):
     if not config['allow_reactions']:
         raise Abort()
 
-    # Ensure reaction is a short single hyphenated word if present (or null)
+    # Ensure reaction is a short single word if present (or null)
     # SECURITY Prevents inserting long messages as a "reaction" but allows future codes too
     #   Noting that user may have enabled notifications for reactions, putting their value in emails
     if 'content' in event and event['content'] is not None:
-        _ensure_valid_chars(event, 'content', string.ascii_letters + string.digits + '-')
+        _ensure_valid_chars(event, 'content', string.ascii_letters + string.digits + '-_')
         if len(event['content']) > 25:
             raise Exception("Reaction content too long")
 
