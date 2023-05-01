@@ -223,7 +223,7 @@ export class Sender {
         const email_promises:Promise<unknown>[] = []
 
         // Upload copies
-        await concurrent(copies.map(copy => {
+        const publish_copies_error = await concurrent(copies.map(copy => {
             return async () => {
                 task.check_aborted()
                 await this._publish_copy(copy, pub_copy_base)
@@ -236,12 +236,14 @@ export class Sender {
                     if (task.aborted){
                         this.email_client.abort()
                     }
-                }).catch((error:unknown) => error)))
+                }).catch((error:unknown) => error)))  // Will handle these later
             }
-        }))
+        })).catch((error:unknown) => error)  // Will handle this later
 
-        // Wait for email sends to complete and throw if any errors
-        for (const error of await Promise.all(email_promises)){
+        // Wait for all pending tasks to complete before throwing any errors
+        // WARN Otherwise user might be able to restart sending before all previous tasks end
+        // NOTE `all()` ok rather than `allSettled()` since rejections are resolved above already
+        for (const error of [publish_copies_error, ...await Promise.all(email_promises)]){
             if (error){
                 throw error
             }
