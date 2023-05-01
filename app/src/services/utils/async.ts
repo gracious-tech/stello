@@ -36,10 +36,6 @@ export async function concurrent(tasks:(()=>Promise<unknown>)[], limit=10):Promi
     // NOTE Any promises added to channels must resolve to the channel id (array index)
     const channels = [...Array(limit).keys()].map(i => Promise.resolve(i))
 
-    // Preserve value of first rejection (if any)
-    let rejected = false  // Separate var as error value could be falsey
-    let rejected_error:unknown
-
     // Add tasks to channels whenever one free
     for (const task of tasks){
 
@@ -47,10 +43,8 @@ export async function concurrent(tasks:(()=>Promise<unknown>)[], limit=10):Promi
         let free_channel:number
         try {
             free_channel = await Promise.race(channels)
-        } catch (error){
-            // Don't throw straight away as need to wait till pending tasks all stop first
-            rejected = true
-            rejected_error = error
+        } catch {
+            // Don't start any new tasks, but also don't throw until all in-progress have stopped
             break
         }
 
@@ -61,11 +55,10 @@ export async function concurrent(tasks:(()=>Promise<unknown>)[], limit=10):Promi
         })
     }
 
-    // Wait till all the tasks have finished (whether resolved or rejected)
-    await Promise.allSettled(channels)
-
-    // If any task failed, reject with the first failure
-    if (rejected){
-        throw rejected_error
+    // Wait till all the in-progress tasks have finished before throwing or returning
+    for (const result of await Promise.allSettled(channels)){
+        if (result.status === 'rejected'){
+            throw result.reason
+        }
     }
 }
