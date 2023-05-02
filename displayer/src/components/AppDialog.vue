@@ -75,6 +75,9 @@ export default defineComponent({
                 min-width: 90px
                 justify-content: center
 
+                &:first-child
+                    margin-left: 0
+
                 &.error
                     background-color: rgba(#f00, 0.3) !important
 
