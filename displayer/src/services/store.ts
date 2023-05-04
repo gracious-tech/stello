@@ -143,14 +143,14 @@ export class DisplayerStore {
         }
 
         // Update displayer config (do for every hash in case changed)
-        if (this._state.dict.config_secret){
-            await displayer_config.safe_load(this._state.dict.config_secret)
-        } else if (hash?.config_secret_url64){
-            if (await displayer_config.safe_load(hash.config_secret_url64)){
-                // Config loaded successfully with the hash's config secret
-                this._state.dict.config_secret = hash.config_secret_url64
-                void database.dict_set('config_secret', hash.config_secret_url64)
-            }
+        if (this._state.dict.config_secret
+                && await displayer_config.safe_load(this._state.dict.config_secret)){
+            // Decrypted config from secret stored from previous message
+        } else if (hash?.config_secret_url64
+                && await displayer_config.safe_load(hash.config_secret_url64)){
+            // Config loaded successfully with the hash's config secret
+            this._state.dict.config_secret = hash.config_secret_url64
+            void database.dict_set('config_secret', hash.config_secret_url64)
         }
 
         // Load msg if valid
