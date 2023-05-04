@@ -11,7 +11,7 @@ import {type_of} from '@/services/utils/exceptions'
 import {str_or_null} from '@/services/utils/strings'
 
 
-const RESP_TYPES_ASYNC = ['read', 'reply']  // Least priority -> greatest
+const RESP_TYPES_ASYNC = ['read', 'reply', 'subscribe']  // Least priority -> greatest
 const RESP_TYPES_SYNC = ['subscription', 'address', 'resend', 'reaction']  // Require order
 
 
@@ -161,7 +161,7 @@ async function process_data(profile:Profile, type:string, data:PostResponderData
 
     // Force type of common fields
     const ip = str_or_null(data.ip)
-    const resp_token = String(data.event['resp_token'])
+    const resp_token = String(data.event['resp_token'] ?? '')  // Only 'subscribe' doesn't have this
     const user_agent = String(data.event['user_agent'])
 
     // Decrypt symmetrically encrypted data, if any
@@ -283,7 +283,7 @@ async function process_data(profile:Profile, type:string, data:PostResponderData
         const copy = await self.app_db.copies.get_by_resp_token(resp_token)
 
         // If copy still exists good, otherwise generate fake id so db can still index record
-        // NOTE Same secenario if user deletes the message/contact after saving this record anyway
+        // NOTE Same scenario if user deletes the message/contact after saving this record anyway
         let contact:string
         let message:string
         if (copy){
@@ -298,6 +298,32 @@ async function process_data(profile:Profile, type:string, data:PostResponderData
         // Create request record
         await self.app_db._conn.put('request_resend',
             {sent, ip, user_agent, contact, message, reason})
+
+    } else if (type === 'subscribe'){
+
+        // Validate user input
+        const form_id = String(data.event['form'])
+        const address = String(data.event['address'])
+        const name = String(data.event['name'])
+        const message = String(data.event['content'])
+
+        // Do basic validation of address
+        // SECURITY In the end, only the user can verify if address looks legit
+        if (!email_address_like(address)){
+            return  // Do nothing and allow response to be deleted
+        }
+
+        // Get the subscribe form
+        // NOTE Responder prevents submission once form deleted
+        //      So don't need to enforce here, and still accept any race condition submissions
+        const form = await self.app_db.subscribe_forms.get(form_id)
+
+        // Create subscribe record
+        const id = generate_token()
+        const groups = form?.groups ?? []
+        const service_account = form?.service_account ?? null
+        await self.app_db._conn.put('request_subscribe',
+            {id, sent, ip, user_agent, groups, service_account, address, name, message})
 
     } else {
         throw new Error("Invalid type")
