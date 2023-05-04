@@ -7,7 +7,8 @@ textarea(ref='textarea' v-model='reason')
 
 div.actions
     button(@click='close' class='btn-text') Cancel
-    button(@click='send' :disabled='!valid' class='btn-text s-primary' :class='{error, progress}')
+    button(@click='send' :disabled='!valid || progress' class='btn-text s-primary'
+            :class='{error, progress}')
         template(v-if='progress')
             AppProgress
         template(v-else) Send
