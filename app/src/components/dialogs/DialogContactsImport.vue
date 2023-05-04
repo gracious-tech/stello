@@ -139,7 +139,7 @@ export default class extends Vue {
     csv_column_name:string|null = null
     csv_column_name2:string|null = null
     csv_column_email:string|null = null
-    contacts:{id:string, name:string, email:string, include:boolean}[] = []
+    contacts:{id:string, name:string, email:string, notes:string, include:boolean}[] = []
     progress = false
 
     get selected(){
@@ -293,12 +293,25 @@ export default class extends Vue {
 
     apply_csv_columns():void{
         // Reconvert CSV data to contacts based on current column selections
+
+        // Auto-detect a notes column if any (not done previously as not needed for UI)
+        const notes_col = this.csv_columns.find(c => /^notes?$/i.test(c))
+
         this.accept_contacts(this.csv_items.map(item => {
             let name = item[this.csv_column_name!] ?? ''
             if (this.csv_column_name2){
                 name += ' ' + (item[this.csv_column_name2] ?? '')
             }
-            return {name, email: item[this.csv_column_email!] ?? ''}
+
+            // Mailchimp appends timestamp to each note and joins as one line, so separate with \n
+            let notes = notes_col ? (item[notes_col] ?? '') : ''
+            notes = notes.replace(/\[\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d\] /g, '\n\n$&\n').trim()
+
+            return {
+                name,
+                email: item[this.csv_column_email!] ?? '',
+                notes,
+            }
         }))
     }
 
@@ -309,21 +322,22 @@ export default class extends Vue {
         // Unlike other parsers, should not here accept addressless items
         // NOTE `undisclosed-recipients:;` is a "group" with no address
         this.accept_contacts(recipients.filter(item => 'address' in item).map(item => {
-            return {name: item.name ?? '', email: item.address}
+            return {name: item.name ?? '', email: item.address, notes: ''}
         }))
     }
 
-    accept_contacts(contacts:{name:string|null, email:string|null}[]):void{
+    accept_contacts(contacts:{name:string|null, email:string|null, notes:string|null}[]):void{
         // Take contacts from parsed input, normalise values, and accept only those with some value
 
         // Process input by cleaning and generating id
         const processed = contacts.map(contact => {
             const name = (contact.name || '').trim()
             const email = (contact.email || '').trim()
+            const notes = (contact.notes || '').trim()
             // Ensure contacts unique by email (and if no email then by name)
             const id = email || name
             // Default to only selecting those with email addresses
-            return {id, name, email, include: !!email}
+            return {id, name, email, notes, include: !!email}
         })
 
         // Only accept unique contacts and exclude empty
@@ -346,8 +360,13 @@ export default class extends Vue {
         this.progress = true
 
         // Create all contacts and collect their data
-        const contacts = await self.app_db.contacts.create(
-            this.selected.map(contact => ({name: contact.name, address: contact.email})))
+        const contacts = await self.app_db.contacts.create(this.selected.map(contact => {
+            return {
+                name: contact.name,
+                address: contact.email,
+                notes: contact.notes,
+            }
+        }))
 
         // Create a new group for all the contacts
         const date = new Date()
