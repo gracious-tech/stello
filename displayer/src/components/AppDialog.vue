@@ -64,6 +64,15 @@ export default defineComponent({
         max-width: 600px
         width: 80%
         max-height: 80%
+        overflow: hidden auto
+        box-sizing: border-box
+
+        @media (max-width: 600px)
+            max-width: none
+            max-height: none
+            width: 100%
+            flex-grow: 1
+            border-radius: 0
 
         ::v-deep(.actions)
             align-self: flex-end
