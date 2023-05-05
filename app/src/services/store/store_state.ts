@@ -11,7 +11,7 @@ export async function get_initial_state(db:Database):Promise<AppStoreState>{
 
     // Construct full state with defaults
     // WARN Defaults must be constants as won't be saved until changed (e.g. no dates or random)
-    const state = {
+    const state:AppStoreState = {
 
         // Configurable
         // NOTE dark defaults to true since `matches` will be false both if dark & if not supported
@@ -19,6 +19,7 @@ export async function get_initial_state(db:Database):Promise<AppStoreState>{
         dark_message: false,
         default_profile: null,
         default_template: null,
+        default_contacts: null,
         manager_aws_key_id: '',
         manager_aws_max_lifespan: Infinity,
 
