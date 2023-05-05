@@ -333,7 +333,7 @@ async function contacts_sync_google_full(task:Task, oauth:OAuth):Promise<Record<
                 created.name = name
                 created.address = primary_email
                 created.notes = notes
-                created.service_account = `google:${oauth.issuer_id}`
+                created.service_account = oauth.service_account
                 created.service_id = service_id
                 void self.app_db.contacts.set(created)
                 confirmed[created.service_id] = created.id
