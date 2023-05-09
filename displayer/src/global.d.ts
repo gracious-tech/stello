@@ -22,6 +22,7 @@ declare global {
             DEV:boolean,
             VITE_ROLLBAR_DISPLAYER:string,
             VITE_HOSTED_MSGS_URL:string,
+            VITE_LOCAL_RESPONDER?:boolean
         }
     }
 

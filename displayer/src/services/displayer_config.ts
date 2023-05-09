@@ -86,8 +86,10 @@ class DisplayerConfigAccess {
             this.responder = `https://api.${parent_domain}/responder/`
         }
 
-        // Uncomment during dev to send requests to locally served responder
-        // this.responder = 'http://127.0.0.1:8004/responder/'
+        // Optionally override responder url during development to point to locally served one
+        if (import.meta.env.DEV && import.meta.env.VITE_LOCAL_RESPONDER){
+            this.responder = 'http://127.0.0.1:8004/responder/'
+        }
 
         return true
     }
