@@ -438,8 +438,8 @@ html
 
 
 // Transitions
-.trans-up-enter-active, .trans-up-leave-active, .trans-right-enter-active, .trans-right-leave-active
-    transition: all 0.3s
+.trans-up-enter-active, .trans-up-leave-active, .trans-up-move, .trans-right-enter-active, .trans-right-leave-active, .trans-right-move
+    transition: all 0.3s  // WARN Search codebase for trans-up-move bug that relies on this value
     pointer-events: none
     user-select: none
 
