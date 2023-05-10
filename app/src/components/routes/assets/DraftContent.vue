@@ -10,7 +10,7 @@ transition-group(name='trans-up' tag='div' class='content')
             @add='add_section($event, row_i)')
         div.srow(:key='row.id + "srow"' :class='{[row.display]: true, hero: row.hero}')
             draft-movebar(:sections='sections' :row_i='row_i' @save='save_sections')
-            transition-group(name='trans-up' tag='div' class='sections')
+            div.sections
                 draft-section.section(v-for='section of row.sections' :key='section.id'
                     :draft='draft' :profile='profile' :section='section'
                     :first_hero='row_i === 0 && row.hero'
