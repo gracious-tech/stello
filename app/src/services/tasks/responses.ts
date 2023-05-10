@@ -319,11 +319,14 @@ async function process_data(profile:Profile, type:string, data:PostResponderData
         const form = await self.app_db.subscribe_forms.get(form_id)
 
         // Create subscribe record
-        const id = generate_token()
-        const groups = form?.groups ?? []
-        const service_account = form?.service_account ?? null
-        await self.app_db._conn.put('request_subscribe',
-            {id, sent, ip, user_agent, groups, service_account, address, name, message})
+        await self.app_db._conn.put('request_subscribe', {
+            id: generate_token(),
+            sent, ip, user_agent,  // Common
+            address, name, message,  // User data
+            groups: form?.groups ?? [],
+            service_account: form?.service_account ?? null,
+            profile: profile.id,
+        })
 
     } else {
         throw new Error("Invalid type")

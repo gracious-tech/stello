@@ -355,6 +355,7 @@ export interface RecordRequestSubscribe extends RecordResponseCore {
     name:string
     address:string
     message:string
+    profile:string
     groups:string[]
     service_account:string|null
 }
