@@ -25,14 +25,10 @@ export function floatify_rows<T extends SectionLike>(rows:([T]|[T, T])[]):RowDis
     // Take sections/rows and return them with a display property provided for each row
     return rows.map(row => {
 
+        // If only one section in the row, no special treatment needed
         const first = row[0]
         const second = row[1]
-
-        // Treat rows as the same (e.g. with transitions) if first item stays the same
-        // NOTE Will cause new id when sections swapped or first removed, but oh well
-        const id = first.id
-
-        // If only one section in the row, no special treatment needed
+        const id = first.id + (second?.id ?? '')
         if (!second){
             return {
                 id,
