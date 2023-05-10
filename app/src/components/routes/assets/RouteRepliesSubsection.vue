@@ -22,7 +22,7 @@ v-card(class='my-8')
             color='')
 
     v-card-text
-        transition-group(name='replaction')
+        transition-group(name='trans-right')
             RouteRepliesReplaction(v-for='replaction of replactions' :key='replaction.id'
                 :replaction='replaction' :name='names[replaction.contact_id]' @removed='on_removed')
 
@@ -246,12 +246,6 @@ export default class extends Vue {
 
         &:hover
             opacity: 1
-
-
-.replaction-leave-to
-    transition: all 500ms
-    opacity: 0
-    transform: translateX(100px)
 
 
 </style>

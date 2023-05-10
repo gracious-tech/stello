@@ -279,6 +279,9 @@ export default class extends Vue {
         if (value){
             this.filter_group_id = '-'
         }
+
+        // Scroll back to top since list changed
+        ;(this.$refs['scrollable'] as Vue)?.$el.scroll(0, 0)
     }
 
     @Watch('filter_group_id') watch_filter_group_id(value:string):void{
@@ -293,10 +296,8 @@ export default class extends Vue {
         if (value === 'disengaged'){
             void this.load_reads()
         }
-    }
 
-    @Watch('contacts_matched') watch_contacts_matched():void{
-        // Whenever matched contacts changes, scroll back to top
+        // Scroll back to top since list changed
         ;(this.$refs['scrollable'] as Vue)?.$el.scroll(0, 0)
     }
 

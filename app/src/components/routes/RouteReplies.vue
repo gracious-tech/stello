@@ -17,7 +17,7 @@ div
 
     app-content(class='pa-5')
 
-        transition-group(name='subsection')
+        transition-group(name='trans-right')
             route-replies-subsection(v-for='replactions of subsections_visible'
                 :replactions='replactions.items' :key='replactions.key' :names='contact_names'
                 @removed='on_removed')
@@ -225,10 +225,5 @@ export default class extends Vue {
         .v-text-field__details, .v-messages
             display: none  // Rm to correct vertical alignment
 
-
-.subsection-leave-to
-    transition: all 500ms
-    opacity: 0
-    transform: translateX(100px)
 
 </style>

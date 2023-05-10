@@ -423,6 +423,12 @@ export default class AppHtml extends Vue {
         if (this.editor){
             this.editor.destroy()
         }
+
+        // Tiptap removes editor contents when it detects component is being destroyed
+        // This leaves the component empty during any leave transition
+        // So fill component with value when destruction starts
+        // See https://github.com/ueberdosis/tiptap/issues/2296#issuecomment-1000907608
+        this.$el.innerHTML = this.value
     }
 
 

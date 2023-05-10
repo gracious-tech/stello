@@ -1,23 +1,25 @@
 
 <template lang='pug'>
 
-div.content
+//- Replacing div.content with transition-group to avoid an additional level of nesting
+//- Must then key draft-add-section and draft-guide but appears to be harmless
+transition-group(name='trans-up' tag='div' class='content')
 
     template(v-for='(row, row_i) of floatified_rows')
         draft-add-section.add-before(v-if='row_i > 0 || !row.hero' :key='row.id + "add"'
             @add='add_section($event, row_i)')
         div.srow(:key='row.id + "srow"' :class='{[row.display]: true, hero: row.hero}')
             draft-movebar(:sections='sections' :row_i='row_i' @save='save_sections')
-            div.sections
+            transition-group(name='trans-up' tag='div' class='sections')
                 draft-section.section(v-for='section of row.sections' :key='section.id'
                     :draft='draft' :profile='profile' :section='section'
                     :first_hero='row_i === 0 && row.hero'
                     @modify='modify_section' @remove='remove_section')
 
-    draft-add-section.add-end(@add='add_section($event, sections.length)'
+    draft-add-section.add-end(key='add' @add='add_section($event, sections.length)'
         :visible='!sections.length')
 
-    draft-guide
+    draft-guide(key='guide')
 
 </template>
 

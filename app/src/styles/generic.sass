@@ -437,6 +437,32 @@ html
     bottom: -$tooltip_height - 6
 
 
+// Transitions
+.trans-up-enter-active, .trans-up-leave-active, .trans-right-enter-active, .trans-right-leave-active
+    transition: all 0.3s
+    pointer-events: none
+    user-select: none
+
+.trans-up-enter-to, .trans-up-leave
+    // Should be around the height of the element
+    // When leaving, too large will cause delayed start, too small will jump at start
+    max-height: 300px  // Aimed at things with the height of a card
+
+.trans-up-enter, .trans-up-leave-to
+    max-height: 0  // So items below start moving up as it leaves
+    opacity: 0
+    transform: scaleY(0)  // So shrinks rather than just displaced upwards
+
+.trans-right-enter-to, .trans-right-leave
+    max-height: 100px  // Aimed at list items
+
+.trans-right-enter, .trans-right-leave-to
+    max-height: 0  // So items below start moving up as it leaves
+    opacity: 0
+    transform: translateX(100px)
+
+
+
 // Fixes for displayer (prevent app/Vuetify from overriding displayer styles)
 
 
