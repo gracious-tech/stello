@@ -27,7 +27,7 @@ function show_fail_bar(){
         </div>
     `)
     ;(self.document.querySelector('.reload-bar.fail button') as HTMLButtonElement)
-        .addEventListener('click', () => {location.assign('#/');location.reload()})
+        .addEventListener('click', () => {location.reload()})
 }
 
 
