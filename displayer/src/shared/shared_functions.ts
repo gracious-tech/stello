@@ -12,6 +12,7 @@ export interface SectionLike {
 }
 
 export interface RowDisplay<T> {
+    id:string  // A concatination of the section ids for use with v-for
     display:string
     sections:T[]
     hero:boolean
@@ -27,8 +28,10 @@ export function floatify_rows<T extends SectionLike>(rows:([T]|[T, T])[]):RowDis
         // If only one section in the row, no special treatment needed
         const first = row[0]
         const second = row[1]
+        const id = first.id + (second?.id ?? '')
         if (!second){
             return {
+                id,
                 display: 'single',
                 sections: [first],
                 hero: first.content.type === 'images' && first.content.images!.length === 1 &&
@@ -44,6 +47,7 @@ export function floatify_rows<T extends SectionLike>(rows:([T]|[T, T])[]):RowDis
             // If not floating first section it needs to come last so can wrap around "second" one
             // NOTE This forces the real second section to float right even if it too was plain text
             return {
+                id,
                 display: 'wrap-right',
                 sections: [second, first],
                 hero: false,
@@ -51,6 +55,7 @@ export function floatify_rows<T extends SectionLike>(rows:([T]|[T, T])[]):RowDis
         }
 
         return {
+            id,
             display: is_plain(second) ? 'wrap-left' : 'parallel',
             sections: [first, second],
             hero: false,

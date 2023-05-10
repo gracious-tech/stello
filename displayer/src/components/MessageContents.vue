@@ -1,7 +1,7 @@
 
 <template lang='pug'>
 
-MessageContentsRow(v-for='(row, i) of floatified_rows' :row='row' :index='i')
+MessageContentsRow(v-for='(row, i) of floatified_rows' :key='row.id' :row='row' :index='i')
 
 </template>
 
