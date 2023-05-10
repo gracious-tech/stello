@@ -15,6 +15,7 @@ interface IssuerHandlers {
     change_notes:typeof contacts_change_notes_google,
     change_email:typeof contacts_change_email_google,
     remove:typeof contacts_remove_google,
+    create:typeof contacts_create_google,
     get_addresses:typeof contacts_get_addresses_google,
 }
 const HANDLERS:Record<string, IssuerHandlers> = {
@@ -24,6 +25,7 @@ const HANDLERS:Record<string, IssuerHandlers> = {
         change_notes: contacts_change_notes_google,
         change_email: contacts_change_email_google,
         remove: contacts_remove_google,
+        create: contacts_create_google,
         get_addresses: contacts_get_addresses_google,
     },
 }
@@ -158,6 +160,37 @@ export async function contacts_remove(task:Task):Promise<void>{
 
     // If all went well, remove contact in own database
     await self.app_db.contacts.remove(contact.id)
+}
+
+
+export async function contacts_create(task:Task):Promise<void>{
+    // Task for creating a contact
+
+    // Extract args from task object and get oauth record
+    const [oauth_id, contact_name, contact_address] = task.params as [string, string, string]
+    if (!contact_name || !contact_address){
+        // Synced contacts are required to have both, unlike Stello contacts
+        throw task.abort("Contact has no name and/or email address")
+    }
+    const oauth = await self.app_db.oauths.get(oauth_id)
+    if (!oauth){
+        throw task.abort("No longer have access to contacts account")
+    }
+
+    // Configure task object
+    task.label = `Creating contact for "${contact_name}"`
+    task.fix_oauth = oauth_id
+
+    // Call handler specific to the oauth's issuer
+    const service_id = await HANDLERS[oauth.issuer]!.create(oauth, contact_name, contact_address)
+
+    // If all went well, create contact in own database
+    await self.app_db.contacts.create({
+        name: contact_name,
+        address: contact_address,
+        service_account: oauth.service_account,
+        service_id,
+    })
 }
 
 
@@ -547,6 +580,16 @@ async function contacts_change_email_google(oauth:OAuth, service_id:string, addr
 async function contacts_remove_google(oauth:OAuth, service_id:string):Promise<void>{
     // Remove the given contact in Google Contacts
     await google_request(oauth, `people/${service_id}:deleteContact`, undefined, 'DELETE')
+}
+
+
+async function contacts_create_google(oauth:OAuth, name:string, address:string):Promise<string>{
+    // Create the given contact in Google Contacts and return the service_id
+    const person = await google_request(oauth, 'people:createContact', undefined, 'POST', {
+        names: [{unstructuredName: name}],
+        emailAddresses: [{value: address}],
+    }) as GooglePerson
+    return partition(person.resourceName, '/')[1]  // Google appends 'people/'
 }
 
 

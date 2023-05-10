@@ -7,7 +7,7 @@ import {remove_item, remove_matches} from '../utils/arrays'
 import {configs_update} from './configs'
 import {responses_receive} from './responses'
 import {contacts_oauth_setup, contacts_sync, contacts_change_property, contacts_change_email,
-    contacts_remove} from './contacts'
+    contacts_remove, contacts_create} from './contacts'
 import {send_oauth_setup, send_message} from './sending'
 import {CustomError, MustReauthenticate, MustReconfigure, MustReconnect, MustWait}
     from '../utils/exceptions'
@@ -25,7 +25,7 @@ export type TaskFunction = (task:Task)=>TaskReturn
 // Create a map of task function names to the actual function
 const TASKS:Record<string, TaskFunction> = Object.fromEntries([
     contacts_oauth_setup, contacts_sync, contacts_change_property, contacts_change_email,
-    contacts_remove,
+    contacts_remove, contacts_create,
     send_oauth_setup, send_message,
     configs_update,
     responses_receive,
@@ -286,6 +286,10 @@ export class TaskManager {
 
     start_contacts_remove(oauth_id:string, contact_id:string):Promise<Task>{
         return this.start('contacts_remove', [oauth_id, contact_id])
+    }
+
+    start_contacts_create(oauth_id:string, address:string, name:string):Promise<Task>{
+        return this.start('contacts_create', [oauth_id, address], [name])
     }
 
     start_configs_update(profile_id:string):Promise<Task>{
