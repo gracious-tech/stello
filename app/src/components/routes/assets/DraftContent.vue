@@ -26,7 +26,7 @@ transition-group(name='trans-up' tag='div' class='content')
 
 <script lang='ts'>
 
-import {Component, Vue, Prop} from 'vue-property-decorator'
+import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import DraftGuide from './DraftGuide.vue'
 import DraftSection from './DraftSection.vue'
@@ -85,6 +85,22 @@ export default class extends Vue {
                     .filter(s => s) as [Section]|[Section, Section]
             }).filter(row => row.length),
         )
+    }
+
+    @Watch('floatified_rows') watch_floatified_rows(){
+        // Cleanup transition classes whenever rows change
+        setTimeout(() => {this.cleanup_transitions()}, 350)  // Transition finishes after 300
+        setTimeout(() => {this.cleanup_transitions()}, 2000)  // Backup, just in case
+    }
+
+    cleanup_transitions(){
+        // Something causes Vue to not remove trans-up-enter-to class when transition finishes
+        // See https://github.com/vuejs/vue/issues/8785
+        // It only happens when trans-up-move has a transition, but it's too helpful to disable
+        // So instead, call this manually after transition finishes
+        for (const element of this.$el.querySelectorAll('.trans-up-enter-to')){
+            element.classList.remove('trans-up-enter-to')
+        }
     }
 
     get_existing_images(){
