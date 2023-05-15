@@ -6,6 +6,7 @@ import {OAuth} from '../database/oauths'
 import {oauth_request} from './oauth'
 import {partition} from '../utils/strings'
 import {MustInterpret, MustReauthenticate, MustWait} from '../utils/exceptions'
+import {Contact} from '@/services/database/contacts'
 
 
 // Functions which sync contacts in ways specific to the issuer
@@ -165,6 +166,7 @@ export async function contacts_remove(task:Task):Promise<void>{
 
 export async function contacts_create(task:Task):Promise<void>{
     // Task for creating a contact
+    // NOTE Currently not used as using taskless version instead
 
     // Extract args from task object and get oauth record
     const [oauth_id, contact_name, contact_address] = task.params as [string, string, string]
@@ -181,16 +183,7 @@ export async function contacts_create(task:Task):Promise<void>{
     task.label = `Creating contact for "${contact_name}"`
     task.fix_oauth = oauth_id
 
-    // Call handler specific to the oauth's issuer
-    const service_id = await HANDLERS[oauth.issuer]!.create(oauth, contact_name, contact_address)
-
-    // If all went well, create contact in own database
-    await self.app_db.contacts.create({
-        name: contact_name,
-        address: contact_address,
-        service_account: oauth.service_account,
-        service_id,
-    })
+    await taskless_contacts_create(oauth, contact_name, contact_address)
 }
 
 
@@ -201,6 +194,23 @@ export async function taskless_contact_addresses(oauth:OAuth, service_id:string)
     // Get all the email addresses currently saved in a contact
     // NOTE Services (like Google) may allow duplicate items, so remove them
     return uniq(await HANDLERS[oauth.issuer].get_addresses(oauth, service_id))
+}
+
+
+export async function taskless_contacts_create(oauth:OAuth, name:string, address:string)
+        :Promise<Contact>{
+    // Create a contact and return the db record for it
+
+    // Call handler specific to the oauth's issuer
+    const service_id = await HANDLERS[oauth.issuer]!.create(oauth, name, address)
+
+    // If all went well, create contact in own database
+    return self.app_db.contacts.create({
+        name,
+        address,
+        service_account: oauth.service_account,
+        service_id,
+    })
 }
 
 

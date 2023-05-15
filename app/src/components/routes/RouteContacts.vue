@@ -88,14 +88,16 @@ import {Component, Vue, Watch} from 'vue-property-decorator'
 import DialogGroupChoice from '../dialogs/DialogGroupChoice.vue'
 import DialogGroupName from '../dialogs/reuseable/DialogGroupName.vue'
 import DialogContactsImport from '@/components/dialogs/DialogContactsImport.vue'
+import DialogNewContact from '@/components/dialogs/reuseable/DialogNewContact.vue'
 import RouteContactsItem from './assets/RouteContactsItem.vue'
 import RouteContactsGroup from './assets/RouteContactsGroup.vue'
 import {remove_item, remove_match, remove_matches, sort} from '@/services/utils/arrays'
 import {download_file} from '@/services/utils/misc'
 import {sleep} from '@/services/utils/async'
 import {Group} from '@/services/database/groups'
+import {OAuth} from '@/services/database/oauths'
 import {Contact} from '@/services/database/contacts'
-import {Task} from '@/services/tasks/tasks'
+import {Task, task_manager} from '@/services/tasks/tasks'
 
 
 interface ContactItem {
@@ -113,7 +115,7 @@ export default class extends Vue {
 
     contacts:ContactItem[] = []
     groups:Group[] = []
-    accounts:{id:string, display:string, groups:Group[], sync:()=>Promise<Task>}[] = []
+    oauths:OAuth[] = []
 
     filter_group_id = '-'  // Special value for null as empty values don't get highlighted
     search = ''
@@ -209,11 +211,29 @@ export default class extends Vue {
         return this.contacts_selected.filter(item => !item.contact.service_account)
     }
 
+
     // Lists of groups
 
     get groups_internal():Group[]{
         return this.groups.filter(group => !group.service_account)
     }
+
+
+    // List of accounts
+
+    get accounts(){
+        // Turn oauths into "accounts" and add the groups that belong to them
+        return this.oauths.map(oauth => {
+            return {
+                id: oauth.service_account,
+                display: oauth.display,
+                groups: this.groups.filter(
+                    group => group.service_account === oauth.service_account),
+                sync: () => this.$tm.start_contacts_sync(oauth.id),
+            }
+        })
+    }
+
 
     // Other getters
 
@@ -268,6 +288,16 @@ export default class extends Vue {
             return "Clear search"
         } else if (this.filter_group){
             return "New contact"
+        }
+        return null
+    }
+
+    get default_contacts_oauth(){
+        // Get the oauth record for default contacts account
+        for (const oauth of this.oauths){
+            if (oauth.service_account === this.$store.state.default_contacts){
+                return oauth
+            }
         }
         return null
     }
@@ -340,18 +370,9 @@ export default class extends Vue {
             }
         })
 
-        // Expose groups as is
+        // Expose groups and oauths as is
         this.groups = groups
-
-        // Turn oauths into "accounts" and add the groups that belong to them
-        this.accounts = oauths.map(oauth => {
-            return {
-                id: oauth.service_account,
-                display: oauth.display,
-                groups: groups.filter(group => group.service_account === oauth.service_account),
-                sync: () => this.$tm.start_contacts_sync(oauth.id),
-            }
-        })
+        this.oauths = oauths
     }
 
     async load_reads(){
