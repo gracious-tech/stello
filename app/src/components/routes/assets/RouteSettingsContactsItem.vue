@@ -45,7 +45,7 @@ export default class extends Vue {
                 confirm: "Remove contacts",
                 confirm_danger: true,
             },
-        })
+        }) as true|undefined
         if (confirmed){
             // Remove all related contacts and groups
             await Promise.all([
@@ -58,17 +58,24 @@ export default class extends Vue {
                         groups.map(g => self.app_db.groups.remove(g.id)),
                     )),
             ])
+
             // Now safe to disable the oauth and revoke if needed
             this.oauth.contacts_sync = false
             await self.app_db.oauths.set(this.oauth)
-            oauth_revoke_if_obsolete(this.oauth)
+            void oauth_revoke_if_obsolete(this.oauth)
+
+            // Revert to Stello if this was the default contacts account
+            if (this.$store.state.default_contacts === this.oauth.service_account){
+                this.$store.commit('dict_set', ['default_contacts', null])
+            }
+
             this.$emit('removed', this.oauth.id)
         }
     }
 
     sync(){
         // Do a new sync now
-        this.$tm.start_contacts_sync(this.oauth.id)
+        void this.$tm.start_contacts_sync(this.oauth.id)
     }
 
 }

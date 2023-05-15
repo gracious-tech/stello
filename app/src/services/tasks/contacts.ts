@@ -47,6 +47,9 @@ export async function contacts_oauth_setup(task:Task):Promise<void>{
     oauth.contacts_sync = true
     await self.app_db.oauths.set(oauth)
 
+    // Default to creating contacts in the account
+    self.app_store.commit('dict_set', ['default_contacts', oauth.service_account])
+
     // Turn this task into a sync
     await task.evolve(contacts_sync)
 }
