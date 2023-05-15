@@ -94,10 +94,12 @@ import RouteContactsGroup from './assets/RouteContactsGroup.vue'
 import {remove_item, remove_match, remove_matches, sort} from '@/services/utils/arrays'
 import {download_file} from '@/services/utils/misc'
 import {sleep} from '@/services/utils/async'
+import {MustReauthenticate, MustReconnect} from '@/services/utils/exceptions'
 import {Group} from '@/services/database/groups'
 import {OAuth} from '@/services/database/oauths'
 import {Contact} from '@/services/database/contacts'
 import {Task, task_manager} from '@/services/tasks/tasks'
+import {taskless_contacts_create} from '@/services/tasks/contacts'
 
 
 interface ContactItem {
@@ -447,12 +449,59 @@ export default class extends Vue {
 
     async new_contact():Promise<void>{
         // Create a new contact and navigate to it
-        const contact = await self.app_db.contacts.create()
-        if (this.filter_group && !this.filter_group.service_id){
-            // Auto-add contact to currently selected group (but NOT a service account group)
-            this.filter_group.contacts.push(contact.id)
-            await self.app_db.groups.set(this.filter_group)
+
+        let contact:Contact
+        if (!this.default_contacts_oauth){
+            // Create a regular Stello contact
+            contact = await self.app_db.contacts.create()
+        } else {
+
+            // Prompt the user for a name and address as can't create synced contact without them
+            const input = await this.$store.dispatch('show_dialog', {
+                component: DialogNewContact,
+                props: {oauth: this.default_contacts_oauth},
+            }) as {name:string, address:string}|undefined
+            if (!input){
+                return  // Dialog cancelled
+            }
+
+            // Wait for the contact to be created so can navigate to it
+            void this.$store.dispatch('show_waiting', "Creating contact...")
+            try {
+                contact = await taskless_contacts_create(
+                    this.default_contacts_oauth, input.name, input.address)
+            } catch (error){
+                // Failed to create for some reason
+                if (error instanceof MustReconnect){
+                    void this.$store.dispatch('show_snackbar', "Could not connect")
+                } else if (error instanceof MustReauthenticate){
+                    void this.$store.dispatch('show_snackbar', "Cannot create contact until resync")
+                } else {
+                    self.app_report_error(error)
+                    void this.$store.dispatch('show_snackbar', "Error: Unable to create contact")
+                }
+                return  // Cancel creation
+            } finally {
+                void this.$store.dispatch('close_dialog')
+            }
         }
+
+        if (this.filter_group){
+            // Auto-add contact to currently selected group if possible
+            if (!this.filter_group.service_account){
+                // Any contact can be added to a local Stello group
+                this.filter_group.contacts.push(contact.id)
+                await self.app_db.groups.set(this.filter_group)
+            } else if (this.filter_group.service_account
+                    === this.default_contacts_oauth?.service_account){
+                // Can only add to service group if contact is in that account
+                // NOTE Don't wait to finish, RouteContact will show it when it's done
+                void task_manager.start_contacts_group_fill(this.default_contacts_oauth.id,
+                    this.filter_group.id, [contact.id])
+            }
+        }
+
+        // Navigate to the new contact
         void this.$router.push({name: 'contact', params: {contact_id: contact.id}})
     }
 

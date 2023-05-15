@@ -18,6 +18,7 @@ interface IssuerHandlers {
     remove:typeof contacts_remove_google,
     create:typeof contacts_create_google,
     get_addresses:typeof contacts_get_addresses_google,
+    group_fill:typeof contacts_group_fill_google,
 }
 const HANDLERS:Record<string, IssuerHandlers> = {
     google: {
@@ -28,6 +29,7 @@ const HANDLERS:Record<string, IssuerHandlers> = {
         remove: contacts_remove_google,
         create: contacts_create_google,
         get_addresses: contacts_get_addresses_google,
+        group_fill: contacts_group_fill_google,
     },
 }
 
@@ -184,6 +186,46 @@ export async function contacts_create(task:Task):Promise<void>{
     task.fix_oauth = oauth_id
 
     await taskless_contacts_create(oauth, contact_name, contact_address)
+}
+
+
+export async function contacts_group_fill(task:Task):Promise<void>{
+    // Task for filling a group with contacts
+
+    // Extract args from task object and get oauth record
+    const [oauth_id, group_id] = task.params as [string, string]
+    const [contact_ids] = task.options as [string[]]
+    const oauth = await self.app_db.oauths.get(oauth_id)
+    if (!oauth){
+        throw task.abort("No longer have access to contacts account")
+    }
+
+    // Get record for the group
+    let group = await self.app_db.groups.get(group_id)
+    if (!group){
+        throw task.abort("Group no longer exists")
+    }
+
+    // Configure task object
+    task.label = `Adding contacts to group "${group.display}"`
+    task.fix_oauth = oauth_id
+
+    // Get records for the contacts
+    const contacts = (await Promise.all(contact_ids.map(c => self.app_db.contacts.get(c))))
+        .filter(c => c) as Contact[]
+
+    // Call handler specific to the oauth's issuer
+    await HANDLERS[oauth.issuer].group_fill(
+        oauth, group.service_id!, contacts.map(c => c.service_id!))
+
+    // If all went well, apply to own db
+    group = (await self.app_db.groups.get(group_id))!  // Get fresh copy
+    for (const contact of contacts){
+        if (!group.contacts.includes(contact.id)){
+            group.contacts.push(contact.id)
+        }
+    }
+    await self.app_db.groups.set(group)
 }
 
 
@@ -421,9 +463,8 @@ async function contacts_sync_google_groups(task:Task, oauth:OAuth,
         pageSize: '1000',  // Highest possible and highly unlikely to get anywhere close
     })) as GoogleGroupsListResp
 
-    // Filter out system groups (starred/banned/etc) and empty groups
-    const groups = list_resp.contactGroups.filter(
-        g => g.groupType === 'USER_CONTACT_GROUP' && g.memberCount)  // memberCount excluded if 0
+    // Filter out system groups (starred/banned/etc)
+    const groups = list_resp.contactGroups.filter(g => g.groupType === 'USER_CONTACT_GROUP')
 
     // Organise groups into batches depending on how many members (i.e. how large request will be)
     const batches:GoogleGroup[][] = [[]]
@@ -471,16 +512,11 @@ async function contacts_sync_google_groups(task:Task, oauth:OAuth,
             // Extract relevant fields
             const service_id = partition(batch_sub_resp.contactGroup.resourceName, '/')[1]
             const name = batch_sub_resp.contactGroup.name || ''
-            const members = batch_sub_resp.contactGroup.memberResourceNames.map(
+            const members = (batch_sub_resp.contactGroup.memberResourceNames ?? []).map(
                 n => partition(n, '/')[1])
 
             // Convert array of service's contact ids to Stello ids (and filter out dud members)
             const contacts = members.map(sid => confirmed[sid]).filter(id => id)
-
-            // Ignore (and effectively delete) group if no valid contacts (e.g. none with emails)
-            if (!contacts.length){
-                continue
-            }
 
             // Either update existing or add new group
             if (service_id in existing_by_id){
@@ -608,4 +644,13 @@ async function contacts_get_addresses_google(oauth:OAuth, service_id:string):Pro
     const person = await google_request(
         oauth, `people/${service_id}`, {personFields: 'emailAddresses'}) as GooglePerson
     return person.emailAddresses?.map(i => i.value) ?? []
+}
+
+
+async function contacts_group_fill_google(oauth:OAuth, group:string, contacts:string[])
+        :Promise<void>{
+    // Add contacts to a group
+    await google_request(oauth, `contactGroups/${group}/members:modify`, undefined, 'POST', {
+        resourceNamesToAdd: contacts.map(p => `people/${p}`),
+    })
 }
