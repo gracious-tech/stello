@@ -1,7 +1,7 @@
 
 <template lang='pug'>
 
-v-card.card
+v-card.card(class='mb-4')
     v-card-title {{ task.label }}
     v-card-subtitle(class='app-fg-error-relative') {{ reason }}
     v-card-text(class='text-body-1')
