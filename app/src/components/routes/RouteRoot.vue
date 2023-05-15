@@ -72,7 +72,7 @@ export default class extends Vue {
         {
             title: "Subscribe forms",
             desc: "Create a form people can fill in to subscribe (sending account setting)",
-        }
+        },
     ]
     todo = [
     ]
