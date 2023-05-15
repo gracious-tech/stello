@@ -13,7 +13,7 @@ div
         img.decor(src='@/assets/decor/welcome.svg')
 
         v-card(class='pa-4')
-            v-card-title(class='justify-center') New &amp; upcoming features
+            v-card-title(class='justify-center') New features
             v-list
                 v-subheader Recently added
                 v-list-item(v-for='feature of added' :key='feature.title')
@@ -22,14 +22,15 @@ div
                         v-list-item-subtitle {{ feature.desc }}
                     v-list-item-icon
                         app-svg(name='icon_check_circle' class='accent--text')
-                v-divider
-                v-subheader Gathering funding
-                v-list-item(v-for='feature of todo' :key='feature.title')
-                    v-list-item-content
-                        v-list-item-title {{ feature.title }}
-                        v-list-item-subtitle {{ feature.desc }}
-                    v-list-item-icon
-                        app-svg(name='icon_pending' color='#fa5788')
+                template(v-if='todo.length')
+                    v-divider
+                    v-subheader Gathering funding
+                    v-list-item(v-for='feature of todo' :key='feature.title')
+                        v-list-item-content
+                            v-list-item-title {{ feature.title }}
+                            v-list-item-subtitle {{ feature.desc }}
+                        v-list-item-icon
+                            app-svg(name='icon_pending' color='#fa5788')
             v-divider
             div(class='text-center my-6')
                 p(class='text-body-2')
@@ -64,32 +65,16 @@ export default class extends Vue {
             title: "View sent messages",
             desc: "You no longer need to copy a sent message to view it",
         },
+        {
+            title: "Customise reactions",
+            desc: "Choose which reactions readers can use (sending account setting)",
+        },
+        {
+            title: "Subscribe forms",
+            desc: "Create a form people can fill in to subscribe (sending account setting)",
+        }
     ]
     todo = [
-        {
-            title: "Reduce issues with sending limits",
-            desc: "Additional techniques to reduce the chance of hitting a sending limit",
-        },
-        {
-            title: "Sync with another device",
-            desc: "Access Stello from a phone or another computer",
-        },
-        {
-            title: "Encrypted videos",
-            desc: "Add videos directly rather than using third-party sites like Youtube",
-        },
-        {
-            title: "Add polls to messages",
-            desc: "Get your readers to vote and only you see the results",
-        },
-        {
-            title: "Edit message after sending",
-            desc: "Add or fix any part of your message without sending additional emails",
-        },
-        {
-            title: "Dashboard insights",
-            desc: "A proper dashboard that gives you the info you need when Stello opens",
-        },
     ]
 
     get version(){
