@@ -102,6 +102,7 @@ v-card
                     Your server name or port may be incorrect
                     (#[app-a(:href='smtp_settings_search') search for correct settings])
                 li Your Internet connection may be very slow
+                li There may be a problem with your email provider's server
         p(class='text-center mt-3')
             app-btn(:href='error_support_url' small) Contact Support
 
