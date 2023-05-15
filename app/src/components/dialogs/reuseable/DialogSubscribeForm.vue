@@ -82,7 +82,10 @@ export default class extends Vue {
 
     get groups_items(){
         // Return possible groups in format that v-select understands
-        return this.groups.map(group => {
+        return this.groups.filter(group => {
+            // Can select if a Stello group or if same account
+            return !group.service_account || this.service_account === group.service_account
+        }).map(group => {
             return {
                 value: group.id,
                 text: group.display,

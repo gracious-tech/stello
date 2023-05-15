@@ -4,7 +4,8 @@
 v-card(v-if='requests.length')
     v-card-title Requests to subscribe
     v-list
-        RequestsSubscribeItem(v-for='request of requests' :key='request.id' :request='request')
+        RequestsSubscribeItem(v-for='request of requests' :key='request.id' :request='request'
+            @removed='removed')
 
 </template>
 
@@ -16,6 +17,7 @@ import {Component, Vue, Watch} from 'vue-property-decorator'
 import RequestsSubscribeItem from './assets/RequestsSubscribeItem.vue'
 import {Task} from '@/services/tasks/tasks'
 import {RecordRequestSubscribe} from '@/services/database/types'
+import {remove_item} from '@/services/utils/arrays'
 
 
 @Component({
@@ -32,6 +34,10 @@ export default class extends Vue {
     async load(){
         // Load requests
         this.requests = await self.app_db._conn.getAll('request_subscribe')
+    }
+
+    removed(request:RecordRequestSubscribe){
+        remove_item(this.requests, request)
     }
 
     @Watch('$tm.data.finished') watch_finished(task:Task){

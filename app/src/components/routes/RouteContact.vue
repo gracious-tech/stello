@@ -21,7 +21,8 @@ div
                 app-btn(:href='service_url' small) Open in {{oauth.display_issuer}} Contacts
 
         div.names
-            app-text(v-model='name' :readonly='synced' label="Full name" @click='synced_change_name')
+            app-text(v-model='name' :readonly='synced' label="Full name"
+                @click='synced_change_name')
             app-text(v-model='name_hello' :placeholder='contact.name_hello_result' label="Greet as"
                 :hint='multiple ? "" : "Defaults to excluding last name"' persistent-placeholder)
 
@@ -71,11 +72,11 @@ export default class extends Vue {
 
     @Prop() declare readonly contact_id:string
 
-    contact:Contact = null
-    possible_groups:Group[] = null
+    contact:Contact = null as unknown as Contact  // Won't show component without this
+    possible_groups:Group[] = []
     profiles:Profile[] = []
     unsubscribes:Unsubscribe[] = []
-    oauth:OAuth = null
+    oauth:OAuth|null = null
     changed = false
     probably_new = true  // Doesn't change after first load
 
@@ -94,7 +95,7 @@ export default class extends Vue {
     }
 
     beforeDestroy(){
-        this.consider_auto_delete()
+        void this.consider_auto_delete()
     }
 
     get synced(){
@@ -104,7 +105,7 @@ export default class extends Vue {
 
     get issuer(){
         // The code for the issuer (if synced)
-        return this.synced ? partition(this.contact.service_account, ':')[0] : null
+        return this.synced ? partition(this.contact.service_account!, ':')[0] : null
     }
 
     get service_account_display(){
@@ -200,7 +201,7 @@ export default class extends Vue {
                     remove_item(group.contacts, this.contact.id)
                 }
                 // Save changes
-                self.app_db.groups.set(group)
+                void self.app_db.groups.set(group)
             }
         }
     }
@@ -271,8 +272,8 @@ export default class extends Vue {
             sort(groups, 'name')
             this.possible_groups = groups
             if (contact?.service_account){
-                this.oauth = await self.app_db.oauths.get_by_issuer_id(
-                    ...partition(contact.service_account, ':'))
+                this.oauth = await self.app_db.oauths.get_by_service_account(
+                    contact.service_account) ?? null
             } else {
                 this.oauth = null
             }
@@ -292,7 +293,7 @@ export default class extends Vue {
 
     save():void{
         // Save changed to contact
-        self.app_db.contacts.set(this.contact)
+        void self.app_db.contacts.set(this.contact)
 
         // Briefly toggle changed property to trigger animation
         this.changed = true
@@ -359,7 +360,7 @@ export default class extends Vue {
     async synced_change_email(event:Event){
         // Open dialog to change email and sync with service
         if (this.synced){
-            this.$store.dispatch('show_dialog', {
+            void this.$store.dispatch('show_dialog', {
                 component: DialogContactEmail,
                 props: {
                     contact: this.contact,
