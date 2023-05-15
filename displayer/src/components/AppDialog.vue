@@ -1,7 +1,7 @@
 
 <template lang='pug'>
 
-div.overlay(v-if='dialog' @click.self='close' class='ui')
+div.overlay(v-if='dialog' @click.self='overlay_close' class='ui')
     div.dialog
         component(:is='dialog.component' v-bind='dialog.props')
 
@@ -18,14 +18,18 @@ import {store} from '../services/store'
 export default defineComponent({
     setup(){
         const dialog = computed(() => store.state.dialog)
-        const close = () => {store.dialog_close()}
+        const overlay_close = () => {
+            if (!dialog.value?.persistent){
+                store.dialog_close()
+            }
+        }
         watch(dialog, value => {
             // Prevent page scroll while dialog is open
             // NOTE Applying on <html> doesn't work for Safari
             self.document.body.style.overflowY = value ? 'hidden' : 'auto'
         })
 
-        return {dialog, close}
+        return {dialog, overlay_close}
     },
 })
 
@@ -60,6 +64,15 @@ export default defineComponent({
         max-width: 600px
         width: 80%
         max-height: 80%
+        overflow: hidden auto
+        box-sizing: border-box
+
+        @media (max-width: 600px)
+            max-width: none
+            max-height: none
+            width: 100%
+            flex-grow: 1
+            border-radius: 0
 
         ::v-deep(.actions)
             align-self: flex-end
@@ -70,6 +83,9 @@ export default defineComponent({
                 margin-left: 12px
                 min-width: 90px
                 justify-content: center
+
+                &:first-child
+                    margin-left: 0
 
                 &.error
                     background-color: rgba(#f00, 0.3) !important

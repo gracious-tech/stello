@@ -7,8 +7,8 @@ export function partition(original:string, separator:string):[string, string]{
 }
 
 
-export function replace_without_overlap(template:string, replacements:Record<string, string>,
-        ):string{
+export function replace_without_overlap(template:string, replacements:Record<string, string>)
+        :string{
     // Replace a series of values without replacing any values inserted from a previous replacement
     // e.g. if "SUBJECT" is replaced with "CONTACT ME", it will not match another key like "CONTACT"
 
@@ -30,4 +30,11 @@ export function escape_for_html(input:string):string{
     // Escape given text for use within HTML
     // NOTE Option element's constructor's first arg is converted to a text node
     return new Option(input).innerHTML
+}
+
+
+export function str_or_null(input:unknown):string|null{
+    // Convert any value to a string but return null for false-like values (including '')
+    // WARN String(null) === 'null', so check before conversion
+    return input ? String(input) : null
 }

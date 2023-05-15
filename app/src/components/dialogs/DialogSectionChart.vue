@@ -18,7 +18,7 @@ v-card
             app-text(v-model='row.label' placeholder="Label" class='mr-4' dense outlined)
             app-text.number(v-model='row.number' placeholder="Num / % / $" dense outlined)
             app-menu-more.hue(:color='row.color' icon='palette')
-                app-list-item.hue(v-for='hue of hues' @click='row.hue = hue'
+                app-list-item.hue(v-for='hue of hues' :key='hue' @click='row.hue = hue'
                     :color='`hsl(${hue}, 50%, 50%)`' :input-value='true')
             app-btn(@click='row.up' :disabled='rows.length < 2' icon='arrow_upward')
             app-btn(@click='row.remove' icon='remove' color='error')

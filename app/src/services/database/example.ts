@@ -56,7 +56,7 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
             })
         }
         // Sometimes request to change address
-        if (Math.random() < 0.1 && contact.address){
+        if (Math.random() < 0.08 && contact.address){
             await db._conn.put('request_address', {
                 contact: contact.id,
                 new_address: contact.address + '.new',
@@ -70,7 +70,7 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
     }))
 
     // Create groups
-    await db.groups.create('Friends', [...percent(contacts, 0.2)].map(c => c.id))
+    const group1 = await db.groups.create('Friends', [...percent(contacts, 0.2)].map(c => c.id))
     await db.groups.create('Subscribers', [...percent(contacts, 0.5)].map(c => c.id))
 
     // Create a text section
@@ -177,7 +177,7 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
         const msg = await db.draft_to_message(draft_copy.id)
 
         // Sometimes create resend requests
-        if (Math.random() < 0.1){
+        if (Math.random() < 0.08){
             await db._conn.put('request_resend', {
                 contact: draft.recipients.include_contacts[0]!,
                 message: msg.id,
@@ -234,4 +234,30 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
             }
         }
     }
+
+    // Create subscribe form
+    await db._conn.put('subscribe_forms', {
+        id: 'form',
+        text: '<h2>Subscribe to newsletter</h2>\n<p>To get our latest news.</p>',
+        accept_message: true,
+        groups: [group1.id],
+        service_account: null,
+        profile: profile.id,
+    })
+
+    // Create subscribe requests
+    await Promise.all([...range(3 * multiplier)].map(async i => {
+        await db._conn.put('request_subscribe', {
+            id: `request${i}`,
+            name: `${sample(first_names)!} ${sample(last_names)!}`.trim(),
+            address: `blackhole+stello-r${i}@gracious.tech`,
+            message: Math.random() < 0.5 ? "I'd like to also receive weekly updates" : "",
+            profile: profile.id,
+            groups: [group1.id],
+            service_account: null,
+            sent: new Date(),
+            ip: null,
+            user_agent: null,
+        })
+    }))
 }

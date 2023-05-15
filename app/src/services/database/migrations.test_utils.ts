@@ -2,7 +2,6 @@
 
 import {expect} from '@playwright/test'
 import {openDB, StoreNames} from 'idb/with-async-ittr-cjs'
-import {cloneDeep} from 'lodash'
 
 import {NativeBrowser} from '../../services/native/native_browser'
 import {to_12_from_0, _to1_creates} from './migrations'
@@ -128,7 +127,21 @@ export const STORES_V12 = {
 }
 
 
-export const STORES_LATEST = cloneDeep(STORES_V12)
+export const STORES_V19 = {
+    subscribe_forms: {
+        key_path: 'id',
+        indexes: {
+            by_profile: 'profile',
+        },
+    },
+    request_subscribe: {
+        key_path: 'id',
+        indexes: {},
+    },
+}
+
+
+export const STORES_LATEST = {...STORES_V12, ...STORES_V19}
 
 
 // UTILS

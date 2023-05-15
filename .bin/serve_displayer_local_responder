@@ -1,0 +1,10 @@
+#!/bin/bash
+# Serve displayer in dev mode and configure it to use locally-served responder
+set -e
+cd "$(dirname "$(dirname "$0")")"
+
+
+PORT=8002
+cd displayer
+
+VITE_LOCAL_RESPONDER=yes ./node_modules/.bin/vite --port $PORT

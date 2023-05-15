@@ -6,7 +6,10 @@ import {encrypt_asym} from './utils/crypt'
 import {report_http_failure, request} from './utils/http'
 
 
-async function respond(type:string, data:any):Promise<boolean>{
+type PartialResponseData = {encrypted: Record<string, unknown>, [k:string]:unknown}
+
+
+async function respond(type:string, data:PartialResponseData):Promise<boolean>{
     // Send a response and return success boolean
     // SECURITY Only success boolean is returned, for error info rely on lambda's own reporting
 
@@ -16,22 +19,24 @@ async function respond(type:string, data:any):Promise<boolean>{
     }
 
     // Attach config secret so responder can decrypt user's responder config
-    data.config_secret = store.state.dict.config_secret
+    data['config_secret'] = store.state.dict.config_secret
 
     // Add user agent to encrypted object
     // SECURITY This can always be spoofed so no advantage to doing serverside over clientside
-    data.encrypted.user_agent = self.navigator.userAgent
+    data.encrypted['user_agent'] = self.navigator.userAgent
 
     // Encrypt data's encrypted field
-    const binary_data = string_to_utf8(JSON.stringify(data.encrypted))
-    data.encrypted = await encrypt_asym(binary_data, displayer_config.resp_key_public!)
+    const retyped_data = data as Record<string, unknown>
+    const encrypted_utf8 = string_to_utf8(JSON.stringify(data.encrypted))
+    retyped_data['encrypted'] =
+        await encrypt_asym(encrypted_utf8, displayer_config.resp_key_public!)
 
     // Submit data
     try {
         await request(`${displayer_config.responder}${type}`, {
             mode: 'cors',
             method: 'POST',
-            json: data,
+            json: retyped_data,
         }, undefined, 'throw')
     } catch (error){
         report_http_failure(error)
@@ -57,7 +62,7 @@ export function respond_read(resp_token:string, copy_id:string,
 export function respond_reply(resp_token:string, text:string, section_id:string|null,
         subsection_id:string|null):Promise<boolean>{
     // Send text response
-    const data:any = {
+    const data:PartialResponseData = {
         encrypted: {
             resp_token,
             section_id,
@@ -67,7 +72,7 @@ export function respond_reply(resp_token:string, text:string, section_id:string|
 
     // Store content inside/outside encryption depending on notify setting
     const container = displayer_config.notify_include_contents ? data : data.encrypted
-    container.content = text
+    container['content'] = text
 
     return respond('reply', data)
 }
@@ -76,7 +81,7 @@ export function respond_reply(resp_token:string, text:string, section_id:string|
 export function respond_reaction(resp_token:string, reaction:string|null, section_id:string,
         subsection_id:string|null):Promise<boolean>{
     // Send reaction response
-    const data:any = {
+    const data:PartialResponseData = {
         encrypted: {
             resp_token,
             section_id,
@@ -86,7 +91,7 @@ export function respond_reaction(resp_token:string, reaction:string|null, sectio
 
     // Store content inside/outside encryption depending on notify setting
     const container = displayer_config.notify_include_contents ? data : data.encrypted
-    container.content = reaction
+    container['content'] = reaction
 
     return respond('reaction', data)
 }
@@ -120,7 +125,7 @@ export function respond_address(resp_token:string, new_address:string,
 
 export function respond_resend(resp_token:string, reason:string):Promise<boolean>{
     // Send "resend" response
-    const data:any = {
+    const data:PartialResponseData = {
         encrypted: {
             resp_token,
         },
@@ -128,7 +133,25 @@ export function respond_resend(resp_token:string, reason:string):Promise<boolean
 
     // Store content inside/outside encryption depending on notify setting
     const container = displayer_config.notify_include_contents ? data : data.encrypted
-    container.content = reason
+    container['content'] = reason
 
     return respond('resend', data)
+}
+
+
+export function respond_subscribe(form:string, address:string, name:string, content:string)
+        :Promise<boolean>{
+    // Send "subscribe" response
+    const data:PartialResponseData = {
+        form,
+        encrypted: {},
+    }
+
+    // Store data inside/outside encryption depending on notify setting
+    const container = displayer_config.notify_include_contents ? data : data.encrypted
+    container['address'] = address
+    container['name'] = name
+    container['content'] = content  // Use 'content' to match replies/notification logic
+
+    return respond('subscribe', data)
 }

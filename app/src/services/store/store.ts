@@ -52,16 +52,21 @@ async function get_store_options(db:Database):Promise<StoreOptions<AppStoreState
 
         tmp_set(state, [key, value]:[string, unknown]):void{
             // Set a value in the store's tmp object (not saved to db)
+            // @ts-ignore No way to know type as depends on key
             state.tmp[key] = value
         },
 
         tmp_new(state, [container, key, value]:[string, string, unknown]):void{
             // Add a new property (or set existing) on a containing object
+            // @ts-ignore No way to know type as depends on key
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             Vue.set(state.tmp[container], key, value)
         },
 
         tmp_add(state, [key, item]:[string, unknown]):void{
             // Append an item to an array in tmp object
+            // @ts-ignore No way to know type as depends on key
+            // eslint-disable-next-line
             state.tmp[key].push(item)
         },
     },
@@ -78,7 +83,7 @@ async function get_store_options(db:Database):Promise<StoreOptions<AppStoreState
 
             // If a dialog is already open, try close it
             if (state.tmp.dialog){
-                // If existing dialog is persistant and requested one isn't, assume more important
+                // If existing dialog is persistent and requested one isn't, assume more important
                 if (state.tmp.dialog.persistent && !dialog.persistent){
                     return  // Ignore request to open dialog
                 } else {

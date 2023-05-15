@@ -1,19 +1,18 @@
 
+import {reactive} from 'vue'
+
 import {request} from './utils/http'
 import {partition} from './utils/strings'
 import {url64_to_buffer, utf8_to_string} from './utils/coding'
 import {import_key_asym, import_key_sym, decrypt_sym} from './utils/crypt'
 import {ThemeStyle} from '@/shared/shared_types'
-
-
-export const MSGS_URL =
-    import.meta.env.DEV ? '/dev/' : (import.meta.env.VITE_HOSTED_MSGS_URL ?? '/')
-export const USER =
-    import.meta.env.VITE_HOSTED_MSGS_URL ? self.location.hostname.split('.')[0]! : '_user'
+import {MSGS_URL, USER} from './env'
 
 
 class DisplayerConfigAccess {
     // Displayer config represented by a class for synchronous access with defaults
+
+    error:'network'|'decrypt'|'inactive'|null = null
 
     // If config not available, all responses disabled
     version = 'unknown'
@@ -31,8 +30,9 @@ class DisplayerConfigAccess {
     theme_style:ThemeStyle = 'modern'  // NOTE Didn't exist until after v1.0.11
     theme_color = {h: 210, s: 0.75, l: 0.75}  // NOTE Didn't exist until after v1.0.11
 
-    async _load(config_secret_url64:string):Promise<void>{
+    async _load(config_secret_url64:string):Promise<boolean>{
         // Download and apply config
+        this.error = null
 
         // Download config
         let encrypted:ArrayBuffer|null
@@ -47,10 +47,13 @@ class DisplayerConfigAccess {
                 this.allow_reactions = false
                 this.allow_delete = false
                 this.allow_resend_requests = false
-                return
+
+                this.error = 'inactive'
+                return false
             }
         } catch {
-            return  // Likely just network failure so ignore
+            this.error = 'network'
+            return false
         }
 
         // Decrypt config
@@ -60,7 +63,8 @@ class DisplayerConfigAccess {
             config = JSON.parse(utf8_to_string(
                 await decrypt_sym(encrypted, config_secret))) as Record<string, unknown>
         } catch {
-            return // Almost certainly a bad url, so no report as probably user error
+            this.error = 'decrypt'
+            return false  // Almost certainly a bad url, so no report as probably user error
         }
 
         // Apply config
@@ -82,22 +86,25 @@ class DisplayerConfigAccess {
             this.responder = `https://api.${parent_domain}/responder/`
         }
 
-        // Uncomment during dev to send requests to locally served responder
-        // this.responder = 'http://127.0.0.1:8004/responder/'
+        // Optionally override responder url during development to point to locally served one
+        if (import.meta.env.DEV && import.meta.env.VITE_LOCAL_RESPONDER){
+            this.responder = 'http://127.0.0.1:8004/responder/'
+        }
+
+        return true
     }
 
     async safe_load(config_secret_url64:string):Promise<boolean>{
         // Since can display message fine without displayer config, only report failure, don't show
         try {
-            await this._load(config_secret_url64)
+            return await this._load(config_secret_url64)
         } catch (error){
             self.app_report_error(error)
             return false
         }
-        return true
     }
 }
 
 
 // Export instance of config class so can import and use synchronously
-export const displayer_config = new DisplayerConfigAccess()
+export const displayer_config = reactive(new DisplayerConfigAccess())

@@ -14,8 +14,9 @@ div.root(:class='region_mode')
             app-btn(@click='start_region("crop")' icon='crop' data-tip="Crop")
             app-btn(@click='rotate' icon='rotate_right' data-tip="Rotate")
             app-menu-more(icon='auto_awesome' data-tip="Filter")
-                app-list-item(v-for='filter of filters' @click='change_filter(filter.value)'
-                    :disabled='active_filter === filter.value') {{ filter.label }}
+                app-list-item(v-for='filter of filters' :key='filter.label'
+                    @click='change_filter(filter.value)' :disabled='active_filter === filter.value')
+                    | {{ filter.label }}
             app-btn(@click='start_region("redact")' icon='face_retouching_off' data-tip="Redact")
             app-btn(v-if='original !== blob' @click='undo' icon='undo' color='error'
                 data-tip="Undo changes")

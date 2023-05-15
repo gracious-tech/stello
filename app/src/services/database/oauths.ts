@@ -1,7 +1,9 @@
 
+import {capitalize} from 'lodash'
+
 import {AppDatabaseConnection, RecordOAuth} from './types'
 import {generate_token} from '@/services/utils/crypt'
-import {capitalize} from 'lodash'
+import {partition} from '@/services/utils/strings'
 
 
 export class OAuth implements RecordOAuth {
@@ -62,6 +64,11 @@ export class DatabaseOAuths {
         // Get single oauth record by issuer id
         const oauth = await this._conn.getFromIndex('oauths', 'by_issuer_id', [issuer, issuer_id])
         return oauth && new OAuth(oauth)
+    }
+
+    async get_by_service_account(service_account:string):Promise<OAuth|undefined>{
+        // Get single oauth record by service_account (single string combo of issuer:issuer_id)
+        return this.get_by_issuer_id(...partition(service_account, ':'))
     }
 
     async set(oauth:RecordOAuth):Promise<void>{

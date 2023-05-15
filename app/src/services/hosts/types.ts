@@ -88,6 +88,9 @@ export declare class HostUser {
     // Upload config for the displayer
     upload_displayer_config(config:ArrayBuffer):Promise<void>
 
+    // Upload config for subscribe forms
+    upload_subscribe_config(config:string):Promise<void>
+
     // Upload config for responder function
     upload_responder_config(config:ArrayBuffer):Promise<void>
 

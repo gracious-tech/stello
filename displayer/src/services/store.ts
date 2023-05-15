@@ -3,9 +3,11 @@ import {reactive, readonly, DeepReadonly, Component, markRaw} from 'vue'
 
 // @ts-ignore For some reason TS imports below fine but says it can't when checking types
 import DialogChangeAddress from '../components/DialogChangeAddress.vue'
+import DialogSubscribe from '../components/DialogSubscribe.vue'
 import {database} from './database'
 import {MessageRecord} from './database_assets'
-import {displayer_config, MSGS_URL, USER} from './displayer_config'
+import {MSGS_URL, USER} from './env'
+import {displayer_config} from './displayer_config'
 import {decode_hash} from './hash'
 import {respond_subscription, respond_read} from './responses'
 import {remove_value} from './utils/arrays'
@@ -14,6 +16,7 @@ import {generate_hash, decrypt_sym, import_key_sym} from './utils/crypt'
 import {check_webp_support} from './webp'
 import {request, report_http_failure} from './utils/http'
 import {PublishedContentPage, PublishedCopy, PublishedSection} from '@/shared/shared_types'
+import {get_form_data} from '@/services/subscribe_forms'
 
 
 // TYPES
@@ -31,7 +34,7 @@ export interface StoreState {
     msg:MessageAccess|null
     webp_supported:boolean
     transition:'none'|'prev'|'next'
-    dialog:null|{component:Component, props:Record<string, unknown>}
+    dialog:null|{component:Component, props:Record<string, unknown>, persistent:boolean}
 }
 
 export interface MessageAccess {
@@ -128,15 +131,26 @@ export class DisplayerStore {
             self.location.hash = ''
         }
 
-        // Update displayer config (do for every hash in case changed)
-        if (this._state.dict.config_secret){
-            await displayer_config.safe_load(this._state.dict.config_secret)
-        } else if (hash?.config_secret_url64){
-            if (await displayer_config.safe_load(hash.config_secret_url64)){
-                // Config loaded successfully with the hash's config secret
-                this._state.dict.config_secret = hash.config_secret_url64
-                void database.dict_set('config_secret', hash.config_secret_url64)
+        // If a form id, try and decrypt the data
+        if (hash?.subscribe){
+            const subscribe_form = await get_form_data(hash.subscribe)
+            if (subscribe_form){
+                // Show dialog
+                this.dialog_open(DialogSubscribe, {form: subscribe_form}, true)
+                // Get the config secret from the form's data
+                hash.config_secret_url64 = subscribe_form.config_secret_url64
             }
+        }
+
+        // Update displayer config (do for every hash in case changed)
+        if (this._state.dict.config_secret
+                && await displayer_config.safe_load(this._state.dict.config_secret)){
+            // Decrypted config from secret stored from previous message
+        } else if (hash?.config_secret_url64
+                && await displayer_config.safe_load(hash.config_secret_url64)){
+            // Config loaded successfully with the hash's config secret
+            this._state.dict.config_secret = hash.config_secret_url64
+            void database.dict_set('config_secret', hash.config_secret_url64)
         }
 
         // Load msg if valid
@@ -157,12 +171,22 @@ export class DisplayerStore {
     async change_msg(id:string, secret_url64:string, title:string|null,
             published:Date|null):Promise<void>{
         // Change the current message and generate resp_token for it
+
+        // Generate resp_token
+        let resp_token = ''
+        try {
+            resp_token = buffer_to_url64(await generate_hash(url64_to_buffer(secret_url64), 0))
+        } catch {
+            // secret_url64 is probably not valid base64
+            // Do nothing and let error handling of secret_url64 deal with it in `get_msg_data()`
+        }
+
         this._state.msg = {
             id,
             secret_url64,
             title,
             published,
-            resp_token: buffer_to_url64(await generate_hash(url64_to_buffer(secret_url64), 0)),
+            resp_token,
             data: null,
             data_error: null,
             page: null,
@@ -293,10 +317,10 @@ export class DisplayerStore {
         this._state.transition = transition
     }
 
-    dialog_open(component:Component, props:Record<string, unknown>={}):void{
+    dialog_open(component:Component, props:Record<string, unknown>={}, persistent=false):void{
         // Open a dialog with the given contents
         // NOTE markRaw prevents making already-reactive component reactive
-        this._state.dialog = {component: markRaw(component), props}
+        this._state.dialog = {component: markRaw(component), props, persistent}
     }
 
     dialog_close():void{

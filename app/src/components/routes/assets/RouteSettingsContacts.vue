@@ -9,6 +9,9 @@ div(class='my-6')
         route-settings-contacts-item(v-for='oauth of oauths' :key='oauth.id' :oauth='oauth'
             @removed='removed')
 
+    app-select(v-if='oauths.length' v-model='default_contacts' :items='contacts_options' select
+        label="Create new contacts in" class='mt-4')
+
     p(class='text-center')
         app-btn(@click='import_contacts') Import Contacts
 
@@ -35,6 +38,20 @@ export default class extends Vue {
 
     created(){
         void this.load_oauths()
+    }
+
+    get contacts_options(){
+        return [
+            {value: null, text: "Stello"},
+            ...this.oauths.map(oauth => ({value: oauth.service_account, text: oauth.display})),
+        ]
+    }
+
+    get default_contacts(){
+        return this.$store.state.default_contacts
+    }
+    set default_contacts(value){
+        this.$store.commit('dict_set', ['default_contacts', value])
     }
 
     async load_oauths():Promise<void>{

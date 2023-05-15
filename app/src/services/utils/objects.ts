@@ -79,25 +79,3 @@ export function nested_objects_update(base:Record<string, unknown>, update:Recor
         }
     }
 }
-
-
-export function sorted_json(object:Record<string, any>):string{
-    // Return an idempotent JSON string by ensuring keys are sorted
-    // NOTE Does not support objects as values (i.e. nested within root object)
-
-    // Get sorted list of keys
-    const keys = Object.keys(object)
-    keys.sort()
-
-    // Get jsonified key:value items but without commas or outer braces
-    const parts = []
-    for (const key of keys){
-        const tmp_object:Record<string, any> = {}
-        tmp_object[key] = object[key]
-        const naked_kv = JSON.stringify(tmp_object).trim().slice(1, -1)
-        parts.push(naked_kv)
-    }
-
-    // Join parts to form valid json string
-    return '{' + parts.join(',') + '}'
-}

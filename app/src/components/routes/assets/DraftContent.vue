@@ -1,12 +1,14 @@
 
 <template lang='pug'>
 
-div.content
+//- Replacing div.content with transition-group to avoid an additional level of nesting
+//- Must then key draft-add-section and draft-guide but appears to be harmless
+transition-group(name='trans-up' tag='div' class='content')
 
     template(v-for='(row, row_i) of floatified_rows')
-        draft-add-section.add-before(v-if='row_i > 0 || !row.hero'
+        draft-add-section.add-before(v-if='row_i > 0 || !row.hero' :key='row.id + "add"'
             @add='add_section($event, row_i)')
-        div.srow(:class='{[row.display]: true, hero: row.hero}')
+        div.srow(:key='row.id + "srow"' :class='{[row.display]: true, hero: row.hero}')
             draft-movebar(:sections='sections' :row_i='row_i' @save='save_sections')
             div.sections
                 draft-section.section(v-for='section of row.sections' :key='section.id'
@@ -14,17 +16,17 @@ div.content
                     :first_hero='row_i === 0 && row.hero'
                     @modify='modify_section' @remove='remove_section')
 
-    draft-add-section.add-end(@add='add_section($event, sections.length)'
+    draft-add-section.add-end(key='add' @add='add_section($event, sections.length)'
         :visible='!sections.length')
 
-    draft-guide
+    draft-guide(key='guide')
 
 </template>
 
 
 <script lang='ts'>
 
-import {Component, Vue, Prop} from 'vue-property-decorator'
+import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import DraftGuide from './DraftGuide.vue'
 import DraftSection from './DraftSection.vue'
@@ -83,6 +85,22 @@ export default class extends Vue {
                     .filter(s => s) as [Section]|[Section, Section]
             }).filter(row => row.length),
         )
+    }
+
+    @Watch('floatified_rows') watch_floatified_rows(){
+        // Cleanup transition classes whenever rows change
+        setTimeout(() => {this.cleanup_transitions()}, 350)  // Transition finishes after 300
+        setTimeout(() => {this.cleanup_transitions()}, 2000)  // Backup, just in case
+    }
+
+    cleanup_transitions(){
+        // Something causes Vue to not remove trans-up-enter-to class when transition finishes
+        // See https://github.com/vuejs/vue/issues/8785
+        // It only happens when trans-up-move has a transition, but it's too helpful to disable
+        // So instead, call this manually after transition finishes
+        for (const element of this.$el.querySelectorAll('.trans-up-enter-to')){
+            element.classList.remove('trans-up-enter-to')
+        }
     }
 
     get_existing_images(){

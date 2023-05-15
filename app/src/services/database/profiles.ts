@@ -209,7 +209,9 @@ export class Profile implements RecordProfile {
     get configs_need_uploading(){
         // Return whether configs need uploading (and able to do so)
         return this.setup_complete && (
-            !this.host_state.displayer_config_uploaded || !this.host_state.responder_config_uploaded
+            !this.host_state.displayer_config_uploaded
+            || !this.host_state.subscribe_config_uploaded
+            || !this.host_state.responder_config_uploaded
         )
     }
 
@@ -265,6 +267,12 @@ export class Profile implements RecordProfile {
         throw new Error('impossible')
     }
 
+    get view_displayer():string{
+        // The url for the displayer
+        const path = this.host?.cloud === 'gracious' ? '/' : '/_'
+        return `https://${this.view_domain}${path}`
+    }
+
     async get_authed_smtp_settings(){
         // Get smtp_settings with password included
         return {
@@ -275,11 +283,9 @@ export class Profile implements RecordProfile {
 
     view_url(config_secret64:string, copy_id:string, secret:ArrayBuffer, action?:string){
         // Return URL for viewing the given copy
-        const domain = this.view_domain
-        const path = this.host?.cloud === 'gracious' ? '/' : '/_'
         const secret64 = buffer_to_url64(secret)
         action = action ? `,${action}` : ''
-        return `https://${domain}${path}#${config_secret64},${copy_id},${secret64}${action}`
+        return `${this.view_displayer}#${config_secret64},${copy_id},${secret64}${action}`
     }
 }
 
@@ -324,6 +330,7 @@ export class DatabaseProfiles {
                 shared_secret: await generate_key_sym(true, ['encrypt'], true),
                 resp_key: await generate_key_asym(),
                 displayer_config_uploaded: false,
+                subscribe_config_uploaded: false,
                 responder_config_uploaded: false,
             },
             email: '',
@@ -405,12 +412,15 @@ export class DatabaseProfiles {
     }
 
     async remove(id:string):Promise<void>{
-        // Remove the profile and remove it from drafts
+        // Remove the profile and remove related records
 
         // Start transaction and get stores
-        const transaction = this._conn.transaction(['profiles', 'drafts'], 'readwrite')
+        const transaction = this._conn.transaction(
+            ['profiles', 'drafts', 'unsubscribes', 'subscribe_forms'], 'readwrite')
         const store_profiles = transaction.objectStore('profiles')
         const store_drafts = transaction.objectStore('drafts')
+        const store_unsubs = transaction.objectStore('unsubscribes')
+        const store_forms = transaction.objectStore('subscribe_forms')
 
         // Remove the actual profile
         void store_profiles.delete(id)
@@ -420,6 +430,19 @@ export class DatabaseProfiles {
             if (draft.profile === id){
                 draft.profile = null
                 void store_drafts.put(draft)
+            }
+        }
+
+        // Remove related unsubscribes
+        // NOTE Previously didn't do this until v1.5.0
+        for (const unsub of await store_unsubs.index('by_profile').getAll(id)){
+            void store_unsubs.delete([id, unsub.contact])
+        }
+
+        // Remove related subscribe_forms
+        for (const form of await store_forms.getAll()){
+            if (form.profile === id){
+                void store_forms.delete(form.id)
             }
         }
 

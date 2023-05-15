@@ -21,7 +21,7 @@ from email_template import generate_email
 
 
 # Constants
-VALID_TYPES = ('read', 'reply', 'reaction', 'subscription', 'address', 'resend')
+VALID_TYPES = ('read', 'reply', 'reaction', 'subscription', 'address', 'resend', 'subscribe')
 
 
 # A base64-encoded 3w1h solid #ddeeff jpeg
@@ -251,11 +251,11 @@ def handle_reaction(user, config, event):
     if not config['allow_reactions']:
         raise Abort()
 
-    # Ensure reaction is a short single hyphenated word if present (or null)
+    # Ensure reaction is a short single word if present (or null)
     # SECURITY Prevents inserting long messages as a "reaction" but allows future codes too
     #   Noting that user may have enabled notifications for reactions, putting their value in emails
     if 'content' in event and event['content'] is not None:
-        _ensure_valid_chars(event, 'content', string.ascii_letters + string.digits + '-')
+        _ensure_valid_chars(event, 'content', string.ascii_letters + string.digits + '-_')
         if len(event['content']) > 25:
             raise Exception("Reaction content too long")
 
@@ -272,6 +272,12 @@ def handle_resend(user, config, event):
     """Handle resend requests"""
     if not config['allow_resend_requests']:
         raise Abort()
+
+
+def handle_subscribe(user, config, event):
+    """Handle subscribe requests"""
+    if event['form'] not in config.get('subscribe_forms', []):  # WARN subscribe_forms added v1.5.0
+        raise Abort()  # Form has probably been removed
 
 
 def handle_delete(user, config, event):
@@ -407,7 +413,7 @@ def _count_resp_objects(user, resp_type):
 
 
 def _send_notification(config, resp_type, event, user):
-    """Notify user of replies/reactions/resends for their messages (if configured to)
+    """Notify user of replies/reactions/resends/subscribes for their messages (if configured to)
 
     Notify modes: none, first_new_reply, replies, replies_and_reactions
     Including contents only applies to: replies, replies_and_reactions
@@ -415,11 +421,11 @@ def _send_notification(config, resp_type, event, user):
     """
 
     # Only notify for certain resp types
-    if resp_type not in ('reply', 'reaction', 'resend'):
+    if resp_type not in ('reply', 'reaction', 'resend', 'subscribe'):
         return
 
-    # Determine if a reaction or reply/resend
-    # NOTE To keep things simple, resends are considered "replies" for purpose of notifications
+    # Determine if a reaction or reply/resend/subscribe
+    # NOTE resends/subscribes are considered "replies" for purpose of notifications
     reaction = resp_type == 'reaction'
 
     # Do nothing if notifications disabled
@@ -436,12 +442,17 @@ def _send_notification(config, resp_type, event, user):
     # NOTE Possible to have race condition where contents should be included but isn't, so check
     if config['notify_include_contents'] and 'content' in event:
 
-        # If content is null, just clearing a previous reaction, so don't notify
-        if event['content'] is None:
+        # If reaction's content is null, just clearing a previous reaction, so don't notify
+        if reaction and event['content'] is None:
             return
 
         subject = "Stello: New reaction" if reaction else "Stello: New reply"
         heading = "Someone reacted with:" if reaction else "Someone replied with:"
+        if resp_type == 'subscribe':
+            subject = f"Stello: {event['name']} wants to subscribe"
+            heading = f"{event['name']} <{event['address']}> wants to subscribe"
+
+        # Prepare msg for body of notification
         msg = event['content']
         if SELF_HOSTED:
             msg += "\n" * 10
@@ -454,7 +465,7 @@ def _send_notification(config, resp_type, event, user):
             )
     else:
         # Work out counts
-        reply_count = _count_resp_objects(user, 'reply') + _count_resp_objects(user, 'resend')
+        reply_count = _count_resp_objects(user, 'reply') + _count_resp_objects(user, 'resend') + _count_resp_objects(user, 'subscribe')
         reaction_count = _count_resp_objects(user, 'reaction')
 
         # If notify_mode is first_new_reply then only continue if this is the first

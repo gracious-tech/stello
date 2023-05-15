@@ -13,8 +13,10 @@ export interface AppStoreState {
     dark_message:boolean
     default_profile:string|null
     default_template:string|null
+    default_contacts:string|null
     manager_aws_key_id:string
     manager_aws_max_lifespan:number  // Added after 0.8.3
+    fallback_secret:CryptoKey|null  // Added after 1.4.9
 
     // Private state
     usage_installed:Date|null

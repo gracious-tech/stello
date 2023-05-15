@@ -3,11 +3,12 @@ import {validate_chars} from './utils/exceptions'
 
 
 interface HashData {
-    config_secret_url64:string
+    config_secret_url64:string|null
     msg_id:string|null
     msg_secret_url64:string|null
     action:string|null
     action_arg:string|null
+    subscribe:string|null
 }
 
 
@@ -26,10 +27,10 @@ export async function decode_hash(hash:string):Promise<HashData|null>{
     hash = decodeURIComponent(hash)
 
     // Extract fields from the hash
-    const [config_secret_url64, msg_id, msg_secret_url64, action, action_arg]
+    const [config_secret, msg_id, msg_secret_url64, action, action_arg]
         = hash.slice(1).split(',')
-    if (!config_secret_url64){
-        return null  // At minimum every hash has config secret
+    if (!config_secret){
+        return null  // At minimum every hash has config secret (or subscribe form id)
     }
 
     /* SECURITY the hash is one avenue an attacker can insert malicious data
@@ -38,7 +39,7 @@ export async function decode_hash(hash:string):Promise<HashData|null>{
     */
     const url64_chars = 'a-zA-Z0-9\\_\\-\\~'
     try {
-        validate_chars(config_secret_url64, url64_chars)
+        validate_chars(config_secret, url64_chars)
         if (msg_id && msg_secret_url64){
             validate_chars(msg_id, url64_chars)
             validate_chars(msg_secret_url64, url64_chars)
@@ -53,6 +54,10 @@ export async function decode_hash(hash:string):Promise<HashData|null>{
         return null
     }
 
+    // If only one value then assume it's a subscribe form
+    const subscribe = hash.includes(',') ? null : config_secret
+    const config_secret_url64 = subscribe ? null : config_secret
+
     // Return as object
     return {
         config_secret_url64,  // Not parsed as will later send url64 form in responses
@@ -60,5 +65,6 @@ export async function decode_hash(hash:string):Promise<HashData|null>{
         msg_secret_url64: msg_secret_url64 || null,
         action: action || null,
         action_arg: action_arg || null,
+        subscribe,
     }
 }

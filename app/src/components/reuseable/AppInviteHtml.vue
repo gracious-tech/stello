@@ -4,7 +4,7 @@
 div.root(:style='styles.container')
     div.header(data-tip="Change invitation image" data-tip-instant)
         img(:src='image_src' height='0' :style='styles.image' @click='$emit("change_image")')
-    app-html.input(ref='editor' :value='value' :variables='variables'
+    app-html.input(ref='editor' :value='value' :variables='variables' reset='spacing'
         @input='$emit("input", $event)')
     div.security(class='d-flex align-items-center justify-end warning--text')
         app-svg(name='icon_error')
@@ -113,7 +113,7 @@ export default class extends Vue {
         left: 40% !important
 
 .input
-    padding: 24px
+    padding: 16px
 
 .security
     text-align: right

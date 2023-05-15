@@ -88,14 +88,18 @@ import {Component, Vue, Watch} from 'vue-property-decorator'
 import DialogGroupChoice from '../dialogs/DialogGroupChoice.vue'
 import DialogGroupName from '../dialogs/reuseable/DialogGroupName.vue'
 import DialogContactsImport from '@/components/dialogs/DialogContactsImport.vue'
+import DialogNewContact from '@/components/dialogs/reuseable/DialogNewContact.vue'
 import RouteContactsItem from './assets/RouteContactsItem.vue'
 import RouteContactsGroup from './assets/RouteContactsGroup.vue'
 import {remove_item, remove_match, remove_matches, sort} from '@/services/utils/arrays'
 import {download_file} from '@/services/utils/misc'
 import {sleep} from '@/services/utils/async'
+import {MustReauthenticate, MustReconnect} from '@/services/utils/exceptions'
 import {Group} from '@/services/database/groups'
+import {OAuth} from '@/services/database/oauths'
 import {Contact} from '@/services/database/contacts'
-import {Task} from '@/services/tasks/tasks'
+import {Task, task_manager} from '@/services/tasks/tasks'
+import {taskless_contacts_create} from '@/services/tasks/contacts'
 
 
 interface ContactItem {
@@ -113,7 +117,7 @@ export default class extends Vue {
 
     contacts:ContactItem[] = []
     groups:Group[] = []
-    accounts:{id:string, display:string, groups:Group[], sync:()=>Promise<Task>}[] = []
+    oauths:OAuth[] = []
 
     filter_group_id = '-'  // Special value for null as empty values don't get highlighted
     search = ''
@@ -209,11 +213,29 @@ export default class extends Vue {
         return this.contacts_selected.filter(item => !item.contact.service_account)
     }
 
+
     // Lists of groups
 
     get groups_internal():Group[]{
         return this.groups.filter(group => !group.service_account)
     }
+
+
+    // List of accounts
+
+    get accounts(){
+        // Turn oauths into "accounts" and add the groups that belong to them
+        return this.oauths.map(oauth => {
+            return {
+                id: oauth.service_account,
+                display: oauth.display,
+                groups: this.groups.filter(
+                    group => group.service_account === oauth.service_account),
+                sync: () => this.$tm.start_contacts_sync(oauth.id),
+            }
+        })
+    }
+
 
     // Other getters
 
@@ -272,6 +294,16 @@ export default class extends Vue {
         return null
     }
 
+    get default_contacts_oauth(){
+        // Get the oauth record for default contacts account
+        for (const oauth of this.oauths){
+            if (oauth.service_account === this.$store.state.default_contacts){
+                return oauth
+            }
+        }
+        return null
+    }
+
     // Watch
 
     @Watch('search') watch_search(value:string):void{
@@ -279,6 +311,9 @@ export default class extends Vue {
         if (value){
             this.filter_group_id = '-'
         }
+
+        // Scroll back to top since list changed
+        ;(this.$refs['scrollable'] as Vue)?.$el.scroll(0, 0)
     }
 
     @Watch('filter_group_id') watch_filter_group_id(value:string):void{
@@ -293,10 +328,8 @@ export default class extends Vue {
         if (value === 'disengaged'){
             void this.load_reads()
         }
-    }
 
-    @Watch('contacts_matched') watch_contacts_matched():void{
-        // Whenever matched contacts changes, scroll back to top
+        // Scroll back to top since list changed
         ;(this.$refs['scrollable'] as Vue)?.$el.scroll(0, 0)
     }
 
@@ -339,18 +372,9 @@ export default class extends Vue {
             }
         })
 
-        // Expose groups as is
+        // Expose groups and oauths as is
         this.groups = groups
-
-        // Turn oauths into "accounts" and add the groups that belong to them
-        this.accounts = oauths.map(oauth => {
-            return {
-                id: oauth.service_account,
-                display: oauth.display,
-                groups: groups.filter(group => group.service_account === oauth.service_account),
-                sync: () => this.$tm.start_contacts_sync(oauth.id),
-            }
-        })
+        this.oauths = oauths
     }
 
     async load_reads(){
@@ -425,12 +449,59 @@ export default class extends Vue {
 
     async new_contact():Promise<void>{
         // Create a new contact and navigate to it
-        const contact = await self.app_db.contacts.create()
-        if (this.filter_group && !this.filter_group.service_id){
-            // Auto-add contact to currently selected group (but NOT a service account group)
-            this.filter_group.contacts.push(contact.id)
-            await self.app_db.groups.set(this.filter_group)
+
+        let contact:Contact
+        if (!this.default_contacts_oauth){
+            // Create a regular Stello contact
+            contact = await self.app_db.contacts.create()
+        } else {
+
+            // Prompt the user for a name and address as can't create synced contact without them
+            const input = await this.$store.dispatch('show_dialog', {
+                component: DialogNewContact,
+                props: {oauth: this.default_contacts_oauth},
+            }) as {name:string, address:string}|undefined
+            if (!input){
+                return  // Dialog cancelled
+            }
+
+            // Wait for the contact to be created so can navigate to it
+            void this.$store.dispatch('show_waiting', "Creating contact...")
+            try {
+                contact = await taskless_contacts_create(
+                    this.default_contacts_oauth, input.name, input.address)
+            } catch (error){
+                // Failed to create for some reason
+                if (error instanceof MustReconnect){
+                    void this.$store.dispatch('show_snackbar', "Could not connect")
+                } else if (error instanceof MustReauthenticate){
+                    void this.$store.dispatch('show_snackbar', "Cannot create contact until resync")
+                } else {
+                    self.app_report_error(error)
+                    void this.$store.dispatch('show_snackbar', "Error: Unable to create contact")
+                }
+                return  // Cancel creation
+            } finally {
+                void this.$store.dispatch('close_dialog')
+            }
         }
+
+        if (this.filter_group){
+            // Auto-add contact to currently selected group if possible
+            if (!this.filter_group.service_account){
+                // Any contact can be added to a local Stello group
+                this.filter_group.contacts.push(contact.id)
+                await self.app_db.groups.set(this.filter_group)
+            } else if (this.filter_group.service_account
+                    === this.default_contacts_oauth?.service_account){
+                // Can only add to service group if contact is in that account
+                // NOTE Don't wait to finish, RouteContact will show it when it's done
+                void task_manager.start_contacts_group_fill(this.default_contacts_oauth.id,
+                    this.filter_group.id, [contact.id])
+            }
+        }
+
+        // Navigate to the new contact
         void this.$router.push({name: 'contact', params: {contact_id: contact.id}})
     }
 

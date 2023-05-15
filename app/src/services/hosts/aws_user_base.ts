@@ -124,6 +124,17 @@ export class HostUserAwsBase extends StorageBaseAws {
         })
     }
 
+    async upload_subscribe_config(config:string):Promise<void>{
+        // Upload config for subscribe forms
+        await this.s3.putObject({
+            Bucket: this.bucket,
+            Key: `config/${this.user}/subscribe`,
+            ContentType: 'application/json',
+            Body: config,
+            CacheControl: 'no-store',  // Don't cache configs so changes have immediate effect
+        })
+    }
+
     async upload_responder_config(config:ArrayBuffer):Promise<void>{
         // Upload config for the responder function
         await this.s3.putObject({

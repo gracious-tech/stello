@@ -6,6 +6,7 @@ import {OAuth} from '../database/oauths'
 import {oauth_request} from './oauth'
 import {partition} from '../utils/strings'
 import {MustInterpret, MustReauthenticate, MustWait} from '../utils/exceptions'
+import {Contact} from '@/services/database/contacts'
 
 
 // Functions which sync contacts in ways specific to the issuer
@@ -15,7 +16,9 @@ interface IssuerHandlers {
     change_notes:typeof contacts_change_notes_google,
     change_email:typeof contacts_change_email_google,
     remove:typeof contacts_remove_google,
+    create:typeof contacts_create_google,
     get_addresses:typeof contacts_get_addresses_google,
+    group_fill:typeof contacts_group_fill_google,
 }
 const HANDLERS:Record<string, IssuerHandlers> = {
     google: {
@@ -24,7 +27,9 @@ const HANDLERS:Record<string, IssuerHandlers> = {
         change_notes: contacts_change_notes_google,
         change_email: contacts_change_email_google,
         remove: contacts_remove_google,
+        create: contacts_create_google,
         get_addresses: contacts_get_addresses_google,
+        group_fill: contacts_group_fill_google,
     },
 }
 
@@ -41,6 +46,9 @@ export async function contacts_oauth_setup(task:Task):Promise<void>{
     }
     oauth.contacts_sync = true
     await self.app_db.oauths.set(oauth)
+
+    // Default to creating contacts in the account
+    self.app_store.commit('dict_set', ['default_contacts', oauth.service_account])
 
     // Turn this task into a sync
     await task.evolve(contacts_sync)
@@ -165,6 +173,69 @@ export async function contacts_remove(task:Task):Promise<void>{
 }
 
 
+export async function contacts_create(task:Task):Promise<void>{
+    // Task for creating a contact
+    // NOTE Currently not used as using taskless version instead
+
+    // Extract args from task object and get oauth record
+    const [oauth_id, contact_name, contact_address] = task.params as [string, string, string]
+    if (!contact_name || !contact_address){
+        // Synced contacts are required to have both, unlike Stello contacts
+        throw task.abort("Contact has no name and/or email address")
+    }
+    const oauth = await self.app_db.oauths.get(oauth_id)
+    if (!oauth){
+        throw task.abort("No longer have access to contacts account")
+    }
+
+    // Configure task object
+    task.label = `Creating contact for "${contact_name}"`
+    task.fix_oauth = oauth_id
+
+    await taskless_contacts_create(oauth, contact_name, contact_address)
+}
+
+
+export async function contacts_group_fill(task:Task):Promise<void>{
+    // Task for filling a group with contacts
+
+    // Extract args from task object and get oauth record
+    const [oauth_id, group_id] = task.params as [string, string]
+    const [contact_ids] = task.options as [string[]]
+    const oauth = await self.app_db.oauths.get(oauth_id)
+    if (!oauth){
+        throw task.abort("No longer have access to contacts account")
+    }
+
+    // Get record for the group
+    let group = await self.app_db.groups.get(group_id)
+    if (!group){
+        throw task.abort("Group no longer exists")
+    }
+
+    // Configure task object
+    task.label = `Adding contacts to group "${group.display}"`
+    task.fix_oauth = oauth_id
+
+    // Get records for the contacts
+    const contacts = (await Promise.all(contact_ids.map(c => self.app_db.contacts.get(c))))
+        .filter(c => c) as Contact[]
+
+    // Call handler specific to the oauth's issuer
+    await HANDLERS[oauth.issuer]!.group_fill(
+        oauth, group.service_id!, contacts.map(c => c.service_id!))
+
+    // If all went well, apply to own db
+    group = (await self.app_db.groups.get(group_id))!  // Get fresh copy
+    for (const contact of contacts){
+        if (!group.contacts.includes(contact.id)){
+            group.contacts.push(contact.id)
+        }
+    }
+    await self.app_db.groups.set(group)
+}
+
+
 // NON-TASKS
 
 
@@ -172,6 +243,23 @@ export async function taskless_contact_addresses(oauth:OAuth, service_id:string)
     // Get all the email addresses currently saved in a contact
     // NOTE Services (like Google) may allow duplicate items, so remove them
     return uniq(await HANDLERS[oauth.issuer]!.get_addresses(oauth, service_id))
+}
+
+
+export async function taskless_contacts_create(oauth:OAuth, name:string, address:string)
+        :Promise<Contact>{
+    // Create a contact and return the db record for it
+
+    // Call handler specific to the oauth's issuer
+    const service_id = await HANDLERS[oauth.issuer]!.create(oauth, name, address)
+
+    // If all went well, create contact in own database
+    return self.app_db.contacts.create({
+        name,
+        address,
+        service_account: oauth.service_account,
+        service_id,
+    })
 }
 
 
@@ -337,7 +425,7 @@ async function contacts_sync_google_full(task:Task, oauth:OAuth):Promise<Record<
                 created.name = name
                 created.address = primary_email
                 created.notes = notes
-                created.service_account = `google:${oauth.issuer_id}`
+                created.service_account = oauth.service_account
                 created.service_id = service_id
                 void self.app_db.contacts.set(created)
                 confirmed[created.service_id] = created.id
@@ -382,9 +470,8 @@ async function contacts_sync_google_groups(task:Task, oauth:OAuth,
         pageSize: '1000',  // Highest possible and highly unlikely to get anywhere close
     })) as GoogleGroupsListResp
 
-    // Filter out system groups (starred/banned/etc) and empty groups
-    const groups = list_resp.contactGroups.filter(
-        g => g.groupType === 'USER_CONTACT_GROUP' && g.memberCount)  // memberCount excluded if 0
+    // Filter out system groups (starred/banned/etc)
+    const groups = list_resp.contactGroups.filter(g => g.groupType === 'USER_CONTACT_GROUP')
 
     // Organise groups into batches depending on how many members (i.e. how large request will be)
     const batches:GoogleGroup[][] = [[]]
@@ -432,16 +519,11 @@ async function contacts_sync_google_groups(task:Task, oauth:OAuth,
             // Extract relevant fields
             const service_id = partition(batch_sub_resp.contactGroup.resourceName, '/')[1]
             const name = batch_sub_resp.contactGroup.name || ''
-            const members = batch_sub_resp.contactGroup.memberResourceNames?.
-                map(n => partition(n, '/')[1]) ?? []
+            const members = (batch_sub_resp.contactGroup.memberResourceNames ?? []).map(
+                n => partition(n, '/')[1])
 
             // Convert array of service's contact ids to Stello ids (and filter out dud members)
             const contacts = members.map(sid => confirmed[sid]).filter(id => id) as string[]
-
-            // Ignore (and effectively delete) group if no valid contacts (e.g. none with emails)
-            if (!contacts.length){
-                continue
-            }
 
             // Either update existing or add new group
             if (service_id in existing_by_id){
@@ -555,9 +637,28 @@ async function contacts_remove_google(oauth:OAuth, service_id:string):Promise<vo
 }
 
 
+async function contacts_create_google(oauth:OAuth, name:string, address:string):Promise<string>{
+    // Create the given contact in Google Contacts and return the service_id
+    const person = await google_request(oauth, 'people:createContact', undefined, 'POST', {
+        names: [{unstructuredName: name}],
+        emailAddresses: [{value: address}],
+    }) as GooglePerson
+    return partition(person.resourceName, '/')[1]  // Google appends 'people/'
+}
+
+
 async function contacts_get_addresses_google(oauth:OAuth, service_id:string):Promise<string[]>{
     // Get all email addresses for a Google contact
     const person = await google_request(
         oauth, `people/${service_id}`, {personFields: 'emailAddresses'}) as GooglePerson
     return person.emailAddresses?.map(i => i.value) ?? []
+}
+
+
+async function contacts_group_fill_google(oauth:OAuth, group:string, contacts:string[])
+        :Promise<void>{
+    // Add contacts to a group
+    await google_request(oauth, `contactGroups/${group}/members:modify`, undefined, 'POST', {
+        resourceNamesToAdd: contacts.map(p => `people/${p}`),
+    })
 }

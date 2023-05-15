@@ -9,6 +9,7 @@ interface ContactCreateArgs{
     address?:string
     service_account?:string
     service_id?:string
+    notes?:string
 }
 
 
@@ -120,6 +121,7 @@ export class DatabaseContacts {
             contact.address = item.address ?? ''
             contact.service_account = item.service_account ?? null
             contact.service_id = item.service_id ?? null
+            contact.notes = item.notes ?? ''
             void store_contacts.add(contact)
             contacts.push(contact)
         }

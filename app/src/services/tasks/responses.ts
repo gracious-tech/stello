@@ -6,9 +6,12 @@ import {url64_to_buffer, utf8_to_string} from '../utils/coding'
 import {decrypt_asym, decrypt_sym, generate_token} from '../utils/crypt'
 import {email_address_like} from '../utils/misc'
 import {HostUser} from '../hosts/types'
+import {PostResponderData, UnknownChainable, UnknownJson} from '@/shared/shared_types'
+import {type_of} from '@/services/utils/exceptions'
+import {str_or_null} from '@/services/utils/strings'
 
 
-const RESP_TYPES_ASYNC = ['read', 'reply']  // Least priority -> greatest
+const RESP_TYPES_ASYNC = ['read', 'reply', 'subscribe']  // Least priority -> greatest
 const RESP_TYPES_SYNC = ['subscription', 'address', 'resend', 'reaction']  // Require order
 
 
@@ -97,8 +100,7 @@ async function download_response(profile:Profile, storage:HostUser, object_key:s
     // Download a response and process it
     // NOTE Can generally allow throws, except sometimes may want to delete object if safe to do so
 
-    // Access profile's keys
-    const sym_secret = profile.host_state.secret
+    // Access profile's key
     const asym_secret = profile.host_state.resp_key.privateKey!
 
     // Download and decrypt the data
@@ -112,7 +114,7 @@ async function download_response(profile:Profile, storage:HostUser, object_key:s
         void storage.delete_response(object_key)
         throw new Error("Could not decrypt response")
     }
-    const data = JSON.parse(utf8_to_string(binary_data))
+    const data = JSON.parse(utf8_to_string(binary_data)) as PostResponderData
 
     // Decrypt and unpack encrypted fields
     let encrypted_field:ArrayBuffer
@@ -124,24 +126,19 @@ async function download_response(profile:Profile, storage:HostUser, object_key:s
         void storage.delete_response(object_key)
         throw new Error("Could not decrypt response's encrypted field")
     }
-    const encrypted_data = JSON.parse(utf8_to_string(encrypted_field))
+    const encrypted_data = JSON.parse(utf8_to_string(encrypted_field)) as
+        Record<string, UnknownJson>
+    if (type_of(encrypted_data) !== 'object'){
+        // SECURITY encrypted_data is cast as a Record type but it could be anything
+        throw new Error("encrypted field is not an object")
+    }
 
     // SECURITY Ensure attacker can't send different data unencrypted/encrypted
     for (const prop of Object.keys(encrypted_data)){
         if (prop in data.event){
             throw new Error("Encrypted prop overwrites existing")
         }
-        data.event[prop] = encrypted_data[prop]
-    }
-
-    // Decrypt symmetrically encrypted data, if any
-    // SECURITY Do NOT merge into top level of object, as then can't distinguish which were plain
-    //      Unlike asym encryption, sym encryption MUST gaurantee data is authenticated
-    //      Asym data comes from the browser, but sym data comes from the user/application
-    //      e.g. {a:'unauthed'} & {sym_encrypted:{a:'authed'}} would both result in {a:'...'}
-    if (data.event.sym_encrypted){
-        data.event.sym_encrypted = JSON.parse(utf8_to_string(
-            await decrypt_sym(url64_to_buffer(data.event.sym_encrypted), sym_secret)))
+        data.event[prop] = encrypted_data[prop]!
     }
 
     // Get sent date from object key
@@ -156,25 +153,49 @@ async function download_response(profile:Profile, storage:HostUser, object_key:s
 }
 
 
-async function process_data(profile:Profile, type:string, data:any, sent:Date):Promise<void>{
+async function process_data(profile:Profile, type:string, data:PostResponderData, sent:Date)
+        :Promise<void>{
     // Process and save data to db
     // SECURITY data contains untrusted user input and some responder function input
     // WARN Must await all tasks so that failure prevents response deletion from bucket
 
     // Force type of common fields
-    const ip = data.ip ? String(data.ip) : null
-    const resp_token = String(data.event.resp_token)
-    const user_agent = String(data.event.user_agent)
+    const ip = str_or_null(data.ip)
+    const resp_token = String(data.event['resp_token'] ?? '')  // Only 'subscribe' doesn't have this
+    const user_agent = String(data.event['user_agent'])
 
-    if (type === 'reaction' || type === 'reply'){
-        const method = type === 'reply' ? 'reply_create' : 'reaction_create'
-        await self.app_db[method](
-            data.event.content ? String(data.event.content) : null,
+    // Decrypt symmetrically encrypted data, if any
+    // SECURITY Do NOT merge into top level of object, as then can't distinguish which were plain
+    //      Unlike asym encryption, sym encryption MUST gaurantee data is authenticated
+    //      Asym data comes from the browser, but sym data comes from the user/application
+    //      e.g. {a:'unauthed'} & {sym_encrypted:{a:'authed'}} would both result in {a:'...'}
+    let sym_encrypted = {} as UnknownChainable
+    if (data.event['sym_encrypted']){
+        sym_encrypted = JSON.parse(utf8_to_string(await decrypt_sym(url64_to_buffer(
+            data.event['sym_encrypted'] as string), profile.host_state.secret))) as UnknownChainable
+        delete data.event['sym_encrypted']
+    }
+
+    if (type === 'reaction'){
+        await self.app_db.reaction_create(
+            str_or_null(data.event['content']),
             sent,
             resp_token,
-            data.event.section_id ? String(data.event.section_id) : null,
+            String(data.event['section_id']),
             // NOTE `event.subsection_id` did not exist in v0.4.1 and less
-            data.event.subsection_id ? String(data.event.subsection_id) : null,
+            str_or_null(data.event['subsection_id']),
+            ip,
+            user_agent,
+        )
+
+    } else if (type === 'reply'){
+        await self.app_db.reply_create(
+            String(data.event['content']),
+            sent,
+            resp_token,
+            str_or_null(data.event['section_id']),
+            // NOTE `event.subsection_id` did not exist in v0.4.1 and less
+            str_or_null(data.event['subsection_id']),
             ip,
             user_agent,
         )
@@ -189,13 +210,13 @@ async function process_data(profile:Profile, type:string, data:any, sent:Date):P
         // Determine if adding or removing an unsubscribe record
         let apply:(c:string)=>Promise<void> = c => self.app_db.unsubscribes.set(
             {profile: profile.id, contact: c, sent, ip, user_agent})
-        if (data.event.subscribed){
+        if (data.event['subscribed']){
             apply = c => self.app_db.unsubscribes.remove(profile.id, c)
         }
 
         // Create unsubscribed records for all contacts that match address (if given)
         // SECURITY Don't need resp_token since address' encryption provides authenticity
-        const address = String(data.event.sym_encrypted?.address.trim() ?? '')
+        const address = String(sym_encrypted?.['address'] ?? '').trim()
         if (address){
             for (const contact of await self.app_db.contacts.list_for_address(address)){
                 if (!contact.multiple){  // Multi-person contacts can't alter subscription
@@ -219,7 +240,7 @@ async function process_data(profile:Profile, type:string, data:any, sent:Date):P
 
         // Do basic validation of new address
         // SECURITY In the end, only the user can verify if looks legit
-        const new_address = String(data.event.new_address)
+        const new_address = String(data.event['new_address'])
         if (!email_address_like(new_address)){
             console.warn("Invalid email address: " + new_address)
             return  // Do nothing and allow response to be deleted
@@ -235,7 +256,7 @@ async function process_data(profile:Profile, type:string, data:any, sent:Date):P
 
         // Create change address records for all contacts that match address (if given)
         // SECURITY Don't need resp_token since address' encryption provides authenticity
-        const old = String(data.event.sym_encrypted?.address.trim() ?? '')
+        const old = String(sym_encrypted?.['address'] ?? '').trim()
         if (old){
             for (const contact of await self.app_db.contacts.list_for_address(old)){
                 if (!contact.multiple){  // Multi-person contacts can't alter address
@@ -256,13 +277,13 @@ async function process_data(profile:Profile, type:string, data:any, sent:Date):P
     } else if (type === 'resend'){
 
         // Validate user input
-        const reason = String(data.event.content)
+        const reason = String(data.event['content'])
 
         // Get copy by resp_token
         const copy = await self.app_db.copies.get_by_resp_token(resp_token)
 
         // If copy still exists good, otherwise generate fake id so db can still index record
-        // NOTE Same secenario if user deletes the message/contact after saving this record anyway
+        // NOTE Same scenario if user deletes the message/contact after saving this record anyway
         let contact:string
         let message:string
         if (copy){
@@ -277,6 +298,35 @@ async function process_data(profile:Profile, type:string, data:any, sent:Date):P
         // Create request record
         await self.app_db._conn.put('request_resend',
             {sent, ip, user_agent, contact, message, reason})
+
+    } else if (type === 'subscribe'){
+
+        // Validate user input
+        const form_id = String(data.event['form'])
+        const address = String(data.event['address'])
+        const name = String(data.event['name'])
+        const message = String(data.event['content'])
+
+        // Do basic validation of address
+        // SECURITY In the end, only the user can verify if address looks legit
+        if (!email_address_like(address)){
+            return  // Do nothing and allow response to be deleted
+        }
+
+        // Get the subscribe form
+        // NOTE Responder prevents submission once form deleted
+        //      So don't need to enforce here, and still accept any race condition submissions
+        const form = await self.app_db.subscribe_forms.get(form_id)
+
+        // Create subscribe record
+        await self.app_db._conn.put('request_subscribe', {
+            id: generate_token(),
+            sent, ip, user_agent,  // Common
+            address, name, message,  // User data
+            groups: form?.groups ?? [],
+            service_account: form?.service_account ?? null,
+            profile: profile.id,
+        })
 
     } else {
         throw new Error("Invalid type")

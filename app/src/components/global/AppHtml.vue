@@ -47,7 +47,7 @@ div
             app-btn(icon='format_quote' @click='focused_run("setBlockquote")'
                 data-tip="Quotation")
 
-    editor-content(:editor='editor')
+    editor-content(:editor='editor' :class='`reset-${reset}`')
 
 </template>
 
@@ -256,6 +256,7 @@ export default class AppHtml extends Vue {
     @Prop({type: String, default: ''}) declare readonly value:string
     @Prop({type: Object, default: () => ({})}) declare readonly variables
         :Record<string, {label:string, value:string}>
+    @Prop({type: String, default: 'none'}) declare readonly reset:'none'|'spacing'|'all'
 
     editor:Editor|null = null
     bubble_url:string|null = null
@@ -422,6 +423,12 @@ export default class AppHtml extends Vue {
         if (this.editor){
             this.editor.destroy()
         }
+
+        // Tiptap removes editor contents when it detects component is being destroyed
+        // This leaves the component empty during any leave transition
+        // So fill component with value when destruction starts
+        // See https://github.com/ueberdosis/tiptap/issues/2296#issuecomment-1000907608
+        this.$el.innerHTML = this.value
     }
 
 
@@ -517,6 +524,13 @@ export default class AppHtml extends Vue {
         position: relative
         &::after
             left: 0
+
+.reset-spacing ::v-deep [contenteditable='true'] *
+    padding: revert
+    margin: revert
+
+.reset-all ::v-deep [contenteditable='true'] *
+    all: revert
 
 
 </style>

@@ -253,10 +253,16 @@ export async function to_18(transaction:VersionChangeTransaction){
 
 export async function to_19(transaction:VersionChangeTransaction){
 
-    // Add send_to_self to profiles
+    // Add send_to_self and subscribe_config_uploaded to profiles
     for await (const cursor of transaction.objectStore('profiles')){
         // Default to link only as many existing users would have added themselves as a contact
         cursor.value.options.send_to_self = 'yes_without_email'
+        cursor.value.host_state.subscribe_config_uploaded = false
         await cursor.update(cursor.value)
     }
+
+    // Add subscribe_forms and request_subscribe stores
+    const subscribe_forms = transaction.db.createObjectStore('subscribe_forms', {keyPath: 'id'})
+    subscribe_forms.createIndex('by_profile', 'profile')
+    transaction.db.createObjectStore('request_subscribe', {keyPath: 'id'})
 }

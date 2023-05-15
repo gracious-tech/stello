@@ -8,6 +8,7 @@ import {DatabaseContacts, Contact} from './contacts'
 import {DatabaseGroups} from './groups'
 import {DatabaseOAuths} from './oauths'
 import {DatabaseProfiles, Profile} from './profiles'
+import {DatabaseSubscribeForms} from './subscribe_forms'
 import {DatabaseUnsubscribes} from './unsubscribes'
 import {DatabaseDrafts, Draft} from './drafts'
 import {DatabaseMessages, Message} from './messages'
@@ -49,6 +50,7 @@ export class Database {
     groups:DatabaseGroups
     oauths:DatabaseOAuths
     profiles:DatabaseProfiles
+    subscribe_forms:DatabaseSubscribeForms
     unsubscribes:DatabaseUnsubscribes
     drafts:DatabaseDrafts
     messages:DatabaseMessages
@@ -65,6 +67,7 @@ export class Database {
         this.groups = new DatabaseGroups(connection)
         this.oauths = new DatabaseOAuths(connection)
         this.profiles = new DatabaseProfiles(connection)
+        this.subscribe_forms = new DatabaseSubscribeForms(connection)
         this.unsubscribes = new DatabaseUnsubscribes(connection)
         this.drafts = new DatabaseDrafts(connection)
         this.messages = new DatabaseMessages(connection)
@@ -331,7 +334,7 @@ export class Database {
         return new host_user_class(generated, bucket, region, user)
     }
 
-    async read_create(sent:Date, resp_token:string, ip:string,
+    async read_create(sent:Date, resp_token:string, ip:string|null,
             user_agent:string):Promise<Read|null>{
         // Create a new read
 
@@ -355,7 +358,7 @@ export class Database {
     }
 
     async _gen_replaction(content:string, sent:Date, resp_token:string, section_id:string|null,
-            subsection_id:string|null, ip:string, user_agent:string):Promise<RecordReplaction>{
+            subsection_id:string|null, ip:string|null, user_agent:string):Promise<RecordReplaction>{
         // Generate a replaction object that can be used for a reply or reaction
 
         // Construct new object with data already known
@@ -399,10 +402,10 @@ export class Database {
     }
 
     async reaction_create(content:string|null, sent:Date, resp_token:string, section_id:string,
-            subsection_id:string|null, ip:string, user_agent:string):Promise<Reaction|null>{
+            subsection_id:string|null, ip:string|null, user_agent:string):Promise<Reaction|null>{
         // Create a new reaction
-        // NOTE content may be null when passed to _gen_replaction but will delete later anyway
-        const reaction = new Reaction(await this._gen_replaction(content!, sent, resp_token,
+        // NOTE If content is null it will be deleted later anyway, so pass as ''
+        const reaction = new Reaction(await this._gen_replaction(content ?? '', sent, resp_token,
             section_id, subsection_id, ip, user_agent))
 
         // Reactions are useless without knowing who from (and can't give unique id either)
@@ -413,8 +416,8 @@ export class Database {
         // Can now set id from other properties so only one reaction per section
         reaction.id = reaction.id_from_properties
 
-        // Null content means must delete any existing reaction with same id
-        if (content === null){
+        // No content means must delete any existing reaction with same id
+        if (!content){
             await this._conn.delete('reactions', reaction.id)
             return null
         }
@@ -424,7 +427,7 @@ export class Database {
     }
 
     async reply_create(content:string, sent:Date, resp_token:string, section_id:string|null,
-            subsection_id:string|null, ip:string, user_agent:string):Promise<Reply>{
+            subsection_id:string|null, ip:string|null, user_agent:string):Promise<Reply>{
         // Create a new reply
         const reply = new Reply(await this._gen_replaction(content, sent, resp_token, section_id,
             subsection_id, ip, user_agent))

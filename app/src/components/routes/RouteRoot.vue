@@ -4,6 +4,8 @@
 div
     app-content(class='pa-6')
 
+        RequestsSubscribe
+
         RouteRootAddressRequests
 
         RouteRootResendRequests
@@ -49,10 +51,11 @@ import {Component, Vue} from 'vue-property-decorator'
 import app_config from '@/app_config.json'
 import RouteRootAddressRequests from './assets/RouteRootAddressRequests.vue'
 import RouteRootResendRequests from './assets/RouteRootResendRequests.vue'
+import RequestsSubscribe from '@/components/reuseable/RequestsSubscribe.vue'
 
 
 @Component({
-    components: {RouteRootAddressRequests, RouteRootResendRequests},
+    components: {RouteRootAddressRequests, RouteRootResendRequests, RequestsSubscribe},
 })
 export default class extends Vue {
 

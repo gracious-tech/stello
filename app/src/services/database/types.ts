@@ -106,6 +106,7 @@ export interface RecordProfileHostState {
     shared_secret:CryptoKey  // Private to user & readers; for protecting non-message data
     resp_key:CryptoKeyPair  // Private to user; used to receive data without interception
     displayer_config_uploaded:boolean  // False when it needs updating
+    subscribe_config_uploaded:boolean  // False when it needs updating
     responder_config_uploaded:boolean  // False when it needs updating
 }
 
@@ -142,6 +143,18 @@ export interface RecordProfileOptions {
     reply_invite_button:string
     theme_style:ThemeStyle
     theme_color:ThemeColor
+}
+
+
+// SubscribeForm
+
+export interface RecordSubscribeForm {
+    id:string  // Also used for basic encryption of form data
+    profile:string
+    text:string
+    accept_message:boolean
+    groups:string[]
+    service_account:string|null
 }
 
 
@@ -337,6 +350,16 @@ export interface RecordRequestResend extends RecordResponseCore {
     reason:string
 }
 
+export interface RecordRequestSubscribe extends RecordResponseCore {
+    id:string
+    name:string
+    address:string
+    message:string
+    profile:string
+    groups:string[]
+    service_account:string|null
+}
+
 
 // Database
 
@@ -373,6 +396,13 @@ export interface AppDatabaseSchema extends DBSchema {
         key:string,
         value:RecordProfile,
     }
+    subscribe_forms:{
+        key:string,
+        value:RecordSubscribeForm,
+        indexes:{
+            by_profile:string,
+        },
+    }
     unsubscribes:{
         key:[string, string],
         value:RecordUnsubscribe,
@@ -388,6 +418,10 @@ export interface AppDatabaseSchema extends DBSchema {
     request_resend:{
         key:[string, string],
         value:RecordRequestResend,
+    }
+    request_subscribe:{
+        key:string,
+        value:RecordRequestSubscribe,
     }
     drafts:{
         key:string,

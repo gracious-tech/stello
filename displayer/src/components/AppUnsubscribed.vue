@@ -1,11 +1,12 @@
 
 <template lang='pug'>
 
-div.unsubscribed(v-if='unsubscribed || !responder' class='ui')
+div.unsubscribed(v-if='unsubscribed || config_error' class='ui')
     div.alert
 
-        template(v-if='responder === null') Network issue detected
-        template(v-else-if='responder === false') This account is no longer active
+        template(v-if='config_error === "network"') Network issue detected
+        template(v-else-if='config_error === "decrypt"') Invalid URL
+        template(v-else-if='config_error === "inactive"') This account is no longer active
         template(v-else-if='unsubscribed')
             | You've unsubscribed
             a(@click='undo') UNDO
@@ -24,7 +25,7 @@ import {displayer_config} from '@/services/displayer_config'
 export default defineComponent({
     setup(){
         return {
-            responder: computed(() => displayer_config.responder),
+            config_error: computed(() => displayer_config.error),
             unsubscribed: computed(() => store.unsubscribed),
             undo: () => {void store.update_subscribed(true)},
         }

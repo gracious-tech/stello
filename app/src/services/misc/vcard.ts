@@ -5,17 +5,19 @@ import {partition} from '@/services/utils/strings'
 interface Contact {
     name:string|null
     email:string|null
+    notes:string|null
 }
 
 
 export function extract_contacts_from_vcard(data:string):Contact[]{
-    // Simple vcard parsing which gets name and/or email only (skips if neither)
+    // Simple vcard parsing which gets name and/or email only (skips if neither) + optionally notes
 
     const contacts:Contact[] = []
 
     let within_card = false
     let name:string|null = null
     let email:string|null = null
+    let notes:string|null = null
 
     for (let line of data.split('\n')){
 
@@ -38,11 +40,12 @@ export function extract_contacts_from_vcard(data:string):Contact[]{
 
         if (line === 'END:VCARD'){
             if (name || email){
-                contacts.push({name, email})
+                contacts.push({name, email, notes})
             }
             within_card = false
             name = null
             email = null
+            notes = null
             continue
         }
 
@@ -56,6 +59,11 @@ export function extract_contacts_from_vcard(data:string):Contact[]{
             if (!email){
                 email = val
             }
+            continue
+        }
+
+        if (key === 'NOTE'){
+            notes = val
             continue
         }
     }

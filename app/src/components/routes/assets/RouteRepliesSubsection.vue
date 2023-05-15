@@ -22,8 +22,9 @@ v-card(class='my-8')
             color='')
 
     v-card-text
-        RouteRepliesReplaction(v-for='replaction of replactions' :key='replaction.id'
-            :replaction='replaction' :name='names[replaction.contact_id]' @removed='on_removed')
+        transition-group(name='trans-right')
+            RouteRepliesReplaction(v-for='replaction of replactions' :key='replaction.id'
+                :replaction='replaction' :name='names[replaction.contact_id]' @removed='on_removed')
 
 
 </template>
