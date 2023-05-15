@@ -22,6 +22,7 @@ export async function get_initial_state(db:Database):Promise<AppStoreState>{
         default_contacts: null,
         manager_aws_key_id: '',
         manager_aws_max_lifespan: Infinity,
+        fallback_secret: null,
 
         // Private state
         usage_installed: null,  // Will be inited via main.ts if null
