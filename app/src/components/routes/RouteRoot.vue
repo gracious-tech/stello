@@ -77,6 +77,10 @@ export default class extends Vue {
             title: "Edit synced contact groups",
             desc: "You can now edit groups that have been synced from Google contacts",
         },
+        {
+            title: "See unsubscribed in contacts list",
+            desc: "The disengaged contacts page now also displays contacts who unsubscribed",
+        },
     ]
     todo = [
     ]
