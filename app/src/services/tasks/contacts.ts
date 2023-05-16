@@ -153,21 +153,23 @@ export async function contacts_remove(task:Task):Promise<void>{
     // Task for removing a contact
 
     // Extract args from task object and get oauth record
-    const [oauth_id, contact_id] = task.params as [string, string]
-    const oauth = await self.app_db.oauths.get(oauth_id)
-    if (!oauth){
-        throw task.abort("No longer have access to contacts account")
-    }
+    const [contact_id] = task.params as [string]
 
     // Get the contact's record
     const contact = await self.app_db.contacts.get(contact_id)
     if (!contact){
-        throw task.abort("Contact no longer exists")
+        return  // Already deleted
+    }
+
+    // Get oauth record
+    const oauth = await self.app_db.oauths.get_by_service_account(contact.service_account!)
+    if (!oauth){
+        throw task.abort("No longer have access to contacts account")
     }
 
     // Configure task object
     task.label = `Deleting contact "${contact.display}"`
-    task.fix_oauth = oauth_id
+    task.fix_oauth = oauth.id
 
     // Call handler specific to the oauth's issuer
     await HANDLERS[oauth.issuer]!.remove(oauth, contact.service_id!)

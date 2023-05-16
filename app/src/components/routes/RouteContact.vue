@@ -387,7 +387,7 @@ export default class extends Vue {
             if (!confirmed){
                 return
             }
-            void task_manager.start_contacts_remove(this.oauth!.id, this.contact_id)
+            void task_manager.start_contacts_remove(this.contact_id)
         } else {
             await self.app_db.contacts.remove(this.contact_id)
         }

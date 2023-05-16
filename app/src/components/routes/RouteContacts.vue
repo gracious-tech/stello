@@ -22,8 +22,7 @@ div
                     | {{ filter_group ? `Remove from "${filter_group.display}"` : "Remove from group" }}
                 v-divider
                 app-list-item(@click='do_selected_export') Export selected
-                app-list-item(@click='do_selected_delete' class='error--text'
-                    :disabled='!contacts_selected_internal.length') Delete selected
+                app-list-item(@click='do_selected_delete' class='error--text') Delete selected
         span(v-else-if='search || filter_group' class='text--secondary')
             | {{ contacts_matched.length }} {{ search ? "matched" : "included" }}
         v-spacer
@@ -93,7 +92,7 @@ import RouteContactsItem from './assets/RouteContactsItem.vue'
 import RouteContactsGroup from './assets/RouteContactsGroup.vue'
 import {remove_item, remove_match, remove_matches, sort} from '@/services/utils/arrays'
 import {download_file} from '@/services/utils/misc'
-import {sleep} from '@/services/utils/async'
+import {sleep, concurrent} from '@/services/utils/async'
 import {MustReauthenticate, MustReconnect} from '@/services/utils/exceptions'
 import {Group} from '@/services/database/groups'
 import {OAuth} from '@/services/database/oauths'
@@ -337,7 +336,7 @@ export default class extends Vue {
         // Listen to task completions and adjust state as needed
         // TODO handle more events
         if (task.name === 'contacts_remove'){
-            remove_match(this.contacts, item => item.contact.id === task.params[1])
+            remove_match(this.contacts, item => item.contact.id === task.params[0])
         } else if (task.name === 'contacts_sync'){
             void this.load_contacts()
         } else if (task.name === 'contacts_group_remove'){
@@ -580,18 +579,20 @@ export default class extends Vue {
 
     // Actions on selected
 
-    do_selected_delete():void{
-        // Delete selected contacts (but only those not part of a service account)
-        const ids = this.contacts_selected_internal.map(c => c.contact.id)
-        void self.app_db.contacts.remove(ids)
+    async do_selected_delete(){
+        // Delete selected contacts
 
-        // Remove deleted from list
-        this.contacts = this.contacts.filter(item => !ids.includes(item.contact.id))
+        // First delete local ones
+        const internal = this.contacts_selected_internal.map(c => c.contact.id)
+        await self.app_db.contacts.remove(internal)
+        this.contacts = this.contacts.filter(item => !internal.includes(item.contact.id))
 
-        // Notify how many deleted/skipped
-        const skipped = this.contacts_selected.length
-        const skipped_text = skipped ? `(skipped ${skipped} synced contacts)` : ''
-        void this.$store.dispatch('show_snackbar', `Deleted ${ids.length} contacts ${skipped_text}`)
+        // Concurrently remove service contacts (should be all that's left but double check)
+        void concurrent(this.contacts_selected.filter(c => c.contact.service_account).map(item => {
+            return async () => {
+                await task_manager.start_contacts_remove(item.contact.id)
+            }
+        }), 3)
     }
 
     do_selected_export():void{

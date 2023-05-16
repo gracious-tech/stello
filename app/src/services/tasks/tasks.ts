@@ -294,8 +294,8 @@ export class TaskManager {
         return this.start('contacts_change_email', [oauth_id, contact_id], [addresses, chosen])
     }
 
-    start_contacts_remove(oauth_id:string, contact_id:string):Promise<Task>{
-        return this.start('contacts_remove', [oauth_id, contact_id])
+    start_contacts_remove(contact_id:string):Promise<Task>{
+        return this.start('contacts_remove', [contact_id])
     }
 
     start_contacts_create(oauth_id:string, address:string, name:string):Promise<Task>{
