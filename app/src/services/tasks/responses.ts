@@ -21,7 +21,7 @@ export async function responses_receive(task:Task):Promise<void>{
     */
 
     // Configure task
-    task.label = "Downloading responses"
+    task.label = "Checking for responses"
 
     // Don't want to interrupt processing as a single error could block all response receiving
     // And errors may often be isolated to a single response or single profile
