@@ -56,7 +56,8 @@ div
                     v-divider
                     v-subheader Management
                     app-list-item(value='duplicates') Duplicates
-                    app-list-item(v-for='profile of profiles' :value='`disengaged_${profile.id}`')
+                    app-list-item(v-for='profile of profiles' :key='profile.id'
+                            :value='`disengaged_${profile.id}`')
                         | Disengaged ({{ profile.display }})
                     div(class='text-center mt-2')
                         app-btn(@click='show_import_dialog' small) Import contacts
