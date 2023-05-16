@@ -24,6 +24,12 @@ export class DatabaseUnsubscribes {
         this._conn = connection
     }
 
+    async list():Promise<Unsubscribe[]>{
+        // Get all unsubscribes
+        const unsubscribes = await this._conn.getAll('unsubscribes')
+        return unsubscribes.map(unsubscribe => new Unsubscribe(unsubscribe))
+    }
+
     async list_for_profile(profile:string):Promise<Unsubscribe[]>{
         // Get all unsubscribes for given profile id
         const unsubscribes = await this._conn.getAllFromIndex('unsubscribes', 'by_profile', profile)
