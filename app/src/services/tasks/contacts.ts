@@ -778,7 +778,8 @@ async function contacts_group_name_google(oauth:OAuth, service_id:string, name:s
             readGroupFields: '',
         })
     } catch (error){
-        if (error instanceof MustInterpret && error.data['status'] === 409){
+        if (error instanceof MustInterpret &&
+                (error.data as Record<string, unknown>)['status'] === 409){
             throw new TaskAborted("Another group has the same name")
         }
         throw error

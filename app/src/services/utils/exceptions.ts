@@ -64,9 +64,9 @@ export class MustRecover extends CustomError {
 
 export class MustInterpret extends CustomError {
     // Use for unknown errors that have data available that could be interpreted
-    data:Record<string, unknown>
+    data:unknown
 
-    constructor(data:Record<string, unknown>){
+    constructor(data:unknown){
         // Ensure data available when printed by stringifying as error's message
         super(JSON.stringify(data))
         this.data = data
