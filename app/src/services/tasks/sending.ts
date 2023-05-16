@@ -171,10 +171,10 @@ export class Sender {
                 void self.app_store.dispatch('show_dialog', {
                     component: DialogEmailSettings, props: {profile: fresh_profile},
                 })
-            } else {
-                return "Sending account no longer exists"
+                // Abort task so user can finish sending from the sent message page instead
+                return "Finish sending after correcting settings"
             }
-            return undefined
+            return "Sending account no longer exists"
         }
         task.fix_auth = task.fix_settings
 
