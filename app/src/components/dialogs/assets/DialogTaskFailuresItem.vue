@@ -18,8 +18,7 @@ v-card.card(class='mb-4')
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
 import {Task, TaskStartArgs, TaskErrorType} from '@/services/tasks/tasks'
-import {OauthUseless, oauth_pretask_reauth, ScopeSet, scope_set_for_task}
-    from '@/services/tasks/oauth'
+import {OauthUseless, oauth_pretask_reauth, scope_set_for_task} from '@/services/tasks/oauth'
 import {OAuth} from '@/services/database/oauths'
 
 
@@ -33,7 +32,7 @@ export default class extends Vue {
     async created(){
         // If task refers to an oauth, get fresh copy of it
         if (this.task.fix_oauth){
-            this.oauth = await self.app_db.oauths.get(this.task.fix_oauth)
+            this.oauth = await self.app_db.oauths.get(this.task.fix_oauth) ?? null
         }
     }
 
@@ -47,7 +46,7 @@ export default class extends Vue {
         const type = this.task.error_type!
         if (type === 'auth' && this.task.fix_oauth){
             // Since have access to oauth object, can be more specific
-            if (this.oauth?.scope_sets.includes(this.required_scope_set)){
+            if (this.oauth?.scope_sets.includes(this.required_scope_set!)){
                 return 'oauth_access'
             }
             return 'oauth_scopes'
@@ -65,7 +64,7 @@ export default class extends Vue {
             auth: "Wrong password",
             oauth_access: "Not signed in",
             oauth_scopes: "Do not have permission",
-            oauth_useless: `Account not valid (${this.oauth?.email})`,
+            oauth_useless: `Account not valid (${this.oauth?.email ?? ''})`,
             settings: "Incorrect settings",
             throttled: "Limit exceeded",
             unknown: "Unexpected error",
@@ -88,9 +87,9 @@ export default class extends Vue {
         } else if (this.error_type === 'oauth_access'){
             return "Stello is not signed in to your account (session may have expired)."
         } else if (this.error_type === 'oauth_scopes'){
-            return `Permission required: ${scopes_ui[this.required_scope_set]}`
+            return `Permission required: ${scopes_ui[this.required_scope_set!]}`
         } else if (this.error_type === 'oauth_useless'){
-            return `The chosen account is not able to "${scopes_ui[this.required_scope_set]}"
+            return `The chosen account is not able to "${scopes_ui[this.required_scope_set!]}"
                 and is likely just for signing in. You'll need to select a different account or
                 change your settings.`
         } else if (this.error_type === 'settings'){
@@ -126,7 +125,7 @@ export default class extends Vue {
         // SECURITY Don't include task params or label as may include personal data
         if (this.error_type === 'unknown'){
             const desc = "I was trying to...\n\nBut...\n\n\n----------TECHNICAL DETAILS----------\n"
-                + `Task: ${this.task.name}\nError report: ${this.task.error_report_id}`
+                + `Task: ${this.task.name}\nError report: ${this.task.error_report_id ?? ''}`
             return `https://gracious.tech/support/stello/error/?desc=${encodeURIComponent(desc)}`
         }
         return undefined
@@ -138,9 +137,9 @@ export default class extends Vue {
         let abort_msg:void|string
         if (this.error_type === 'oauth_useless' && this.task.fix_settings){
             abort_msg = await this.task.fix_settings()
-        } else if (this.error_type.startsWith('oauth_')){
+        } else if (this.error_type.startsWith('oauth_') && this.oauth){
             // Need new credentials for same scopes as before
-            oauth_pretask_reauth(task_args, this.oauth)
+            void oauth_pretask_reauth(task_args, this.oauth)
         } else if (this.error_type === 'auth' && this.task.fix_auth){
             abort_msg = await this.task.fix_auth()
         } else if (this.error_type === 'settings' && this.task.fix_settings){
