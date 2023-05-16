@@ -16,8 +16,9 @@ v-list-item.item(:value='group.id')
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
-import DialogGroupName from '@/components/dialogs/reuseable/DialogGroupName.vue'
+import DialogGenericText from '@/components/dialogs/generic/DialogGenericText.vue'
 import {Group} from '@/services/database/groups'
+import {task_manager} from '@/services/tasks/tasks'
 
 
 @Component({})
@@ -25,17 +26,28 @@ export default class extends Vue {
 
     @Prop() declare readonly group:Group
 
-    rename(){
+    async rename(){
         // Show dialog that allows renaming the group
-        this.$store.dispatch('show_dialog', {
-            component: DialogGroupName,
-            props: {group: this.group},
-        })
+        const name = await this.$store.dispatch('show_dialog', {
+            component: DialogGenericText,
+            props: {
+                title: "Group name",
+                initial: this.group.name,
+            },
+        }) as string|undefined
+        if (name){
+            if (this.group.service_account){
+                void task_manager.start_contacts_group_name(this.group.id, name)
+            } else {
+                this.group.name = name
+                void self.app_db.groups.set(this.group)
+            }
+        }
     }
 
-    remove(){
+    async remove(){
         // Remove the group from db and notify parent component
-        self.app_db.groups.remove(this.group.id)
+        await self.app_db.groups.remove(this.group.id)
         this.$emit('removed', this.group)
     }
 

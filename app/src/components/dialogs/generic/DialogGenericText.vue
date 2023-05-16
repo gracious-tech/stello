@@ -23,7 +23,7 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 @Component({})
 export default class extends Vue {
 
-    @Prop({required: true}) declare readonly label:string
+    @Prop({default: ''}) declare readonly label:string
     @Prop({default: ''}) declare readonly initial:string
     @Prop({default: ''}) declare readonly title:string
     @Prop({default: false}) declare readonly textarea:boolean

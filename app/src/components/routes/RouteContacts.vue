@@ -49,8 +49,8 @@ div
                         v-subheader
                             div.account_name(class='ellipsis') {{account.display}}
                             app-btn(@click='account.sync' icon='sync')
-                        app-list-item(v-for='group of account.groups' :key='group.id'
-                            :value='group.id') {{group.display}}
+                        route-contacts-group(v-for='group of account.groups' :key='group.id'
+                            :group='group' @removed='on_group_removed')
                     v-divider
                     v-subheader Management
                     app-list-item(value='duplicates') Duplicates
@@ -340,6 +340,11 @@ export default class extends Vue {
             remove_match(this.contacts, item => item.contact.id === task.params[1])
         } else if (task.name === 'contacts_sync'){
             void this.load_contacts()
+        } else if (task.name === 'contacts_group_name'){
+            const group = this.groups.find(g => g.id === task.params[0])
+            if (group){
+                group.name = task.options[0] as string
+            }
         }
     }
 

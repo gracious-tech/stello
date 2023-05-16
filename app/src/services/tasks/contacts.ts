@@ -18,6 +18,7 @@ interface IssuerHandlers {
     remove:typeof contacts_remove_google,
     create:typeof contacts_create_google,
     get_addresses:typeof contacts_get_addresses_google,
+    group_name:typeof contacts_group_name_google,
     group_fill:typeof contacts_group_fill_google,
 }
 const HANDLERS:Record<string, IssuerHandlers> = {
@@ -29,6 +30,7 @@ const HANDLERS:Record<string, IssuerHandlers> = {
         remove: contacts_remove_google,
         create: contacts_create_google,
         get_addresses: contacts_get_addresses_google,
+        group_name: contacts_group_name_google,
         group_fill: contacts_group_fill_google,
     },
 }
@@ -193,6 +195,40 @@ export async function contacts_create(task:Task):Promise<void>{
     task.fix_oauth = oauth_id
 
     await taskless_contacts_create(oauth, contact_name, contact_address)
+}
+
+
+export async function contacts_group_name(task:Task):Promise<void>{
+    // Task for renaming a group
+
+    // Extract args from task object
+    const [group_id] = task.params as [string]
+    const [name] = task.options as [string]
+
+    // Get record for the group
+    let group = await self.app_db.groups.get(group_id)
+    if (!group){
+        throw task.abort("Group no longer exists")
+    }
+
+    const oauth = await self.app_db.oauths.get_by_service_account(group.service_account!)
+    if (!oauth){
+        throw task.abort("No longer have access to contacts account")
+    }
+
+    // Configure task object
+    task.label = `Renaming group to "${name}"`
+    task.fix_oauth = oauth.id
+
+    // Call handler specific to the oauth's issuer
+    await HANDLERS[oauth.issuer]!.group_name(oauth, group.service_id!, name)
+
+    // If all went well, apply to own db
+    group = await self.app_db.groups.get(group_id)  // Get fresh copy
+    if (group){
+        group.name = name
+        await self.app_db.groups.set(group)
+    }
 }
 
 
@@ -652,6 +688,20 @@ async function contacts_get_addresses_google(oauth:OAuth, service_id:string):Pro
     const person = await google_request(
         oauth, `people/${service_id}`, {personFields: 'emailAddresses'}) as GooglePerson
     return person.emailAddresses?.map(i => i.value) ?? []
+}
+
+
+async function contacts_group_name_google(oauth:OAuth, service_id:string, name:string)
+        :Promise<void>{
+    // Rename a group
+    const group = await google_request(oauth, `contactGroups/${service_id}`,
+        {groupFields: 'name'}) as Record<string, unknown>
+    group['name'] = name
+    await google_request(oauth, `contactGroups/${service_id}`, undefined, 'PUT', {
+        contactGroup: group,
+        updateGroupFields: 'name',
+        readGroupFields: '',
+    })
 }
 
 

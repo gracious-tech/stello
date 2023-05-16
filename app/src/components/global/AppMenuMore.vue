@@ -14,7 +14,7 @@ v-menu
 
 <script lang='ts'>
 
-import {Component, Vue, Prop} from 'vue-property-decorator'
+import {Component, Vue, Prop, Provide} from 'vue-property-decorator'
 
 
 @Component({})
@@ -22,6 +22,11 @@ export default class extends Vue {
 
     @Prop({type: String, default: 'more_vert'}) declare readonly icon:string
 
+    // Hack to stop Vuetify deselecting list item if this menu is a child of a list item
+    // e.g. In groups list of RouteContacts
+    // See https://github.com/vuetifyjs/vuetify/issues/9406#issuecomment-756806548
+    @Provide() isInGroup = false
+    @Provide() listItemGroup = undefined
 }
 
 </script>
