@@ -697,11 +697,18 @@ async function contacts_group_name_google(oauth:OAuth, service_id:string, name:s
     const group = await google_request(oauth, `contactGroups/${service_id}`,
         {groupFields: 'name'}) as Record<string, unknown>
     group['name'] = name
-    await google_request(oauth, `contactGroups/${service_id}`, undefined, 'PUT', {
-        contactGroup: group,
-        updateGroupFields: 'name',
-        readGroupFields: '',
-    })
+    try {
+        await google_request(oauth, `contactGroups/${service_id}`, undefined, 'PUT', {
+            contactGroup: group,
+            updateGroupFields: 'name',
+            readGroupFields: '',
+        })
+    } catch (error){
+        if (error instanceof MustInterpret && error.data['status'] === 409){
+            throw new TaskAborted("Another group has the same name")
+        }
+        throw error
+    }
 }
 
 
