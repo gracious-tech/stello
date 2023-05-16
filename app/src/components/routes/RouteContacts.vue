@@ -50,6 +50,9 @@ div
                             app-btn(@click='account.sync' icon='sync')
                         route-contacts-group(v-for='group of account.groups' :key='group.id'
                             :group='group' @removed='on_group_removed')
+                        div(class='text-center')
+                            app-btn(@click='new_synced_group(account.id)' small class='mt-2')
+                                | New group
                     v-divider
                     v-subheader Management
                     app-list-item(value='duplicates') Duplicates
@@ -86,6 +89,7 @@ import {Component, Vue, Watch} from 'vue-property-decorator'
 
 import DialogGroupChoice from '../dialogs/DialogGroupChoice.vue'
 import DialogGroupName from '../dialogs/reuseable/DialogGroupName.vue'
+import DialogGenericText from '@/components/dialogs/generic/DialogGenericText.vue'
 import DialogContactsImport from '@/components/dialogs/DialogContactsImport.vue'
 import DialogNewContact from '@/components/dialogs/reuseable/DialogNewContact.vue'
 import RouteContactsItem from './assets/RouteContactsItem.vue'
@@ -134,6 +138,8 @@ export default class extends Vue {
 
         // Load contacts and other data
         await this.load_contacts()
+        await this.load_groups()
+        await this.load_oauths()
 
         // If returning from viewing a contact, restore previous filtering state
         const prev_route = this.$store.state.tmp.prev_route
@@ -226,7 +232,7 @@ export default class extends Vue {
         // Turn oauths into "accounts" and add the groups that belong to them
         return this.oauths.map(oauth => {
             return {
-                id: oauth.service_account,
+                id: oauth.id,
                 display: oauth.display,
                 groups: this.groups.filter(
                     group => group.service_account === oauth.service_account),
@@ -339,6 +345,10 @@ export default class extends Vue {
             remove_match(this.contacts, item => item.contact.id === task.params[0])
         } else if (task.name === 'contacts_sync'){
             void this.load_contacts()
+            void this.load_groups()
+            void this.load_oauths()
+        } else if (task.name === 'contacts_group_create'){
+            void this.load_groups()
         } else if (task.name === 'contacts_group_remove'){
             remove_match(this.groups, g => g.id === task.params[0])
         } else if (task.name === 'contacts_group_name'){
@@ -352,21 +362,12 @@ export default class extends Vue {
     // Methods
 
     async load_contacts():Promise<void>{
-        // Load all contacts and groups from db
-        const [contacts, groups, oauths] = await Promise.all([
-            self.app_db.contacts.list(),
-            self.app_db.groups.list(),
-            self.app_db.oauths.list(),
-        ])
+        // Load all contacts
+        const contacts = await self.app_db.contacts.list()
 
-        // Only consider oauths that have contact syncing enabled
-        remove_matches(oauths, oauth => !oauth.contacts_sync)
-
-        // Sort all
+        // Sort by name
         // NOTE Not using `display` so that empty names appear first
         sort(contacts, 'name')
-        sort(groups, 'name')
-        sort(oauths, 'email')
 
         // Wrap contacts in container so selected state can be kept with them
         this.contacts = contacts.map(contact => {
@@ -377,9 +378,19 @@ export default class extends Vue {
                 last_read: null,
             }
         })
+    }
 
-        // Expose groups and oauths as is
-        this.groups = groups
+    async load_groups(){
+        // Load groups from db
+        this.groups = await self.app_db.groups.list()
+        sort(this.groups, 'name')
+    }
+
+    async load_oauths(){
+        // Load oauths with contact syncing enabled
+        const oauths = await self.app_db.oauths.list()
+        remove_matches(oauths, oauth => !oauth.contacts_sync)
+        sort(oauths, 'email')
         this.oauths = oauths
     }
 
@@ -528,6 +539,20 @@ export default class extends Vue {
         this.clear_selected()
     }
 
+    async new_synced_group(oauth_id:string):Promise<void>{
+        // Create a new synced group
+        const name = await this.$store.dispatch('show_dialog', {
+            component: DialogGenericText,
+            props: {
+                title: "Create new group",
+                label: "Group name",
+            },
+        }) as string|undefined
+        if (name){
+            void task_manager.start_contacts_group_create(oauth_id, name)
+        }
+    }
+
     empty_list_action():void{
         // Action for button displayed when list is empty
         if (!this.contacts.length){
@@ -548,7 +573,8 @@ export default class extends Vue {
         }) as string
         if (group_id){
             // New group and contacts so just load fresh from db and display the new group
-            void this.load_contacts()
+            await this.load_contacts()
+            await this.load_groups()
             this.filter_group_id = group_id
             this.search = ''
         }

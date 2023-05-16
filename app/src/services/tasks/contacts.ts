@@ -18,6 +18,7 @@ interface IssuerHandlers {
     remove:typeof contacts_remove_google,
     create:typeof contacts_create_google,
     get_addresses:typeof contacts_get_addresses_google,
+    group_create:typeof contacts_group_create_google,
     group_remove:typeof contacts_group_remove_google,
     group_name:typeof contacts_group_name_google,
     group_fill:typeof contacts_group_fill_google,
@@ -31,6 +32,7 @@ const HANDLERS:Record<string, IssuerHandlers> = {
         remove: contacts_remove_google,
         create: contacts_create_google,
         get_addresses: contacts_get_addresses_google,
+        group_create: contacts_group_create_google,
         group_remove: contacts_group_remove_google,
         group_name: contacts_group_name_google,
         group_fill: contacts_group_fill_google,
@@ -199,6 +201,28 @@ export async function contacts_create(task:Task):Promise<void>{
     task.fix_oauth = oauth_id
 
     await taskless_contacts_create(oauth, contact_name, contact_address)
+}
+
+
+export async function contacts_group_create(task:Task):Promise<void>{
+    // Task for creating a group
+
+    // Extract args from task object and get oauth record
+    const [oauth_id, name] = task.params as [string, string]
+    const oauth = await self.app_db.oauths.get(oauth_id)
+    if (!oauth){
+        throw task.abort("No longer have access to contacts account")
+    }
+
+    // Configure task object
+    task.label = `Creating group "${name}"`
+    task.fix_oauth = oauth_id
+
+    // Call handler specific to the oauth's issuer
+    const service_id = await HANDLERS[oauth.issuer]!.group_create(oauth, name)
+
+    // If all went well, create group in own database
+    await self.app_db.groups.create(name, [], oauth.service_account, service_id)
 }
 
 
@@ -725,6 +749,15 @@ async function contacts_get_addresses_google(oauth:OAuth, service_id:string):Pro
 }
 
 
+async function contacts_group_create_google(oauth:OAuth, name:string):Promise<string>{
+    // Create the given group in Google Contacts and return the service_id
+    const group = await google_request(oauth, 'contactGroups', undefined, 'POST', {
+        contactGroup: {name},
+    }) as GoogleGroup
+    return partition(group.resourceName, '/')[1]  // Google appends 'contactGroups/'
+}
+
+
 async function contacts_group_remove_google(oauth:OAuth, service_id:string):Promise<void>{
     // Remove a group
     // WARN Doesn't delete contacts within group by default (deleteContacts query param enables it)
@@ -736,8 +769,8 @@ async function contacts_group_name_google(oauth:OAuth, service_id:string, name:s
         :Promise<void>{
     // Rename a group
     const group = await google_request(oauth, `contactGroups/${service_id}`,
-        {groupFields: 'name'}) as Record<string, unknown>
-    group['name'] = name
+        {groupFields: 'name'}) as GoogleGroup
+    group.name = name
     try {
         await google_request(oauth, `contactGroups/${service_id}`, undefined, 'PUT', {
             contactGroup: group,
