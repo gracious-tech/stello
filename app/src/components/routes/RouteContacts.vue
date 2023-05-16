@@ -340,6 +340,8 @@ export default class extends Vue {
             remove_match(this.contacts, item => item.contact.id === task.params[1])
         } else if (task.name === 'contacts_sync'){
             void this.load_contacts()
+        } else if (task.name === 'contacts_group_remove'){
+            remove_match(this.groups, g => g.id === task.params[0])
         } else if (task.name === 'contacts_group_name'){
             const group = this.groups.find(g => g.id === task.params[0])
             if (group){

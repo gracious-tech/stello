@@ -46,9 +46,13 @@ export default class extends Vue {
     }
 
     async remove(){
-        // Remove the group from db and notify parent component
-        await self.app_db.groups.remove(this.group.id)
-        this.$emit('removed', this.group)
+        // Remove the group
+        if (this.group.service_account){
+            void task_manager.start_contacts_group_remove(this.group.id)
+        } else {
+            await self.app_db.groups.remove(this.group.id)
+            this.$emit('removed', this.group)
+        }
     }
 
 }

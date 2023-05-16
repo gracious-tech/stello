@@ -1,7 +1,7 @@
 
 import {uniq, xor} from 'lodash'
 
-import {Task} from './tasks'
+import {Task, TaskAborted} from './tasks'
 import {OAuth} from '../database/oauths'
 import {oauth_request} from './oauth'
 import {partition} from '../utils/strings'
@@ -18,6 +18,7 @@ interface IssuerHandlers {
     remove:typeof contacts_remove_google,
     create:typeof contacts_create_google,
     get_addresses:typeof contacts_get_addresses_google,
+    group_remove:typeof contacts_group_remove_google,
     group_name:typeof contacts_group_name_google,
     group_fill:typeof contacts_group_fill_google,
 }
@@ -30,6 +31,7 @@ const HANDLERS:Record<string, IssuerHandlers> = {
         remove: contacts_remove_google,
         create: contacts_create_google,
         get_addresses: contacts_get_addresses_google,
+        group_remove: contacts_group_remove_google,
         group_name: contacts_group_name_google,
         group_fill: contacts_group_fill_google,
     },
@@ -195,6 +197,36 @@ export async function contacts_create(task:Task):Promise<void>{
     task.fix_oauth = oauth_id
 
     await taskless_contacts_create(oauth, contact_name, contact_address)
+}
+
+
+export async function contacts_group_remove(task:Task):Promise<void>{
+    // Task for removing a group
+
+    // Extract args from task object
+    const [group_id] = task.params as [string]
+
+    // Get record for the group
+    const group = await self.app_db.groups.get(group_id)
+    if (!group){
+        return  // Already deleted!
+    }
+
+    // Get oauth record
+    const oauth = await self.app_db.oauths.get_by_service_account(group.service_account!)
+    if (!oauth){
+        throw task.abort("No longer have access to contacts account")
+    }
+
+    // Configure task object
+    task.label = `Deleting group "${group.display}"`
+    task.fix_oauth = oauth.id
+
+    // Call handler specific to the oauth's issuer
+    await HANDLERS[oauth.issuer]!.group_remove(oauth, group.service_id!)
+
+    // If all went well, apply to own db
+    await self.app_db.groups.remove(group_id)
 }
 
 
@@ -688,6 +720,13 @@ async function contacts_get_addresses_google(oauth:OAuth, service_id:string):Pro
     const person = await google_request(
         oauth, `people/${service_id}`, {personFields: 'emailAddresses'}) as GooglePerson
     return person.emailAddresses?.map(i => i.value) ?? []
+}
+
+
+async function contacts_group_remove_google(oauth:OAuth, service_id:string):Promise<void>{
+    // Remove a group
+    // WARN Doesn't delete contacts within group by default (deleteContacts query param enables it)
+    await google_request(oauth, `contactGroups/${service_id}`, undefined, 'DELETE')
 }
 
 
