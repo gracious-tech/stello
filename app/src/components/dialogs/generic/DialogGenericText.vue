@@ -28,7 +28,7 @@ export default class extends Vue {
     @Prop({default: ''}) declare readonly title:string
     @Prop({default: false}) declare readonly textarea:boolean
 
-    value:string
+    value!:string
 
     created(){
         this.value = this.initial
