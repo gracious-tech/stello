@@ -28,7 +28,7 @@ export default class extends Vue {
 
     @Prop() declare readonly task:Task
 
-    oauth:OAuth = null
+    oauth:OAuth|null = null
 
     async created(){
         // If task refers to an oauth, get fresh copy of it
@@ -37,7 +37,7 @@ export default class extends Vue {
         }
     }
 
-    get required_scope_set():ScopeSet{
+    get required_scope_set(){
         // Detect required scope set of task (if any)
         return scope_set_for_task(this.task.name)
     }
