@@ -7,11 +7,14 @@ v-list-item(:to='to')
     v-list-item-content
         v-list-item-title {{ item.contact.display }}
     v-list-item-action.hello(class='ellipsis ml-4')
-        v-list-item-subtitle {{ disengaged ? item.unread : item.contact.name_hello_result }}
+        v-list-item-subtitle {{ disengaged ? disengaged.unread : item.contact.name_hello_result }}
     v-list-item-action.address(class='ellipsis ml-4')
         v-list-item-subtitle {{ disengaged ? last_read_str : item.contact.address }}
     v-list-item-action
         app-svg(v-if='issuer' :name='`icon_${issuer}`')
+    v-list-item-action(v-if='disengaged' data-tip="Unsubscribed"
+            :class='{invisible: !disengaged.unsubscribed}')
+        app-svg(name='icon_do_not_disturb' class='error--text')
 
 </template>
 
@@ -29,8 +32,12 @@ import {time_between} from '@/services/misc'
 interface ContactItem {
     contact:Contact
     selected:boolean
+}
+
+interface DisengagedData {
     unread:number
     last_read:Date|null
+    unsubscribed:boolean
 }
 
 
@@ -38,7 +45,7 @@ interface ContactItem {
 export default class extends Vue {
 
     @Prop({required: true}) declare readonly item:ContactItem
-    @Prop({required: true, type: Boolean}) declare readonly disengaged:boolean
+    @Prop({default: null}) declare readonly disengaged:DisengagedData|null
 
     get to():RawLocation{
         // Return route location for viewing the contact
@@ -56,7 +63,8 @@ export default class extends Vue {
 
     get last_read_str():string{
         // Get last_read as a time since string
-        return this.item.last_read ? time_between(this.item.last_read) : "Nothing opened"
+        return this.disengaged!.last_read ?
+            time_between(this.disengaged!.last_read) : "Nothing opened"
     }
 
     toggle_selected(event:MouseEvent){

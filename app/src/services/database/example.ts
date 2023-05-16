@@ -176,6 +176,14 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
         }))
         const msg = await db.draft_to_message(draft_copy.id)
 
+        // Sometimes mark messages as sent
+        if (Math.random() < 0.5){
+            for (const copy of await db.copies.list_for_msg(msg.id)){
+                copy.invited = true
+                await db.copies.set(copy)
+            }
+        }
+
         // Sometimes create resend requests
         if (Math.random() < 0.08){
             await db._conn.put('request_resend', {

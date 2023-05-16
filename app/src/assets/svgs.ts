@@ -38,6 +38,7 @@ export * as icon_short_text         from '@/assets/icons/short_text.svg?raw-svg'
 export * as icon_compare_arrows     from '@/assets/icons/compare_arrows.svg?raw-svg'  // Fixed
 
 // Material icons
+export * as icon_do_not_disturb     from 'md-icon-svgs/do_not_disturb.svg?raw-svg'
 export * as icon_brightness_4       from 'md-icon-svgs/brightness_4.svg?raw-svg'
 export * as icon_chat_bubble_outline from 'md-icon-svgs/chat_bubble_outline.svg?raw-svg'
 export * as icon_thumb_up           from 'md-icon-svgs/thumb_up.svg?raw-svg'

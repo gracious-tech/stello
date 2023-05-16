@@ -56,13 +56,14 @@ div
                     v-divider
                     v-subheader Management
                     app-list-item(value='duplicates') Duplicates
-                    app-list-item(value='disengaged') Disengaged
+                    app-list-item(v-for='profile of profiles' :value='`disengaged_${profile.id}`')
+                        | Disengaged ({{ profile.display }})
                     div(class='text-center mt-2')
                         app-btn(@click='show_import_dialog' small) Import contacts
 
         div.contacts(:class='{selections: some_selected}')
 
-            div(v-if='filter_group_id === "disengaged"'
+            div(v-if='filter_group_id.startsWith("disengaged_")'
                     class='app-bg-primary-relative py-4 px-15 text-body-2 text-center')
                 | Contacts who were sent messages but didn't open them<br>
                 strong Messages unopened (since last open)&nbsp;&nbsp;|&nbsp;&nbsp;Last time opened
@@ -76,7 +77,7 @@ div
                     class='pt-6')
                 template(#default='{item, height_styles}')
                     route-contacts-item(:item='item' :key='item.contact.id' :style='height_styles'
-                        :disengaged='filter_group_id === "disengaged"')
+                        :disengaged='get_disengaged(item.contact.id)')
 
 </template>
 
@@ -101,6 +102,7 @@ import {sleep, concurrent} from '@/services/utils/async'
 import {MustReauthenticate, MustReconnect} from '@/services/utils/exceptions'
 import {Group} from '@/services/database/groups'
 import {OAuth} from '@/services/database/oauths'
+import {Profile} from '@/services/database/profiles'
 import {Contact} from '@/services/database/contacts'
 import {Task, task_manager} from '@/services/tasks/tasks'
 import {taskless_contacts_create} from '@/services/tasks/contacts'
@@ -109,8 +111,12 @@ import {taskless_contacts_create} from '@/services/tasks/contacts'
 interface ContactItem {
     contact:Contact
     selected:boolean
+}
+
+interface DisengagedData {
     unread:number
     last_read:Date|null
+    unsubscribed:boolean
 }
 
 
@@ -122,10 +128,11 @@ export default class extends Vue {
     contacts:ContactItem[] = []
     groups:Group[] = []
     oauths:OAuth[] = []
+    profiles:Profile[] = []
+    disengaged:Record<string, Record<string, DisengagedData>> = {}
 
     filter_group_id = '-'  // Special value for null as empty values don't get highlighted
     search = ''
-    loaded_reads = false
 
     async mounted():Promise<void>{
         // Load contacts and init filters
@@ -141,6 +148,9 @@ export default class extends Vue {
         await this.load_contacts()
         await this.load_groups()
         await this.load_oauths()
+
+        // Get profiles for disengaged views
+        this.profiles = (await self.app_db.profiles.list()).filter(p => p.setup_complete)
 
         // If returning from viewing a contact, restore previous filtering state
         const prev_route = this.$store.state.tmp.prev_route
@@ -203,8 +213,21 @@ export default class extends Vue {
                 }
             }
             return Object.values(addresses).filter(items => items.length > 1).flat()
-        } else if (this.filter_group_id === 'disengaged'){
-            return this.contacts.filter(item => item.unread > 1).sort((a, b) => b.unread - a.unread)
+        } else if (this.filter_group_id.startsWith('disengaged_')){
+            // Show only contacts who haven't read last 2 messages or have unsubscribed
+            return this.contacts.filter(item => {
+                const data = this.get_disengaged(item.contact.id)
+                return data && (data.unread > 1 || data.unsubscribed)
+            }).sort((a, b) => {
+                // Sort first by unsubscribe status and then by number msgs yet to be read
+                const a_dis = this.get_disengaged(a.contact.id)!
+                const b_dis = this.get_disengaged(b.contact.id)!
+                if (a_dis.unsubscribed !== b_dis.unsubscribed){
+                    // @ts-ignore boolean math does work
+                    return a_dis.unsubscribed - b_dis.unsubscribed
+                }
+                return b_dis.unread - a_dis.unread
+            })
         }
         return this.contacts
     }
@@ -282,7 +305,7 @@ export default class extends Vue {
             return "Group empty"
         } else if (this.filter_group_id === 'duplicates'){
             return "No duplicates"
-        } else if (this.filter_group_id === 'disengaged'){
+        } else if (this.filter_group_id.startsWith('disengaged_')){
             return "No contacts are disengaged"
         }
         return ""
@@ -331,8 +354,8 @@ export default class extends Vue {
             this.search = ''
             this.clear_selected()
         }
-        if (value === 'disengaged'){
-            void this.load_reads()
+        if (value.startsWith('disengaged_')){
+            void this.load_disengaged_data()
         }
 
         // Scroll back to top since list changed
@@ -372,19 +395,8 @@ export default class extends Vue {
 
         // Wrap contacts in container so selected state can be kept with them
         this.contacts = contacts.map(contact => {
-            return {
-                contact,
-                selected: false,
-                unread: 0,
-                last_read: null,
-            }
+            return {contact, selected: false}
         })
-
-        // Have wiped any reads data if it was there
-        this.loaded_reads = false
-        if (this.filter_group_id === 'disengaged'){
-            void this.load_reads()
-        }
     }
 
     async load_groups(){
@@ -401,24 +413,49 @@ export default class extends Vue {
         this.oauths = oauths
     }
 
-    async load_reads(){
-        // Load reads data and calculate disengaged stats
+    async load_disengaged_data(){
+        // Load data for calculating disengaged stats
 
         // Don't run more than once per mount
-        if (this.loaded_reads){
+        if (Object.keys(this.disengaged).length){
             return
         }
-        this.loaded_reads = true
+
+        // Create new object to more easily trigger reactivity when done
+        const disengaged = {} as Record<string, Record<string, DisengagedData>>
 
         // Load required data
         const reads = await self.app_db.reads.list()
         const copies = await self.app_db.copies.list()
         const messages = await self.app_db.messages.list()
+        const unsubscribes = await self.app_db.unsubscribes.list()
 
-        // Map msg ids to published date (in ms)
+        // Create objects for each profile
+        for (const profile of this.profiles){
+            disengaged[profile.id] = {}
+        }
+
+        // Categorise unsubscribes
+        for (const unsub of unsubscribes){
+            if (unsub.profile in disengaged){
+                disengaged[unsub.profile]![unsub.contact] = {
+                    unsubscribed: true,
+                    last_read: null,
+                    unread: 0,
+                }
+            }
+        }
+
+        // Map msg ids to published date (in ms) AND map msg ids to profile ids
         const msg_pub_ms:Record<string, number> = {}
+        const msg_to_profile:Record<string, string> = {}
         for (const msg of messages){
             msg_pub_ms[msg.id] = msg.published.getTime()
+            // If msg's profile still exists, map to it
+            // WARN Later logic expects msgs to NOT map if profile no longer exists
+            if (msg.draft.profile in disengaged){
+                msg_to_profile[msg.id] = msg.draft.profile
+            }
         }
 
         // Determine the date last read for every copy
@@ -430,45 +467,78 @@ export default class extends Vue {
             }
         }
 
-        // Collect published date (in ms) of latest msg each contact has read
-        const latest_read_pub:Record<string, number> = {}
+        // Collect published date (in ms) of latest msg each contact has read (by profile)
+        const latest_read_pub = Object.fromEntries(
+            this.profiles.map(p => [p.id, {} as Record<string, number>]))
 
-        // Determine the date last read anything for contacts
-        const last_read:Record<string, Date> = {}
-
+        // Determine last_read for each contact for each profile
         for (const copy of copies){
-            if (copy.id in last_read_copy){
+
+            // Only interested in profiles that still exist and copies that have been read
+            const copy_profile = msg_to_profile[copy.msg_id]
+            if (copy_profile && copy.id in last_read_copy){
+
+                // Ensure contact exists in disengaged data
+                if (!(copy.contact_id in disengaged[copy_profile]!)){
+                    disengaged[copy_profile]![copy.contact_id] = {
+                        unsubscribed: false,
+                        last_read: null,
+                        unread: 0,
+                    }
+                }
 
                 // Update last read date for contact if this copy read more recently than any prev
                 const proposed_ms = last_read_copy[copy.id]!.getTime()
-                const existing_ms = last_read[copy.contact_id]?.getTime() ?? 0
+                const existing_ms =
+                    disengaged[copy_profile]![copy.contact_id]!.last_read?.getTime() ?? 0
                 if (proposed_ms > existing_ms){
-                    last_read[copy.contact_id] = last_read_copy[copy.id]!
+                    disengaged[copy_profile]![copy.contact_id]!.last_read = last_read_copy[copy.id]!
                 }
 
                 // Also update latest msg read for contact if more recent than prev
                 // NOTE The most recent read for a contact may not be the latest msg if an old msg
                 const pub_ms = msg_pub_ms[copy.msg_id]!
-                if (pub_ms > (latest_read_pub[copy.contact_id] ?? 0)){
-                    latest_read_pub[copy.contact_id] = pub_ms
+                if (pub_ms > (latest_read_pub[copy_profile]![copy.contact_id] ?? 0)){
+                    latest_read_pub[copy_profile]![copy.contact_id] = pub_ms
                 }
             }
         }
 
         // Work out unread streak for each contact
-        const unread_streak:Record<string, number> = {}
         for (const copy of copies){
-            if (! (copy.id in last_read_copy) && copy.invited
-                    && msg_pub_ms[copy.msg_id]! > (latest_read_pub[copy.contact_id] ?? 0)){
-                unread_streak[copy.contact_id] = (unread_streak[copy.contact_id] ?? 0) + 1
+
+            // Profile must still exist + copy not read + did actually send + sent after last read
+            const copy_profile = msg_to_profile[copy.msg_id]
+            if (copy_profile && !(copy.id in last_read_copy) && copy.invited
+                    && msg_pub_ms[copy.msg_id]!
+                    > (latest_read_pub[copy_profile]![copy.contact_id] ?? 0)){
+
+                // Create object for contact if doesn't exist yet
+                if (! (copy.contact_id in disengaged[copy_profile]!)){
+                    disengaged[copy_profile]![copy.contact_id] = {
+                        unsubscribed: false,
+                        last_read: null,
+                        unread: 0,
+                    }
+                }
+
+                // Increment the unread count
+                disengaged[copy_profile]![copy.contact_id]!.unread += 1
             }
         }
 
-        // Apply results to contacts
-        for (const item of this.contacts){
-            item.unread = unread_streak[item.contact.id] ?? 0
-            item.last_read = last_read[item.contact.id] ?? null
+        // Trigger rerender
+        this.disengaged = disengaged
+    }
+
+    get_disengaged(contact:string){
+        // Get disengaged data for a contact based on currently selected profile
+        const prefix = 'disengaged_'
+        if (!this.filter_group_id.startsWith(prefix)){
+            return undefined
         }
+        const profile = this.filter_group_id.slice(prefix.length)
+        return this.disengaged[profile]?.[contact]
     }
 
     async new_contact():Promise<void>{
