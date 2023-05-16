@@ -160,7 +160,7 @@ function dev_throwing(){
     // Randomly throw fake errors during dev
     // WARN Do not make async as can mess up SMTP_TRANSPORTS values if they get deleted/recreated
 
-    if (app.isPackaged){
+    if (app.isPackaged || process.env['STELLO_SMTP_LOCALHOST'] === "false"){
         return
     }
 
