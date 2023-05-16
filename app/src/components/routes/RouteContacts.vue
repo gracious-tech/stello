@@ -379,6 +379,12 @@ export default class extends Vue {
                 last_read: null,
             }
         })
+
+        // Have wiped any reads data if it was there
+        this.loaded_reads = false
+        if (this.filter_group_id === 'disengaged'){
+            void this.load_reads()
+        }
     }
 
     async load_groups(){
