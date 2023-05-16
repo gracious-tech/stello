@@ -54,28 +54,28 @@ export default class extends Vue {
         if (fails.length === 0){
             return undefined
         } else if (fails.length === 1){
-            return fails[0].display
+            return fails[0]!.display
         }
         return `${fails.length} tasks failed`
     }
 
-    get task_manager_finished():Task{
+    get task_manager_finished(){
         // The current finished task (task manager only ever stores last one)
         return task_manager.data.finished
     }
 
-    get finished():Task{
+    get finished(){
         // The first finished task in queue for brief display
         return this.finished_queue[0]
     }
 
-    get finished_display():string{
+    get finished_display(){
         // Get display text for finished task
         // NOTE May be aborted, and even if so, may not have a message
-        return this.finished.aborted?.message || this.finished.display
+        return this.finished!.aborted?.message || this.finished!.display
     }
 
-    get first():Task{
+    get first(){
         // Shortcut for the first active task
         return this.tasks[0]
     }
