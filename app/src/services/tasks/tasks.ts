@@ -200,10 +200,11 @@ export class Task {
 
 export class TaskManager {
 
-    data:{tasks:Task[], fails:Task[], finished:Task|null} = Vue.observable({
+    data:{tasks:Task[], fails:Task[], finished:Task|null, succeeded:Task|null} = Vue.observable({
         tasks: [],
         fails: [],
         finished: null,  // Only stores last task to have finished
+        succeeded: null,  // Only stores lask task to have finished successfully
     })
 
     async start(name:string, params:unknown[]=[], options:unknown[]=[], auto=false):Promise<Task>{
@@ -241,6 +242,10 @@ export class TaskManager {
             // Return value of `then` is null, so simply return error to mark task as failed
             console.debug(error)
             console.debug('(handled by task manager)')
+            // Catch abort throws from within tasks
+            if (error instanceof TaskAborted){
+                task.abort(error.message)
+            }
             // If network failure and task was started automatically, just abort since user offline
             if (auto && error instanceof MustReconnect){
                 task.abort("Can't do while offline")
@@ -254,6 +259,9 @@ export class TaskManager {
             // If no error, or task was aborted, put in finished (otherwise append to fails)
             if (error === null || task.aborted){
                 this.data.finished = task
+                if (!task.aborted){
+                    this.data.succeeded = task
+                }
             } else {
                 this.data.fails.push(task)
             }
