@@ -8,7 +8,8 @@ test("Visit all main routes", async ({page}) => {
     await page.click('nav :text("Drafts")')
     expect(await page.textContent('header >> nth=-1')).toBe("Drafts")
     await page.click('nav :text("Sent")')
-    expect(await page.textContent('header >> nth=-1')).toBe("Sent Messages")
+    // NOTE Sent page header includes a button too so must exclude it
+    expect(await page.textContent('.v-toolbar__title >> nth=-1')).toBe("Sent Messages")
     await page.click('nav :text("Responses")')
     expect(await page.textContent('header >> nth=-1')).toBe("Responses")
     await page.click('nav :text("Contacts")')
