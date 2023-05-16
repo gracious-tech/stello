@@ -236,14 +236,7 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
     }
 
     // Create subscribe form
-    await db._conn.put('subscribe_forms', {
-        id: 'form',
-        text: '<h2>Subscribe to newsletter</h2>\n<p>To get our latest news.</p>',
-        accept_message: true,
-        groups: [group1.id],
-        service_account: null,
-        profile: profile.id,
-    })
+    await db.subscribe_forms.create(profile.id)
 
     // Create subscribe requests
     await Promise.all([...range(3 * multiplier)].map(async i => {
