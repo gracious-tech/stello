@@ -73,6 +73,10 @@ export default class extends Vue {
             title: "Subscribe forms",
             desc: "Create a form people can fill in to subscribe (sending account setting)",
         },
+        {
+            title: "Edit synced contact groups",
+            desc: "You can now edit groups that have been synced from Google contacts",
+        },
     ]
     todo = [
     ]
