@@ -233,7 +233,7 @@ export default class extends Vue {
 
     // WATCHES
 
-    @Watch('$tm.data.finished') watch_tm_finished(task:Task){
+    @Watch('$tm.data.succeeded') watch_tm_finished(task:Task){
         // Listen to task completions and adjust state as needed
         if (task.name === 'responses_receive'){
             void this.load_reads()

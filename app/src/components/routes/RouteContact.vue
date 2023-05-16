@@ -249,7 +249,7 @@ export default class extends Vue {
 
     // WATCH
 
-    @Watch('$tm.data.finished') watch_finished(task:Task){
+    @Watch('$tm.data.succeeded') watch_finished(task:Task){
         // Respond to task completions
         if (task.name.startsWith('contacts_')){
             // Any contact task completing while looking at a contact is 99% likely to be relevant

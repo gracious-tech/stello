@@ -57,7 +57,7 @@ export default class extends Vue {
         remove_match(this.messages, msg => msg.id === id)
     }
 
-    @Watch('$tm.data.finished') watch_finished(task:Task){
+    @Watch('$tm.data.succeeded') watch_finished(task:Task){
         // Respond to finished tasks
         if (task.name === 'retract_message' && task.options[0]){  // remove option
             // Message has been deleted

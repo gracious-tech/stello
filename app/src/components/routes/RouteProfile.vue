@@ -412,7 +412,7 @@ export default class extends Vue {
         this.save()
     }
 
-    @Watch('$tm.data.finished') async watch_tm_finished(task:Task):Promise<void>{
+    @Watch('$tm.data.succeeded') async watch_tm_finished(task:Task):Promise<void>{
         // Listen to task completions and adjust state as needed
         const affect_profile:Record<string, number> = {
             send_oauth_setup: 1,  // Index of profile_id param

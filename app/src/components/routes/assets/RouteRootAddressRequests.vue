@@ -74,7 +74,7 @@ export default class extends Vue {
         this.requests = requests  // Don't replace until ready
     }
 
-    @Watch('$tm.data.finished') watch_finished(task:Task){
+    @Watch('$tm.data.succeeded') watch_finished(task:Task){
         // Respond to task completions
         if (task.name === 'responses_receive'){
             // May have received a new address change response

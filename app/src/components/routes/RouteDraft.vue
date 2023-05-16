@@ -148,7 +148,7 @@ export default class RouteDraft extends Vue {
         }
     }
 
-    @Watch('$tm.data.finished') watch_finished(task:Task){
+    @Watch('$tm.data.succeeded') watch_finished(task:Task){
         // Respond to task completions
         if (task.name.startsWith('contacts_')){
             this.load_contacts()

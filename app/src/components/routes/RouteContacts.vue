@@ -333,7 +333,7 @@ export default class extends Vue {
         ;(this.$refs['scrollable'] as Vue)?.$el.scroll(0, 0)
     }
 
-    @Watch('$tm.data.finished') watch_tm_finished(task:Task){
+    @Watch('$tm.data.succeeded') watch_tm_finished(task:Task){
         // Listen to task completions and adjust state as needed
         // TODO handle more events
         if (task.name === 'contacts_remove'){

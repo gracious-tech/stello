@@ -77,7 +77,7 @@ export default class extends Vue {
         }
     }
 
-    @Watch('$tm.data.finished') watch_finished(task:Task){
+    @Watch('$tm.data.succeeded') watch_finished(task:Task){
         // Respond to finished tasks
         if (task.name === 'contacts_sync'){
             void this.load_oauths()

@@ -70,7 +70,7 @@ export default class extends Vue {
         return this.unread_replies_count > 0 || this.unread_reactions_count > 0
     }
 
-    @Watch('$tm.data.finished') watch_finished(task:Task){
+    @Watch('$tm.data.succeeded') watch_finished(task:Task){
         // Respond to finished tasks
         if (task.name === 'responses_receive'){
             // Wait a moment before loading as if current route is replies, it will set reads in db
