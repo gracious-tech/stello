@@ -7,8 +7,8 @@ export class Unsubscribe implements RecordUnsubscribe {
     profile!:string
     contact!:string
     sent!:Date
-    ip!:string
-    user_agent!:string
+    ip!:string|null
+    user_agent!:string|null
 
     constructor(db_object:RecordUnsubscribe){
         Object.assign(this, db_object)

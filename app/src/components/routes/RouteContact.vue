@@ -117,7 +117,7 @@ export default class extends Vue {
         // URL for service's page for editing the contact
         // NOTE If different account is the first signed into, user must change to correct account
         if (this.issuer === 'google'){
-            return `https://contacts.google.com/person/${this.contact.service_id}`
+            return `https://contacts.google.com/person/${this.contact.service_id!}`
         }
         return undefined
     }
@@ -227,7 +227,7 @@ export default class extends Vue {
         // Handle removal of profiles
         for (const old_id of this.unsubscribes_profiles){
             if (!new_profiles.includes(old_id)){
-                self.app_db.unsubscribes.remove(old_id, this.contact_id)
+                void self.app_db.unsubscribes.remove(old_id, this.contact_id)
                 remove_match(this.unsubscribes, unsub => unsub.profile === old_id)
             }
         }
@@ -241,7 +241,7 @@ export default class extends Vue {
                     ip: null,
                     user_agent: null,
                 }
-                self.app_db.unsubscribes.set(record)
+                void self.app_db.unsubscribes.set(record)
                 this.unsubscribes.push(record)
             }
         }
@@ -255,10 +255,10 @@ export default class extends Vue {
             // Any contact task completing while looking at a contact is 99% likely to be relevant
             // NOTE This is important to do when oauth fails while trying to change email address
             //      as it may have failed because the contact no longer exists
-            this.load_contact_related()
+            void this.load_contact_related()
         } else if (task.name === 'responses_receive'){
             // May have received a subscription response for this contact
-            this.load_unsubscribes()
+            void this.load_unsubscribes()
         }
     }
 
@@ -277,7 +277,7 @@ export default class extends Vue {
             } else {
                 this.oauth = null
             }
-            this.contact = contact
+            this.contact = contact!
         })
     }
 
@@ -331,10 +331,10 @@ export default class extends Vue {
                     label: "Full name",
                     initial: this.name,
                 },
-            })
+            }) as string|undefined
             if (typeof value === 'string'){  // NOTE Distinguish between empty string and undefined
-                task_manager.start_contacts_change_property(
-                    this.oauth.id, this.contact_id, 'name', value)
+                void task_manager.start_contacts_change_property(
+                    this.oauth!.id, this.contact_id, 'name', value)
             }
         }
     }
@@ -349,10 +349,10 @@ export default class extends Vue {
                     initial: this.notes,
                     textarea: true,
                 },
-            })
+            }) as string|undefined
             if (typeof value === 'string'){  // NOTE Distinguish between empty string and undefined
-                task_manager.start_contacts_change_property(
-                    this.oauth.id, this.contact_id, 'notes', value)
+                void task_manager.start_contacts_change_property(
+                    this.oauth!.id, this.contact_id, 'notes', value)
             }
         }
     }
@@ -373,23 +373,25 @@ export default class extends Vue {
     async remove(){
         // Remove this contact
         if (this.synced){
-            const issuer = this.oauth.display_issuer
+            const issuer = this.oauth!.display_issuer
             const confirmed = await this.$store.dispatch('show_dialog', {
                 component: DialogGenericConfirm,
                 props: {
-                    title: `This will permanently delete the contact in Stello and in ${issuer}`,
+                    title: `This contact will be deleted in both Stello and in ${issuer}`,
+                    text: `There may be additional information about this contact that Stello
+                        doesn't display, and it too will be lost.`,
                     confirm: "Delete",
                     confirm_danger: true,
                 },
-            })
+            }) as true|undefined
             if (!confirmed){
                 return
             }
-            task_manager.start_contacts_remove(this.oauth.id, this.contact_id)
+            void task_manager.start_contacts_remove(this.oauth!.id, this.contact_id)
         } else {
             await self.app_db.contacts.remove(this.contact_id)
         }
-        this.$router.push('../')
+        void this.$router.push('../')
     }
 
 }
