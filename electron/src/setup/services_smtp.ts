@@ -49,7 +49,8 @@ function smtp_transport(settings:SmtpSettings){
         // Reuse same connection for multiple messages
         pool: true,
         maxMessages: Infinity,  // No reason to start new connection after x messages
-        maxConnections: 6,  // PSMail's limit is 10, others probably similar, so stay well below
+        // PSMail's limit is 10, others probably similar, so stay well below
+        maxConnections: 6,  // NOTE Update email.ts if this changes
         // Log during dev
         logger: !app.isPackaged,
         debug: !app.isPackaged,

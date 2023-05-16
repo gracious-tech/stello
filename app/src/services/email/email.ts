@@ -66,7 +66,7 @@ class EmailAccountManager {
     settings:Profile['smtp_settings']
     queue:QueueItem[] = []
     processors = new Set<string>()
-    max_processors = 10  // NOTE SMTP currently configured to provide 10 connections, to match
+    max_processors = 10
     max_batch_size = 1  // Not currently used as only Microsoft implemented, and rate limited anyway
     last_send = 0  // Epoch time
     interval = 0  // ms
@@ -75,6 +75,9 @@ class EmailAccountManager {
 
     constructor(settings:Profile['smtp_settings']){
         this.settings = settings
+        if (!this.settings.oauth){
+            this.max_processors = 6  // NOTE Should match setting in electron
+        }
     }
 
     async send(task_id:string, email:Email):Promise<boolean>{
