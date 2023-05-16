@@ -90,6 +90,7 @@ import {Component, Vue, Watch} from 'vue-property-decorator'
 import DialogGroupChoice from '../dialogs/DialogGroupChoice.vue'
 import DialogGroupName from '../dialogs/reuseable/DialogGroupName.vue'
 import DialogGenericText from '@/components/dialogs/generic/DialogGenericText.vue'
+import DialogGenericConfirm from '@/components/dialogs/generic/DialogGenericConfirm.vue'
 import DialogContactsImport from '@/components/dialogs/DialogContactsImport.vue'
 import DialogNewContact from '@/components/dialogs/reuseable/DialogNewContact.vue'
 import RouteContactsItem from './assets/RouteContactsItem.vue'
@@ -607,6 +608,25 @@ export default class extends Vue {
 
     async do_selected_delete(){
         // Delete selected contacts
+
+        // If a large amount, confirm before deleting
+        if (this.contacts_selected.length > 5){
+            const some_synced =
+                this.contacts_selected.length > this.contacts_selected_internal.length
+            const confirmed = await this.$store.dispatch('show_dialog', {
+                component: DialogGenericConfirm,
+                props: {
+                    title: `You are going to delete ${this.contacts_selected.length} contacts`,
+                    text: some_synced ? `From both Stello and your connected contacts account.`
+                        : `You cannot undo this.`,
+                    confirm: "Delete",
+                    confirm_danger: true,
+                },
+            }) as true|undefined
+            if (!confirmed){
+                return
+            }
+        }
 
         // First delete local ones
         const internal = this.contacts_selected_internal.map(c => c.contact.id)
