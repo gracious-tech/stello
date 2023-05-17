@@ -395,6 +395,46 @@ Resources:
                             Resource: !Ref InputSesArn
                             Action: ['ses:SendEmail']
 
+    ResponderSubscribe:
+        Type: AWS::Serverless::Function
+        Properties:
+            Runtime: python3.9
+            Handler: responder.entry
+            CodeUri: responder/
+            Events:
+                ApiEvent:
+                    Type: HttpApi
+                    Properties:
+                        ApiId: !Ref Gateway
+                        Method: POST
+                        Path: /responder/subscribe
+            Environment:
+                Variables:
+                    stello_env: !Ref InputEnv
+                    stello_version: INPUT_VERSION
+                    stello_msgs_bucket: !Ref AWS::StackName
+                    stello_region: !Ref AWS::Region
+                    stello_rollbar_responder: !Ref InputRollbarResponder
+                    stello_domain_branded: !Ref InputDomainBranded
+                    stello_domain_unbranded: !Ref InputDomainUnbranded
+            Policies:
+                -   Version: '2012-10-17'
+                    Statement:
+                        # Get config and put responses
+                        -   Effect: Allow
+                            Resource: !Join ['', [!GetAtt ResponsesBucket.Arn, '/config/*/config']]
+                            Action: ['s3:GetObject']
+                        -   Effect: Allow
+                            Resource: !Join ['', [!GetAtt ResponsesBucket.Arn, '/responses/*/*']]
+                            Action: ['s3:PutObject']
+                        # Needed to send notifications
+                        -   Effect: Allow
+                            Resource: !GetAtt ResponsesBucket.Arn
+                            Action: ['s3:ListBucket']
+                        -   Effect: Allow
+                            Resource: !Ref InputSesArn
+                            Action: ['ses:SendEmail']
+
     ResponderSubscription:
         Type: AWS::Serverless::Function
         Properties:
