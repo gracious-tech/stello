@@ -584,8 +584,7 @@ export default class extends Vue {
                     === this.default_contacts_oauth?.service_account){
                 // Can only add to service group if contact is in that account
                 // NOTE Don't wait to finish, RouteContact will show it when it's done
-                void task_manager.start_contacts_group_fill(this.default_contacts_oauth.id,
-                    this.filter_group.id, [contact.id])
+                void task_manager.start_contacts_group_fill(this.filter_group.id, [contact.id])
             }
         }
 
