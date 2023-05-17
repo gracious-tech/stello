@@ -1,3 +1,7 @@
 
 cryptography~=3.3.2
 rollbar~=0.16.3
+
+# Prevent urllib3 DEFAULT_CIPHERS removal from affecting lambda's builtin boto3
+# https://urllib3.readthedocs.io/en/latest/v2-migration-guide.html#importerror-cannot-import-name-default-ciphers-from-urllib3-util-ssl
+urllib3<2
