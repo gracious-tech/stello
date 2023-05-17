@@ -21,7 +21,6 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 import {RecordRequestSubscribe} from '@/services/database/types'
 import {taskless_contacts_create} from '@/services/tasks/contacts'
 import {task_manager} from '@/services/tasks/tasks'
-import {OAuth} from '@/services/database/oauths'
 
 
 @Component({})
