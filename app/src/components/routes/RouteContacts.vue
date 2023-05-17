@@ -85,7 +85,6 @@ div
 <script lang='ts'>
 
 import papaparse from 'papaparse'
-import {uniq} from 'lodash'
 import {Component, Vue, Watch} from 'vue-property-decorator'
 
 import DialogGroupChoice from '../dialogs/DialogGroupChoice.vue'
@@ -257,6 +256,7 @@ export default class extends Vue {
         return this.oauths.map(oauth => {
             return {
                 id: oauth.id,
+                service_account: oauth.service_account,
                 display: oauth.display,
                 groups: this.groups.filter(
                     group => group.service_account === oauth.service_account),
@@ -329,6 +329,15 @@ export default class extends Vue {
             if (oauth.service_account === this.$store.state.default_contacts){
                 return oauth
             }
+        }
+        return null
+    }
+
+    get account_of_selected(){
+        // Return the service_account of selected contacts if it is the same for all of them
+        const account = this.contacts_selected[0]?.contact.service_account
+        if (account && this.contacts_selected.every(i => i.contact.service_account === account)){
+            return account
         }
         return null
     }
@@ -744,9 +753,9 @@ export default class extends Vue {
         const contact_ids = this.contacts_selected.map(c => c.contact.id)
 
         // If all selected contacts belong to same service account, create service group
-        const account = this.contacts_selected[0]?.contact.service_account
-        if (account && this.contacts_selected.every(i => i.contact.service_account === account)){
-            const oauth = this.oauths.find(oauth => oauth.service_account === account)
+        if (this.account_of_selected){
+            const oauth =
+                this.oauths.find(oauth => oauth.service_account === this.account_of_selected)
             void task_manager.start_contacts_group_create(oauth!.id, name, contact_ids)
             return
         }
@@ -768,14 +777,45 @@ export default class extends Vue {
 
     async do_selected_join_group():Promise<void>{
         // Prompt user to choose a group to add selected contacts to
+
+        // Determine if should show groups of a service account or not
+        let service_name = null as null|string
+        let service_groups = null as null|Group[]
+        if (this.account_of_selected){
+            const account_props
+                = this.accounts.find(a => a.service_account === this.account_of_selected)!
+            service_name = account_props?.display
+            service_groups = account_props?.groups
+        }
+
+        // Prompt the user to choose a group
         const group = await this.$store.dispatch('show_dialog', {
             component: DialogGroupChoice,
-            props: {groups: this.groups_internal},  // WARN Cannot join external groups
+            props: {
+                groups: this.groups_internal,
+                service_name,
+                service_groups,
+            },
         }) as Group
-        if (group){
+
+        // Cancel if no choice
+        if (!group){
+            return
+        }
+
+        // Cancel if all contacts already in the group
+        const contact_ids = this.contacts_selected.map(item => item.contact.id)
+            .filter(id => !group.contacts.includes(id))
+        if (!contact_ids.length){
+            return
+        }
+
+        // Add to either a Stello or service group
+        if (group.service_account){
+            void task_manager.start_contacts_group_fill(group.id, contact_ids)
+        } else {
             // Add contacts to the group and remove any duplicates
-            group.contacts.push(...this.contacts_selected.map(item => item.contact.id))
-            group.contacts = uniq(group.contacts)
+            group.contacts.push(...contact_ids)
             void self.app_db.groups.set(group)
             // Select the group so user can see the changes have happened
             this.filter_group_id = group.id
