@@ -17,8 +17,7 @@ div
                 v-divider
                 app-list-item(@click='do_selected_new_group') Create new group
                 app-list-item(@click='do_selected_join_group') Add to a group
-                app-list-item(@click='do_selected_leave_group'
-                        :disabled='!filter_group || !!filter_group.service_id')
+                app-list-item(@click='do_selected_leave_group' :disabled='!filter_group')
                     | {{ filter_group ? `Remove from "${filter_group.display}"` : "Remove from group" }}
                 v-divider
                 app-list-item(@click='do_selected_export') Export selected
@@ -372,15 +371,9 @@ export default class extends Vue {
             void this.load_contacts()
             void this.load_groups()
             void this.load_oauths()
-        } else if (task.name === 'contacts_group_create'){
+        } else if (task.name.startsWith('contacts_group_')){
+            // Groups should be quick to load, so just reload all whenever any change
             void this.load_groups()
-        } else if (task.name === 'contacts_group_remove'){
-            remove_match(this.groups, g => g.id === task.params[0])
-        } else if (task.name === 'contacts_group_name'){
-            const group = this.groups.find(g => g.id === task.params[0])
-            if (group){
-                group.name = task.options[0] as string
-            }
         }
     }
 
@@ -771,15 +764,21 @@ export default class extends Vue {
     }
 
     do_selected_leave_group():void{
-        // Remove selected contacts from currently selected group (if not external)
-        if (this.filter_group && !this.filter_group.service_account){
+        // Remove selected contacts from currently selected group
+        if (!this.filter_group){
+            return
+        }
+        if (this.filter_group.service_account){
+            void task_manager.start_contacts_group_drain(this.filter_group.id,
+                this.contacts_selected.map(c => c.contact.id))
+        } else {
             for (const item of this.contacts_selected){
                 remove_item(this.filter_group.contacts, item.contact.id)
             }
             void self.app_db.groups.set(this.filter_group)
-            // Clear selection so user doesn't get confused
-            this.clear_selected()
         }
+        // Clear selection so user doesn't get confused
+        this.clear_selected()
     }
 
     async do_selected_new_draft():Promise<void>{

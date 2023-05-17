@@ -5,6 +5,7 @@ import {Task, TaskAborted} from './tasks'
 import {OAuth} from '../database/oauths'
 import {oauth_request} from './oauth'
 import {partition} from '../utils/strings'
+import {remove_item} from '@/services/utils/arrays'
 import {MustInterpret, MustReauthenticate, MustWait} from '../utils/exceptions'
 import {Contact} from '@/services/database/contacts'
 
@@ -22,6 +23,7 @@ interface IssuerHandlers {
     group_remove:typeof contacts_group_remove_google,
     group_name:typeof contacts_group_name_google,
     group_fill:typeof contacts_group_fill_google,
+    group_drain:typeof contacts_group_drain_google,
 }
 const HANDLERS:Record<string, IssuerHandlers> = {
     google: {
@@ -36,6 +38,7 @@ const HANDLERS:Record<string, IssuerHandlers> = {
         group_remove: contacts_group_remove_google,
         group_name: contacts_group_name_google,
         group_fill: contacts_group_fill_google,
+        group_drain: contacts_group_drain_google,
     },
 }
 
@@ -325,6 +328,46 @@ export async function contacts_group_fill(task:Task):Promise<void>{
         if (!group.contacts.includes(contact.id)){
             group.contacts.push(contact.id)
         }
+    }
+    await self.app_db.groups.set(group)
+}
+
+
+export async function contacts_group_drain(task:Task):Promise<void>{
+    // Task for removing contacts from a group
+
+    // Extract args from task object
+    const [group_id] = task.params as [string]
+    const [contact_ids] = task.options as [string[]]
+
+    // Get record for the group
+    let group = await self.app_db.groups.get(group_id)
+    if (!group){
+        throw task.abort("Group no longer exists")
+    }
+
+    // Get oauth record
+    const oauth = await self.app_db.oauths.get_by_service_account(group.service_account!)
+    if (!oauth){
+        throw task.abort("No longer have access to contacts account")
+    }
+
+    // Configure task object
+    task.label = `Removing contacts from group "${group.display}"`
+    task.fix_oauth = oauth.id
+
+    // Get records for the contacts
+    const contacts = (await Promise.all(contact_ids.map(c => self.app_db.contacts.get(c))))
+        .filter(c => c) as Contact[]
+
+    // Call handler specific to the oauth's issuer
+    await HANDLERS[oauth.issuer]!.group_drain(
+        oauth, group.service_id!, contacts.map(c => c.service_id!))
+
+    // If all went well, apply to own db
+    group = (await self.app_db.groups.get(group_id))!  // Get fresh copy
+    for (const contact of contacts){
+        remove_item(group.contacts, contact.id)
     }
     await self.app_db.groups.set(group)
 }
@@ -792,5 +835,14 @@ async function contacts_group_fill_google(oauth:OAuth, group:string, contacts:st
     // Add contacts to a group
     await google_request(oauth, `contactGroups/${group}/members:modify`, undefined, 'POST', {
         resourceNamesToAdd: contacts.map(p => `people/${p}`),
+    })
+}
+
+
+async function contacts_group_drain_google(oauth:OAuth, group:string, contacts:string[])
+        :Promise<void>{
+    // Remove contacts from a group
+    await google_request(oauth, `contactGroups/${group}/members:modify`, undefined, 'POST', {
+        resourceNamesToRemove: contacts.map(p => `people/${p}`),
     })
 }

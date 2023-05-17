@@ -137,7 +137,7 @@ export default class extends Vue {
         if (external.length){
             final.push(
                 {divider: true},
-                {header: "Synced groups (not editable)"},
+                {header: "Synced groups (editable only in list view)"},
                 ...external,
             )
         }
