@@ -315,8 +315,8 @@ export class TaskManager {
         return this.start('contacts_group_name', [group_id], [name])
     }
 
-    start_contacts_group_fill(oauth_id:string, group:string, contacts:string[]):Promise<Task>{
-        return this.start('contacts_group_fill', [oauth_id, group], [contacts])
+    start_contacts_group_fill(group:string, contacts:string[]):Promise<Task>{
+        return this.start('contacts_group_fill', [group], [contacts])
     }
 
     start_contacts_group_drain(group:string, contacts:string[]):Promise<Task>{

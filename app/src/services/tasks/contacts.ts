@@ -296,13 +296,9 @@ export async function contacts_group_name(task:Task):Promise<void>{
 export async function contacts_group_fill(task:Task):Promise<void>{
     // Task for filling a group with contacts
 
-    // Extract args from task object and get oauth record
-    const [oauth_id, group_id] = task.params as [string, string]
+    // Extract args from task object
+    const [group_id] = task.params as [string, string]
     const [contact_ids] = task.options as [string[]]
-    const oauth = await self.app_db.oauths.get(oauth_id)
-    if (!oauth){
-        throw task.abort("No longer have access to contacts account")
-    }
 
     // Get record for the group
     let group = await self.app_db.groups.get(group_id)
@@ -310,9 +306,15 @@ export async function contacts_group_fill(task:Task):Promise<void>{
         throw task.abort("Group no longer exists")
     }
 
+    // Get oauth record
+    const oauth = await self.app_db.oauths.get_by_service_account(group.service_account!)
+    if (!oauth){
+        throw task.abort("No longer have access to contacts account")
+    }
+
     // Configure task object
     task.label = `Adding contacts to group "${group.display}"`
-    task.fix_oauth = oauth_id
+    task.fix_oauth = oauth.id
 
     // Get records for the contacts
     const contacts = (await Promise.all(contact_ids.map(c => self.app_db.contacts.get(c))))

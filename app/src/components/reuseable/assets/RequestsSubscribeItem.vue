@@ -51,10 +51,10 @@ export default class extends Vue {
         // If contact with given address already exists, may want to use it
         let contact = (await self.app_db.contacts.list_for_address(this.request.address))[0]
 
-        let oauth:OAuth|undefined
         if (!contact && this.request.service_account){
             // Create a new contact in the service account
-            oauth = await self.app_db.oauths.get_by_service_account(this.request.service_account)
+            const oauth =
+                await self.app_db.oauths.get_by_service_account(this.request.service_account)
             if (oauth){
                 contact = await taskless_contacts_create(oauth, this.request.name,
                     this.request.address)
@@ -84,9 +84,9 @@ export default class extends Vue {
 
             // Method depends on group type
             if (group.service_account){
-                // Can only add to group if successfully got oauth earlier
-                if (oauth){
-                    void task_manager.start_contacts_group_fill(oauth.id, group.id, [contact.id])
+                // Can only add to group if contact is in same service account
+                if (group.service_account === contact.service_account){
+                    void task_manager.start_contacts_group_fill(group.id, [contact.id])
                 }
             } else {
                 // Add to group if contact hasn't been added yet (i.e. contact already existed)
