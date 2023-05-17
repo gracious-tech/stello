@@ -123,24 +123,24 @@ export default class extends Vue {
 
     get possible_groups_items(){
         // Return possible groups in format that v-select understands
-        const items = this.possible_groups.map(group => {
-            return {
-                value: group.id,
-                text: group.display,
-                disabled: !!group.service_account,
+
+        // Start with local groups
+        const items:unknown[] = this.possible_groups
+            .filter(g => !g.service_account)
+            .map(group => ({value: group.id, text: group.display}))
+
+        // See if any service groups
+        if (this.contact.service_account){
+            const service_groups = this.possible_groups
+                .filter(g => g.service_account === this.contact.service_account)
+                .map(group => ({value: group.id, text: group.display}))
+            if (service_groups.length){
+                items.push({divider: true}, {header: this.oauth?.display})
+                items.push(...service_groups)
             }
-        })
-        // Separate internal and external groups
-        const final:object[] = items.filter(i => !i.disabled)
-        const external = items.filter(i => i.disabled)
-        if (external.length){
-            final.push(
-                {divider: true},
-                {header: "Synced groups (editable only in list view)"},
-                ...external,
-            )
         }
-        return final
+
+        return items
     }
 
     get profiles_ui():{value:string, text:string}[]{
@@ -193,14 +193,24 @@ export default class extends Vue {
         for (const group of this.possible_groups){
             // Detect if membership has changed for this group
             if (group_ids.includes(group.id) !== group.contacts.includes(this.contact.id)){
-                // Either add or remove the contact from the group
-                if (group_ids.includes(group.id)){
-                    group.contacts.push(this.contact.id)
+
+                // Determine if a service group
+                if (group.service_account){
+                    if (group_ids.includes(group.id)){
+                        void task_manager.start_contacts_group_fill(group.id, [this.contact.id])
+                    } else {
+                        void task_manager.start_contacts_group_drain(group.id, [this.contact.id])
+                    }
                 } else {
-                    remove_item(group.contacts, this.contact.id)
+                    // Either add or remove the contact from the group
+                    if (group_ids.includes(group.id)){
+                        group.contacts.push(this.contact.id)
+                    } else {
+                        remove_item(group.contacts, this.contact.id)
+                    }
+                    // Save changes
+                    void self.app_db.groups.set(group)
                 }
-                // Save changes
-                void self.app_db.groups.set(group)
             }
         }
     }
