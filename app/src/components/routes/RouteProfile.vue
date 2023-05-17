@@ -480,7 +480,7 @@ export default class extends Vue {
         // Mark configs as needing update
         this.save(true)
 
-        void this.$store.dispatch('show_dialog', {
+        await this.$store.dispatch('show_dialog', {
             component: DialogSubscribeForm,
             props: {
                 profile: this.profile,
@@ -489,6 +489,9 @@ export default class extends Vue {
                 oauths: this.contacts_oauths,
             },
         })
+
+        // Upload form config immediately in case user tries to copy link straight away
+        void task_manager.start_configs_update(this.profile.id)
     }
 
     form_removed(form:SubscribeForm){
