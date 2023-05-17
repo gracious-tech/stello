@@ -88,7 +88,6 @@ import papaparse from 'papaparse'
 import {Component, Vue, Watch} from 'vue-property-decorator'
 
 import DialogGroupChoice from '../dialogs/DialogGroupChoice.vue'
-import DialogGroupName from '../dialogs/reuseable/DialogGroupName.vue'
 import DialogGenericText from '@/components/dialogs/generic/DialogGenericText.vue'
 import DialogGenericConfirm from '@/components/dialogs/generic/DialogGenericConfirm.vue'
 import DialogContactsImport from '@/components/dialogs/DialogContactsImport.vue'
@@ -602,12 +601,23 @@ export default class extends Vue {
     }
 
     async new_group():Promise<void>{
-        // Create a new group
-        const group = await self.app_db.groups.create()
+        // Create a new local group
 
-        // Add group to array, prompt for name, then resort when done
+        // Prompt for group name
+        const name = await this.$store.dispatch('show_dialog', {
+            component: DialogGenericText,
+            props: {
+                title: "New group",
+                label: "Group name",
+            },
+        }) as string|undefined
+        if (!name){
+            return
+        }
+
+        // Create group and add to state
+        const group = await self.app_db.groups.create(name)
         this.groups.push(group)
-        await this.$store.dispatch('show_dialog', {component: DialogGroupName, props: {group}})
         sort(this.groups, 'name')
 
         // Select the group so user can see the changes have happened

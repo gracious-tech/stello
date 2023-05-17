@@ -52,7 +52,6 @@ div
 
 import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
-import DialogGroupName from '../dialogs/reuseable/DialogGroupName.vue'
 import DialogGenericText from '../dialogs/generic/DialogGenericText.vue'
 import DialogGenericConfirm from '../dialogs/generic/DialogGenericConfirm.vue'
 import DialogContactEmail from '../dialogs/specific/DialogContactEmail.vue'
@@ -317,9 +316,18 @@ export default class extends Vue {
 
     async new_group(){
         // Create new group and add the contact to it
-        const group = await self.app_db.groups.create('', [this.contact_id])
+        const name = await this.$store.dispatch('show_dialog', {
+            component: DialogGenericText,
+            props: {
+                title: "New Stello group",
+                label: "Group name",
+            },
+        }) as string|undefined
+        if (!name){
+            return
+        }
+        const group = await self.app_db.groups.create(name, [this.contact_id])
         this.possible_groups.push(group)
-        this.$store.dispatch('show_dialog', {component: DialogGroupName, props: {group}})
     }
 
     async synced_change_name(event:Event){
