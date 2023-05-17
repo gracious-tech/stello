@@ -54,8 +54,8 @@ export class Task {
 
     // Readable
     name:string  // May be changed if evolving
-    readonly params:unknown[]  // Must be serializable for storing as post-oauth actions
-    readonly options:unknown[]  // Must be serializable for storing as post-oauth actions
+    params:unknown[]  // Must be serializable for storing as post-oauth actions
+    options:unknown[]  // Must be serializable for storing as post-oauth actions
     readonly done:Promise<unknown>  // Resolves with an error value (if any) when task done
     abortable = false  // Whether task can be manually aborted (always internally abortable)
     aborted:TaskAborted|null = null  // An abort error if task has been aborted
@@ -191,10 +191,14 @@ export class Task {
         this.done_resolve(error)
     }
 
-    evolve(task_function:TaskFunction):TaskReturn{
+    evolve(task_function:TaskFunction, params?:unknown[], options?:unknown[]):TaskReturn{
         // Turn into a different task
         // WARN If task fails the task that will be retried is the new task, not the old
         this.name = task_function.name
+        if (params){
+            this.params = params
+            this.options = options ?? []
+        }
         return task_function(this)
     }
 }
@@ -303,8 +307,8 @@ export class TaskManager {
         return this.start('contacts_create', [oauth_id, address], [name])
     }
 
-    start_contacts_group_create(oauth_id:string, name:string):Promise<Task>{
-        return this.start('contacts_group_create', [oauth_id, name])
+    start_contacts_group_create(oauth_id:string, name:string, contacts?:string[]):Promise<Task>{
+        return this.start('contacts_group_create', [oauth_id, name], [contacts])
     }
 
     start_contacts_group_remove(group_id:string):Promise<Task>{

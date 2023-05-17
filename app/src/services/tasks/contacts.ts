@@ -212,6 +212,7 @@ export async function contacts_group_create(task:Task):Promise<void>{
 
     // Extract args from task object and get oauth record
     const [oauth_id, name] = task.params as [string, string]
+    const [contacts] = task.options as [string[]|undefined]
     const oauth = await self.app_db.oauths.get(oauth_id)
     if (!oauth){
         throw task.abort("No longer have access to contacts account")
@@ -225,7 +226,12 @@ export async function contacts_group_create(task:Task):Promise<void>{
     const service_id = await HANDLERS[oauth.issuer]!.group_create(oauth, name)
 
     // If all went well, create group in own database
-    await self.app_db.groups.create(name, [], oauth.service_account, service_id)
+    const group = await self.app_db.groups.create(name, [], oauth.service_account, service_id)
+
+    // If specified contacts to add, evolve into new task
+    if (contacts?.length){
+        await task.evolve(contacts_group_fill, [group.id], [contacts])
+    }
 }
 
 

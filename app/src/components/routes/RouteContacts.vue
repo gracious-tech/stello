@@ -727,12 +727,35 @@ export default class extends Vue {
 
     async do_selected_new_group():Promise<void>{
         // Create a new group with currently selected contacts in it
-        const contact_ids = this.contacts_selected.map(c => c.contact.id)
-        const group = await self.app_db.groups.create('', contact_ids)
 
-        // Add new group to array, prompt for name, then re-sort all
+        // Prompt for group name
+        const name = await this.$store.dispatch('show_dialog', {
+            component: DialogGenericText,
+            props: {
+                title: "Name for new group",
+                label: "Group name",
+            },
+        }) as string|undefined
+        if (!name){
+            return  // Cancelled
+        }
+
+        // Get list of ids for selected contacts
+        const contact_ids = this.contacts_selected.map(c => c.contact.id)
+
+        // If all selected contacts belong to same service account, create service group
+        const account = this.contacts_selected[0]?.contact.service_account
+        if (account && this.contacts_selected.every(i => i.contact.service_account === account)){
+            const oauth = this.oauths.find(oauth => oauth.service_account === account)
+            void task_manager.start_contacts_group_create(oauth!.id, name, contact_ids)
+            return
+        }
+
+        // Create the group
+        const group = await self.app_db.groups.create(name, contact_ids)
+
+        // Add new group to array and re-sort
         this.groups.push(group)
-        await this.$store.dispatch('show_dialog', {component: DialogGroupName, props: {group}})
         sort(this.groups, 'name')
 
         // Select the group so user can see the changes have happened
