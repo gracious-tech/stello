@@ -25,7 +25,12 @@ div
         span(v-else-if='search || filter_group' class='text--secondary')
             | {{ contacts_matched.length }} {{ search ? "matched" : "included" }}
         v-spacer
-        app-btn.fab(@click='new_contact' icon='add' fab)
+        app-btn(@click='new_contact' icon='add' fab class='mr-2')
+        app-menu-more
+            v-subheader New contact in...
+            app-list-item(@click='new_contact_stello') Stello
+            app-list-item(v-for='account of accounts' :key='account.id'
+                @click='new_contact_service(account.oauth)') {{ account.display }}
 
     div.groups_contacts
 
@@ -254,6 +259,7 @@ export default class extends Vue {
         // Turn oauths into "accounts" and add the groups that belong to them
         return this.oauths.map(oauth => {
             return {
+                oauth,
                 id: oauth.id,
                 service_account: oauth.service_account,
                 display: oauth.display,
@@ -318,16 +324,6 @@ export default class extends Vue {
             return "Clear search"
         } else if (this.filter_group){
             return "New contact"
-        }
-        return null
-    }
-
-    get default_contacts_oauth(){
-        // Get the oauth record for default contacts account
-        for (const oauth of this.oauths){
-            if (oauth.service_account === this.$store.state.default_contacts){
-                return oauth
-            }
         }
         return null
     }
@@ -544,52 +540,77 @@ export default class extends Vue {
     }
 
     async new_contact():Promise<void>{
-        // Create a new contact and navigate to it
+        // Create a new contact in default service
 
-        let contact:Contact
-        if (!this.default_contacts_oauth){
-            // Create a regular Stello contact
-            contact = await self.app_db.contacts.create()
-        } else {
-
-            // Prompt the user for a name and address as can't create synced contact without them
-            const input = await this.$store.dispatch('show_dialog', {
-                component: DialogNewContact,
-                props: {oauth: this.default_contacts_oauth},
-            }) as {name:string, address:string}|undefined
-            if (!input){
-                return  // Dialog cancelled
-            }
-
-            // Wait for the contact to be created so can navigate to it
-            void this.$store.dispatch('show_waiting', "Creating contact...")
-            try {
-                contact = await taskless_contacts_create(
-                    this.default_contacts_oauth, input.name, input.address)
-            } catch (error){
-                // Failed to create for some reason
-                if (error instanceof MustReconnect){
-                    void this.$store.dispatch('show_snackbar', "Could not connect")
-                } else if (error instanceof MustReauthenticate){
-                    void this.$store.dispatch('show_snackbar', "Cannot create contact until resync")
-                } else {
-                    self.app_report_error(error)
-                    void this.$store.dispatch('show_snackbar', "Error: Unable to create contact")
-                }
-                return  // Cancel creation
-            } finally {
-                void this.$store.dispatch('close_dialog')
+        // Get oauth for the default service
+        let default_contacts_oauth:OAuth|null = null
+        for (const oauth of this.oauths){
+            if (oauth.service_account === self.app_store.state.default_contacts){
+                default_contacts_oauth = oauth
             }
         }
 
+        if (default_contacts_oauth){
+            void this.new_contact_service(default_contacts_oauth)
+        } else {
+            void this.new_contact_stello()
+        }
+    }
+
+    async new_contact_stello(){
+        // Create a new local contact
+        const contact = await self.app_db.contacts.create()
+
+        // Auto-add to currently displayed group if possible
+        if (this.filter_group && !this.filter_group.service_account){
+            this.filter_group.contacts.push(contact.id)
+            void self.app_db.groups.set(this.filter_group)
+        }
+
+        // Navigate to the new contact
+        void this.$router.push({name: 'contact', params: {contact_id: contact.id}})
+    }
+
+    async new_contact_service(oauth:OAuth){
+        // Create a new contact in the given service account
+
+        // Prompt the user for a name and address as can't create synced contact without them
+        const input = await this.$store.dispatch('show_dialog', {
+            component: DialogNewContact,
+            props: {oauth},
+        }) as {name:string, address:string}|undefined
+        if (!input){
+            return  // Dialog cancelled
+        }
+
+        // Wait for the contact to be created so can navigate to it
+        void this.$store.dispatch('show_waiting', "Creating contact...")
+        let contact:Contact
+        try {
+            contact = await taskless_contacts_create(oauth, input.name, input.address)
+        } catch (error){
+            // Failed to create for some reason
+            if (error instanceof MustReconnect){
+                void this.$store.dispatch('show_snackbar', "Could not connect")
+            } else if (error instanceof MustReauthenticate){
+                void this.$store.dispatch('show_snackbar', "Cannot create contact until resync")
+            } else {
+                self.app_report_error(error)
+                void this.$store.dispatch('show_snackbar', "Error: Unable to create contact")
+            }
+            return  // Cancel creation
+        } finally {
+            // Ensure waiting dialog always hidden when done
+            void this.$store.dispatch('close_dialog')
+        }
+
+        // Auto-add contact to currently selected group if possible
         if (this.filter_group){
-            // Auto-add contact to currently selected group if possible
             if (!this.filter_group.service_account){
                 // Any contact can be added to a local Stello group
                 this.filter_group.contacts.push(contact.id)
-                await self.app_db.groups.set(this.filter_group)
-            } else if (this.filter_group.service_account
-                    === this.default_contacts_oauth?.service_account){
+                void self.app_db.groups.set(this.filter_group)
+            } else if (this.filter_group.service_account === oauth.service_account){
                 // Can only add to service group if contact is in that account
                 // NOTE Don't wait to finish, RouteContact will show it when it's done
                 void task_manager.start_contacts_group_fill(this.filter_group.id, [contact.id])
@@ -882,8 +903,6 @@ $groups_sidebar_width: 250px
 .navbar
     z-index: 1  // Prevent list items overlapping fav icon
     padding-left: $groups_sidebar_width
-    .fab
-        margin-top: 64px
 
 .groups_contacts
     flex-grow: 1
