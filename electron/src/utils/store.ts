@@ -8,6 +8,7 @@ import {app} from 'electron'
 
 
 interface StoreState {
+    version:string
     window_bounds?: {
         x:number
         y:number
@@ -20,9 +21,14 @@ interface StoreState {
 
 // Load initial state
 const store_path = path.join(app.getPath('userData'), 'stello_store.json')
-let state:StoreState = {}
+let state:StoreState = {version: app.getVersion()}
 if (existsSync(store_path)){
-    state = JSON.parse(readFileSync(store_path, 'utf8')) as StoreState
+    state = {
+        ...state,
+        ...JSON.parse(readFileSync(store_path, 'utf8')) as StoreState,
+    }
+} else {
+    void save()
 }
 
 
