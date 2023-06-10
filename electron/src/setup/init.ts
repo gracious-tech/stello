@@ -35,7 +35,7 @@ if (semver.gt(store.state.version, app.getVersion())){
 } else if (store.state.version !== app.getVersion()){
     // Version has increased
     store.state.version = app.getVersion()
-    void store.save()
+    store.save()
 }
 
 

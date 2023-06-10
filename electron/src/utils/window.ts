@@ -152,7 +152,7 @@ export async function open_window(){
     window.on('close', () => {
         store.state.window_bounds = window.getNormalBounds()
         store.state.window_maximized = window.isMaximized()
-        void store.save()
+        store.save()
     })
 
     return window
