@@ -58,6 +58,7 @@ export default defineComponent({
         display: flex
         flex-direction: column
         align-items: center
+        @include stello_themed(color, rgba(#000, 0.8), rgba(#fff, 0.8))
         @include stello_themed(background-color, #fff, #222)
         border-radius: var(--stello-radius)
         padding: 18px
