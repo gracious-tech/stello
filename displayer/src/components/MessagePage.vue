@@ -152,7 +152,7 @@ export default defineComponent({
 
         // NOTE .content inherits same styles as main message .content does
         .content
-            // pass
+            padding-bottom: 420px  // Prevent comment box getting clipped + scroll to mid page
 
 
 // Transitions between pages
