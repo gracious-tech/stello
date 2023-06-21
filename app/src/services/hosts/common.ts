@@ -2,7 +2,7 @@
 import {CustomError} from '@/services/utils/exceptions'
 
 
-export const HOST_STORAGE_VERSION = 5  // Bump whenever an update to storage services needed
+export const HOST_STORAGE_VERSION = 6  // Bump whenever an update to storage services needed
 
 
 export class HostPermissionError extends CustomError {}
