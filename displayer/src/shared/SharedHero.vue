@@ -132,6 +132,7 @@ svg
         padding: 12px 24px
         margin: 100px 48px  // Top margin must be enough to avoid top clipping
         line-height: 1.25
+        min-height: 0  // General style sets this to avoid empty elements not taking space
         color: white !important
         background-color: var(--stello-hue-hero)
         border-radius: var(--stello-radius)
