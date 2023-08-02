@@ -96,13 +96,17 @@ function normalize_nodemailer_error(error:unknown):EmailError{
     let code:EmailError['code'] = 'unknown'
 
     // Determine if a tmp error regardless of protocol stage (may succeed if retried in future)
-    // NOTE ProtonMail uses a permanent error code for tmp throttling :/
-    // e.g. EMESSAGE 554 5.0.0
-    //      "Error: transaction failed, blame it on the weather: Sending limit has been reached!
-    //      ProtonMail is not for bulk emailing or spamming. Please try again in a few hours."
+    /* NOTE Some servers use a permanent error code for tmp throttling :/
+        EMESSAGE 554 5.0.0
+            Error: transaction failed, blame it on the weather: Sending limit has been reached!
+            ProtonMail is not for bulk emailing or spamming. Please try again in a few hours.
+        EENVELOPE 552 5.7.1
+            Data command rejected: Already reached per-10 minute limit for messages sent from
+            "...@fastmail.com" of 2000, try again later"
+    */
     const is_tmp_error = (typeof error_obj.responseCode === 'number'
         && error_obj.responseCode >= 400 && error_obj.responseCode < 500)
-        || error_obj.message?.toLowerCase().includes('sending limit')
+        || error_obj.message?.toLowerCase().includes(' limit')
 
     if (error_obj.code === 'EDNS'){
         // Either DNS server couldn't find name, or had trouble communicating with DNS server
