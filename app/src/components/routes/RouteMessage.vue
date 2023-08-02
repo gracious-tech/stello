@@ -6,7 +6,8 @@ div
         app-btn(to='../' icon='arrow_back')
         v-toolbar-title {{ message && message.draft.title }}
         v-spacer
-        app-btn(@click='view_own_copy' icon='visibility' :disabled='!own_copy'
+        app-btn(v-if='message' @click='view_own_copy' icon='visibility'
+            :disabled='!own_copy || !profile || message.probably_expired'
             data-tip="View online" data-tip-below)
         app-menu-more(v-if='message')
             app-list-item(@click='open_resend_dialog' :disabled='!!sending_task') Resend some emails
@@ -225,10 +226,8 @@ export default class extends Vue {
 
     async view_own_copy(){
         // Open the copy that was sent to self
-        if (this.own_copy && this.profile){
-            const url = await gen_view_url(this.own_copy, this.profile)
-            self.open(url, '_blank')
-        }
+        const url = await gen_view_url(this.own_copy!, this.profile!)
+        self.open(url, '_blank')
     }
 
     // WATCHES
