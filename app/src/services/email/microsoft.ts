@@ -3,6 +3,7 @@ import {OAuth} from '../database/oauths'
 import {oauth_request} from '../tasks/oauth'
 import {MustWait, MustInterpret, MustReauthenticate} from '../utils/exceptions'
 import {QueueItem} from './email'
+import {BadEmailAddress} from './utils'
 
 
 interface MicrosoftBatchResponse {
@@ -77,6 +78,9 @@ export async function send_batch_microsoft(items:QueueItem[],
         if (sub_resp.status >= 200 && sub_resp.status < 300){
             // Success (should usually be 202)
             return [item, null]
+        } else if (sub_resp.status === 400
+                && sub_resp.body?.error?.code === 'ErrorInvalidRecipients'){
+            return [item, new BadEmailAddress()]
         } else if (sub_resp.status === 401){
             // Common code for needing to authenticate
             return [item, new MustReauthenticate()]
