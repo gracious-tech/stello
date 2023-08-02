@@ -56,6 +56,7 @@ export default class extends Vue {
 
     get retract_label():string{
         // Get most appropriate text for retract button label
+        // NOTE Want to show "Retract" when already expired for disabled state
         if (this.msg.expired || !this.msg.probably_expired){
             return "Retract"
         }
