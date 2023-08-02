@@ -22,13 +22,13 @@ v-card
 
     //- Choose email address (user didn't select an oauth option)
     v-card-text(v-if='setup === "email"')
-        app-text(v-model='init_email' v-bind='$t("email")')
+        app-text(v-model.trim='init_email' v-bind='$t("email")')
 
     //- Choose host settings (couldn't auto-detect)
     v-card-text(v-if='setup === "settings"')
         div {{ email }} #[app-btn(@click='setup = "init"' small) Change]
         app-security-alert(v-if='smtpless' class='mt-3') {{ smtpless }}
-        app-text(v-model='smtp_host' v-bind='$t("smtp_host")'
+        app-text(v-model.trim='smtp_host' v-bind='$t("smtp_host")'
             :placeholder='profile.smtp_settings.host' persistent-placeholder)
         app-integer(v-model='smtp_port' :buttons='false' :inherit='profile.smtp_settings.port'
             v-bind='$t("smtp_port")')
@@ -58,7 +58,7 @@ v-card
                 Don't use your normal password (which probably won't work). Instead, ensure you
                 have #[app-a(:href='url_two_step') Two-Step Verification] enabled and create a
                 new #[app-a(:href='url_app_pass') "app password"].
-        app-text(v-if='!profile.smtp_detected' v-model='smtp_user' v-bind='$t("smtp_user")'
+        app-text(v-if='!profile.smtp_detected' v-model.trim='smtp_user' v-bind='$t("smtp_user")'
             :placeholder='profile.smtp_settings.user' persistent-placeholder)
         app-security-alert.
             Never give your email password to anything you don't fully trust.
