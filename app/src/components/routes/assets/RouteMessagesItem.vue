@@ -86,7 +86,7 @@ export default class extends Vue {
         const own_copy = (await self.app_db.copies.list_for_msg(this.msg.id))
             .find(c => c.contact_id === 'self')
         const profile = await self.app_db.profiles.get(this.msg.draft.profile)
-        if (own_copy && profile){
+        if (own_copy && profile && !this.msg.probably_expired){
             const url = await gen_view_url(own_copy, profile)
             self.open(url, '_blank')
         } else {
