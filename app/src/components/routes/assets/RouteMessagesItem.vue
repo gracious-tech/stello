@@ -94,7 +94,7 @@ export default class extends Vue {
                 component: DialogGenericConfirm,
                 props: {
                     title: "Cannot view online",
-                    text: `You can only view a message online if it was sent to yourself as well (configurable in settings). Would you like to copy it to a new draft to see it in the editor instead?`,
+                    text: `This message has either expired or was not sent to yourself when published. Would you like to copy it to a new draft to see it in the editor instead?`,
                     confirm: "Copy to new draft",
                 },
             }) as true|undefined
