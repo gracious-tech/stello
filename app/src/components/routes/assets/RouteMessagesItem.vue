@@ -97,7 +97,7 @@ export default class extends Vue {
                     text: `You can only view a message online if it was sent to yourself as well (configurable in settings). Would you like to copy it to a new draft to see it in the editor instead?`,
                     confirm: "Copy to new draft",
                 },
-            })
+            }) as true|undefined
             if (confirmed){
                 void this.copy()
             }
@@ -133,7 +133,7 @@ export default class extends Vue {
                     confirm: "Retract",
                     confirm_danger: true,
                 },
-            })
+            }) as true|undefined
             if (!confirmed){
                 return
             }
@@ -166,7 +166,7 @@ export default class extends Vue {
                 confirm: "Delete",
                 confirm_danger: true,
             },
-        })
+        }) as true|undefined
         if (!confirmed){
             return
         }
