@@ -6,7 +6,7 @@ import {OAuth} from '../database/oauths'
 import {oauth_request} from './oauth'
 import {partition} from '../utils/strings'
 import {remove_item} from '@/services/utils/arrays'
-import {MustInterpret, MustReauthenticate, MustWait} from '../utils/exceptions'
+import {MustInterpret, MustReauthenticate, MustRecover, MustWait} from '../utils/exceptions'
 import {Contact} from '@/services/database/contacts'
 
 
@@ -477,6 +477,8 @@ async function google_request(...args:Parameters<typeof oauth_request>):Promise<
         throw new MustReauthenticate()  // Signed out?
     } else if (resp.status === 403){
         throw new MustReauthenticate()  // Didn't grant required scope?
+    } else if (resp.status === 404){
+        throw new MustRecover()
     } else if (resp.status === 429){
         throw new MustWait()  // Have been rate limited
     } else if (resp.status >= 500 && resp.status < 600){
@@ -778,7 +780,14 @@ async function contacts_change_email_google(oauth:OAuth, service_id:string, addr
 
 async function contacts_remove_google(oauth:OAuth, service_id:string):Promise<void>{
     // Remove the given contact in Google Contacts
-    await google_request(oauth, `people/${service_id}:deleteContact`, undefined, 'DELETE')
+    try {
+        await google_request(oauth, `people/${service_id}:deleteContact`, undefined, 'DELETE')
+    } catch (error){
+        if (error instanceof MustRecover){
+            return  // Already deleted so all good
+        }
+        throw error
+    }
 }
 
 
