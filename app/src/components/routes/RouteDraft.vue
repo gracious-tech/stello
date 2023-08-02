@@ -172,13 +172,13 @@ export default class RouteDraft extends Vue {
         if (this.draft!.template)
             return "This is a template and cannot be sent (copy instead)"
         if (!this.title)
-            return "Give message a subject"
+            return "Message has no subject"
         if (!this.draft!.sections.length)
-            return "Give message some contents"
+            return "Message has no contents"
         if (!this.profile)
-            return "Specify which account to send from"
+            return "Sending account has not been setup"
         if (!this.final_recipients.length)
-            return "Add some recipients"
+            return "Message has no recipients"
         return null
     }
 
