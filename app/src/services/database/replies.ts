@@ -6,7 +6,7 @@ export class Reply implements RecordReply {
 
     id!:string
     sent!:Date
-    ip!:string
+    ip!:string|null
     user_agent!:string
     copy_id!:string
     msg_id!:string
