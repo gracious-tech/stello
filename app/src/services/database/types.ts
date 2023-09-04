@@ -311,6 +311,7 @@ export interface RecordResponseCore {
 export interface RecordResponseCommon extends RecordResponseCore {
     // Properties present in common responses like reads/reactions/replies
     id:string
+    // WARN The following may be null for some responses only (e.g. replies but not reactions)
     copy_id:string|null
     msg_id:string|null  // So don't have to retrieve copy every time want to know msg_id
 }
@@ -318,6 +319,7 @@ export interface RecordResponseCommon extends RecordResponseCore {
 export interface RecordRead extends RecordResponseCommon {}
 
 export interface RecordReplaction extends RecordResponseCommon {
+    // WARN The following may be null for some responses only (e.g. replies but not reactions)
     msg_title:string|null  // In case message object later deleted
     contact_id:string|null  // So don't have to retrieve copy every time want to know contact
     contact_name:string|null  // So can still know contact name even if contact object deleted
