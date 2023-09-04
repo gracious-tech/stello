@@ -8,11 +8,11 @@ export class Reply implements RecordReply {
     sent!:Date
     ip!:string|null
     user_agent!:string
-    copy_id!:string
-    msg_id!:string
-    msg_title!:string
-    contact_id!:string
-    contact_name!:string
+    copy_id!:string|null
+    msg_id!:string|null
+    msg_title!:string|null
+    contact_id!:string|null
+    contact_name!:string|null
     section_id!:string|null
     subsection_id!:string|null
     content!:string

@@ -30,7 +30,7 @@ import {escape_for_html} from '@/services/utils/strings'
 export default class extends Vue {
 
     @Prop({type: Object, required: true}) declare readonly replaction:Reply|Reaction
-    @Prop({type: String, required: true}) declare readonly name:string
+    @Prop({type: String}) declare readonly name:string|undefined
 
     html = ''
 
@@ -51,16 +51,20 @@ export default class extends Vue {
         // Create a new draft
         const draft = await self.app_db.drafts.create_object()
         draft.reply_to = this.replaction.id
-        draft.title = this.replaction.msg_title
+        draft.title = this.replaction.msg_title || "Message"
         if (!draft.title.startsWith('Re: ')){
             draft.title = 'Re: ' + draft.title
         }
-        draft.recipients.include_contacts.push(this.replaction.contact_id)
+        if (this.replaction.contact_id){
+            draft.recipients.include_contacts.push(this.replaction.contact_id)
+        }
 
         // Need to get the original message to know the profile used
         // WARN Don't fallback to default profile as later logic needs to know original profile gone
-        const msg = await self.app_db.messages.get(this.replaction.msg_id)
-        draft.profile = msg?.draft.profile ?? null
+        if (this.replaction.msg_id){
+            const msg = await self.app_db.messages.get(this.replaction.msg_id)
+            draft.profile = msg?.draft.profile ?? null
+        }
 
         // Create a new section
         const section = await self.app_db.sections.create_object({
@@ -93,7 +97,8 @@ export default class extends Vue {
         let did_send = false
 
         // Since not going to RouteDraft have to ensure profile & contact still exist manually
-        if (! await self.app_db.contacts.get(this.replaction.contact_id)){
+        if (!this.replaction.contact_id
+                || ! await self.app_db.contacts.get(this.replaction.contact_id)){
             void this.$store.dispatch('show_snackbar', "Contact no longer exists")
             this.go_to_draft(draft.id)
         } else if (!draft.profile){

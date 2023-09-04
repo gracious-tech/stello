@@ -98,7 +98,7 @@ export default class extends Vue {
 
     get msg_title(){
         // Title of the message being responded to
-        return this.first.msg_title
+        return this.first.msg_title  || "[unknown]"
     }
 
     get section_chart_props():Record<string, unknown>|undefined{
@@ -165,7 +165,9 @@ export default class extends Vue {
 
     go_to_msg(){
         // Navigate to the message of the replactions
-        void this.$router.push({name: 'message', params: {msg_id: this.first.msg_id}})
+        if (this.first.msg_id){
+            void this.$router.push({name: 'message', params: {msg_id: this.first.msg_id}})
+        }
     }
 
     archive_all(){

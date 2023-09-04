@@ -5,7 +5,7 @@ div.root
     hr
     div.meta(class='d-flex align-center')
 
-        a.author(@click='to_contact' class='font-weight-medium') {{ name }}
+        a.author(@click='to_contact' class='font-weight-medium') {{ name || "[unknown]" }}
 
         SharedSvgAnimated.reaction(v-if='!is_reply' :url='reaction_url' :playing='unread')
 
@@ -89,7 +89,12 @@ export default class extends Vue {
 
     to_contact(){
         // Navigate to the contact that sent this response
-        void this.$router.push({name: 'contact', params: {contact_id: this.replaction.contact_id}})
+        if (this.replaction.contact_id){
+            void this.$router.push({
+                name: 'contact',
+                params: {contact_id: this.replaction.contact_id},
+            })
+        }
     }
 
     toggle_archived(){
@@ -107,7 +112,7 @@ export default class extends Vue {
                 name: this.name,
             },
             persistent: true,  // Prevent accidental lose of text (disables Esc and outside click)
-        })
+        }) as boolean|undefined
         if (did_reply){
             // Update cached replaction to match db version (as set by `draft_to_message`)
             // WARN If don't then an archive action will reset `replied` to false

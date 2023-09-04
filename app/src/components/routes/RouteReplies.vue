@@ -141,7 +141,9 @@ export default class extends Vue {
         // Get messages that have been responded to in UI form for use in select component
         const messages:Record<string, string> = {}
         for (const replaction of this.replactions){
-            messages[replaction.msg_id] = replaction.msg_title
+            if (replaction.msg_id && replaction.msg_title){
+                messages[replaction.msg_id] = replaction.msg_title
+            }
         }
         const ui_array = Object.entries(messages).map(([k, v]) => ({value: k, text: v}))
         // NOTE Not sorting as, since replactions sorted by date, should end up close to msg date
@@ -168,7 +170,7 @@ export default class extends Vue {
         // NOTE Important when user hasn't previously bothered to enter names, just addresses
         for (const replaction of this.replactions){
             // Don't reload contact if already have name, as won't have changed
-            if (! (replaction.contact_id in this.contact_names)){
+            if (replaction.contact_id && !(replaction.contact_id in this.contact_names)){
                 // Init with replaction name so don't wait for db and in case contact deleted
                 this.$set(this.contact_names, replaction.contact_id,
                     replaction.contact_name || "[nameless]")

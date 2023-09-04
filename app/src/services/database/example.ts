@@ -243,6 +243,9 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
         }
     }
 
+    // Create a reply with no msg linked (possible when copy deleted before resp received)
+    await db.reply_create(random_reply(), random_date(), 'no-longer-exists', null, null, null, '')
+
     // Create subscribe form
     await db.subscribe_forms.create(profile.id)
 
