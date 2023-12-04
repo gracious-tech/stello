@@ -4,6 +4,7 @@ import {reactive, readonly, DeepReadonly, Component, markRaw} from 'vue'
 // @ts-ignore For some reason TS imports below fine but says it can't when checking types
 import DialogChangeAddress from '../components/DialogChangeAddress.vue'
 import DialogSubscribe from '../components/DialogSubscribe.vue'
+import DialogUnsub from '../components/DialogUnsub.vue'
 import {database} from './database'
 import {MessageRecord} from './database_assets'
 import {MSGS_URL, USER} from './env'
@@ -159,8 +160,8 @@ export class DisplayerStore {
 
             // Handle action if any, and account not disabled
             if (displayer_config.responder){
-                if (hash.action === 'unsub'){
-                    void this.update_subscribed(false, hash.action_arg)
+                if (hash.action === 'unsub' && !this.unsubscribed){
+                    this.dialog_open(DialogUnsub, {encrypted_address: hash.action_arg})
                 } else if (hash.action === 'address'){
                     this.dialog_open(DialogChangeAddress, {encrypted_address: hash.action_arg})
                 }
