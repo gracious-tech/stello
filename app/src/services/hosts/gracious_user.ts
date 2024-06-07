@@ -55,6 +55,11 @@ export class HostUserGracious extends HostUserAwsBase implements HostUser {
 
     async delete_services(task:Task):Promise<void>{
         // Delete all objects belonging to user
+        /* NOTE This doesn't actually delete the user in Cognito
+            Cognito allows users to delete themselves but that would free up the username for reuse
+            There is an admin command to disable instead, but that isn't available to users
+            Unless there's a backup, the credentials for logging in will be lost anyway
+        */
         await this._delete_objects(this.bucket, `messages/${this.user}/`)
         await this._delete_objects(this.bucket, `config/${this.user}/`)
         await this._delete_objects(this._bucket_resp_id, `responses/${this.user}/`)
