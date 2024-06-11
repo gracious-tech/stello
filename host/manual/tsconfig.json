@@ -1,0 +1,5 @@
+{
+    // WARN esbuild configured to ignore this file and just use tsconfig_node.jsonc directly
+    "extends": "../../tsconfig_node.jsonc",
+    "include": ["src/**/*.ts"],
+}

@@ -1,0 +1,8 @@
+{
+    "private": true,
+    "dependencies": {
+        "@aws-sdk/client-cloudformation": "^3.592.0",
+        "@aws-sdk/client-cognito-identity-provider": "^3.592.0",
+        "@aws-sdk/client-s3": "^3.592.0"
+    }
+}
