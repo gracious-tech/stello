@@ -1,0 +1,10 @@
+#!/bin/bash
+# Disable an account in hosted environment
+# disable_account region stack username email [purge]       (requires AWS credentials)
+set -e
+cd "$(dirname "$(dirname "$0")")"
+
+
+echo "WARNING: Type checking is disabled until browser-specific utils can be isolated from cross-platform ones"
+echo
+node_modules/.bin/ts-node --transpile-only host/manual/src/disable_account.ts "$@"

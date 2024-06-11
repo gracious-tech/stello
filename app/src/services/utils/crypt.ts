@@ -1,5 +1,5 @@
 
-import {join_buffers} from './buffers'
+import {join_buffers, buffers_equal} from './buffers'
 import {buffer_to_url64, url64_to_buffer} from './coding'
 
 
@@ -177,4 +177,14 @@ export async function generate_hash(buffer:ArrayBuffer, salt_bytes=16):Promise<A
     const salt = random_buffer(salt_bytes)
     const digest = await crypto.subtle.digest('SHA-256', join_buffers([salt, buffer]))
     return join_buffers([salt, digest])
+}
+
+
+export async function confirm_hash(hash:ArrayBuffer, input:ArrayBuffer, salt_bytes=16)
+        :Promise<boolean>{
+    // Confirm a hash was generated with the provided input and prepended with x bytes of salt
+    const salt = hash.slice(0, salt_bytes)
+    const original_digest = hash.slice(salt_bytes)
+    const digest = await crypto.subtle.digest('SHA-256', join_buffers([salt, input]))
+    return buffers_equal(digest, original_digest)
 }
