@@ -102,6 +102,8 @@ async function disable_account(region:string, stack:string, username:string, ema
     }
 
     // Disable the user so they can't sign in any more
+    // SECURITY The idtoken is used to access AWS services and won't be immediately revoked
+    //      It should expire within 24 hours (otherwise manually delete id in identity pool)
     await user_pools.adminDisableUser({UserPoolId: user_pool, Username: username})
 
     // Disable responses by deleting existing ones and deleting config files
