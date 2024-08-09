@@ -1,7 +1,7 @@
 // Setup that must be done before everything else
 
 import {join} from 'path'
-import {existsSync} from 'original-fs'
+import {existsSync, promises as fs} from 'original-fs'
 
 import semver from 'semver'
 import {app, dialog} from 'electron'
@@ -45,3 +45,8 @@ app.enableSandbox()
 
 // Disable caching as all assets are local and it wastes disk space (up to 100MB)
 app.commandLine.appendSwitch('disable-http-cache')
+
+
+// Remove cache dir (if exists) for older Stello versions that had caching enabled (<= v1.5.3)
+const cache_dir = join(app.getPath('userData'), 'Cache')
+void fs.rm(cache_dir, {force: true, recursive: true})
