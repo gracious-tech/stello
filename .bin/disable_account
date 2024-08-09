@@ -5,6 +5,15 @@ set -e
 cd "$(dirname "$(dirname "$0")")"
 
 
+# Prompt for credentials
+read -p "AWS_ACCESS_KEY_ID: "
+export AWS_ACCESS_KEY_ID="$REPLY"
+read -s -p "AWS_SECRET_ACCESS_KEY: "
+export AWS_SECRET_ACCESS_KEY="$REPLY"
+echo  # Password input doesn't look like it worked otherwise (as silenced)
+echo "Disabling..."
+
+
 echo "WARNING: Type checking is disabled until browser-specific utils can be isolated from cross-platform ones"
 echo
 node_modules/.bin/ts-node --transpile-only host/manual/src/disable_account.ts "$@"
