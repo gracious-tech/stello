@@ -41,3 +41,7 @@ if (semver.gt(store.state.version, app.getVersion())){
 
 // SECURITY Enable sandboxing of renderers
 app.enableSandbox()
+
+
+// Disable caching as all assets are local and it wastes disk space (up to 100MB)
+app.commandLine.appendSwitch('disable-http-cache')
