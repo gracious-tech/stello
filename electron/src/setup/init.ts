@@ -9,13 +9,6 @@ import {app, dialog} from 'electron'
 import store from '../utils/store'
 
 
-// Don't open if another instance of Stello is already running
-// NOTE The other instance will receive an event and focus itself instead
-if (!app.requestSingleInstanceLock()){
-    app.exit()  // WARN Don't use quit() as is async
-}
-
-
 // Prevent loading data from a previous version as Chrome will purge the whole db!
 if (semver.gt(store.state.version, app.getVersion())){
     // NOTE This is one of the only Electron APIs that DOES work before ready event
