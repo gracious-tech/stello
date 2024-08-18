@@ -1,20 +1,12 @@
 // Setup that must be done before everything else
 
 import {join} from 'path'
-import {existsSync, promises as fs} from 'original-fs'
+import {promises as fs} from 'original-fs'
 
 import semver from 'semver'
 import {app, dialog} from 'electron'
 
 import store from '../utils/store'
-import {app_path} from '../utils/paths'
-
-
-// Portable support (if data dir exists next to app then use it)
-const portable_data = join(app_path, '..', 'stello_data')
-if (existsSync(portable_data)){
-    app.setPath('userData', portable_data)
-}
 
 
 // Don't open if another instance of Stello is already running
