@@ -1,6 +1,6 @@
 
 import {join} from 'path'
-import {existsSync, renameSync, mkdirSync} from 'original-fs'
+import {existsSync, renameSync, mkdirSync, writeFileSync} from 'original-fs'
 
 import {app} from 'electron'
 
@@ -28,7 +28,24 @@ const files_dir_portable = join(app_path, '..', 'Stello Files')
 
 // Portable support (if files dir exists next to app then use it)
 export const files_dir = existsSync(files_dir_portable) ? files_dir_portable : files_dir_documents
-mkdirSync(files_dir, {recursive: true})  // Ensure exists
+
+
+// Create dir and warning file if doesn't exist yet
+const warn_file = join(files_dir, 'READ ME before moving this folder.txt')
+const warn_text = `
+Stello uses this folder to store all your data.
+Close Stello before copying/moving this folder.
+If you are changing computer, copy this folder to the same place on your new computer.
+If enabling portable mode (keeping your data on an external drive) move it next to the Stello app.
+See the guide at stello.news for further instructions.
+
+Internal Data - Contains all your data, don't touch it
+Backups - Contains automated backups you can use to recover lost contacts etc.
+`
+mkdirSync(files_dir, {recursive: true})  // Ensure files dir exists
+if (!existsSync(warn_file)){
+    writeFileSync(warn_file, warn_text)
+}
 
 
 // Set path for Electron's data
