@@ -41,7 +41,7 @@ export async function to_12_from_1plus_async(db:AppDatabaseConnection){
         let default_invite_image:Blob = 'default_invite_image_blob' as unknown as Blob
         if (self.Blob){
             default_invite_image = new Blob(
-                [await self.app_native.read_file('migrations/default_invite_image.jpg')],
+                [await self.app_native.read_app_file('migrations/default_invite_image.jpg')],
                 {type: 'image/jpeg'},
             )
         }

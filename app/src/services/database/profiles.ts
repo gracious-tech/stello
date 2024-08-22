@@ -318,7 +318,7 @@ export class DatabaseProfiles {
         // Create a new profile object
         // NOTE Defaults are for 'very_high' security category
         const default_invite_image = new Blob(
-            [await self.app_native.read_file('default_invite_image.jpg')], {type: 'image/jpeg'})
+            [await self.app_native.read_app_file('default_invite_image.jpg')], {type: 'image/jpeg'})
         return new Profile({
             id: generate_token(),
             setup_step: 0,

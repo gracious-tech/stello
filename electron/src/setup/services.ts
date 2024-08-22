@@ -9,7 +9,7 @@ import {autoUpdater} from 'electron-updater'
 import {get_path} from '../utils/config'
 
 
-ipcMain.handle('read_file', async (event, relative_path:string) => {
+ipcMain.handle('read_app_file', async (event, relative_path:string) => {
     // Read a file and return as an ArrayBuffer (must be within app's dir)
     // WARN During dev this will serve app assets from last build and not current serve
     const app_dir = path.resolve(get_path(), 'app') + path.sep
