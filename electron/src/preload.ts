@@ -16,6 +16,10 @@ const native_electron:NativeInterface = {
         return ipcRenderer.invoke('read_app_file', path) as Promise<ArrayBuffer>
     },
 
+    write_user_file(path:string, data:ArrayBuffer){
+        return ipcRenderer.invoke('write_user_file', path, data) as Promise<void>
+    },
+
     update():void{
         // Tell electron to update
         void ipcRenderer.invoke('update')

@@ -4,6 +4,7 @@ export interface NativeInterface {
 
     // Functions
     read_app_file(path:string):Promise<ArrayBuffer>
+    write_user_file(path:string, data:ArrayBuffer):Promise<void>
     update():void
     dns_mx(host:string):Promise<string[]>
     os_encrypt(secret:string):Promise<ArrayBuffer|null>

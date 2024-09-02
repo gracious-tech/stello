@@ -1,12 +1,13 @@
 
 import path from 'path'
-import {readFileSync} from 'fs'
+import {readFileSync, writeFileSync} from 'fs'
 import {promises as dns} from 'dns'
 
 import {ipcMain, safeStorage} from 'electron'
 import {autoUpdater} from 'electron-updater'
 
 import {get_path} from '../utils/config'
+import {files_dir} from '../utils/paths'
 
 
 ipcMain.handle('read_app_file', async (event, relative_path:string) => {
@@ -21,13 +22,23 @@ ipcMain.handle('read_app_file', async (event, relative_path:string) => {
 })
 
 
+ipcMain.handle('write_user_file', async (event, relative_path:string, data:ArrayBuffer) => {
+    // Write a file to the user's files dir
+    const full_path = path.resolve(files_dir, relative_path)
+    if (!full_path.startsWith(files_dir + path.sep)){
+        throw new Error(`Cannot access file outside of: ${files_dir}`)
+    }
+    writeFileSync(full_path, Buffer.from(data))
+})
+
+
 ipcMain.handle('update', async event => {
     // Quit/install/restart
     autoUpdater.quitAndInstall(false, true)
 })
 
 
-ipcMain.handle('dns_mx', async (event, host) => {
+ipcMain.handle('dns_mx', async (event, host:string) => {
     // Do a DNS request for MX records and return domains ordered by priority
     try {
         const results = await dns.resolveMx(host)

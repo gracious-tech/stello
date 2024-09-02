@@ -9,6 +9,10 @@ export class NativeBrowser implements NativeInterface {
         throw new Error('unsupported')
     }
 
+    async write_user_file(path:string, data:ArrayBuffer):Promise<void>{
+        // Will not actually write anything
+    }
+
     update():void{
         self.location.assign('#/')
         self.location.reload()
