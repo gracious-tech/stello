@@ -4,7 +4,7 @@ import {existsSync, renameSync, mkdirSync, writeFileSync} from 'original-fs'
 
 import {app} from 'electron'
 
-import {app_path} from '../utils/paths'
+import {files_dir, old_data_location} from '../utils/paths'
 
 
 // Cease execution if another instance of Stello is already running
@@ -13,21 +13,6 @@ import {app_path} from '../utils/paths'
 if (!app.requestSingleInstanceLock()){
     app.exit()  // WARN Don't use quit() as is async
 }
-
-
-// Determine old data locations (v1.5.3 and below)
-// WARN Do this before setting any paths
-const old_portable_data = join(app_path, '..', 'stello_data')
-const old_user_data = app.getPath('userData')
-
-
-// Possible locations for files
-const files_dir_documents = join(app.getPath('documents'), 'Stello Files')
-const files_dir_portable = join(app_path, '..', 'Stello Files')
-
-
-// Portable support (if files dir exists next to app then use it)
-export const files_dir = existsSync(files_dir_portable) ? files_dir_portable : files_dir_documents
 
 
 // Create dir and warning file if doesn't exist yet
@@ -53,11 +38,7 @@ const electron_user_data = join(files_dir, 'Internal Data')
 app.setPath('userData', electron_user_data)
 
 
-// Move old data if exists and no new data present
-if (!existsSync(electron_user_data)){
-    if (existsSync(old_portable_data)){
-        renameSync(old_portable_data, electron_user_data)
-    } else if (existsSync(old_user_data)){
-        renameSync(old_user_data, electron_user_data)
-    }
+// Move old data if exists (location is only set if new data doesn't already exist)
+if (old_data_location){
+    renameSync(old_data_location, electron_user_data)
 }

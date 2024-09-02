@@ -1,5 +1,6 @@
 
 import {join} from 'path'
+import {existsSync} from 'original-fs'
 
 import {app} from 'electron'
 
@@ -17,4 +18,37 @@ if (app.isPackaged){
     app_path = process.env['APPIMAGE'] || join(app.getAppPath(), '..', '..', '..')
 }
 
-export {app_path}
+
+// Determine old data locations (v1.5.3 and below)
+// WARN Do this before changing value of Electron's `userData` path
+const old_portable_data = join(app_path, '..', 'stello_data')
+const old_portable_data_exists = existsSync(old_portable_data)
+const old_user_data = app.getPath('userData')
+const old_user_data_exists = existsSync(old_user_data)
+
+
+// Possible locations for files
+const files_dir_documents = join(app.getPath('documents'), 'Stello Files')
+const files_dir_portable = join(app_path, '..', 'Stello Files')
+
+
+// Portable mode enabled if portable files dir exists (either old or new location)
+const portable = old_portable_data_exists || existsSync(files_dir_portable)
+
+
+// Can now determine active files dir location
+const files_dir = portable ? files_dir_portable : files_dir_documents
+
+
+// If the dir doesn't exist yet then see if any old data needs migrating
+let old_data_location:string|null = null
+if (!existsSync(files_dir)){
+    if (old_portable_data_exists){
+        old_data_location = old_portable_data
+    } else if (old_user_data_exists){
+        old_data_location = old_user_data
+    }
+}
+
+
+export {app_path, files_dir, old_data_location}
