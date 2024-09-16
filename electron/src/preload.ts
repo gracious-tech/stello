@@ -11,9 +11,9 @@ const native_electron:NativeInterface = {
 
     // Functions
 
-    read_app_file(path:string){
+    app_file_read(path:string){
         // Read a file and return as an ArrayBuffer (must be within app's dir)
-        return ipcRenderer.invoke('read_app_file', path) as Promise<ArrayBuffer>
+        return ipcRenderer.invoke('app_file_read', path) as Promise<ArrayBuffer>
     },
 
     write_user_file(path:string, data:ArrayBuffer){

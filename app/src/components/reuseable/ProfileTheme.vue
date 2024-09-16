@@ -70,7 +70,7 @@ export default class extends Vue {
     async created(){
         // Load example image for use in hero
         this.hero_image = new Blob(
-            [await self.app_native.read_app_file('default_invite_image.jpg')],
+            [await self.app_native.app_file_read('default_invite_image.jpg')],
             {type: 'image/jpeg'},
         )
     }
