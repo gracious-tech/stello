@@ -22,7 +22,7 @@ ipcMain.handle('app_file_read', async (event, relative_path:string) => {
 })
 
 
-ipcMain.handle('write_user_file', async (event, relative_path:string, data:ArrayBuffer) => {
+ipcMain.handle('user_file_write', async (event, relative_path:string, data:ArrayBuffer) => {
     // Write a file to the user's files dir
     const full_path = path.resolve(files_dir, relative_path)
     if (!full_path.startsWith(files_dir + path.sep)){
