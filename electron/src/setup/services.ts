@@ -1,13 +1,13 @@
 
 import path from 'path'
-import {readFileSync, writeFileSync} from 'fs'
+import {readFileSync, writeFileSync, readdirSync, unlinkSync} from 'fs'
 import {promises as dns} from 'dns'
 
 import {ipcMain, safeStorage} from 'electron'
 import {autoUpdater} from 'electron-updater'
 
 import {get_path} from '../utils/config'
-import {files_dir} from '../utils/paths'
+import {files_dir, restrict_path} from '../utils/paths'
 
 
 ipcMain.handle('app_file_read', async (event, relative_path:string) => {
@@ -22,13 +22,24 @@ ipcMain.handle('app_file_read', async (event, relative_path:string) => {
 })
 
 
+ipcMain.handle('user_file_list', async (event, relative_path:string):Promise<string[]> => {
+    // List items in a dir in the user's files dir
+    const full_path = restrict_path(files_dir, relative_path)
+    return readdirSync(full_path)
+})
+
+
 ipcMain.handle('user_file_write', async (event, relative_path:string, data:ArrayBuffer) => {
     // Write a file to the user's files dir
-    const full_path = path.resolve(files_dir, relative_path)
-    if (!full_path.startsWith(files_dir + path.sep)){
-        throw new Error(`Cannot access file outside of: ${files_dir}`)
-    }
+    const full_path = restrict_path(files_dir, relative_path)
     writeFileSync(full_path, Buffer.from(data))
+})
+
+
+ipcMain.handle('user_file_remove', async (event, relative_path:string):Promise<void> => {
+    // Remove a file in the user's files dir
+    const full_path = restrict_path(files_dir, relative_path)
+    unlinkSync(full_path)
 })
 
 

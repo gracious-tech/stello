@@ -9,8 +9,16 @@ export class NativeBrowser implements NativeInterface {
         throw new Error('unsupported')
     }
 
+    async user_file_list(path:string):Promise<string[]>{
+        return []
+    }
+
     async user_file_write(path:string, data:ArrayBuffer):Promise<void>{
         // Will not actually write anything
+    }
+
+    async user_file_remove(path:string):Promise<void>{
+        // Will not actually remove anything
     }
 
     update():void{

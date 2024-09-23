@@ -1,5 +1,5 @@
 
-import {join} from 'path'
+import {join, resolve, sep} from 'path'
 import {existsSync} from 'original-fs'
 
 import {app} from 'electron'
@@ -48,6 +48,16 @@ if (!existsSync(files_dir)){
     } else if (old_user_data_exists){
         old_data_location = old_user_data
     }
+}
+
+
+export function restrict_path(root_dir:string, relative_path:string){
+    // Restrict a relative path to the given root dir (returning absolute path)
+    const full_path = resolve(root_dir, relative_path)
+    if (!full_path.startsWith(root_dir + sep)){
+        throw new Error(`Cannot access path outside of: ${root_dir}`)
+    }
+    return full_path
 }
 
 
