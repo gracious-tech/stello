@@ -1,6 +1,6 @@
 
 import path from 'path'
-import {readFileSync, writeFileSync, readdirSync, unlinkSync} from 'fs'
+import {readFileSync, writeFileSync, readdirSync, rmSync, mkdirSync} from 'fs'
 import {promises as dns} from 'dns'
 
 import {ipcMain, safeStorage} from 'electron'
@@ -32,14 +32,15 @@ ipcMain.handle('user_file_list', async (event, relative_path:string):Promise<str
 ipcMain.handle('user_file_write', async (event, relative_path:string, data:ArrayBuffer) => {
     // Write a file to the user's files dir
     const full_path = restrict_path(files_dir, relative_path)
+    mkdirSync(path.dirname(full_path), {recursive: true})
     writeFileSync(full_path, Buffer.from(data))
 })
 
 
 ipcMain.handle('user_file_remove', async (event, relative_path:string):Promise<void> => {
-    // Remove a file in the user's files dir
+    // Remove a file or dir recursively in the user's files dir
     const full_path = restrict_path(files_dir, relative_path)
-    unlinkSync(full_path)
+    rmSync(full_path, {force: true, recursive: true})
 })
 
 
