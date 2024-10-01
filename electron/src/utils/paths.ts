@@ -53,6 +53,7 @@ if (!existsSync(files_dir)){
 
 export function restrict_path(root_dir:string, relative_path:string){
     // Restrict a relative path to the given root dir (returning absolute path)
+    // NOTE This should also normalize path separators for the right platform
     const full_path = resolve(root_dir, relative_path)
     if (!full_path.startsWith(root_dir + sep)){
         throw new Error(`Cannot access path outside of: ${root_dir}`)

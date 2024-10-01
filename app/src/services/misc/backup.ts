@@ -1,6 +1,4 @@
 
-import path from 'node:path'
-
 import papaparse from 'papaparse'
 
 import {string_to_utf8} from '@/services/utils/coding'
@@ -44,7 +42,7 @@ export function export_contacts_csv(contacts:Contact[], unsubs:Unsubscribe[], pr
 export async function determine_backup_dir(category:string):Promise<[string|null, string|null]>{
 
     // Get names of items in backups dir
-    const backup_dir_items = await self.app_native.user_file_list(path.join('Backups', category))
+    const backup_dir_items = await self.app_native.user_file_list('Backups/' + category)
 
     // Don't do anything if already backedup today
     const today_name = new Date().toISOString().slice(0, 'yyyy-mm-dd'.length)  // Will be UTC
@@ -62,18 +60,16 @@ export async function determine_backup_dir(category:string):Promise<[string|null
     backups.sort((a, b) => a[1] - b[1])
 
     // Don't delete any previous backups if less than 3
+    const new_backup_path = `Backups/${category}/${today_name}`
     if (backups.length < 3){
-        return [today_name, null]
+        return [new_backup_path, null]
     }
 
     // Delete either oldest or youngest backup, ensuring always have a month old one
     // So if second oldest is over one month old then safe to delete oldest
     const days = (new Date().getTime() - backups[1]![1]) / (1000 * 60 * 60 * 24)
     const dir_to_remove = days > 30 ? backups[0]![0] : backups.at(-1)![0]
-    return [
-        path.join('Backups', category, today_name),
-        path.join('Backups', category, dir_to_remove),
-    ]
+    return [new_backup_path, `Backups/${category}/${dir_to_remove}`]
 }
 
 
@@ -102,14 +98,14 @@ export async function backup_contacts(){
     for (const group of groups){
         // SECURITY Escape special characters when creating file name
         const file_name = group.name.replace(/[/\\?%*:|"<>]/g, '-') + '.csv'
-        const file_path = path.join(backup_dir, file_name)
+        const file_path = backup_dir + '/' + file_name
         const groups_contacts = contacts.filter(c => group.contacts.includes(c.id))
         const csv = export_contacts_csv(groups_contacts, unsubs, profiles)
         promises.push(self.app_native.user_file_write(file_path, csv))
     }
 
     // Save all contacts to single file (last so overwrites group if same name)
-    promises.push(self.app_native.user_file_write(path.join(backup_dir, 'All Contacts.csv'),
+    promises.push(self.app_native.user_file_write(backup_dir + '/All Contacts.csv',
         export_contacts_csv(contacts, unsubs, profiles)))
 
     // If all went well, delete old backup if one designated

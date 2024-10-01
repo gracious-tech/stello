@@ -25,7 +25,11 @@ ipcMain.handle('app_file_read', async (event, relative_path:string) => {
 ipcMain.handle('user_file_list', async (event, relative_path:string):Promise<string[]> => {
     // List items in a dir in the user's files dir
     const full_path = restrict_path(files_dir, relative_path)
-    return readdirSync(full_path)
+    try {
+        return readdirSync(full_path)
+    } catch {
+        return []  // Path probably doesn't exist yet
+    }
 })
 
 
