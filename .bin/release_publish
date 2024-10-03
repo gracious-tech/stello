@@ -28,7 +28,7 @@ echo "Publishing..."
 
 
 # Move proposed assets into official dir, overwriting existing
-aws s3 mv --recursive s3://${BUCKET}/electron_proposed/ s3://${BUCKET}/electron/
+aws s3 cp --recursive s3://${BUCKET}/electron_proposed/ s3://${BUCKET}/electron/
 
 
 # Invalidate all in cloudfront so caching doesn't delay access to new assets
