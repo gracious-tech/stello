@@ -15,5 +15,5 @@ cd ../electron
 "$@"
 cd ../host/accounts
 "$@"
-cd ../host/manual
+cd ../../host/manual
 "$@"
