@@ -12,5 +12,7 @@
 {
     "extends": "./tsconfig_node.jsonc",
     "include": ["**/*.ts"],
-    "exclude": ["**/node_modules", "app/src", "displayer/src"],
+    // NOTE host/manual excluded as only run by devs, and utils dir throws errors for unused code
+    //    Due to there being lots of functions that are browser only (and not Node)
+    "exclude": ["**/node_modules", "app/src", "displayer/src", "host/manual"],
 }
