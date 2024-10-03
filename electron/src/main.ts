@@ -35,9 +35,10 @@ void app.whenReady().then(async () => {
     }
 
     // Try to auto-update (if packaging format supports it)
-    // NOTE Updates on Windows are currently handled by the Windows Store
+    // NOTE Appx updates are handled by the Windows store whereas Windows portable aren't
     let update_downloaded = false
-    if (app.isPackaged && (process.platform === 'darwin' || process.env['APPIMAGE'])){
+    if (app.isPackaged && (process.platform === 'darwin' || process.env['APPIMAGE']
+            || process.env['PORTABLE_EXECUTABLE_FILE'])){
 
         // Configure auto-updater
         autoUpdater.setFeedURL({
