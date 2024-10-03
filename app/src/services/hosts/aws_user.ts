@@ -424,7 +424,7 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
         // Function config that can be used in a create or update request
         const fn_config = {
             FunctionName: this._lambda_id,
-            Runtime: 'python3.9',
+            Runtime: 'python3.11',
             Role: await this._get_lambda_role_arn(),
             Handler: 'responder.entry',
             Timeout: 5,

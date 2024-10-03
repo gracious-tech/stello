@@ -9,7 +9,7 @@ Resources:
             CodeUri: function/
             # Properties needed for dev (actually set when setting up all services)
             Handler: responder.entry
-            Runtime: python3.9
+            Runtime: python3.11
             Events:
                 ApiEvent:
                     Type: HttpApi

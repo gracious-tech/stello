@@ -225,7 +225,7 @@ Resources:
         # Separate route for options as shouldn't have permissions
         Type: AWS::Serverless::Function
         Properties:
-            Runtime: python3.9
+            Runtime: python3.11
             Handler: responder.entry
             CodeUri: responder/
             Events:
@@ -249,7 +249,7 @@ Resources:
         # NOTE For simpler deployment, inviter code is embedded in responder
         Type: AWS::Serverless::Function
         Properties:
-            Runtime: python3.9
+            Runtime: python3.11
             Handler: responder.entry
             CodeUri: responder/
             Events:
@@ -278,7 +278,7 @@ Resources:
     ResponderRead:
         Type: AWS::Serverless::Function
         Properties:
-            Runtime: python3.9
+            Runtime: python3.11
             Handler: responder.entry
             CodeUri: responder/
             Events:
@@ -318,7 +318,7 @@ Resources:
     ResponderReply:
         Type: AWS::Serverless::Function
         Properties:
-            Runtime: python3.9
+            Runtime: python3.11
             Handler: responder.entry
             CodeUri: responder/
             Events:
@@ -358,7 +358,7 @@ Resources:
     ResponderReaction:
         Type: AWS::Serverless::Function
         Properties:
-            Runtime: python3.9
+            Runtime: python3.11
             Handler: responder.entry
             CodeUri: responder/
             Events:
@@ -398,7 +398,7 @@ Resources:
     ResponderSubscribe:
         Type: AWS::Serverless::Function
         Properties:
-            Runtime: python3.9
+            Runtime: python3.11
             Handler: responder.entry
             CodeUri: responder/
             Events:
@@ -438,7 +438,7 @@ Resources:
     ResponderSubscription:
         Type: AWS::Serverless::Function
         Properties:
-            Runtime: python3.9
+            Runtime: python3.11
             Handler: responder.entry
             CodeUri: responder/
             Events:
@@ -471,7 +471,7 @@ Resources:
     ResponderAddress:
         Type: AWS::Serverless::Function
         Properties:
-            Runtime: python3.9
+            Runtime: python3.11
             Handler: responder.entry
             CodeUri: responder/
             Events:
@@ -504,7 +504,7 @@ Resources:
     ResponderResend:
         Type: AWS::Serverless::Function
         Properties:
-            Runtime: python3.9
+            Runtime: python3.11
             Handler: responder.entry
             CodeUri: responder/
             Events:
