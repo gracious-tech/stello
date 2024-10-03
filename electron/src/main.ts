@@ -10,7 +10,8 @@ import './setup/services'
 import './setup/services_smtp'
 
 // WARN Electron overrides `fs` module with magic for asar files, which breaks `access()` test
-import {promises as fs, constants as fs_constants} from 'original-fs'
+import {promises as fs, constants as fs_constants, existsSync} from 'original-fs'
+import {join} from 'node:path'
 
 import {app, BrowserWindow, dialog, session} from 'electron'
 import {autoUpdater} from 'electron-updater'
@@ -40,10 +41,13 @@ void app.whenReady().then(async () => {
     if (app.isPackaged && (process.platform === 'darwin' || process.env['APPIMAGE']
             || process.env['PORTABLE_EXECUTABLE_FILE'])){
 
+        // If empty file `proposed` exists in internal data folder then check for proposed releases
+        const proposed = existsSync(join(app.getPath('userData'), 'proposed'))
+
         // Configure auto-updater
         autoUpdater.setFeedURL({
             provider: 'generic',
-            url: 'https://releases.encrypted.news/electron/',
+            url: 'https://releases.encrypted.news/electron' + (proposed ? '_proposed' : ''),
         })
         const check_for_updates = () => {
             if (update_downloaded){
