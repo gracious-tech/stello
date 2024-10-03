@@ -18,6 +18,7 @@
     },
     "devDependencies": {
         "@types/nodemailer": "^6.4.4",
+        "@types/semver": "^7.5.8",
         "electron": "^16.0.1",
         "electron-builder": "^25.0.5",
         "electron-notarize": "^1.2.2",
