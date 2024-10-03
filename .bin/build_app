@@ -6,4 +6,4 @@ cd app
 
 
 # NOTE Vite may need > 2096MB (the default) old space during build (probs due to Vuetify)
-NODE_OPTIONS=--max-old-space-size=6000 ./node_modules/.bin/vite build
+NODE_OPTIONS=--max-old-space-size=8000 ./node_modules/.bin/vite build
