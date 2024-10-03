@@ -11,7 +11,7 @@
     "main": "dist/main.js",
     "dependencies": {
         "electron-context-menu": "^3.1.1",
-        "electron-updater": "^4.3.9",
+        "electron-updater": "^6.3.4",
         "nodemailer": "^6.7.1",
         "rollbar": "^2.24.0",
         "semver": "^7.5.1"
@@ -19,8 +19,8 @@
     "devDependencies": {
         "@types/nodemailer": "^6.4.4",
         "electron": "^16.0.1",
-        "electron-builder": "^23.6.0",
-        "electron-notarize": "^1.1.1",
+        "electron-builder": "^25.0.5",
+        "electron-notarize": "^1.2.2",
         "esbuild": "^0.13.14",
         "png-to-ico": "^2.1.2"
     },
