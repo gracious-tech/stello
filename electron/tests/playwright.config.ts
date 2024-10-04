@@ -13,7 +13,7 @@ if (process.platform === 'linux'){
     // So just testing unpacked binary instead
     binary_path = '../packaged/linux-unpacked/stello'
 } else if (process.platform === 'darwin'){
-    binary_path = '../packaged/mac/Stello.app/Contents/MacOS/Stello'
+    binary_path = '../packaged/mac-universal/Stello.app/Contents/MacOS/Stello'
 } else {
     binary_path = '../packaged/win-unpacked/stello.exe'
 }
