@@ -9,7 +9,9 @@ import {PlaywrightTestConfig, test, expect, Page, Response, ElectronApplication,
 // Detect path to electron binary
 let binary_path:string
 if (process.platform === 'linux'){
-    binary_path = '../packaged/stello.AppImage'
+    // WARN Testing AppImage requires fuse kernal stuff and therefore docker --privileged
+    // So just testing unpacked binary instead
+    binary_path = '../packaged/linux-unpacked/stello'
 } else if (process.platform === 'darwin'){
     binary_path = '../packaged/mac/Stello.app/Contents/MacOS/Stello'
 } else {
@@ -54,7 +56,6 @@ const test_interface_electron = test.extend<ElectronTestFixtures, ElectronWorker
 
         // Start the electron app
         const electron_app = await electron.launch({
-            // WARN Testing AppImage requires fuse kernal stuff and therefore docker --privileged
             executablePath: path.join(__dirname, binary_path),
             // TODO Use xvfb-run to run headless on Linux
         })
