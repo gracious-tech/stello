@@ -18,7 +18,8 @@ fi
 # NOTE $OSTYPE is a bash builtin var (not specific to CI and not provided manually)
 # WARN $OSTYPE for mac often has a version attached, like "darwin19", so use mac as the default
 echo "$OSTYPE"
-PLATFORM_ARGS='--mac dmg zip'  # Electron Updater still relies on zip for updates for dmg install
+# NOTE --universal packages combines x64 and arm64 together into one file (recommended by Apple)
+PLATFORM_ARGS='--mac dmg zip --universal'  # zip required for updates for dmg install
 if [[ "$OSTYPE" == "linux-gnu" ]]; then
     PLATFORM_ARGS='--linux AppImage'
 elif [[ "$OSTYPE" == "msys" ]]; then
