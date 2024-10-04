@@ -14,9 +14,6 @@ import {AppDatabaseConnection, AppDatabaseSchema, VersionChangeTransaction} from
 // Implement self (node does not have by default)
 global.self = global as Window & typeof globalThis
 
-// Fake crypto that returns a constant string 'crypto_key' when generateKey is called
-global.crypto = ({subtle: {generateKey: async () => 'crypto_key'}}) as unknown as Crypto
-
 // Some migrations use String.replaceAll
 // @ts-ignore Doesn't need to fully mock
 String.prototype.replaceAll = function(old_val:string, new_val:string){
