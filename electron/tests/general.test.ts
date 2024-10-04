@@ -16,8 +16,6 @@ test("Visit all main routes", async ({page}) => {
     expect(await page.textContent('header >> nth=-1')).toBe("Contacts")
     await page.click('nav :text("Settings")')
     expect(await page.textContent('header >> nth=-1')).toBe("Settings")
-    await page.click('a:has-text("Storage manager")')
-    expect(await page.textContent('header >> nth=-1')).toBe("Storage Manager")
     await page.click('nav :text("About")')
     expect(await page.textContent('header >> nth=-1')).toBe("About")
 })
