@@ -1,6 +1,7 @@
 
 # Global
 node_modules/
+test-results/
 
 /.bin/deploy_host_*.env
 /.bin/build_electron.env
@@ -16,7 +17,6 @@ node_modules/
 /electron/src/app
 /electron/dist/
 /electron/packaged/
-/electron/test-results/
 
 /host/template.yml
 /host/template_input.toml
@@ -29,7 +29,6 @@ node_modules/
 /displayer/dist/
 /displayer/dist_compressed/
 /displayer/public/dev/
-/displayer/test-results/
 
 /responder/aws/.aws-sam/
 /responder/aws/.dev_env.json
