@@ -1,6 +1,6 @@
 {
     "name": "stello",
-    "version": "1.5.6",
+    "version": "1.5.7",
     "description": "A new way to send newsletters that are secure and interactive",
     "homepage": "https://stello.news/",
     "author": {
@@ -65,7 +65,6 @@
             "icon": null,
             "title": "Install Stello (drag into Applications)"
         },
-        "afterSign": "./macos_notarize.js",
         "publish": {
             "provider": "s3",
             "bucket": "stello-releases",
