@@ -77,7 +77,6 @@ const new_contents:Metadata|PackageJsonMissing = {
             icon: null,  // Avoid using same icon as actual app so doesn't confuse users
             title: "Install Stello (drag into Applications)",
         },
-        afterSign: "./macos_notarize.js",
         publish: {
             // NOTE Different settings used in Electron script to access via CloudFront instead
             provider: 's3',
