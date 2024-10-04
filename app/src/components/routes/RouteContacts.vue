@@ -47,7 +47,7 @@ div
                         :group='group' @removed='on_group_removed')
                     div(class='text-center')
                         app-btn(@click='new_group' small class='mt-2') New group
-                    template(v-for='account of accounts')
+                    div(v-for='account of accounts' :key='account.id')
                         v-divider
                         v-subheader
                             div.account_name(class='ellipsis') {{account.display}}

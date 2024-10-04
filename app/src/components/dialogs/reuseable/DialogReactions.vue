@@ -6,7 +6,7 @@ v-card
     v-card-title Chose which reactions readers can use
 
     v-card-text(:class='{maxed: chosen.length >= limit}')
-        div(v-for='group of possibilities')
+        div(v-for='group of possibilities' :key='group[0]')
             SharedSvgAnimated.reaction(v-for='reaction of group' :key='reaction'
                 :url='reaction_url(reaction)' :playing='false'
                 :class='{chosen: chosen.includes(reaction)}' @click.native='choose(reaction)')

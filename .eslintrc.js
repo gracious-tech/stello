@@ -63,6 +63,16 @@ module.exports = {
         // Disable as already covered by other audits (such as tsc)
         'import/no-unresolved': 'off',  // Vite imports complex and already handled by tsc
 
+        // Disable as are valid in either Vue 2 or 3 (but not both)
+        'vue/no-deprecated-dollar-listeners-api': 'off',
+        'vue/no-multiple-template-root': 'off',
+        'vue/no-v-for-template-key-on-child': 'off',
+        'vue/no-v-for-template-key': 'off',
+        'vue/no-deprecated-v-on-native-modifier': 'off',
+
+        // Disable due to unresolvable false positives
+        'vue/valid-v-else': 'off',
+
         // Default to error but should be warnings
         'no-empty': 'warn',
         '@typescript-eslint/no-unsafe-call': 'warn',
@@ -75,6 +85,7 @@ module.exports = {
         '@typescript-eslint/ban-types': 'warn',
         // TODO revert below to error once 'any' type cases dealt with, as also checks invalid code
         '@typescript-eslint/restrict-template-expressions': 'warn',
+        'vue/valid-v-for': 'warn',
 
         // Need customisation
         'vue/prop-name-casing': ['warn', 'snake_case'],  // Not camel case
