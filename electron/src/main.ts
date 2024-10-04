@@ -36,10 +36,9 @@ void app.whenReady().then(async () => {
     }
 
     // Try to auto-update (if packaging format supports it)
-    // NOTE Appx updates are handled by the Windows store whereas Windows portable aren't
+    // NOTE Appx updates are handled by the Windows store and Windows portable can't update at all
     let update_downloaded = false
-    if (app.isPackaged && (process.platform === 'darwin' || process.env['APPIMAGE']
-            || process.env['PORTABLE_EXECUTABLE_FILE'])){
+    if (app.isPackaged && (process.platform === 'darwin' || process.env['APPIMAGE'])){
 
         // If empty file `proposed` exists in internal data folder then check for proposed releases
         const proposed = existsSync(join(app.getPath('userData'), 'proposed'))
