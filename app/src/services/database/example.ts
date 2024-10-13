@@ -252,7 +252,7 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
     // Create subscribe requests
     await Promise.all([...range(3 * multiplier)].map(async i => {
         await db._conn.put('request_subscribe', {
-            id: `request${i}`,
+            id: generate_token(),
             name: `${sample(first_names)!} ${sample(last_names)!}`.trim(),
             address: `blackhole+stello-r${i}@gracious.tech`,
             message: Math.random() < 0.5 ? "I'd like to also receive weekly updates" : "",
