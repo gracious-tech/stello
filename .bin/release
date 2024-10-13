@@ -3,6 +3,11 @@
 set -e
 cd "$(dirname "$(dirname "$0")")"
 
+echo -n "Run audit first? [Y/n] "
+read run_audit
 
-.bin/audit
+if [[ "$run_audit" != "n" ]]; then
+    .bin/audit
+fi
+
 pipenv run python .bin/release.py
