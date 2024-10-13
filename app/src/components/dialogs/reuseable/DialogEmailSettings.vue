@@ -27,7 +27,8 @@ v-card
     //- Choose host settings (couldn't auto-detect)
     v-card-text(v-if='setup === "settings"')
         div {{ email }} #[app-btn(@click='setup = "init"' small) Change]
-        app-security-alert(v-if='smtpless' class='mt-3') {{ smtpless }}
+        app-security-alert(v-if='smtpless' class='mt-3')
+            div(v-html='smtpless')
         app-text(v-model.trim='smtp_host' v-bind='$t("smtp_host")'
             :placeholder='profile.smtp_settings.host' persistent-placeholder)
         app-integer(v-model='smtp_port' :buttons='false' :inherit='profile.smtp_settings.port'
@@ -157,7 +158,7 @@ export type EmailSetupStep = 'init'|'email'|'settings'|'signin'|'password'
 
 
 const SMTPLESS:Record<string, string> = {
-    protonmail: `ProtonMail only allows other apps to send emails if you have a paid account and have setup "ProtonMail Bridge" on your computer already.`,
+    protonmail: `We do not recommend using ProtonMail with Stello due to low sending limits and issues with their bridge software. <a href='https://stello.news/guide/problem-protonmail/'>Read More</a>`,
     tutanota: `Tutanota does not allow other apps to send emails. You must use a different email address which will still benefit from the security that Stello itself provides.`,
 }
 
