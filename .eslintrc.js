@@ -62,6 +62,7 @@ module.exports = {
         'vue/html-quotes': 'off',  // Have own preferences for quote choice
         'vue/first-attribute-linebreak': 'off',  // Have own preferences for making lines fit
         'vue/max-attributes-per-line': 'off',  // Fit attributes based on char length not attr num
+        'vue/attributes-order': 'off',  // Have own preferences for attribute order
 
         // Disable as already covered by other audits (such as tsc)
         'import/no-unresolved': 'off',  // Vite imports complex and already handled by tsc
