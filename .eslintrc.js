@@ -59,6 +59,9 @@ module.exports = {
         '@typescript-eslint/require-await': 'off',  // Some fns async to match spec or await later
         '@typescript-eslint/no-empty-function': 'off',  // Empty fns may be used to match a spec
         '@typescript-eslint/explicit-module-boundary-types': 'off',  // TS auto detect saves time
+        'vue/html-quotes': 'off',  // Have own preferences for quote choice
+        'vue/first-attribute-linebreak': 'off',  // Have own preferences for making lines fit
+        'vue/max-attributes-per-line': 'off',  // Fit attributes based on char length not attr num
 
         // Disable as already covered by other audits (such as tsc)
         'import/no-unresolved': 'off',  // Vite imports complex and already handled by tsc
