@@ -62,24 +62,8 @@ export default class extends Vue {
 
     added = [
         {
-            title: "View sent messages",
-            desc: "You no longer need to copy a sent message to view it",
-        },
-        {
-            title: "Customise reactions",
-            desc: "Choose which reactions readers can use (sending account setting)",
-        },
-        {
-            title: "Subscribe forms",
-            desc: "Create a form people can fill in to subscribe (sending account setting)",
-        },
-        {
-            title: "Manage synced contacts",
-            desc: "You can now add and edit all Google contacts and groups",
-        },
-        {
-            title: "See unsubscribed in contacts list",
-            desc: "The disengaged contacts page now also displays contacts who unsubscribed",
+            title: "Stello Files now stored in Documents folder",
+            desc: "Your data is now easier to find, backup, and move to a new device",
         },
     ]
     todo = [
