@@ -42,11 +42,12 @@ void app.whenReady().then(async () => {
     if (app.isPackaged && (process.platform === 'darwin' || process.env['APPIMAGE'])){
 
         // If empty file `proposed` exists in internal data folder then check for proposed releases
-        const proposed_path = join(app.getPath('userData'), 'proposed')
-        console.info(`Checking if file exists: ${proposed_path}`)
-        const proposed = existsSync(proposed_path)
-        const releases_url =
-            'https://releases.encrypted.news/electron' + (proposed ? '_proposed' : '')
+        const proposed = existsSync(join(app.getPath('userData'), 'proposed'))
+        let releases_url = 'https://releases.encrypted.news/electron'
+        if (proposed){
+            // Access directly rather than via CDN to avoid caching delays
+            releases_url = 'https://stello-releases.s3-us-west-2.amazonaws.com/electron_proposed'
+        }
         console.info(`Checking for update at: ${releases_url}`)
 
         // Configure auto-updater
