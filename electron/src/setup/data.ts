@@ -7,14 +7,6 @@ import {app} from 'electron'
 import {files_dir, old_data_location} from '../utils/paths'
 
 
-// Cease execution if another instance of Stello is already running
-// NOTE The other instance will receive an event and focus itself instead
-// WARN Needs to run before set paths so doesn't potenitally move data while app operating
-if (!app.requestSingleInstanceLock()){
-    app.exit()  // WARN Don't use quit() as is async
-}
-
-
 // Create dir and warning file if doesn't exist yet
 const warn_file = join(files_dir, 'READ ME before moving this folder.txt')
 const warn_text = `
@@ -44,7 +36,17 @@ if (old_data_location){
         renameSync(old_data_location, electron_user_data)
     } catch {
         // Rename can sometimes fail on Windows if something else has opened a file
+        // So continue to copy the rest of the files so rename is not left incomplete
         // WARN Only copy as a backup as some users will have GBs of data
         cpSync(old_data_location, electron_user_data, {recursive: true})
     }
+}
+
+
+// Cease execution if another instance of Stello is already running
+// NOTE The other instance will receive an event and focus itself instead
+// NOTE Works by creating a lockfile in data dir, so can't call before setting userData dir
+// WARN Makes renameSync fail due to lockfile creation so must come after moving old data
+if (!app.requestSingleInstanceLock()){
+    app.exit()  // WARN Don't use quit() as is async
 }
