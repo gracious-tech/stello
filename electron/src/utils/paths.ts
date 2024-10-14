@@ -22,36 +22,27 @@ if (app.isPackaged){
 }
 
 
-// Determine old data locations (v1.5.3 and below)
-// WARN Do this before changing value of Electron's `userData` path
-const old_portable_data = join(app_path, '..', 'stello_data')
-const old_portable_data_exists = existsSync(old_portable_data)
-const old_user_data = app.getPath('userData')
-const old_user_data_exists = existsSync(old_user_data)
+// `Stello Files` dir always used for backups (even if internal data stored in old location)
+// Version 1.6+
+const possible_files_locations = [
+    join(app_path, '..', 'Stello Files'),  // Portable mode
+    join(app.getPath('documents'), 'Stello Files'),  // Normal mode
+]
+const files_dir = possible_files_locations.find(l => existsSync(l))
+    || possible_files_locations[1]!  // Use normal dir for new users (not portable)
 
 
-// Possible locations for files
-const files_dir_documents = join(app.getPath('documents'), 'Stello Files')
-const files_dir_portable = join(app_path, '..', 'Stello Files')
-
-
-// Portable mode enabled if portable files dir exists (either old or new location)
-const portable = old_portable_data_exists || existsSync(files_dir_portable)
-
-
-// Can now determine active files dir location
-const files_dir = portable ? files_dir_portable : files_dir_documents
-
-
-// If the dir doesn't exist yet then see if any old data needs migrating
-let old_data_location:string|null = null
-if (!existsSync(files_dir)){
-    if (old_portable_data_exists){
-        old_data_location = old_portable_data
-    } else if (old_user_data_exists){
-        old_data_location = old_user_data
-    }
-}
+// Internal data may be in `Stello Files` for new users or old locations for long-term users
+// NOTE Also within `Stello Files` for Mac/Linux users who received 1.6.6 update before 1.6.7
+const possible_data_locations = [
+    ...possible_files_locations.map(loc => join(loc, 'Internal Data')),  // Stello Files options
+    join(app_path, '..', 'stello_data'),  // Old portable location
+    app.getPath('userData'),  // Old normal location
+]
+// NOTE Check for existance of IndexedDB dir as chance Electron may create empty dir before check
+// (there was an issue with this on Windows at least, but couldn't confirm why, possibly lockfile)
+const data_dir = possible_data_locations.find(l => existsSync(join(l, 'IndexedDB')))
+    || possible_data_locations[1]!  // Use normal dir for new users (not portable)
 
 
 export function restrict_path(root_dir:string, relative_path:string){
@@ -65,4 +56,4 @@ export function restrict_path(root_dir:string, relative_path:string){
 }
 
 
-export {app_path, files_dir, old_data_location}
+export {app_path, files_dir, data_dir}
