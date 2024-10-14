@@ -22,20 +22,11 @@ if (app.isPackaged){
 }
 
 
-// `Stello Files` dir always used for backups (even if internal data stored in old location)
-// Version 1.6+
-const possible_files_locations = [
-    join(app_path, '..', 'Stello Files'),  // Portable mode
-    join(app.getPath('documents'), 'Stello Files'),  // Normal mode
-]
-const files_dir = possible_files_locations.find(l => existsSync(l))
-    || possible_files_locations[1]!  // Use normal dir for new users (not portable)
-
-
 // Internal data may be in `Stello Files` for new users or old locations for long-term users
 // NOTE Also within `Stello Files` for Mac/Linux users who received 1.6.6 update before 1.6.7
 const possible_data_locations = [
-    ...possible_files_locations.map(loc => join(loc, 'Internal Data')),  // Stello Files options
+    join(app_path, '..', 'Stello Files', 'Internal Data'),  // Portable mode
+    join(app.getPath('documents'), 'Stello Files', 'Internal Data'),  // Normal mode
     join(app_path, '..', 'stello_data'),  // Old portable location
     app.getPath('userData'),  // Old normal location
 ]
@@ -43,6 +34,14 @@ const possible_data_locations = [
 // (there was an issue with this on Windows at least, but couldn't confirm why, possibly lockfile)
 const data_dir = possible_data_locations.find(l => existsSync(join(l, 'IndexedDB')))
     || possible_data_locations[1]!  // Use normal dir for new users (not portable)
+
+
+// Files dir will always be a new `Stello Files` location even if data_dir is an old location
+// This will allow Stello to gradually move data over to new location for long-term users
+// It will either be the documents or portable location depending on whether data_dir is portable
+const files_dir = [0, 2].includes(possible_data_locations.indexOf(data_dir))
+    ? join(app_path, '..', 'Stello Files')
+    : join(app.getPath('documents'), 'Stello Files')
 
 
 export function restrict_path(root_dir:string, relative_path:string){
