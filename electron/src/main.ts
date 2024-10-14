@@ -49,6 +49,7 @@ void app.whenReady().then(async () => {
             provider: 'generic',
             url: 'https://releases.encrypted.news/electron' + (proposed ? '_proposed' : ''),
         })
+        console.info(autoUpdater.getFeedURL())
         const check_for_updates = () => {
             if (update_downloaded){
                 return  // Don't repeat if already downloaded an update
