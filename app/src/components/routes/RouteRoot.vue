@@ -63,7 +63,7 @@ export default class extends Vue {
     added = [
         {
             title: "Stello Files now stored in Documents folder",
-            desc: "Your data is now easier to find, backup, and move to a new device",
+            desc: "Stello is transitioning to a more reliable way of storing and backing up data. If you encounter any issues during this transition, please contact us.",
         },
     ]
     todo = [
@@ -90,5 +90,7 @@ export default class extends Vue {
     max-width: 393px
     margin: 48px auto
 
+.v-list-item__subtitle
+    white-space: normal
 
 </style>
