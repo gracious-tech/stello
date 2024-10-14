@@ -27,6 +27,7 @@ if (!existsSync(warn_file)){
 
 // Set path for Electron's data
 const electron_user_data = join(files_dir, 'Internal Data')
+mkdirSync(electron_user_data, {recursive: true})  // Create if doesn't exist yet
 app.setPath('userData', electron_user_data)
 
 
