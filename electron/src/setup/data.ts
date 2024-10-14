@@ -1,6 +1,6 @@
 
 import {join} from 'path'
-import {existsSync, renameSync, mkdirSync, writeFileSync} from 'original-fs'
+import {existsSync, renameSync, mkdirSync, writeFileSync, cpSync} from 'original-fs'
 
 import {app} from 'electron'
 
@@ -40,5 +40,11 @@ app.setPath('userData', electron_user_data)
 
 // Move old data if exists (location is only set if new data doesn't already exist)
 if (old_data_location){
-    renameSync(old_data_location, electron_user_data)
+    try {
+        renameSync(old_data_location, electron_user_data)
+    } catch {
+        // Rename can sometimes fail on Windows if something else has opened a file
+        // WARN Only copy as a backup as some users will have GBs of data
+        cpSync(old_data_location, electron_user_data, {recursive: true})
+    }
 }
