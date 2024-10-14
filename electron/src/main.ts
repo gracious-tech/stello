@@ -43,13 +43,16 @@ void app.whenReady().then(async () => {
 
         // If empty file `proposed` exists in internal data folder then check for proposed releases
         const proposed_path = join(app.getPath('userData'), 'proposed')
-        console.info(`Checking: ${proposed_path}`)
+        console.info(`Checking if file exists: ${proposed_path}`)
         const proposed = existsSync(proposed_path)
+        const releases_url =
+            'https://releases.encrypted.news/electron' + (proposed ? '_proposed' : '')
+        console.info(`Checking for update at: ${releases_url}`)
 
         // Configure auto-updater
         autoUpdater.setFeedURL({
             provider: 'generic',
-            url: 'https://releases.encrypted.news/electron' + (proposed ? '_proposed' : ''),
+            url: releases_url,
         })
         const check_for_updates = () => {
             if (update_downloaded){
