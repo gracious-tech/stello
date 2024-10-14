@@ -42,14 +42,15 @@ void app.whenReady().then(async () => {
     if (app.isPackaged && (process.platform === 'darwin' || process.env['APPIMAGE'])){
 
         // If empty file `proposed` exists in internal data folder then check for proposed releases
-        const proposed = existsSync(join(app.getPath('userData'), 'proposed'))
+        const proposed_path = join(app.getPath('userData'), 'proposed')
+        console.info(`Checking: ${proposed_path}`)
+        const proposed = existsSync(proposed_path)
 
         // Configure auto-updater
         autoUpdater.setFeedURL({
             provider: 'generic',
             url: 'https://releases.encrypted.news/electron' + (proposed ? '_proposed' : ''),
         })
-        console.info(autoUpdater.getFeedURL())
         const check_for_updates = () => {
             if (update_downloaded){
                 return  // Don't repeat if already downloaded an update
