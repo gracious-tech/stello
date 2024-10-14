@@ -161,7 +161,7 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
         // Upload displayer, configured with deployment config
 
         // Get list of files in displayer tar
-        const files = await untar(await self.app_native.read_file('displayer.tar'))
+        const files = await untar(await self.app_native.app_file_read('displayer.tar'))
 
         // Start uploading displayer assets and collect promises that resolve with their path
         const uploads:Promise<string>[] = []
@@ -419,7 +419,7 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
         // SECURITY Lambda code managed by admin rather than user to prevent malicious code uploads
 
         // Load code so can deploy or compare
-        const fn_code = new Uint8Array(await self.app_native.read_file('responder_aws.zip'))
+        const fn_code = new Uint8Array(await self.app_native.app_file_read('responder_aws.zip'))
 
         // Function config that can be used in a create or update request
         const fn_config = {

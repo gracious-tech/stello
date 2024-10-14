@@ -1,15 +1,16 @@
 
 import path from 'path'
-import {readFileSync} from 'fs'
+import {readFileSync, writeFileSync, readdirSync, rmSync, mkdirSync} from 'fs'
 import {promises as dns} from 'dns'
 
 import {ipcMain, safeStorage} from 'electron'
 import {autoUpdater} from 'electron-updater'
 
 import {get_path} from '../utils/config'
+import {files_dir, restrict_path} from '../utils/paths'
 
 
-ipcMain.handle('read_file', async (event, relative_path:string) => {
+ipcMain.handle('app_file_read', async (event, relative_path:string) => {
     // Read a file and return as an ArrayBuffer (must be within app's dir)
     // WARN During dev this will serve app assets from last build and not current serve
     const app_dir = path.resolve(get_path(), 'app') + path.sep
@@ -21,13 +22,39 @@ ipcMain.handle('read_file', async (event, relative_path:string) => {
 })
 
 
+ipcMain.handle('user_file_list', async (event, relative_path:string):Promise<string[]> => {
+    // List items in a dir in the user's files dir
+    const full_path = restrict_path(files_dir, relative_path)
+    try {
+        return readdirSync(full_path)
+    } catch {
+        return []  // Path probably doesn't exist yet
+    }
+})
+
+
+ipcMain.handle('user_file_write', async (event, relative_path:string, data:ArrayBuffer) => {
+    // Write a file to the user's files dir
+    const full_path = restrict_path(files_dir, relative_path)
+    mkdirSync(path.dirname(full_path), {recursive: true})
+    writeFileSync(full_path, Buffer.from(data))
+})
+
+
+ipcMain.handle('user_file_remove', async (event, relative_path:string):Promise<void> => {
+    // Remove a file or dir recursively in the user's files dir
+    const full_path = restrict_path(files_dir, relative_path)
+    rmSync(full_path, {force: true, recursive: true})
+})
+
+
 ipcMain.handle('update', async event => {
     // Quit/install/restart
     autoUpdater.quitAndInstall(false, true)
 })
 
 
-ipcMain.handle('dns_mx', async (event, host) => {
+ipcMain.handle('dns_mx', async (event, host:string) => {
     // Do a DNS request for MX records and return domains ordered by priority
     try {
         const results = await dns.resolveMx(host)

@@ -82,7 +82,7 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
     await db.sections.set(section_text)
 
     // Create a image section
-    const image_blob = new Blob([await self.app_native.read_file('default_invite_image.jpg')],
+    const image_blob = new Blob([await self.app_native.app_file_read('default_invite_image.jpg')],
         {type: 'image/jpeg'})
     const section_image = await db.sections.create_object({
         type: 'images',

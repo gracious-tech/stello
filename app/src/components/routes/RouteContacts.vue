@@ -18,7 +18,7 @@ div
                 app-list-item(@click='do_selected_new_group') Create new group
                 app-list-item(@click='do_selected_join_group') Add to a group
                 app-list-item(@click='do_selected_leave_group' :disabled='!filter_group')
-                    | {{ filter_group ? `Remove from "${filter_group.display}"` : "Remove from group" }}
+                    | Remove from {{ filter_group ? `"${filter_group.display}"` : "group" }}
                 v-divider
                 app-list-item(@click='do_selected_export') Export selected
                 app-list-item(@click='do_selected_delete' class='error--text') Delete selected
@@ -89,7 +89,6 @@ div
 
 <script lang='ts'>
 
-import papaparse from 'papaparse'
 import {Component, Vue, Watch} from 'vue-property-decorator'
 
 import DialogGroupChoice from '../dialogs/DialogGroupChoice.vue'
@@ -109,6 +108,7 @@ import {Profile} from '@/services/database/profiles'
 import {Contact} from '@/services/database/contacts'
 import {Task, task_manager} from '@/services/tasks/tasks'
 import {taskless_contacts_create} from '@/services/tasks/contacts'
+import {export_contacts_csv} from '@/services/misc/backup'
 
 
 interface ContactItem {
@@ -750,19 +750,12 @@ export default class extends Vue {
         }), 3)
     }
 
-    do_selected_export():void{
+    async do_selected_export():Promise<void>{
         // Export selected contacts as CSV
-        const data = [['name', 'name_address_as', 'email', 'notes']]
-        data.push(...this.contacts_selected.map(c => {
-            return [
-                c.contact.name,
-                c.contact.name_hello_result,
-                c.contact.address,
-                c.contact.notes,
-            ]
-        }))
-        const csv = papaparse.unparse(data)
-        download_file(new File([csv], 'stello_contacts.csv'))
+        const unsubs = await self.app_db.unsubscribes.list()
+        const csv =
+            export_contacts_csv(this.contacts_selected.map(c => c.contact), unsubs, this.profiles)
+        download_file(new File([csv], 'Stello contacts.csv', {type: 'text/csv'}))
     }
 
     async do_selected_new_group():Promise<void>{

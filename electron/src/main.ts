@@ -3,7 +3,8 @@
 // Trigger setup steps
 // WARN Order matters
 import './setup/errors'
-import './setup/init'  // WARN Must happen before all other imports which will rely on path set
+import './setup/data'  // WARN Must happen before all other imports which will rely on path set
+import './setup/init'
 import './setup/menus'
 import './setup/oauths'
 import './setup/services'

@@ -22,7 +22,7 @@ String.prototype.replaceAll = function(old_val:string, new_val:string){
 
 // Some migrations access app_native
 global.app_native = new NativeBrowser()
-global.app_native.read_file = async () => new ArrayBuffer(0)
+global.app_native.app_file_read = async () => new ArrayBuffer(0)
 
 
 // STORE SPECS

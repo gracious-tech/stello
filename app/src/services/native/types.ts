@@ -3,7 +3,10 @@ export interface NativeInterface {
     // The methods available for interacting with native platform
 
     // Functions
-    read_file(path:string):Promise<ArrayBuffer>
+    app_file_read(path:string):Promise<ArrayBuffer>
+    user_file_list(path:string):Promise<string[]>
+    user_file_write(path:string, data:ArrayBuffer):Promise<void>
+    user_file_remove(path:string):Promise<void>
     update():void
     dns_mx(host:string):Promise<string[]>
     os_encrypt(secret:string):Promise<ArrayBuffer|null>

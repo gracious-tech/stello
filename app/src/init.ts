@@ -19,6 +19,8 @@ import {get_store} from '@/services/store/store'
 import {get_router} from '@/services/router'
 import {NativeBrowser} from './services/native/native_browser'
 import {task_manager, TaskManager} from '@/services/tasks/tasks'
+import {backup_contacts} from '@/services/misc/backup'
+import {setIntervalPlus} from '@/services/utils/async'
 
 // Components
 import App from '@/components/App.vue'
@@ -241,4 +243,12 @@ void open_db().then(async connection => {
     if (self.app_store.state.usage_installed === null){
         self.app_store.commit('dict_set', ['usage_installed', new Date()])
     }
+
+    // Schedule backups
+    setTimeout(() => {
+        setIntervalPlus(24, 'h', true, () => {
+            void backup_contacts()
+        })
+    }, 1000 * 30)  // Do initial backup 30 seconds after starting to not slow anything down
+
 }).catch(error_handling.handle_db_error)
