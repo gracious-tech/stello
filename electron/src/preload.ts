@@ -73,7 +73,7 @@ const native_electron:NativeInterface = {
     on_oauth(handler:(url:string)=>void):void{
         // Listen to oauth redirect events emitted by native platform
         ipcRenderer.on('oauth', (event, url) => {
-            handler(url)
+            handler(url as string)
         })
     },
 }
