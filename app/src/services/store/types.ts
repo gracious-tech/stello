@@ -39,6 +39,7 @@ export interface AppStoreState {
         prev_route:Route|null,
         prev_state_contacts:{filter_group_id:string, search:string, scroll_top:number}|null,
         cut_section:RecordSection[]|null,  // First section is one that was cut, others subsections
+        closing:boolean|'force'
 
         // Unread responses
         // NOTE Using objects with `true` constant for performance and reactivity
