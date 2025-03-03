@@ -223,7 +223,13 @@ export async function copy_sections(sections_store:SectionsStore, section_ids:Se
             }
 
             section.id = generate_token()  // Change id of the section
-            if (section.content.type === 'page'){
+            if (section.content.type === 'images'){
+                // Each image needs a new id too as used to identify subsections for replactions
+                for (const image of section.content.images){
+                    image.id = generate_token()
+                }
+            } else if (section.content.type === 'page'){
+                // Recurse for page's sections
                 section.content.sections =
                     await copy_sections(sections_store, section.content.sections)
             }
