@@ -57,6 +57,7 @@ export default class extends Vue {
     filter_contact:string|null = null
     filter_message:string|null = null
     filter_search:string|null = null  // TODO Not yet implemented
+    subsection_order:string[] = []  // Initial order of subsections
 
     created(){
         void this.load()
@@ -80,37 +81,34 @@ export default class extends Vue {
     }
 
     get subsections(){
-        // Get array of subsections where the item is an array of responses to that subsection
-        // NOTE Some items will be sectionless, containing a single response to a whole message
-        const subsections:(Reply|Reaction)[][] = []
+        // Group responses by subsection, section, or otherwise give whole-message replies own group
 
-        // Keep a mapping of section/subsection id to the array of responses (so can look up)
-        // NOTE Sectionless responses will not be included in this
-        const subsections_map:Record<string, (Reply|Reaction)[]> = {}
-
-        // Group responses by section/subsection
+        const collections:Record<string, (Reply|Reaction)[]> = {}
         for (const response of this.replactions_matched){
 
-            // Either use the subsection id, or section id, if either available
-            // NOTE Both are random uuids, so shouldn't be any conflicts
-            const subsection_id = response.subsection_id ?? response.section_id
-            if (subsection_id){
-                // See if there is already an array for the subsection
-                if (! (subsection_id in subsections_map)){
-                    // This is the first response to the subsection, so create new array
-                    // NOTE Important that item in map points to same item in `subsections`
-                    subsections_map[subsection_id] = []
-                    subsections.push(subsections_map[subsection_id]!)
-                }
-                // Add response to the subsection's array
-                subsections_map[subsection_id]!.push(response)
-            } else {
-                // This response is sectionless (a general response to whole message)
-                subsections.push([response])
+            // Either use the subsection id, section id, or otherwise sectionless id
+            // NOTE All are random uuids, so shouldn't be any conflicts
+            const collection_id = response.subsection_id ?? response.section_id ?? response.id
+            if (! (collection_id in collections)){
+                // This is the first response to the subsection/section, so create new array
+                collections[collection_id] = []
             }
+            // Add response to the collection
+            collections[collection_id]!.push(response)
         }
 
-        return subsections as MinOne<Reply|Reaction>[]
+        // Sort subsections by the order determined on first load
+        // NOTE This prevents sections jumping around the page when removing a response would
+        //      change the sorting
+        const as_array = Object.entries(collections)
+        if (this.subsection_order.length){
+            as_array.sort((a, b) =>
+                this.subsection_order.indexOf(a[0]) - this.subsection_order.indexOf(b[0]))
+        } else {
+            this.subsection_order = as_array.map(([id, replactions]) => id)
+        }
+
+        return as_array as [string, MinOne<Reply|Reaction>][]
     }
 
     get subsections_visible(){
@@ -118,10 +116,10 @@ export default class extends Vue {
         const replactions_allowance = 50 * this.pages
         let replactions_count = 0
         const visible = []
-        for (const replactions of this.subsections){
+        for (const [collection_id, replactions] of this.subsections){
             visible.push({
                 items: replactions,
-                key: replactions[0].subsection_id || replactions[0].section_id || replactions[0].id,
+                key: collection_id,
             })
             replactions_count += replactions.length
             if (replactions_count >= replactions_allowance)

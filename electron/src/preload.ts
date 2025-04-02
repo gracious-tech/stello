@@ -28,9 +28,9 @@ const native_electron:NativeInterface = {
         return ipcRenderer.invoke('user_file_remove', path) as Promise<void>
     },
 
-    update():void{
-        // Tell electron to update
-        void ipcRenderer.invoke('update')
+    restart_after_update():void{
+        // Tell electron to restart after an update (doesn't trigger the update)
+        void ipcRenderer.invoke('restart_after_update')
     },
 
     dns_mx(host:string):Promise<string[]>{

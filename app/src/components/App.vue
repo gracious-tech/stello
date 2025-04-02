@@ -35,6 +35,7 @@ import {Component, Vue, Watch} from 'vue-property-decorator'
 import AppStatus from '@/components/other/AppStatus.vue'
 import AppSidebar from '@/components/other/AppSidebar.vue'
 import AppDialog from '@/components/dialogs/AppDialog.vue'
+import SplashClosing from '@/components/splash/SplashClosing.vue'
 import SplashWelcome from '@/components/splash/SplashWelcome.vue'
 import SplashDisclaimer from '@/components/splash/SplashDisclaimer.vue'
 import {oauth_pretask_process} from '@/services/tasks/oauth'
@@ -47,14 +48,13 @@ type SnackbarProps = {msg:string, btn_label?:string, btn_color?:string, btn_hand
 
 
 @Component({
-    components: {AppStatus, AppSidebar, SplashWelcome, SplashDisclaimer, AppDialog},
+    components: {AppStatus, AppSidebar, SplashClosing, SplashWelcome, SplashDisclaimer, AppDialog},
 })
 export default class extends Vue {
 
     route_transition = 'below'
     snackbar_visible = false
     snackbar:SnackbarProps|null = null
-    allow_force_quit = false
 
     mounted(){
         // Prevent window close if still doing tasks
@@ -62,17 +62,9 @@ export default class extends Vue {
         //      Even though nav will open new window due to Electron handling
         //      Must .'. always give a target to links to avoid them not working when tasks running
         self.addEventListener('beforeunload', event => {
-            if (task_manager.data.tasks.length && !this.allow_force_quit){
-                void this.$store.dispatch('show_snackbar', {
-                    msg: "Cannot close until tasks complete",
-                    btn_label: "Force quit",
-                    btn_color: 'error',
-                    btn_handler: () => {
-                        this.allow_force_quit = true
-                        self.close()
-                    },
-                })
-                event.returnValue = false  // Prevents close
+            if (task_manager.data.tasks.length && this.$store.state.tmp.closing !== 'force'){
+                event.returnValue = false  // Prevent immediate close
+                this.$store.commit('tmp_set', ['closing', true])
             }
         })
 
@@ -86,6 +78,7 @@ export default class extends Vue {
     get docked(){
         // Show first item that wants to be shown
         const items:[string, boolean][] = [
+            ['splash-closing', this.$store.state.tmp.closing],
             ['splash-welcome', this.$store.state.show_splash_welcome],
             ['splash-disclaimer', this.$store.state.show_splash_disclaimer],
             ['router-view', true],
@@ -105,6 +98,11 @@ export default class extends Vue {
             classes.push('dark')
         }
         return classes
+    }
+
+    get tasks_remain(){
+        // Whether any tasks are still in progress
+        return !!task_manager.data.tasks.length
     }
 
     @Watch('$route') watch_$route(to:Route, from:Route){
@@ -144,6 +142,13 @@ export default class extends Vue {
         }
         this.snackbar = arg
         this.snackbar_visible = !!arg
+    }
+
+    @Watch('tasks_remain') async watch_tasks_remain(){
+        // If trying to close and tasks list becomes empty, trigger close
+        if (this.$store.state.tmp.closing && !this.tasks_remain){
+            self.close()
+        }
     }
 }
 </script>

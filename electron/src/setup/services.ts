@@ -48,9 +48,10 @@ ipcMain.handle('user_file_remove', async (event, relative_path:string):Promise<v
 })
 
 
-ipcMain.handle('update', async event => {
-    // Quit/install/restart
-    autoUpdater.quitAndInstall(false, true)
+ipcMain.handle('restart_after_update', async event => {
+    // Enable setting that will trigger a restart when window closed and update done
+    // NOTE Does not actually trigger update or close windows, should do that separately
+    autoUpdater.autoRunAppAfterInstall = true
 })
 
 

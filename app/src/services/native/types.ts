@@ -7,7 +7,7 @@ export interface NativeInterface {
     user_file_list(path:string):Promise<string[]>
     user_file_write(path:string, data:ArrayBuffer):Promise<void>
     user_file_remove(path:string):Promise<void>
-    update():void
+    restart_after_update():void
     dns_mx(host:string):Promise<string[]>
     os_encrypt(secret:string):Promise<ArrayBuffer|null>
     os_decrypt(encrypted:ArrayBuffer):Promise<string|null>

@@ -215,24 +215,27 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
     }
 
     // Create responses
-    for (const msg of messages){
+    for (const msg of messages.slice(2)){
         // NOTE Responses disabled for pages
         const msg_section_ids = cycle(msg.draft.sections.flat()
             .filter(id => id !== section_page.id) as MinOne<string>)
-        const msg_subsection_ids = cycle([null, section_image.content.images[0]!.id, null, null])
         for (const msg_copy of await db.copies.list_for_msg(msg.id)){
-            if (Math.random() < 0.1){
+            if (Math.random() < 0.2){
                 await db.reply_create(random_reply(), random_date(), msg_copy.resp_token,
                     null, null, '', '')
             }
-            if (Math.random() < 0.2){
-                await db.reply_create(random_reply(), random_date(), msg_copy.resp_token,
-                    msg_section_ids.next().value, msg_subsection_ids.next().value, '', '')
-            }
-            if (Math.random() < 0.2){
-                await db.reaction_create(reactions.next().value, random_date(),
-                    msg_copy.resp_token, msg_section_ids.next().value,
-                    msg_subsection_ids.next().value, '', '')
+            if (Math.random() < 0.9){
+                // Need to get section's data to see if images, which need subsection id
+                const section = (await db.sections.get(msg_section_ids.next().value))!
+                const subsection_id = section.content.type === 'images' ?
+                    sample(section.content.images)!.id : null
+                if (Math.random() < 0.5){
+                    await db.reply_create(random_reply(), random_date(),
+                        msg_copy.resp_token, section.id, subsection_id, '', '')
+                } else {
+                    await db.reaction_create(reactions.next().value, random_date(),
+                        msg_copy.resp_token, section.id, subsection_id, '', '')
+                }
             }
             if (Math.random() < 0.5){
                 await db.read_create(random_date(), msg_copy.resp_token, '', '')

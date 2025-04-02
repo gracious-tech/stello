@@ -21,9 +21,8 @@ export class NativeBrowser implements NativeInterface {
         // Will not actually remove anything
     }
 
-    update():void{
-        self.location.assign('#/')
-        self.location.reload()
+    restart_after_update():void{
+        return
     }
 
     async dns_mx(host:string):Promise<string[]>{
