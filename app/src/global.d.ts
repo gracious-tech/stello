@@ -121,7 +121,6 @@ declare module 'Custom' {
             app_store:Store<AppStoreState>
             app_db:Database
             app_toggle_dark():void
-            app_update():void
             app_report_error(error:unknown):string
             app_native:NativeInterface
             CompressionStream:typeof CompressionStream,

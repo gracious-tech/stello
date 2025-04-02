@@ -55,6 +55,7 @@ void app.whenReady().then(async () => {
             provider: 'generic',
             url: releases_url,
         })
+        autoUpdater.autoRunAppAfterInstall = false  // Only needed if user clicked "restart"
         const check_for_updates = () => {
             if (update_downloaded){
                 return  // Don't repeat if already downloaded an update

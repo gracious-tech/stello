@@ -73,9 +73,6 @@ if (!self.app_native){
 
 
 // Show update bar if one available
-self.app_update = () => {
-    self.app_native.update()
-}
 self.app_native.on_update_ready(() => {
     // Remove any existing reload bar, as update restarts electron and would solve errors anyway
     self.document.querySelector('.reload-bar')?.remove()
@@ -89,7 +86,11 @@ self.app_native.on_update_ready(() => {
         </div>
     `)
     ;(self.document.querySelector('.reload-bar.update button') as HTMLButtonElement)
-        .addEventListener('click', () => {self.app_update()})
+        .addEventListener('click', () => {
+            self.app_native.restart_after_update()
+            // Using normal close method ensures can close properly and wait for tasks to finish
+            self.close()
+        })
 })
 
 
