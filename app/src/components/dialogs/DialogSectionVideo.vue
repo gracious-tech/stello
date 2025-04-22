@@ -7,9 +7,10 @@ v-card
 
     v-card-text
         div(class='my-4')
+            //- NOTE Vimeo support broke; code still exists but not mentioning to users until fixed
             app-text(@input='process_url' :rules='[validate_url]' label="Video URL"
-                placeholder="Youtube/Vimeo URL..."
-                hint="Currently only Youtube and Vimeo videos are supported")
+                placeholder="Youtube URL..."
+                hint="Currently only Youtube videos are supported")
 
         shared-video(:format='content.format' :id='content.id'
             :start='content.start' :end='content.end')
@@ -165,7 +166,7 @@ export default class extends Vue {
 
     validate_url(input:string):string|boolean{
         // Return error string if invalid, else true
-        return this.parse_url(input) ? true : "Must be a Youtube or Vimeo URL"
+        return this.parse_url(input) ? true : "Must be a Youtube URL"
     }
 
     @debounce_method(1000)
