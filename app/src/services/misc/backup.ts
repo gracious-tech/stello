@@ -2,6 +2,7 @@
 import papaparse from 'papaparse'
 
 import {string_to_utf8} from '@/services/utils/coding'
+import {sanitize_filename} from '@/services/utils/strings'
 
 import type {Contact} from '@/services/database/contacts'
 import type {Unsubscribe} from '@/services/database/unsubscribes'
@@ -96,8 +97,7 @@ export async function backup_contacts(){
     // Save individual file for each group
     const promises:Promise<void>[] = []
     for (const group of groups){
-        // SECURITY Escape special characters when creating file name
-        const file_name = group.name.replace(/[/\\?%*:|"<>]/g, '-') + '.csv'
+        const file_name = sanitize_filename(group.name) + '.csv'
         const file_path = backup_dir + '/' + file_name
         const groups_contacts = contacts.filter(c => group.contacts.includes(c.id))
         const csv = export_contacts_csv(groups_contacts, unsubs, profiles)

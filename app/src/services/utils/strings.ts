@@ -38,3 +38,10 @@ export function str_or_null(input:unknown):string|null{
     // WARN String(null) === 'null', so check before conversion
     return input ? String(input) : null
 }
+
+
+export function sanitize_filename(filename:string):string{
+    // Ensure a proposed filename is valid and not too long
+    // WARN Do not include ext as it may get trimmed
+    return filename.replace(/[/\\?%*:|"<>]/g, '').slice(0, 40)
+}
