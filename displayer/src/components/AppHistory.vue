@@ -1,18 +1,18 @@
 
 <template lang='pug'>
 
-div(v-if='prev || next' class='ui')
+div(v-if='current_date' class='ui')
     div.published {{ current_date }}
-    h2.title Other Messages
-
-    div.history
-        div.prev(v-if='prev')
-            a(@click='prev.load') ← {{ prev.label }}
-            span {{ prev.date }}
-        | &nbsp;
-        div.next(v-if='next')
-            a(@click='next.load') {{ next.label }} →
-            span {{ next.date }}
+    template(v-if='prev || next')
+        h2.title Previously opened
+        div.history
+            div.prev(v-if='prev')
+                a(@click='prev.load') ← {{ prev.label }}
+                span {{ prev.date }}
+            | &nbsp;
+            div.next(v-if='next')
+                a(@click='next.load') {{ next.label }} →
+                span {{ next.date }}
 
 </template>
 
