@@ -11,10 +11,14 @@ export function buffer_to_url64(buffer:ArrayBuffer):string{
 
 export function buffer_to_standard_url64(buffer:ArrayBuffer):string{
     // Encode binary data as a url-safe base64 string
+    return buffer_to_base64(buffer).replaceAll('+', '-').replaceAll('/', '_')
+}
+
+
+export function buffer_to_base64(buffer:ArrayBuffer):string{
+    // Encode binary data as a base64 string
     // NOTE btoa only works with strings so convert each byte to a char
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)))
-    // Convert to urlsafe base64
-    return base64.replaceAll('+', '-').replaceAll('/', '_')
+    return btoa(String.fromCharCode(...new Uint8Array(buffer)))
 }
 
 
