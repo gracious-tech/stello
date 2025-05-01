@@ -10,6 +10,7 @@
     "private": true,
     "main": "dist/main.js",
     "dependencies": {
+        "check-disk-space": "^3.4.0",
         "electron-context-menu": "^3.1.1",
         "electron-updater": "^6.3.4",
         "nodemailer": "^6.7.1",
