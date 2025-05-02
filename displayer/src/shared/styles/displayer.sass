@@ -215,10 +215,7 @@
         background-image: none !important
         background-color: #fff !important
         color: #000 !important
-
-        .content
-            background-color: inherit !important
-            color: inherit !important
+        padding-bottom: 0 !important
 
 
     // STRUCTURAL
@@ -236,6 +233,12 @@
             border-radius: var(--stello-radius)
             margin-top: 48px
 
+        @media print
+            background-color: inherit !important
+            color: inherit !important
+            margin-top: 0 !important
+            padding-bottom: 0 !important
+
     &.dark .content
         background-color: #111
         color: rgba(#fff, 0.8)
@@ -247,6 +250,13 @@
 
         &:not(.hero)
             padding: var(--stello-gutter) var(--stello-gutter) 0 var(--stello-gutter)
+
+        @media print
+            padding-left: 0 !important
+            padding-right: 0 !important
+
+            &:first-child
+                padding-top: 0 !important
 
         // Restore correct order of sections for .wrap-right when wrapping isn't active
         @media (max-width: $stello_full_plus_sidebar - 1)
