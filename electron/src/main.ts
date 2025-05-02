@@ -16,11 +16,11 @@ import {join} from 'node:path'
 
 import {app, BrowserWindow, dialog, session} from 'electron'
 import {autoUpdater} from 'electron-updater'
-import check_disk_space from 'check-disk-space'
 
 import {get_path, TESTING} from './utils/config'
 import {activate_app, open_window} from './utils/window'
-import {app_path, data_dir} from './utils/paths'
+import {app_path} from './utils/paths'
+import {get_free_space} from './utils/misc'
 
 
 // Setup that relies on ready event
@@ -107,8 +107,7 @@ void app.whenReady().then(async () => {
 
     // Warn if disk space low as Chromium may wipe data if < 2%
     // See https://github.com/electron/electron/issues/41877#issuecomment-2844841416
-    const disk_space = await check_disk_space(data_dir)
-    const disk_space_percent = Math.floor(disk_space.free / disk_space.size * 100)
+    const disk_space_percent = await get_free_space()
     if (disk_space_percent < 5){
         const button_i = dialog.showMessageBoxSync({
             title: `Disk space critically low (${disk_space_percent}% free)`,
