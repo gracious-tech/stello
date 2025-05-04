@@ -14,6 +14,8 @@ v-list-item(:to='to')
             app-list-item(v-if='!draft.template' @click='make_template') Turn into template
             app-list-item(v-if='draft.template' @click='make_default_template'
                 :disabled='is_default') Make default
+            app-list-item(@click='export_html') Export as webpage
+            app-list-item(@click='export_pdf') Export as PDF
             app-list-item(@click='remove' class='error--text') Delete
 
 </template>
@@ -23,6 +25,7 @@ v-list-item(:to='to')
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
+import {save_draft_html, save_draft_pdf} from '@/services/backup/drafts'
 import {Draft} from '@/services/database/drafts'
 
 
@@ -70,6 +73,14 @@ export default class extends Vue {
     make_default_template(){
         // Make a template the default
         this.$store.commit('dict_set', ['default_template', this.draft.id])
+    }
+
+    export_html(){
+        void save_draft_html(this.draft)
+    }
+
+    export_pdf(){
+        void save_draft_pdf(this.draft)
     }
 
     remove(){
