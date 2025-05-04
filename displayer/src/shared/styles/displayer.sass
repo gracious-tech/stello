@@ -16,6 +16,8 @@
     font-size: 18px
     @media (min-width: $stello_full_plus_sidebar)
         font-size: 20px
+    @media print
+        font-size: 16px !important  // Reduce paper needed and still easily readable
     -webkit-tap-highlight-color: transparent  // Don't flash blue when touch things
 
 
@@ -259,7 +261,8 @@
                 padding-top: 0 !important
 
         // Restore correct order of sections for .wrap-right when wrapping isn't active
-        @media (max-width: $stello_full_plus_sidebar - 1)
+        // WARN Don't apply to print which should always have two columns
+        @media screen and (max-width: $stello_full_plus_sidebar - 1)
             &.wrap-right .sections
                 display: flex
                 flex-direction: column-reverse
@@ -270,7 +273,8 @@
 
         // As soon as content width starts decreasing, switch to single column
         // (otherwise add/respond buttons don't have space to display)
-        @media (min-width: $stello_full_plus_sidebar)
+        // NOTE Print always has two columns, even though width is slightly below threshold
+        @media (min-width: $stello_full_plus_sidebar), print
 
             &.parallel
                 // No text wrapping needed so just use flex row
