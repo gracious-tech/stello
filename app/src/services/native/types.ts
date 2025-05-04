@@ -11,6 +11,7 @@ export interface NativeInterface {
     dns_mx(host:string):Promise<string[]>
     os_encrypt(secret:string):Promise<ArrayBuffer|null>
     os_decrypt(encrypted:ArrayBuffer):Promise<string|null>
+    html_to_pdf(html:string, filename:string):Promise<null>
     test_email_settings(settings:EmailSettings, auth?:boolean):Promise<EmailError|null>
     smtp_send(settings:EmailSettings, email:Email):Promise<EmailError|null>
 

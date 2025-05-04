@@ -37,6 +37,10 @@ export class NativeBrowser implements NativeInterface {
         return null
     }
 
+    async html_to_pdf(html:string, filename:string):Promise<null>{
+        return null
+    }
+
     async test_email_settings(settings:EmailSettings, auth=true):Promise<EmailError>{
         return {code: 'unsupported', details: ""}
     }

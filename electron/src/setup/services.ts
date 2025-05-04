@@ -3,7 +3,7 @@ import path from 'path'
 import {readFileSync, writeFileSync, readdirSync, rmSync, mkdirSync} from 'fs'
 import {promises as dns} from 'dns'
 
-import {ipcMain, safeStorage} from 'electron'
+import {app, BrowserWindow, dialog, ipcMain, safeStorage} from 'electron'
 import {autoUpdater} from 'electron-updater'
 
 import {get_path} from '../utils/config'
@@ -81,5 +81,43 @@ ipcMain.handle('os_decrypt', async (event, encrypted:ArrayBuffer):Promise<string
     if (safeStorage.isEncryptionAvailable()){
         return safeStorage.decryptString(Buffer.from(encrypted))
     }
+    return null
+})
+
+
+ipcMain.handle('html_to_pdf', async (event, html:string, filename:string):Promise<null> => {
+    // Render HTML to PDF and prompt user for save location
+
+    // Create an offscreen/headless browser window
+    const window = new BrowserWindow({
+        show: false,  // Don't show window
+        webPreferences: {
+            offscreen: true,  // Don't render visually
+        },
+    })
+
+    // Load the HTML into it
+    await window.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
+
+    // Detect preferred paper size
+    const country = app.getLocale().split('-')[1]?.toUpperCase() ?? 'US'
+    const prefer_letter = ['US', 'CA', 'MX'].includes(country)
+
+    // Generate the PDF
+    const pdf_buffer = await window.webContents.printToPDF({
+        pageSize: prefer_letter ? 'Letter' : 'A4',
+    })
+
+    // Ask user where to save it
+    const dialog_choice = await dialog.showSaveDialog({
+        title: "Save PDF",
+        defaultPath: `${filename}.pdf`,
+    })
+
+    // Don't save if user cancels dialog
+    if (dialog_choice.filePath){
+        writeFileSync(dialog_choice.filePath, pdf_buffer)
+    }
+
     return null
 })

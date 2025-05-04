@@ -46,6 +46,10 @@ const native_electron:NativeInterface = {
         return ipcRenderer.invoke('os_decrypt', encrypted) as Promise<string|null>
     },
 
+    html_to_pdf(html:string, filename:string):Promise<null>{
+        return ipcRenderer.invoke('html_to_pdf', html, filename) as Promise<null>
+    },
+
     async test_email_settings(settings:EmailSettings, auth=true):Promise<EmailError|null>{
         // Tests provided settings to see if they work and returns either null or error string
         const error =
