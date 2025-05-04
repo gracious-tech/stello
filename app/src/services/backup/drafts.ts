@@ -1,6 +1,7 @@
 
+import {download_file} from '@/services/utils/misc'
 import {blob_to_bitcanvas, buffer_to_base64, canvas_to_blob} from '@/services/utils/coding'
-import {escape_for_html} from '@/services/utils/strings'
+import {escape_for_html, sanitize_filename} from '@/services/utils/strings'
 import {section_classes, floatify_rows} from '@/shared/shared_functions'
 import {gen_theme_style_props} from '@/shared/shared_theme'
 
@@ -136,6 +137,7 @@ async function inner_section_to_html(section:Section):Promise<string>{
     } else if (section.content.type === 'chart'){
         return ''  // TODO Could use OffscreenCanvas to render Chart.js using Chart.toBase64Image()
     } else if (section.content.type === 'images'){
+        // TODO captions
         let html = ''
         for (const image of section.content.images){
             // Ensure images are webp as file will be large if not
@@ -175,4 +177,20 @@ export async function draft_to_html(draft:RecordDraft):Promise<string>{
 
     const content = await sections_to_html(draft.sections)
     return fill_template(draft.title, content, theme_style, theme_style_css)
+}
+
+
+// Prompt the user to save a draft as HTML
+export async function save_draft_html(draft:RecordDraft){
+    const html = await draft_to_html(draft)
+    const filename = sanitize_filename(draft.title) + '.html'
+    download_file(new File([html], filename, {type: 'text/html'}))
+}
+
+
+// Prompt the user to save a draft as PDF
+export async function save_draft_pdf(draft:RecordDraft){
+    const html = await draft_to_html(draft)
+    const filename = sanitize_filename(draft.title)
+    void self.app_native.html_to_pdf(html, filename)
 }
