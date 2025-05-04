@@ -44,6 +44,8 @@ div
 
             app-menu-more
                 app-list-item(v-if='profile' @click='show_theme_dialog') Change appearance
+                app-list-item(@click='export_html') Export as webpage
+                app-list-item(@click='export_pdf') Export as PDF
                 app-list-item(@click='delete_draft' class='error--text')
                     | {{ draft.template ? "Delete template" : "Delete draft" }}
 
@@ -79,6 +81,7 @@ import {Unsubscribe} from '@/services/database/unsubscribes'
 import {sort} from '@/services/utils/arrays'
 import {Task} from '@/services/tasks/tasks'
 import {get_final_recipients} from '@/services/misc/recipients'
+import {save_draft_html, save_draft_pdf} from '@/services/backup/drafts'
 import {lifespan_days_to_text} from '@/services/misc'
 import {gen_theme_style_props} from '@/shared/shared_theme'
 
@@ -375,6 +378,14 @@ export default class RouteDraft extends Vue {
         // Copy template to a new draft and navigate to it
         const draft = await self.app_db.draft_copy(this.draft!, false)
         void this.$router.push({name: 'draft', params: {draft_id: draft.id}})
+    }
+
+    export_html(){
+        void save_draft_html(this.draft!)
+    }
+
+    export_pdf(){
+        void save_draft_pdf(this.draft!)
     }
 
     delete_draft(){
