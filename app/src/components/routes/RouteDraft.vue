@@ -81,7 +81,7 @@ import {Unsubscribe} from '@/services/database/unsubscribes'
 import {sort} from '@/services/utils/arrays'
 import {Task} from '@/services/tasks/tasks'
 import {get_final_recipients} from '@/services/misc/recipients'
-import {save_draft_html, save_draft_pdf} from '@/services/backup/drafts'
+import {save_draft} from '@/services/backup/drafts'
 import {lifespan_days_to_text} from '@/services/misc'
 import {gen_theme_style_props} from '@/shared/shared_theme'
 
@@ -381,11 +381,11 @@ export default class RouteDraft extends Vue {
     }
 
     export_html(){
-        void save_draft_html(this.draft!)
+        void save_draft('html', this.draft!, this.profile)
     }
 
     export_pdf(){
-        void save_draft_pdf(this.draft!)
+        void save_draft('pdf', this.draft!, this.profile)
     }
 
     delete_draft(){

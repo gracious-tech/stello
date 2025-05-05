@@ -25,7 +25,7 @@ v-list-item(:to='to')
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
-import {save_draft_html, save_draft_pdf} from '@/services/backup/drafts'
+import {save_draft} from '@/services/backup/drafts'
 import {Draft} from '@/services/database/drafts'
 
 
@@ -76,11 +76,11 @@ export default class extends Vue {
     }
 
     export_html(){
-        void save_draft_html(this.draft)
+        void save_draft('html', this.draft)
     }
 
     export_pdf(){
-        void save_draft_pdf(this.draft)
+        void save_draft('pdf', this.draft)
     }
 
     remove(){

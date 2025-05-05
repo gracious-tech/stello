@@ -18,10 +18,14 @@ v-list-item
     v-list-item-action(title='Number of times opened' class='noselect') {{ reads.length }}
 
     v-list-item-action(class='ml-0')
-        app-menu-more(v-if='profile')
-            app-list-item(@click='copy_invite' :disabled='copy.expired || !copy.uploaded')
+        app-menu-more
+            app-list-item(v-if='profile' @click='copy_invite'
+                :disabled='copy.expired || !copy.uploaded')
                 | Copy invite
-            app-list-item(@click='retract' :disabled='copy.expired' class='error--text') Retract
+            app-list-item(@click='$emit("export_html", copy)') Export as webpage
+            app-list-item(@click='$emit("export_pdf", copy)') Export as PDF
+            app-list-item(v-if='profile' @click='retract' :disabled='copy.expired'
+                class='error--text') Retract
 
 </template>
 

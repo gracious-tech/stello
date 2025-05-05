@@ -12,6 +12,8 @@ div
         app-menu-more(v-if='message')
             app-list-item(@click='open_resend_dialog' :disabled='!!sending_task') Resend some emails
             app-list-item(@click='copy_to_draft') Copy to new draft
+            app-list-item(@click='export_html') Export as webpage
+            app-list-item(@click='export_pdf') Export as PDF
 
     app-content(v-if='!message' class='text-center pt-10')
         h1(class='text--secondary text-h6') Message does not exist
@@ -55,7 +57,8 @@ div
         app-content-list(:items='copies_sorted' height='56')
             template(#default='{item, height_styles}')
                 RouteMessageCopy(:key='item.id' :copy='item' :reads='reads_by_copy[item.id]'
-                    :profile='profile' :style='height_styles')
+                    :profile='profile' :style='height_styles'
+                    @export_html='export_html' @export_pdf='export_pdf')
 
 
 </template>
@@ -76,6 +79,7 @@ import {Profile} from '@/services/database/profiles'
 import {Task} from '@/services/tasks/tasks'
 import {time_between} from '@/services/misc'
 import {gen_view_url} from '@/services/misc/invites'
+import {save_draft} from '@/services/backup/drafts'
 
 
 @Component({
@@ -228,6 +232,14 @@ export default class extends Vue {
         // Open the copy that was sent to self
         const url = await gen_view_url(this.own_copy!, this.profile!)
         self.open(url, '_blank')
+    }
+
+    export_html(copy?:MessageCopy){
+        void save_draft('html', this.message!.draft, this.profile, this.message!.published, copy)
+    }
+
+    export_pdf(copy?:MessageCopy){
+        void save_draft('pdf', this.message!.draft, this.profile, this.message!.published, copy)
     }
 
     // WATCHES

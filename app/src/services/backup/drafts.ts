@@ -162,7 +162,7 @@ async function inner_section_to_html(section:Section):Promise<string>{
 
 
 // Convert a draft to exportable HTML
-export async function draft_to_html(draft:RecordDraft, profile?:Profile, published?:Date,
+export async function draft_to_html(draft:RecordDraft, profile?:Profile|null, published?:Date,
         copy?:MessageCopy):Promise<string>{
 
     // Get profile if exists and not provided
@@ -205,7 +205,7 @@ export async function draft_to_html(draft:RecordDraft, profile?:Profile, publish
 
 // Prompt the user to save a draft
 export async function save_draft(format:'html'|'pdf', draft:RecordDraft,
-        profile?:Profile, published?:Date, copy?:MessageCopy){
+        profile?:Profile|null, published?:Date, copy?:MessageCopy){
     const html = await draft_to_html(draft, profile, published, copy)
     const filename = sanitize_filename(draft.title)
     if (format === 'html'){

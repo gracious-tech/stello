@@ -18,6 +18,8 @@ v-list-item(:to='to')
             app-list-item(@click='copy') Copy to new draft
             app-list-item(@click='retract' :disabled='msg.expired' class='error--text')
                 | {{ retract_label }}
+            app-list-item(@click='export_html') Export as webpage
+            app-list-item(@click='export_pdf') Export as PDF
             app-list-item(@click='remove' class='error--text') Delete
 
 </template>
@@ -32,6 +34,7 @@ import {Draft} from '@/services/database/drafts'
 import {Message} from '@/services/database/messages'
 import {time_between} from '@/services/misc'
 import {gen_view_url} from '@/services/misc/invites'
+import {save_draft} from '@/services/backup/drafts'
 
 
 @Component({})
@@ -145,6 +148,14 @@ export default class extends Vue {
         if (!error){
             this.msg.expired = true  // Reflect change already made to msg in db
         }
+    }
+
+    export_html(){
+        void save_draft('html', this.msg.draft, null, this.msg.published)
+    }
+
+    export_pdf(){
+        void save_draft('pdf', this.msg.draft, null, this.msg.published)
     }
 
     async remove(){
