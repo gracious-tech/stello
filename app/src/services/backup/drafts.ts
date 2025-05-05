@@ -35,10 +35,12 @@ function fill_template(title:string, content:string, theme_style:string, theme_s
                 body {
                     margin: 0;
                 }
+                .cap {
+                    margin-bottom: 24px;
+                }
                 section.type-images img {
                     width: 100%;
                     border-radius: var(--stello-radius);
-                    margin-bottom: 24px;
                 }
                 section.type-video img {
                     width: 100%;
@@ -135,7 +137,10 @@ async function inner_section_to_html(section:Section):Promise<string>{
         const video_id = section.content.id
         if (video_id && section.content.format === 'iframe_youtube'){
             const img = `https://img.youtube.com/vi/${video_id}/hqdefault.jpg`
-            return `<a href='https://www.youtube.com/watch?v=${video_id}'><img src="${img}"></a>`
+            return `
+                <a href='https://www.youtube.com/watch?v=${video_id}'><img src="${img}"></a>
+                <div class='cap'>${section.content.caption}</div>
+            `
         }
     } else if (section.content.type === 'chart'){
         return ''  // TODO Could use OffscreenCanvas to render Chart.js using Chart.toBase64Image()
@@ -151,7 +156,10 @@ async function inner_section_to_html(section:Section):Promise<string>{
                 webp = await canvas_to_blob(await blob_to_bitcanvas(image.data), 'webp')
             }
             const base64 = buffer_to_base64(await webp.arrayBuffer())
-            html += `<img src="data:image/webp;base64,${base64}">`
+            html += `
+                <img src="data:image/webp;base64,${base64}">
+                <div class='cap'>${image.caption}</div>
+            `
         }
         return html
     } else if (section.content.type === 'files'){
