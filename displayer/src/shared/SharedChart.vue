@@ -404,12 +404,23 @@ export default defineComponent({
 
     methods: {
 
+        async _draw(context:CanvasRenderingContext2D){
+            // Draw the chart to given context and return instance
+            const chartjs = await (await chartjs_promise).exports_promise
+            return new chartjs.Chart(context, {
+                type: this.type,
+                plugins: [chartjs.plugin_datalabels, chartjs.plugin_annotation],
+                data: {
+                    labels: this.thresh_data.map(item => item.label),
+                    datasets: [{data: this.data_nums}],
+                },
+                options: this.chart_options,
+            })
+        },
+
         async redraw(){
             // Redraw chart (have to recreate whole thing to avoid bugs)
             // NOTE Can specify chart type in dataset but changing it dynamically is buggy
-
-            // Get access to chart modules
-            const chartjs = await (await chartjs_promise).exports_promise
 
             // If chart already exists, destroy it
             this.destroy_instance()
@@ -421,15 +432,7 @@ export default defineComponent({
 
             // Create chart
             const context = (this.$refs['canvas'] as HTMLCanvasElement).getContext('2d')!
-            INSTANCES[this.id] = new chartjs.Chart(context, {
-                type: this.type,
-                plugins: [chartjs.plugin_datalabels, chartjs.plugin_annotation],
-                data: {
-                    labels: this.thresh_data.map(item => item.label),
-                    datasets: [{data: this.data_nums}],
-                },
-                options: this.chart_options,
-            })
+            INSTANCES[this.id] = await this._draw(context)
         },
 
         click(){
@@ -446,6 +449,16 @@ export default defineComponent({
                 INSTANCES[this.id]!.destroy()
                 delete INSTANCES[this.id]
             }
+        },
+
+        async render_to_png(width:number):Promise<Blob>{
+            // Render Chart to image without having to mount/destroy etc.
+            // NOTE Chartjs defaults to 1:1 ratio for doughnut but 2:1 for others (docs wrong)
+            // See https://github.com/chartjs/Chart.js/pull/7414
+            const height = this.type === 'doughnut' ? width : Math.round(width / 2)
+            const canvas = new OffscreenCanvas(width, height)
+            await this._draw(canvas.getContext('2d') as unknown as CanvasRenderingContext2D)
+            return canvas.convertToBlob({type: 'image/png'})
         },
     },
 })
