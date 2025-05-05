@@ -4,11 +4,13 @@ import {blob_to_bitcanvas, buffer_to_base64, canvas_to_blob} from '@/services/ut
 import {escape_for_html, sanitize_filename} from '@/services/utils/strings'
 import {section_classes, floatify_rows} from '@/shared/shared_functions'
 import {gen_theme_style_props} from '@/shared/shared_theme'
+import {gen_variable_items, update_template_values} from '@/services/misc/templates'
 
 import type {Section} from '@/services/database/sections'
 import type {ThemeStyle} from '@/shared/shared_types'
 import type {ContentPage, RecordDraft, SectionIds} from '@/services/database/types'
 import type {Profile} from '@/services/database/profiles'
+import type {MessageCopy} from '@/services/database/copies'
 
 import displayer_styles from '@/shared/styles/displayer.sass?inline'
 
@@ -160,7 +162,8 @@ async function inner_section_to_html(section:Section):Promise<string>{
 
 
 // Convert a draft to exportable HTML
-export async function draft_to_html(draft:RecordDraft, profile?:Profile):Promise<string>{
+export async function draft_to_html(draft:RecordDraft, profile?:Profile, published?:Date,
+        copy?:MessageCopy):Promise<string>{
 
     // Get profile if exists and not provided
     if (draft.profile && !profile){
@@ -179,22 +182,35 @@ export async function draft_to_html(draft:RecordDraft, profile?:Profile):Promise
         Object.entries(theme_style_props).map(([key, val]) => `${key}:${val};`).join('\n')
 
     // Render all sections to html
-    const content = await sections_to_html(draft.sections)
-    return fill_template(draft.title, content, theme_style, theme_style_css)
+    let html = await sections_to_html(draft.sections)
+
+    // Update any template variables present
+    // This should be safe to run over whole doc since only targets [data-mention] nodes
+    const empty = '-'
+    const tmpl_variables = gen_variable_items(
+        copy?.contact_hello ?? empty,
+        copy?.contact_name ?? empty,
+        draft.options_identity.sender_name || profile?.msg_options_identity.sender_name || empty,
+        draft.title,
+        published ?? new Date(),
+        Infinity,  // No expiry when exported
+        Infinity,  // No expiry when exported
+    )
+    html = update_template_values(html, tmpl_variables, empty)
+
+    // Return completed HTML page template
+    return fill_template(draft.title, html, theme_style, theme_style_css)
 }
 
 
-// Prompt the user to save a draft as HTML
-export async function save_draft_html(draft:RecordDraft){
-    const html = await draft_to_html(draft)
-    const filename = sanitize_filename(draft.title) + '.html'
-    download_file(new File([html], filename, {type: 'text/html'}))
-}
-
-
-// Prompt the user to save a draft as PDF
-export async function save_draft_pdf(draft:RecordDraft){
-    const html = await draft_to_html(draft)
+// Prompt the user to save a draft
+export async function save_draft(format:'html'|'pdf', draft:RecordDraft,
+        profile?:Profile, published?:Date, copy?:MessageCopy){
+    const html = await draft_to_html(draft, profile, published, copy)
     const filename = sanitize_filename(draft.title)
-    void self.app_native.html_to_pdf(html, filename)
+    if (format === 'html'){
+        download_file(new File([html], filename + '.html', {type: 'text/html'}))
+    } else {
+        void self.app_native.html_to_pdf(html, filename)
+    }
 }
