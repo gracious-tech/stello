@@ -1,10 +1,13 @@
 
+import Vue from 'vue'
+
 import {download_file} from '@/services/utils/misc'
 import {blob_to_bitcanvas, buffer_to_base64, canvas_to_blob} from '@/services/utils/coding'
 import {escape_for_html, sanitize_filename} from '@/services/utils/strings'
 import {section_classes, floatify_rows} from '@/shared/shared_functions'
 import {gen_theme_style_props} from '@/shared/shared_theme'
 import {gen_variable_items, update_template_values} from '@/services/misc/templates'
+import SharedChart from '@/shared/SharedChart.vue'
 
 import type {Section} from '@/services/database/sections'
 import type {ThemeStyle} from '@/shared/shared_types'
@@ -38,13 +41,14 @@ function fill_template(title:string, content:string, theme_style:string, theme_s
                 .cap {
                     margin-bottom: 24px;
                 }
-                section.type-images img {
+                img {
                     width: 100%;
                     border-radius: var(--stello-radius);
                 }
+                section.type-chart h2 {
+                    text-align: center;
+                }
                 section.type-video img {
-                    width: 100%;
-                    border-radius: var(--stello-radius);
                     aspect-ratio: 16 / 9;
                     object-fit: cover;
                 }
@@ -139,13 +143,32 @@ async function inner_section_to_html(section:Section):Promise<string>{
             const img = `https://img.youtube.com/vi/${video_id}/hqdefault.jpg`
             return `
                 <a href='https://www.youtube.com/watch?v=${video_id}'><img src="${img}"></a>
-                <div class='cap'>${section.content.caption}</div>
+                <div class='cap'>${escape_for_html(section.content.caption)}</div>
             `
         }
     } else if (section.content.type === 'chart'){
-        return ''  // TODO Could use OffscreenCanvas to render Chart.js using Chart.toBase64Image()
+        // Render chart without attaching to DOM
+        const chart = new (Vue.extend(SharedChart))({
+            propsData: {
+                id: 'export-' + section.id,
+                type: section.content.chart,
+                data: section.content.data,
+                threshold: section.content.threshold,
+                title: section.content.title,
+                caption: section.content.caption,
+                dark: false,
+                animate: false,
+            },
+        })
+        // WARN Width should be no larger than needed as reduces font size when shrunk to fit
+        const width = 692  // Max width possible when single column and padding accounted for
+        const png = await chart.render_to_png(width) as Blob
+        return `
+            <h2>${escape_for_html(section.content.title)}</h2>
+            <img src="data:image/png;base64,${buffer_to_base64(await png.arrayBuffer())}">
+            <div class='cap'>${escape_for_html(section.content.caption)}</div>
+        `
     } else if (section.content.type === 'images'){
-        // TODO captions
         let html = ''
         for (const image of section.content.images){
             // Ensure images are webp as file will be large if not
@@ -158,7 +181,7 @@ async function inner_section_to_html(section:Section):Promise<string>{
             const base64 = buffer_to_base64(await webp.arrayBuffer())
             html += `
                 <img src="data:image/webp;base64,${base64}">
-                <div class='cap'>${image.caption}</div>
+                <div class='cap'>${escape_for_html(image.caption)}</div>
             `
         }
         return html
