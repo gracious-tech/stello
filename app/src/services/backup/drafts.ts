@@ -8,6 +8,7 @@ import {gen_theme_style_props} from '@/shared/shared_theme'
 import type {Section} from '@/services/database/sections'
 import type {ThemeStyle} from '@/shared/shared_types'
 import type {ContentPage, RecordDraft, SectionIds} from '@/services/database/types'
+import type {Profile} from '@/services/database/profiles'
 
 import displayer_styles from '@/shared/styles/displayer.sass?inline'
 
@@ -159,22 +160,25 @@ async function inner_section_to_html(section:Section):Promise<string>{
 
 
 // Convert a draft to exportable HTML
-export async function draft_to_html(draft:RecordDraft):Promise<string>{
+export async function draft_to_html(draft:RecordDraft, profile?:Profile):Promise<string>{
 
-    // Get theme_style
+    // Get profile if exists and not provided
+    if (draft.profile && !profile){
+        profile = await self.app_db.profiles.get(draft.profile)
+    }
+
+    // Get theme props
     let theme_style:ThemeStyle = 'modern'
     let theme_color = self.app_db.profiles.get_default_theme_color()
-    if (draft.profile){
-        const profile = await self.app_db.profiles.get(draft.profile)
-        if (profile){
-            theme_style = profile.options.theme_style
-            theme_color = profile.options.theme_color
-        }
+    if (profile){
+        theme_style = profile.options.theme_style
+        theme_color = profile.options.theme_color
     }
     const theme_style_props = gen_theme_style_props(false, theme_style, theme_color)
     const theme_style_css =
         Object.entries(theme_style_props).map(([key, val]) => `${key}:${val};`).join('\n')
 
+    // Render all sections to html
     const content = await sections_to_html(draft.sections)
     return fill_template(draft.title, content, theme_style, theme_style_css)
 }
