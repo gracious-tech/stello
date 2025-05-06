@@ -19,7 +19,7 @@ import {get_store} from '@/services/store/store'
 import {get_router} from '@/services/router'
 import {NativeBrowser} from './services/native/native_browser'
 import {task_manager, TaskManager} from '@/services/tasks/tasks'
-import {backup_contacts} from '@/services/misc/backup'
+import {backup_contacts} from '@/services/backup/contacts'
 import {setIntervalPlus} from '@/services/utils/async'
 
 // Components

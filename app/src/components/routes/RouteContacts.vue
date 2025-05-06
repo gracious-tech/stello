@@ -108,7 +108,7 @@ import {Profile} from '@/services/database/profiles'
 import {Contact} from '@/services/database/contacts'
 import {Task, task_manager} from '@/services/tasks/tasks'
 import {taskless_contacts_create} from '@/services/tasks/contacts'
-import {export_contacts_csv} from '@/services/misc/backup'
+import {export_contacts_csv} from '@/services/backup/contacts'
 
 
 interface ContactItem {
