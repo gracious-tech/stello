@@ -14,13 +14,17 @@ import './setup/services_smtp'
 import {promises as fs, constants as fs_constants, existsSync} from 'original-fs'
 import {join} from 'node:path'
 
-import {app, BrowserWindow, dialog, session} from 'electron'
+import {app, BrowserWindow, dialog, Notification, session} from 'electron'
 import {autoUpdater} from 'electron-updater'
 
 import {get_path, TESTING} from './utils/config'
 import {activate_app, open_window} from './utils/window'
 import {app_path} from './utils/paths'
 import {get_free_space} from './utils/misc'
+
+
+// Milliseconds for one day (used for intervals)
+const one_day_ms = 1000 * 60 * 60 * 24
 
 
 // Setup that relies on ready event
@@ -76,7 +80,7 @@ void app.whenReady().then(async () => {
         //      e.g. `fs.access` test in past has had a bug and was actually fine to update
         check_for_updates()
         // Check every day, as Mac users especially often leave programs open forever
-        setInterval(check_for_updates, 1000 * 60 * 60 * 24)
+        setInterval(check_for_updates, one_day_ms)
 
         // Warn if app cannot overwrite itself (and .'. can't update)
         try {
@@ -122,6 +126,17 @@ void app.whenReady().then(async () => {
             return  // Avoid brief opening of window (as `app.quit()` is async)
         }
     }
+
+    // Check free disk space every day and notify user if low
+    setInterval(async () => {
+        const latest_percent = await get_free_space()
+        if (latest_percent < 5){
+            new Notification({
+                title: `Disk space critically low (${latest_percent}% free)`,
+                body: "Stello may lose all its data if you run out of disk space, or get below 2%.",
+            }).show()
+        }
+    }, one_day_ms)
 
     // Open primary window for first time
     void open_window()

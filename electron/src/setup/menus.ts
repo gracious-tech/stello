@@ -29,3 +29,7 @@ context_menu({
     showLookUpSelection: false,
     showSearchWithGoogle: false,
 })
+
+
+// Windows needs this set to enable notifications
+app.setAppUserModelId('tech.gracious.stello')
