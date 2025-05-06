@@ -248,6 +248,9 @@ void open_db().then(async connection => {
     // Schedule backups
     setTimeout(() => {
         setIntervalPlus(24, 'h', true, () => {
+            if (!store.state.backups){
+                return  // Do nothing, but don't cancel interval in case later turned back on
+            }
             void backup_contacts()
         })
     }, 1000 * 30)  // Do initial backup 30 seconds after starting to not slow anything down
