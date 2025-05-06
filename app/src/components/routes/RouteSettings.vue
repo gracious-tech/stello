@@ -23,6 +23,9 @@ div
         h1(class='text-h6 mb-4') Backup
         p(class='text-body-2') Stello uses a database that can lose data if your harddrive becomes full. To mitigate this risk, it will automatically backup the latest copy of your contacts and messages into the "Stello Files" folder. This is kept offline and exists on your device only. You should still regularly backup your whole computer yourself as data cannot be recovered from Stello sending accounts.
         app-switch(v-model='backups' label="Automatic Backups")
+        div(class='mb-4')
+            app-btn(@click='export_contacts') Export Contacts
+        v-alert(v-if='export_msg' color='info') {{ export_msg }}
 
         hr(class='mt-16')
 
@@ -51,6 +54,7 @@ import {Component, Vue} from 'vue-property-decorator'
 
 import RouteSettingsProfiles from './assets/RouteSettingsProfiles.vue'
 import RouteSettingsContacts from './assets/RouteSettingsContacts.vue'
+import {save_contacts_to_dir} from '@/services/backup/contacts'
 
 
 @Component({
@@ -59,6 +63,7 @@ import RouteSettingsContacts from './assets/RouteSettingsContacts.vue'
 export default class extends Vue {
 
     show_more = false
+    export_msg = ''
 
     get dark(){
         return this.$store.state.dark
@@ -74,6 +79,17 @@ export default class extends Vue {
 
     set backups(value:boolean){
         this.$store.commit('dict_set', ['backups', value])
+    }
+
+    async export_contacts(){
+
+        // Clear any previous export
+        const export_dir = 'Exported/Contacts'
+        await self.app_native.user_file_remove(export_dir)
+
+        // Save contacts to export dir
+        this.export_msg = `Contacts are exported to "Stello Files/${export_dir}"`
+        void save_contacts_to_dir(export_dir)
     }
 
 }

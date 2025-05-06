@@ -49,6 +49,19 @@ export async function backup_contacts(){
         return
     }
 
+    // Backup to chosen dir
+    await save_contacts_to_dir(backup_dir)
+
+    // If all went well, delete old backup if one designated
+    if (stale_dir){
+        await self.app_native.user_file_remove(stale_dir)
+    }
+}
+
+
+// Save all contacts and groups to designated backup dir
+export async function save_contacts_to_dir(backup_dir:string){
+
     // Get all contacts and groups (excluding from service accounts)
     const contacts = (await self.app_db.contacts.list()).filter(c => !c.service_account)
     const groups = (await self.app_db.groups.list()).filter(g => !g.service_account)
@@ -74,9 +87,6 @@ export async function backup_contacts(){
     promises.push(self.app_native.user_file_write(backup_dir + '/All Contacts.csv',
         export_contacts_csv(contacts, unsubs, profiles)))
 
-    // If all went well, delete old backup if one designated
+    // Await all in case something fails
     await Promise.all(promises)
-    if (stale_dir){
-        await self.app_native.user_file_remove(stale_dir)
-    }
 }
