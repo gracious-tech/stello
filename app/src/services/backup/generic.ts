@@ -1,9 +1,18 @@
 
+
+// Get backups dir with dbid included
+// This prevents backups from being removed if db is wiped
+export function get_backups_dir(){
+    return `Backups [${self.app_store.state.dbid}]`
+}
+
+
 // Determine which dir to backup to and which to delete if backup successful
 export async function determine_backup_dir(category:string):Promise<[string|null, string|null]>{
 
     // Get names of items in backups dir
-    const backup_dir_items = await self.app_native.user_file_list('Backups/' + category)
+    const backups_dir = get_backups_dir()
+    const backup_dir_items = await self.app_native.user_file_list(`${backups_dir}/${category}`)
 
     // Don't do anything if already backedup today
     const today_name = new Date().toISOString().slice(0, 'yyyy-mm-dd'.length)  // Will be UTC
@@ -21,7 +30,7 @@ export async function determine_backup_dir(category:string):Promise<[string|null
     backups.sort((a, b) => a[1] - b[1])
 
     // Don't delete any previous backups if less than 3
-    const new_backup_path = `Backups/${category}/${today_name}`
+    const new_backup_path = `${backups_dir}/${category}/${today_name}`
     if (backups.length < 3){
         return [new_backup_path, null]
     }
@@ -30,5 +39,5 @@ export async function determine_backup_dir(category:string):Promise<[string|null
     // So if second oldest is over one month old then safe to delete oldest
     const days = (new Date().getTime() - backups[1]![1]) / (1000 * 60 * 60 * 24)
     const dir_to_remove = days > 30 ? backups[0]![0] : backups.at(-1)![0]
-    return [new_backup_path, `Backups/${category}/${dir_to_remove}`]
+    return [new_backup_path, `${backups_dir}/${category}/${dir_to_remove}`]
 }
