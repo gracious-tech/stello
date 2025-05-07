@@ -4,9 +4,10 @@
 
 import {AppDatabaseConnection, VersionChangeTransaction} from './types'
 import {to_12_from_1plus, to_12_from_1plus_async} from './migrations_pre12'
+import {generate_token} from '@/services/utils/crypt'
 
 
-export const DATABASE_VERSION = 19
+export const DATABASE_VERSION = 20
 
 
 export async function migrate(transaction:VersionChangeTransaction,
@@ -32,6 +33,8 @@ export async function migrate(transaction:VersionChangeTransaction,
         await to_18(transaction)
     if (old_version < 19)
         await to_19(transaction)
+    if (old_version < 20)
+        await to_20(transaction)
 }
 
 
@@ -265,4 +268,14 @@ export async function to_19(transaction:VersionChangeTransaction){
     const subscribe_forms = transaction.db.createObjectStore('subscribe_forms', {keyPath: 'id'})
     subscribe_forms.createIndex('by_profile', 'profile')
     transaction.db.createObjectStore('request_subscribe', {keyPath: 'id'})
+}
+
+
+export async function to_20(transaction:VersionChangeTransaction){
+
+    // Add dbid
+    await transaction.objectStore('state').put({
+        key: 'dbid',
+        value: generate_token(3),
+    })
 }

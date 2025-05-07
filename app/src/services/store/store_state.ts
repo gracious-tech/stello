@@ -14,6 +14,7 @@ export async function get_initial_state(db:Database):Promise<AppStoreState>{
     const state:AppStoreState = {
 
         // Configurable
+        dbid: '',  // Random ID for database so can detect if db has been wiped and recreated
         backups: 'all',
         // NOTE dark defaults to true since `matches` will be false both if dark & if not supported
         dark: matchMedia('(prefers-color-scheme: light)').matches === false,

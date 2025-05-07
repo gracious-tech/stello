@@ -9,6 +9,7 @@ import {MessageCopy} from '@/services/database/copies'
 export interface AppStoreState {
 
     // Configurable
+    dbid:string
     backups:'none'|'contacts'|'all'
     dark:boolean
     dark_message:boolean
