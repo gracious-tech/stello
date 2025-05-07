@@ -22,7 +22,10 @@ div
 
         h1(class='text-h6 mb-4') Backup
         p(class='text-body-2') Stello uses a database that can lose data if your harddrive becomes full. To mitigate this risk, it will automatically backup the latest copy of your contacts and messages into the "Stello Files" folder. This is kept offline and exists on your device only. You should still regularly backup your whole computer yourself as data cannot be recovered from Stello sending accounts.
-        app-switch(v-model='backups' label="Automatic Backups")
+        v-radio-group(v-model='backups' row label="Auto-backup:")
+            v-radio(label="None" value='none' color='accent')
+            v-radio(label="Contacts" value='contacts' color='accent')
+            v-radio(label="Contacts & Messages" value='all' color='accent')
         div(class='mb-4')
             app-btn(@click='export_contacts') Export Contacts
         v-alert(v-if='export_msg' color='info') {{ export_msg }}
@@ -77,7 +80,7 @@ export default class extends Vue {
         return this.$store.state.backups
     }
 
-    set backups(value:boolean){
+    set backups(value:'none'|'contacts'|'all'){
         this.$store.commit('dict_set', ['backups', value])
     }
 

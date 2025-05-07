@@ -248,7 +248,7 @@ void open_db().then(async connection => {
     // Schedule backups
     setTimeout(() => {
         setIntervalPlus(24, 'h', true, () => {
-            if (!store.state.backups){
+            if (store.state.backups === 'none'){
                 return  // Do nothing, but don't cancel interval in case later turned back on
             }
             void backup_contacts()

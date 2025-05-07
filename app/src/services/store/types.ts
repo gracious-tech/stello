@@ -9,7 +9,7 @@ import {MessageCopy} from '@/services/database/copies'
 export interface AppStoreState {
 
     // Configurable
-    backups:boolean
+    backups:'none'|'contacts'|'all'
     dark:boolean
     dark_message:boolean
     default_profile:string|null
