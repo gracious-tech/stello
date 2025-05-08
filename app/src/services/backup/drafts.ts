@@ -17,6 +17,7 @@ import type {ContentPage, RecordDraft, SectionIds} from '@/services/database/typ
 import type {Profile} from '@/services/database/profiles'
 import type {MessageCopy} from '@/services/database/copies'
 
+// @ts-ignore Special vite import for still parsing as sass but importing result as string
 import displayer_styles from '@/shared/styles/displayer.sass?inline'
 
 
