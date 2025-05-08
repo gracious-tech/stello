@@ -28,6 +28,7 @@ div
             v-radio(label="Contacts & Messages" value='all' color='accent')
         div(class='mb-4')
             app-btn(@click='export_contacts') Export Contacts
+            app-btn(@click='export_messages') Export Messages
         v-alert(v-if='export_msg' color='info') {{ export_msg }}
 
         hr(class='mt-16')
@@ -58,6 +59,7 @@ import {Component, Vue} from 'vue-property-decorator'
 import RouteSettingsProfiles from './assets/RouteSettingsProfiles.vue'
 import RouteSettingsContacts from './assets/RouteSettingsContacts.vue'
 import {save_contacts_to_dir} from '@/services/backup/contacts'
+import {save_all_messages} from '@/services/backup/generic'
 
 
 @Component({
@@ -95,6 +97,11 @@ export default class extends Vue {
         void save_contacts_to_dir(export_dir)
     }
 
+    async export_messages(){
+        const export_dir = 'Exported'  // Save method creates multiple subdirs
+        this.export_msg = `Messages are exported to "Stello Files/${export_dir}"`
+        void save_all_messages(export_dir)
+    }
 }
 
 </script>

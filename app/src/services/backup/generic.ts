@@ -1,4 +1,6 @@
 
+import {save_drafts_to_dir, save_messages_to_dir} from '@/services/backup/drafts'
+
 
 // Get backups dir with dbid included
 // This prevents backups from being removed if db is wiped
@@ -40,4 +42,13 @@ export async function determine_backup_dir(category:string):Promise<[string|null
     const days = (new Date().getTime() - backups[1]![1]) / (1000 * 60 * 60 * 24)
     const dir_to_remove = days > 30 ? backups[0]![0] : backups.at(-1)![0]
     return [new_backup_path, `${backups_dir}/${category}/${dir_to_remove}`]
+}
+
+
+// Save all types of messages into subdirs of given parent dir
+export async function save_all_messages(parent_dir:string){
+    const promises:Promise<void>[] = []
+    promises.push(save_drafts_to_dir(parent_dir + '/Drafts'))
+    promises.push(save_messages_to_dir(parent_dir + '/Sent Messages', parent_dir + '/Sent Replies'))
+    await Promise.all(promises)
 }

@@ -2,7 +2,9 @@
 import Vue from 'vue'
 
 import {download_file} from '@/services/utils/misc'
-import {blob_to_bitcanvas, buffer_to_base64, canvas_to_blob} from '@/services/utils/coding'
+import {blob_to_bitcanvas, buffer_to_base64, canvas_to_blob, string_to_utf8}
+    from '@/services/utils/coding'
+import {remove_item} from '@/services/utils/arrays'
 import {escape_for_html, sanitize_filename} from '@/services/utils/strings'
 import {section_classes, floatify_rows} from '@/shared/shared_functions'
 import {gen_theme_style_props} from '@/shared/shared_theme'
@@ -244,4 +246,67 @@ export async function save_draft(format:'html'|'pdf', draft:RecordDraft,
     } else {
         void self.app_native.html_to_pdf(html, filename)
     }
+}
+
+
+// Save all drafts (actual drafts, not sent etc.) to designated dir
+export async function save_drafts_to_dir(backup_dir:string){
+
+    // Get all drafts
+    const drafts = await self.app_db.drafts.list()
+
+    // Wipe dir as drafts change and need to ensure up-to-date
+    await self.app_native.user_file_remove(backup_dir)
+
+    // Export drafts to HTML
+    const promises:Promise<void>[] = []
+    for (const draft of drafts){
+        const filename = sanitize_filename(draft.title) + ` [${draft.id.slice(0, 6)}].html`
+        promises.push(draft_to_html(draft).then(async html => {
+            await self.app_native.user_file_write(`${backup_dir}/${filename}`, string_to_utf8(html))
+        }))
+    }
+
+    // Await all in case something fails
+    await Promise.all(promises)
+}
+
+
+// Save all sent messages to designated dir
+export async function save_messages_to_dir(originals_dir:string, replies_dir:string){
+
+    // Get all sent messages
+    const messages = await self.app_db.messages.list()
+
+    // Get existing files
+    // NOTE The contents of sent messages doesn't change, so avoid re-rendering
+    const existing = [
+        ...(await self.app_native.user_file_list(originals_dir)).map(n => originals_dir + '/' + n),
+        ...(await self.app_native.user_file_list(replies_dir)).map(n => replies_dir + '/' + n),
+    ]
+
+    // Export to HTML if haven't done so already
+    const promises:Promise<void>[] = []
+    for (const message of messages){
+        const filename =
+            sanitize_filename(message.draft.title) + ` [${message.id.slice(0, 6)}].html`
+        const subdir = message.draft.reply_to ? replies_dir : originals_dir
+        const file_path = `${subdir}/${filename}`
+        // Skip if previously exported
+        if (existing.includes(file_path)){
+            remove_item(existing, file_path)
+            continue
+        }
+        promises.push(draft_to_html(message.draft).then(async html => {
+            await self.app_native.user_file_write(file_path, string_to_utf8(html))
+        }))
+    }
+
+    // Remove previously exported messages that no longer exist
+    for (const old of existing){
+        promises.push(self.app_native.user_file_remove(old))
+    }
+
+    // Await all in case something fails
+    await Promise.all(promises)
 }
