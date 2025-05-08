@@ -62,8 +62,12 @@ export default class extends Vue {
 
     added = [
         {
-            title: "Stello Files now stored in Documents folder",
-            desc: "Stello is transitioning to a more reliable way of storing and backing up data. If you encounter any issues during this transition, please contact us.",
+            title: "Export messages to PDF",
+            desc: "Messages can now be exported to PDF and webpages for easier printing and backup.",
+        },
+        {
+            title: "Automatic Backups",
+            desc: "Your contacts and messages are now automatically backed up in case of data loss. This can be customised in the settings page.",
         },
     ]
     todo = [
