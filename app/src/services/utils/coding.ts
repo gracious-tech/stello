@@ -17,6 +17,9 @@ export function buffer_to_standard_url64(buffer:ArrayBuffer):string{
 
 export function buffer_to_base64(buffer:ArrayBuffer):string{
     // Encode binary data as a base64 string
+    // WARN This will throw `RangeError: Maximum call stack size exceeded` for large data
+    //      Probably due to ...spread operator (could avoid with a more standard loop?)
+    //      So use only for short strings or otherwise check out FileReader.readAsDataURL()
     // NOTE btoa only works with strings so convert each byte to a char
     return btoa(String.fromCharCode(...new Uint8Array(buffer)))
 }
