@@ -54,7 +54,7 @@ email_template = '''
             (not possible via email for security reasons).
             <br>
             <br>
-            Open <a href="stello://settings" style="color: #aaaaaa;">Stello</a> to customise your notification settings. If you've lost access to your account, or shouldn't be receiving these, <a href="https://gracious.tech/support/stello/" style="color: #aaaaaa;">let us know</a>.
+            Open <a href="stello://settings" style="color: #aaaaaa;">Stello</a> to customise your notification settings. If you've lost access to your account, or shouldn't be receiving these, <a href="https://gracious.tech/contact" style="color: #aaaaaa;">let us know</a>.
         </small>
     </p>
 

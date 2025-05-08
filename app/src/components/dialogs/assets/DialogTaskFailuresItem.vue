@@ -124,9 +124,8 @@ export default class extends Vue {
         // Generate a support url if the fail type is unknown
         // SECURITY Don't include task params or label as may include personal data
         if (this.error_type === 'unknown'){
-            const desc = "I was trying to...\n\nBut...\n\n\n----------TECHNICAL DETAILS----------\n"
-                + `Task: ${this.task.name}\nError report: ${this.task.error_report_id ?? ''}`
-            return `https://gracious.tech/support/stello/error/?desc=${encodeURIComponent(desc)}`
+            const desc = `Task: ${this.task.name}\nError id: ${this.task.error_report_id ?? ''}`
+            return `https://gracious.tech/contact?desc=${encodeURIComponent(desc)}`
         }
         return undefined
     }

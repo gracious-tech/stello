@@ -286,12 +286,11 @@ export default class extends Vue {
 
     get error_support_url():string{
         // Get support url with debugging info for current error
-        let desc = "I was trying to...\n\nBut...\n\n\n----------TECHNICAL DETAILS----------\n"
-            + `Email error: ${this.error!.code}\nDetails: ${this.error!.details}`
+        let desc = `Email error: ${this.error!.code}\nDetails: ${this.error!.details}`
         if (this.error_report_id){
-            desc += `\nError report: ${this.error_report_id}`
+            desc += `\nError id: ${this.error_report_id}`
         }
-        return `https://gracious.tech/support/stello/error/?desc=${encodeURIComponent(desc)}`
+        return `https://gracious.tech/contact?desc=${encodeURIComponent(desc)}`
     }
 
     // GET/SET PROFILE PROPERTIES

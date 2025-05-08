@@ -6,7 +6,7 @@ import app_config from '@/app_config.json'
 
 
 // Visual failure util
-function show_fail_bar(){
+function show_fail_bar(error_id:string){
     // Display fail bar with button to reload app
 
     // Don't show if a fail bar or update bar already exists
@@ -15,12 +15,15 @@ function show_fail_bar(){
     }
 
     // Insert the bar
+    const desc = `Error id: ${error_id}`
     self.document.body.insertAdjacentHTML('afterbegin', `
         <div class="reload-bar fail">
             A problem was detected
             <div>
                 Please
-                <a href="https://gracious.tech/support/stello/" target='_blank'>LET US KNOW</a>
+                <a href="https://gracious.tech/contact?desc=${encodeURIComponent(desc)}" target='_blank'>
+                    LET US KNOW
+                </a>
                 and then
                 <button>RELOAD</button>
             </div>
@@ -75,7 +78,7 @@ const rollbar = new Rollbar({
 
         // If critical (not handled by other UI like tasks etc) show fail bar
         if (payload['level'] === 'critical'){
-            show_fail_bar()
+            show_fail_bar(payload['uuid'] as string)
         }
     },
 })
