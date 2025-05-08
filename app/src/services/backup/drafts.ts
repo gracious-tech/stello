@@ -201,8 +201,9 @@ async function inner_section_to_html(section:Section):Promise<string>{
 
 
 // Convert a draft to exportable HTML
+// WARN Don't provide recipients if exporting as should be private (but do if saving backups)
 export async function draft_to_html(draft:RecordDraft, profile?:Profile|null, published?:Date,
-        copy?:MessageCopy):Promise<string>{
+        copy?:MessageCopy, recipients?:string):Promise<string>{
 
     // Get profile if exists and not provided
     if (draft.profile && !profile){
@@ -237,11 +238,16 @@ export async function draft_to_html(draft:RecordDraft, profile?:Profile|null, pu
     )
     html = update_template_values(html, tmpl_variables, empty)
 
-    // Wrap in content div and append published date
+    // Wrap in content div and append published date (and recipients if provided)
     html = `<div class='content'>${html}</div>`
     if (published){
+        html += `<div class='published'>`
         const pub_str = published.toLocaleDateString(undefined, {dateStyle: 'full'})
-        html += `<div class='published'>${pub_str}</div>`
+        html += escape_for_html(pub_str)
+        if (recipients){
+            html += `<br>Recipients: ` + escape_for_html(recipients)
+        }
+        html += `</div>`
     }
 
     // Return completed HTML page template
@@ -265,8 +271,9 @@ export async function save_draft(format:'html'|'pdf', draft:RecordDraft,
 // Save all drafts (actual drafts, not sent etc.) to designated dir
 export async function save_drafts_to_dir(backup_dir:string){
 
-    // Get all drafts
+    // Get all drafts and profiles
     const drafts = await self.app_db.drafts.list()
+    const profiles = Object.fromEntries((await self.app_db.profiles.list()).map(p => ([p.id, p])))
 
     // Wipe dir as drafts change and need to ensure up-to-date
     await self.app_native.user_file_remove(backup_dir)
@@ -274,7 +281,8 @@ export async function save_drafts_to_dir(backup_dir:string){
     // Export drafts to HTML
     for (const draft of drafts){
         const filename = sanitize_filename(draft.title) + ` [${draft.id.slice(0, 6)}].html`
-        const html = await draft_to_html(draft)
+        const profile = draft.profile ? profiles[draft.profile] : undefined
+        const html = await draft_to_html(draft, profile)
         await self.app_native.user_file_write(`${backup_dir}/${filename}`, string_to_utf8(html))
     }
 }
@@ -283,8 +291,12 @@ export async function save_drafts_to_dir(backup_dir:string){
 // Save all sent messages to designated dir
 export async function save_messages_to_dir(originals_dir:string, replies_dir:string){
 
-    // Get all sent messages
+    // Get all sent messages and profiles
     const messages = await self.app_db.messages.list()
+    const profiles = Object.fromEntries((await self.app_db.profiles.list()).map(p => ([p.id, p])))
+
+    // Init recipients descriptor which will cache names when looking up recipients
+    const describe_recipients = self.app_db.draft_recipients_descriptor()
 
     // Get existing files
     // NOTE The contents of sent messages doesn't change, so avoid re-rendering
@@ -304,7 +316,10 @@ export async function save_messages_to_dir(originals_dir:string, replies_dir:str
             remove_item(existing, file_path)
             continue
         }
-        const html = await draft_to_html(message.draft)
+        const profile = message.draft.profile ? profiles[message.draft.profile] : undefined
+        const recipients = await describe_recipients(message.draft)
+        const html = await draft_to_html(message.draft, profile, message.published,
+            undefined, recipients)
         await self.app_native.user_file_write(file_path, string_to_utf8(html))
     }
 
