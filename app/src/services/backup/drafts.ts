@@ -48,6 +48,9 @@ function fill_template(title:string, content:string, theme_style:string, theme_s
                     width: 100%;
                     border-radius: var(--stello-radius);
                 }
+                .hero img {
+                    border-radius: 0;
+                }
                 section.type-chart h2 {
                     text-align: center;
                 }
