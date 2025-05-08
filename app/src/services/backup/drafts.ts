@@ -51,6 +51,10 @@ function fill_template(title:string, content:string, theme_style:string, theme_s
                 .hero img {
                     border-radius: 0;
                 }
+                .content > hr {
+                    margin-top: 48px;
+                    margin-bottom: 0;
+                }
                 section.type-chart h2 {
                     text-align: center;
                 }
