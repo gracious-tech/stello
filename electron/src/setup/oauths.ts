@@ -19,7 +19,7 @@ const http_server = http.createServer(async (request, response) => {
 
     const url = new URL(request.url ?? '', `http://127.0.0.1:${http_server_port}`)
 
-    if (url.pathname === '/oauth' && app.isReady){
+    if (url.pathname === '/oauth' && app.isReady()){
         // Process an oauth redirect (only possible if app is ready)
         const window = await activate_app()  // Also brings window to front if not already
         window.webContents.send('oauth', url.toString())
