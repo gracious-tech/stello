@@ -16,6 +16,13 @@ if (process.platform === 'darwin'){
                 {role: 'about'},  // So can find out version even if app broken
                 {role: 'toggleDevTools'},  // So can debug during production if needed
                 {type: 'separator'},
+                {role: 'services'},  // Enables "Send in email", "Lookup in dictionary", etc.
+                {type: 'separator'},
+                // Standard hide actions expected by Mac users
+                {role: 'hide'},
+                {role: 'hideOthers'},
+                {role: 'unhide'},
+                {type: 'separator'},
                 {role: 'quit'},  // So can quit whole app and not just close window
             ],
         },
