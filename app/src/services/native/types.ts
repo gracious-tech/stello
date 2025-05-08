@@ -3,6 +3,7 @@ export interface NativeInterface {
     // The methods available for interacting with native platform
 
     // Functions
+    get_paths():{files_dir:string, data_dir:string}
     app_file_read(path:string):Promise<ArrayBuffer>
     user_file_list(path:string):Promise<string[]>
     user_file_write(path:string, data:ArrayBuffer):Promise<void>

@@ -30,6 +30,9 @@ div
             app-btn(@click='export_contacts') Export Contacts
             app-btn(@click='export_messages') Export Messages
         v-alert(v-if='export_msg' color='info') {{ export_msg }}
+        div(class='caption opacity-secondary')
+            div #[strong Stello Files location:] {{ files_dir }}
+            div #[strong Internal Data location:] {{ data_dir }}
 
         hr(class='mt-16')
 
@@ -62,6 +65,9 @@ import {save_contacts_to_dir} from '@/services/backup/contacts'
 import {save_all_messages} from '@/services/backup/generic'
 
 
+const native_paths = self.app_native.get_paths()
+
+
 @Component({
     components: {RouteSettingsProfiles, RouteSettingsContacts},
 })
@@ -69,6 +75,8 @@ export default class extends Vue {
 
     show_more = false
     export_msg = ''
+    files_dir = native_paths.files_dir
+    data_dir = native_paths.data_dir
 
     get dark(){
         return this.$store.state.dark

@@ -7,7 +7,13 @@ import {app, BrowserWindow, dialog, ipcMain, safeStorage} from 'electron'
 import {autoUpdater} from 'electron-updater'
 
 import {get_path} from '../utils/config'
-import {files_dir, restrict_path} from '../utils/paths'
+import {files_dir, data_dir, restrict_path} from '../utils/paths'
+
+
+ipcMain.on('get_paths', event => {
+    // Expose paths to renderer (synchronous)
+    event.returnValue = {files_dir, data_dir}
+})
 
 
 ipcMain.handle('app_file_read', async (event, relative_path:string) => {

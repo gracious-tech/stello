@@ -5,6 +5,10 @@ import {EmailSettings, Email, EmailError, NativeInterface} from './types'
 
 export class NativeBrowser implements NativeInterface {
 
+    get_paths(){
+        return {files_dir: '', data_dir: ''}
+    }
+
     async app_file_read(path:string):Promise<ArrayBuffer>{
         throw new Error('unsupported')
     }

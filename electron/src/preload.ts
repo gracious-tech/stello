@@ -11,6 +11,10 @@ const native_electron:NativeInterface = {
 
     // Functions
 
+    get_paths(){
+        return ipcRenderer.sendSync('get_paths') as {files_dir:string, data_dir:string}
+    },
+
     app_file_read(path:string){
         // Read a file and return as an ArrayBuffer (must be within app's dir)
         return ipcRenderer.invoke('app_file_read', path) as Promise<ArrayBuffer>
