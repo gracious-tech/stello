@@ -76,6 +76,17 @@ export function object_to_blob(object:object):Blob{
 }
 
 
+export function blob_to_url(blob:Blob):Promise<string>{
+    // Convert a blob to a data url
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onloadend = () => resolve(reader.result as string)
+        reader.onerror = reject
+        reader.readAsDataURL(blob)
+    })
+}
+
+
 export async function stream_to_buffer(stream:ReadableStream):Promise<ArrayBuffer>{
     // Read a stream into memory and return ArrayBuffer
     // NOTE Creating a fake Response as it has convenient methods for reading streams

@@ -2,7 +2,7 @@
 import Vue from 'vue'
 
 import {download_file} from '@/services/utils/misc'
-import {blob_to_bitcanvas, buffer_to_base64, canvas_to_blob, string_to_utf8}
+import {blob_to_bitcanvas, blob_to_url, canvas_to_blob, string_to_utf8}
     from '@/services/utils/coding'
 import {remove_item} from '@/services/utils/arrays'
 import {escape_for_html, sanitize_filename} from '@/services/utils/strings'
@@ -173,7 +173,7 @@ async function inner_section_to_html(section:Section):Promise<string>{
         const png = await chart.render_to_png(width) as Blob
         return `
             <h2>${escape_for_html(section.content.title)}</h2>
-            <img src="data:image/png;base64,${buffer_to_base64(await png.arrayBuffer())}">
+            <img src="${await blob_to_url(png)}">
             <div class='cap'>${escape_for_html(section.content.caption)}</div>
         `
     } else if (section.content.type === 'images'){
@@ -186,9 +186,8 @@ async function inner_section_to_html(section:Section):Promise<string>{
             } else {
                 webp = await canvas_to_blob(await blob_to_bitcanvas(image.data), 'webp')
             }
-            const base64 = buffer_to_base64(await webp.arrayBuffer())
             html += `
-                <img src="data:image/webp;base64,${base64}">
+                <img src="${await blob_to_url(webp)}">
                 <div class='cap'>${escape_for_html(image.caption)}</div>
             `
         }
