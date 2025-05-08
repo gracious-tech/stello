@@ -20,6 +20,7 @@ import {get_router} from '@/services/router'
 import {NativeBrowser} from './services/native/native_browser'
 import {task_manager, TaskManager} from '@/services/tasks/tasks'
 import {backup_contacts} from '@/services/backup/contacts'
+import {get_backups_dir, save_all_messages} from '@/services/backup/generic'
 import {setIntervalPlus} from '@/services/utils/async'
 
 // Components
@@ -246,12 +247,16 @@ void open_db().then(async connection => {
     }
 
     // Schedule backups
+    // NOTE Contacts keeps ~3 backups, but messages only ever have one
     setTimeout(() => {
         setIntervalPlus(24, 'h', true, () => {
             if (store.state.backups === 'none'){
                 return  // Do nothing, but don't cancel interval in case later turned back on
             }
             void backup_contacts()
+            if (store.state.backups === 'all'){
+                void save_all_messages(get_backups_dir())
+            }
         })
     }, 1000 * 30)  // Do initial backup 30 seconds after starting to not slow anything down
 
