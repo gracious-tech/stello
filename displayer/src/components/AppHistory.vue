@@ -2,7 +2,7 @@
 <template lang='pug'>
 
 div(v-if='current_date' class='ui')
-    div.published {{ current_date }}
+    div(class='published') {{ current_date }}
     template(v-if='prev || next')
         h2.title Previously opened
         div.history
@@ -83,12 +83,6 @@ export default defineComponent({
 <style lang='sass' scoped>
 
 @import 'src/shared/styles/utils'
-
-.published
-    text-align: center
-    font-size: 0.8em !important
-    opacity: 0.8
-    margin-top: 20px
 
 .title
     margin-top: 50px !important

@@ -66,9 +66,7 @@ function fill_template(title:string, content:string, theme_style:string, theme_s
         </head>
         <body>
             <div class='stello-displayer style-${theme_style}'>
-                <div class='content'>
-                    ${content}
-                </div>
+                ${content}
             </div>
         </body>
         </html>
@@ -234,6 +232,13 @@ export async function draft_to_html(draft:RecordDraft, profile?:Profile|null, pu
         Infinity,  // No expiry when exported
     )
     html = update_template_values(html, tmpl_variables, empty)
+
+    // Wrap in content div and append published date
+    html = `<div class='content'>${html}</div>`
+    if (published){
+        const pub_str = published.toLocaleDateString(undefined, {dateStyle: 'full'})
+        html += `<div class='published'>${pub_str}</div>`
+    }
 
     // Return completed HTML page template
     return fill_template(draft.title, html, theme_style, theme_style_css)
