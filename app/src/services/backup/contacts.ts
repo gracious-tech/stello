@@ -74,19 +74,16 @@ export async function save_contacts_to_dir(backup_dir:string){
     }
 
     // Save individual file for each group
-    const promises:Promise<void>[] = []
     for (const group of groups){
         const file_name = sanitize_filename(group.name) + '.csv'
         const file_path = backup_dir + '/' + file_name
         const groups_contacts = contacts.filter(c => group.contacts.includes(c.id))
         const csv = export_contacts_csv(groups_contacts, unsubs, profiles)
-        promises.push(self.app_native.user_file_write(file_path, csv))
+        await self.app_native.user_file_write(file_path, csv)
     }
 
     // Save all contacts to single file (last so overwrites group if same name)
-    promises.push(self.app_native.user_file_write(backup_dir + '/All Contacts.csv',
-        export_contacts_csv(contacts, unsubs, profiles)))
+    await self.app_native.user_file_write(backup_dir + '/All Contacts.csv',
+        export_contacts_csv(contacts, unsubs, profiles))
 
-    // Await all in case something fails
-    await Promise.all(promises)
 }

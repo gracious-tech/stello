@@ -272,16 +272,11 @@ export async function save_drafts_to_dir(backup_dir:string){
     await self.app_native.user_file_remove(backup_dir)
 
     // Export drafts to HTML
-    const promises:Promise<void>[] = []
     for (const draft of drafts){
         const filename = sanitize_filename(draft.title) + ` [${draft.id.slice(0, 6)}].html`
-        promises.push(draft_to_html(draft).then(async html => {
-            await self.app_native.user_file_write(`${backup_dir}/${filename}`, string_to_utf8(html))
-        }))
+        const html = await draft_to_html(draft)
+        await self.app_native.user_file_write(`${backup_dir}/${filename}`, string_to_utf8(html))
     }
-
-    // Await all in case something fails
-    await Promise.all(promises)
 }
 
 
@@ -299,7 +294,6 @@ export async function save_messages_to_dir(originals_dir:string, replies_dir:str
     ]
 
     // Export to HTML if haven't done so already
-    const promises:Promise<void>[] = []
     for (const message of messages){
         const filename =
             sanitize_filename(message.draft.title) + ` [${message.id.slice(0, 6)}].html`
@@ -310,16 +304,12 @@ export async function save_messages_to_dir(originals_dir:string, replies_dir:str
             remove_item(existing, file_path)
             continue
         }
-        promises.push(draft_to_html(message.draft).then(async html => {
-            await self.app_native.user_file_write(file_path, string_to_utf8(html))
-        }))
+        const html = await draft_to_html(message.draft)
+        await self.app_native.user_file_write(file_path, string_to_utf8(html))
     }
 
     // Remove previously exported messages that no longer exist
     for (const old of existing){
-        promises.push(self.app_native.user_file_remove(old))
+        await self.app_native.user_file_remove(old)
     }
-
-    // Await all in case something fails
-    await Promise.all(promises)
 }

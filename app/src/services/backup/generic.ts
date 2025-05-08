@@ -48,9 +48,7 @@ export async function determine_backup_dir(category:string):Promise<[string|null
 
 // Save all types of messages into subdirs of given parent dir
 export async function save_all_messages(parent_dir:string){
-    const promises:Promise<void>[] = []
-    promises.push(save_replies_to_dir(parent_dir + '/Responses'))
-    promises.push(save_drafts_to_dir(parent_dir + '/Drafts'))
-    promises.push(save_messages_to_dir(parent_dir + '/Sent Messages', parent_dir + '/Sent Replies'))
-    await Promise.all(promises)
+    await save_replies_to_dir(parent_dir + '/Responses')
+    await save_drafts_to_dir(parent_dir + '/Drafts')
+    await save_messages_to_dir(parent_dir + '/Sent Messages', parent_dir + '/Sent Replies')
 }
