@@ -16,10 +16,10 @@ v-list-item(:to='to')
         app-btn.view(@click.prevent='view_own_copy' icon='visibility' data-tip="View online")
         app-menu-more
             app-list-item(@click='copy') Copy to new draft
-            app-list-item(@click='retract' :disabled='msg.expired' class='error--text')
-                | {{ retract_label }}
             app-list-item(@click='export_html') Export as webpage
             app-list-item(@click='export_pdf') Export as PDF
+            app-list-item(@click='retract' :disabled='msg.expired' class='error--text')
+                | {{ retract_label }}
             app-list-item(@click='remove' class='error--text') Delete
 
 </template>
