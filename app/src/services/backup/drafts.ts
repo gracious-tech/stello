@@ -277,7 +277,7 @@ export async function save_draft(format:'html'|'pdf', draft:RecordDraft,
 
 
 // Save all drafts (actual drafts, not sent etc.) to designated dir
-export async function save_drafts_to_dir(backup_dir:string){
+export async function save_drafts_to_dir(backup_dir:string):Promise<string[]>{
 
     // Get all drafts and profiles
     const drafts = await self.app_db.drafts.list()
@@ -287,17 +287,27 @@ export async function save_drafts_to_dir(backup_dir:string){
     await self.app_native.user_file_remove(backup_dir)
 
     // Export drafts to HTML
+    const failed:string[] = []
     for (const draft of drafts){
-        const filename = sanitize_filename(draft.title) + ` [${draft.id.slice(0, 6)}].html`
-        const profile = draft.profile ? profiles[draft.profile] : undefined
-        const html = await draft_to_html(draft, profile)
-        await self.app_native.user_file_write(`${backup_dir}/${filename}`, string_to_utf8(html))
+        try {
+            const filename = sanitize_filename(draft.title) + ` [${draft.id.slice(0, 6)}].html`
+            const profile = draft.profile ? profiles[draft.profile] : undefined
+            const html = await draft_to_html(draft, profile)
+            await self.app_native.user_file_write(`${backup_dir}/${filename}`, string_to_utf8(html))
+        } catch (error){
+            failed.push(draft.title)
+            self.app_report_error(error)
+        }
     }
+
+    // Report which drafts could not be saved
+    return failed
 }
 
 
 // Save all sent messages to designated dir
-export async function save_messages_to_dir(originals_dir:string, replies_dir:string){
+export async function save_messages_to_dir(originals_dir:string, replies_dir:string)
+        :Promise<string[]>{
 
     // Get all sent messages and profiles
     const messages = await self.app_db.messages.list()
@@ -314,6 +324,7 @@ export async function save_messages_to_dir(originals_dir:string, replies_dir:str
     ]
 
     // Export to HTML if haven't done so already
+    const failed:string[] = []
     for (const message of messages){
         const filename =
             sanitize_filename(message.draft.title) + ` [${message.id.slice(0, 6)}].html`
@@ -325,14 +336,22 @@ export async function save_messages_to_dir(originals_dir:string, replies_dir:str
             continue
         }
         const profile = message.draft.profile ? profiles[message.draft.profile] : undefined
-        const recipients = await describe_recipients(message.draft)
-        const html = await draft_to_html(message.draft, profile, message.published,
-            undefined, recipients)
-        await self.app_native.user_file_write(file_path, string_to_utf8(html))
+        try {
+            const recipients = await describe_recipients(message.draft)
+            const html = await draft_to_html(message.draft, profile, message.published,
+                undefined, recipients)
+            await self.app_native.user_file_write(file_path, string_to_utf8(html))
+        } catch (error){
+            failed.push(message.draft.title)
+            self.app_report_error(error)
+        }
     }
 
     // Remove previously exported messages that no longer exist
     for (const old of existing){
         await self.app_native.user_file_remove(old)
     }
+
+    // Report which messages could not be saved
+    return failed
 }

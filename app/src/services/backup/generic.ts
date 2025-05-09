@@ -48,10 +48,36 @@ export async function determine_backup_dir(category:string):Promise<[string|null
 
 
 // Save all types of messages into subdirs of given parent dir
-export async function save_all_messages(parent_dir:string){
-    await save_replies_to_dir(parent_dir + '/Responses')
-    await save_drafts_to_dir(parent_dir + '/Drafts')
-    await save_messages_to_dir(parent_dir + '/Sent Messages', parent_dir + '/Sent Replies')
+export async function save_all_messages(parent_dir:string):Promise<string[]>{
+
+    // Do each sequentially and don't stop if one task fails
+    // Add *special title* if whole task fails, or otherwise report individual messages
+    // This is a multi-layered approach to ensure whatever can be exported is exported
+    const failed_titles:string[] = []
+
+    try {
+        await save_replies_to_dir(parent_dir + '/Responses')
+    } catch (error){
+        failed_titles.push("*Responses from recipients*")
+        self.app_report_error(error)
+    }
+
+    try {
+        failed_titles.push(...await save_drafts_to_dir(parent_dir + '/Drafts'))
+    } catch (error){
+        failed_titles.push("*Drafts*")
+        self.app_report_error(error)
+    }
+
+    try {
+        failed_titles.push(...await save_messages_to_dir(
+            parent_dir + '/Sent Messages', parent_dir + '/Sent Replies'))
+    } catch (error){
+        failed_titles.push("*Sent Messages*")
+        self.app_report_error(error)
+    }
+
+    return failed_titles
 }
 
 

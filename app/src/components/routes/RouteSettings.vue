@@ -122,8 +122,13 @@ export default class extends Vue {
         this.export_success = true
         try {
             const export_dir = 'Exported'  // Save method creates multiple subdirs
-            await save_all_messages(export_dir)
+            const failed_titles = await save_all_messages(export_dir)
             this.export_msg = `Messages exported to "Stello Files/${export_dir}"`
+            if (failed_titles.length){
+                this.export_success = false
+                const ts = failed_titles.map(t => `"${t}"`).slice(0, 3).join(', ')
+                this.export_msg = `Could not export messages such as: ${ts}`
+            }
         } catch (error){
             this.export_success = false
             this.export_msg = "Failed to export messages."
