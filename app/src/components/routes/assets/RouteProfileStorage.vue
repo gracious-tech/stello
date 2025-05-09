@@ -18,7 +18,7 @@ div
     v-expansion-panels(v-else v-model='storage_provider')
 
         v-expansion-panel
-            v-expansion-panel-header(class='primary')
+            v-expansion-panel-header(class='light-blue')
                 strong Gracious Tech
                 span Recommended for most users
             v-expansion-panel-content
@@ -28,11 +28,6 @@ div
                 h2(class='text-subtitle-2') What will this account be used for?
                 v-radio-group(v-model='plan' class='ml-3')
                     v-radio(value='c' label="Christian causes" color='accent')
-                    div(v-if='plan === "c"' class='ml-6')
-                        v-checkbox(v-model='christian_jesus' color='accent'
-                            label="Jesus is God and our only saviour")
-                        v-checkbox(v-model='christian_bible' color='accent'
-                            label="The Bible is our ultimate authority on knowing God and his will")
                     v-radio(value='other' label="Other" color='accent')
 
                 hr
@@ -98,18 +93,12 @@ export default class extends Vue {
 
     storage_provider:number|null = null
     plan:'c'|'other'|null = null
-    christian_jesus = false
-    christian_bible = false
 
     created(){
         // Restore state from saved data
         if (this.profile.host?.cloud === 'gracious'){
             this.storage_provider = 0
             this.plan = this.profile.host.plan
-            if (this.profile.host.plan === 'c'){
-                this.christian_jesus = true
-                this.christian_bible = true
-            }
         }
     }
 
@@ -118,12 +107,7 @@ export default class extends Vue {
         if (this.storage_provider !== 0){
             return null
         }
-        if (this.plan === 'other'){
-            return 'other'
-        } else if (this.plan === 'c' && this.christian_jesus && this.christian_bible){
-            return 'c'
-        }
-        return null
+        return this.plan
     }
 
     self_host(){
