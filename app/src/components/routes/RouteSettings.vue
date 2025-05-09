@@ -27,9 +27,12 @@ div
             v-radio(label="Contacts" value='contacts' color='accent')
             v-radio(label="Contacts & Messages" value='all' color='accent')
         div(class='mb-4')
-            app-btn(@click='export_contacts') Export Contacts
-            app-btn(@click='export_messages') Export Messages
-        v-alert(v-if='export_msg' color='info') {{ export_msg }}
+            app-btn(@click='export_contacts' :disabled='export_ing') Export Contacts
+            app-btn(@click='export_messages' :disabled='export_ing') Export Messages
+        v-alert(v-if='export_ing || export_msg' :color='export_success ? "primary" : "error"'
+                class='text-center')
+            v-progress-circular(v-if='export_ing' indeterminate)
+            div(v-else) {{ export_msg }}
         div(class='caption opacity-secondary')
             div #[strong Stello Files location:] {{ files_dir }}
             div #[strong Internal Data location:] {{ data_dir }}
@@ -74,7 +77,11 @@ const native_paths = self.app_native.get_paths()
 export default class extends Vue {
 
     show_more = false
+
+    export_ing = false
+    export_success = true
     export_msg = ''
+
     files_dir = native_paths.files_dir
     data_dir = native_paths.data_dir
 
@@ -95,20 +102,34 @@ export default class extends Vue {
     }
 
     async export_contacts(){
-
-        // Clear any previous export
-        const export_dir = 'Exported/Contacts'
-        await self.app_native.user_file_remove(export_dir)
-
-        // Save contacts to export dir
-        this.export_msg = `Contacts are exported to "Stello Files/${export_dir}"`
-        void save_contacts_to_dir(export_dir)
+        this.export_ing = true
+        this.export_success = true
+        try {
+            const export_dir = 'Exported/Contacts'
+            await self.app_native.user_file_remove(export_dir)  // Clear previous
+            await save_contacts_to_dir(export_dir)
+            this.export_msg = `Contacts exported to "Stello Files/${export_dir}"`
+        } catch (error){
+            this.export_success = false
+            this.export_msg = "Failed to export contacts."
+            self.app_report_error(error)
+        }
+        this.export_ing = false
     }
 
     async export_messages(){
-        const export_dir = 'Exported'  // Save method creates multiple subdirs
-        this.export_msg = `Messages are exported to "Stello Files/${export_dir}"`
-        void save_all_messages(export_dir)
+        this.export_ing = true
+        this.export_success = true
+        try {
+            const export_dir = 'Exported'  // Save method creates multiple subdirs
+            await save_all_messages(export_dir)
+            this.export_msg = `Messages exported to "Stello Files/${export_dir}"`
+        } catch (error){
+            this.export_success = false
+            this.export_msg = "Failed to export messages."
+            self.app_report_error(error)
+        }
+        this.export_ing = false
     }
 }
 
