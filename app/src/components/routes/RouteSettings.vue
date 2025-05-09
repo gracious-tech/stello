@@ -127,7 +127,7 @@ export default class extends Vue {
             if (failed_titles.length){
                 this.export_success = false
                 const ts = failed_titles.map(t => `"${t}"`).slice(0, 3).join(', ')
-                this.export_msg = `Could not export messages such as: ${ts}`
+                this.export_msg = `Could not export some messages, such as: ${ts}`
             }
         } catch (error){
             this.export_success = false
