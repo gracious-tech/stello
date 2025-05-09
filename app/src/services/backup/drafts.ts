@@ -132,7 +132,13 @@ async function sections_to_html(section_ids:SectionIds):Promise<string>{
 // Convert a single section to HTML
 async function section_to_html(section:Section):Promise<string>{
     const classes = section_classes(section)
-    const section_html = await inner_section_to_html(section)
+    let section_html = ''
+    try {
+        section_html = await inner_section_to_html(section)
+    } catch (error){
+        // Silently report failure to render section and don't prevent export of rest of message
+        self.app_report_error(error)
+    }
     return `
         <section class='${classes.join(" ")}'>
             <div class='inner'>${section_html}</div>
