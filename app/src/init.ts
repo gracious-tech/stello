@@ -249,13 +249,13 @@ void open_db().then(async connection => {
     // Schedule backups
     // NOTE Contacts keeps ~3 backups, but messages only ever have one
     setTimeout(() => {
-        setIntervalPlus(24, 'h', true, () => {
+        setIntervalPlus(24, 'h', true, async () => {
             if (store.state.backups === 'none'){
                 return  // Do nothing, but don't cancel interval in case later turned back on
             }
-            void backup_contacts()
+            await backup_contacts()
             if (store.state.backups === 'all'){
-                void save_all_messages(get_backups_dir())
+                await save_all_messages(get_backups_dir())
             }
         })
     }, 1000 * 30)  // Do initial backup 30 seconds after starting to not slow anything down
