@@ -74,7 +74,7 @@ if (!self.app_native){
 
 // Show update bar if one available
 self.app_native.on_update_ready(() => {
-    // Remove any existing reload bar, as update restarts electron and would solve errors anyway
+    // Remove any existing reload bar, as update restarts electron and would solve errors anyway.
     self.document.querySelector('.reload-bar')?.remove()
     // Insert the bar
     self.document.body.insertAdjacentHTML('afterbegin', `
