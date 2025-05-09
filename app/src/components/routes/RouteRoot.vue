@@ -66,8 +66,8 @@ export default class extends Vue {
             desc: "Messages can now be exported to PDF and webpages for easier printing and backup.",
         },
         {
-            title: "Automatic Backups",
-            desc: "Your contacts and messages are now automatically backed up in case of data loss. This can be customised in the settings page.",
+            title: "Automatic Local Backups",
+            desc: "Your contacts and messages are now automatically saved to your Stello Files folder in readable formats (this is not an online backup, so please continue to backup your own computer).",
         },
     ]
     todo = [
