@@ -193,7 +193,10 @@ async function inner_section_to_html(section:Section):Promise<string>{
         }
         return html
     } else if (section.content.type === 'files'){
-        return '' // TODO Test if large files will still work to embed
+        // Unlike all other types, files can't be visually represented so not supported
+        // As part of the purpose of this is for PDF rendering and also files are likely to be
+        // saved somewhere else by the user anyway, so don't need backup as much as others.
+        return ''
     }
     return ''
 }
