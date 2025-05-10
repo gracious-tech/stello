@@ -94,6 +94,19 @@ ipcMain.handle('os_decrypt', async (event, encrypted:ArrayBuffer):Promise<string
 ipcMain.handle('html_to_pdf', async (event, html:string, filename:string):Promise<null> => {
     // Render HTML to PDF and prompt user for save location
 
+    // Ask user where to save it
+    const dialog_choice = await dialog.showSaveDialog({
+        title: "Save PDF",
+        defaultPath: `${filename}.pdf`,
+    })
+    if (!dialog_choice.filePath){
+        return null
+    }
+
+    // Save tmp HTML file since loading as data URL can cause issues if too large etc.
+    const tmp_file = dialog_choice.filePath + '.html'
+    writeFileSync(tmp_file, html)
+
     // Create an offscreen/headless browser window
     const window = new BrowserWindow({
         show: false,  // Don't show window
@@ -103,7 +116,7 @@ ipcMain.handle('html_to_pdf', async (event, html:string, filename:string):Promis
     })
 
     // Load the HTML into it
-    await window.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
+    await window.loadFile(tmp_file)
 
     // Detect preferred paper size
     const country = app.getLocale().split('-')[1]?.toUpperCase() ?? 'US'
@@ -114,16 +127,9 @@ ipcMain.handle('html_to_pdf', async (event, html:string, filename:string):Promis
         pageSize: prefer_letter ? 'Letter' : 'A4',
     })
 
-    // Ask user where to save it
-    const dialog_choice = await dialog.showSaveDialog({
-        title: "Save PDF",
-        defaultPath: `${filename}.pdf`,
-    })
-
-    // Don't save if user cancels dialog
-    if (dialog_choice.filePath){
-        writeFileSync(dialog_choice.filePath, pdf_buffer)
-    }
+    // Save PDF and rm tmp file
+    writeFileSync(dialog_choice.filePath, pdf_buffer)
+    rmSync(tmp_file)
 
     return null
 })
