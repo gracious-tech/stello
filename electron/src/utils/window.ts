@@ -1,5 +1,5 @@
 
-import {app, BrowserWindow, session, shell} from 'electron'
+import {app, BrowserWindow, session, shell, screen} from 'electron'
 
 import store from './store'
 import {get_path, TESTING, CONFIG} from './config'
@@ -32,16 +32,35 @@ export async function open_window(){
         await window_session.clearStorageData()
     }
 
-    // Remember previous window position
-    let win_bounds = {width: 1000, height: 800}
+    // Get the size of the widest monitor available
+    // This is a rough way of ensuring the window is likely to fit an available monitor,
+    // even if it doesn't actually end up being on that monitor
+    let max_width = 1200  // NOTE These values are not actually needed
+    let max_height = 800
+    for (const display of screen.getAllDisplays()){
+        if (display.bounds.width > max_width){
+            max_width = display.bounds.width
+            max_height = display.bounds.height
+        }
+    }
+
+    // Restore previous window size
+    // WARN Window positioning is very complex and have to account for multi-monitor setups
+    //   e.g. A secondary monitor may have negative position relative to the primary monitor
+    //   And when things go wrong it can make Stello unusable
+    //   So just restoring window size and letting OS determine position each time
+    let window_width = 1200  // Wide enough to display drafts/columns comfortably
+    let window_height = 800
     if (store.state.window_bounds){
-        // SECURITY Prevent injecting arbitrary params into BrowserWindow constructor
-        win_bounds = (({width, height, x, y}) => ({width, height, x, y}))(store.state.window_bounds)
+        // Don't exceed largest monitor available
+        window_width = Math.min(store.state.window_bounds.width, max_width)
+        window_height = Math.min(store.state.window_bounds.height, max_height)
     }
 
     // Open window
     const window = new BrowserWindow({
-        ...win_bounds,
+        width: window_width,
+        height: window_height,
         icon: get_path('assets/icon.png'),
         backgroundColor: '#000000',  // Avoid white flash before first paint
         webPreferences: {
