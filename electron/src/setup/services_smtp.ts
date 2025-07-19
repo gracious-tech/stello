@@ -15,6 +15,11 @@ interface SmtpSettings {
 }
 
 
+// Some hosts seem to intentionally respond slowly to prevent spam
+// Too slow to apply to all hosts, so just wait for hardcoded ones
+const SLOW_HOSTS = ['.cotse.net']
+
+
 const SMTP_TRANSPORTS:Record<string, ReturnType<typeof smtp_transport>> = {}
 
 
@@ -42,8 +47,9 @@ function smtp_transport(settings:SmtpSettings){
         secure: !settings.starttls,
         requireTLS: !localhost,  // Must use either TLS or STARTTLS (cannot be insecure)
         // Don't wait too long as may be testing invalid settings (defaults are in minutes!)
-        connectionTimeout: 5 * 1000,  // If can't connect in 5 secs then must be wrong name/port
-        greetingTimeout: 5 * 1000,  // Greeting should come quickly so allow 5 secs
+        // If can't connect promptly then must be wrong name/port
+        connectionTimeout: (SLOW_HOSTS.some(h => settings.host.endsWith(h)) ? 30 : 8) * 1000,
+        greetingTimeout: 10 * 1000,  // Greeting should come quickly, within 5, but allow 10 in case
         // Some servers are slow to reply to auth for security (like smtp.bigpond.com's 10 secs)
         socketTimeout: 30 * 1000,  // Allow 30 secs for responses / new sends
         // Reuse same connection for multiple messages
