@@ -8,7 +8,9 @@ import {app} from 'electron'
 // Determine where app is, whether a single file (e.g. appimage) or a dir
 /* getAppPath() results differ by env:
     dev: stello_app/electron
-    Linux: tmp location (use APPIMAGE env var)
+    Linux (appimage): tmp location (use APPIMAGE env var)
+    Linux (deb): ?
+    Linux (rpm): ?
     Mac: Stello.app/Contents/Resources/app.asar
     Windows (appx): StelloByGraciousTech/app/resources/app.asar
     Windows (exe): tmp location

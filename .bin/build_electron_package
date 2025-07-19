@@ -21,7 +21,7 @@ echo "$OSTYPE"
 # NOTE --universal packages combines x64 and arm64 together into one file (recommended by Apple)
 PLATFORM_ARGS='--mac dmg zip --universal'  # zip required for updates for dmg install
 if [[ "$OSTYPE" == "linux-gnu" ]]; then
-    PLATFORM_ARGS='--linux AppImage'
+    PLATFORM_ARGS='--linux AppImage deb rpm'
 elif [[ "$OSTYPE" == "msys" ]]; then
     PLATFORM_ARGS='--windows appx portable'
     # CI will have this var set for code signing on mac, but it will also trigger signing on windows
