@@ -1,16 +1,22 @@
 
 import {join, resolve, sep} from 'path'
-import {existsSync} from 'original-fs'
+import {existsSync, readFileSync} from 'original-fs'
 
 import {app} from 'electron'
+
+
+// Detect if a deb/rpm package (AppImage not considered a package in this case)
+const package_type_path = join(app.getAppPath(), '..', 'package-type')
+const linux_package_type = existsSync(package_type_path) ?
+    readFileSync(package_type_path, {encoding: 'utf8'}).trim() : null
 
 
 // Determine where app is, whether a single file (e.g. appimage) or a dir
 /* getAppPath() results differ by env:
     dev: stello_app/electron
     Linux (appimage): tmp location (use APPIMAGE env var)
-    Linux (deb): ?
-    Linux (rpm): ?
+    Linux (deb): Stello/resources/app.asar
+    Linux (rpm): ? (probably same as deb)
     Mac: Stello.app/Contents/Resources/app.asar
     Windows (appx): StelloByGraciousTech/app/resources/app.asar
     Windows (exe): tmp location
@@ -18,9 +24,13 @@ import {app} from 'electron'
 // NOTE If executing from a tmp location, need to set to the packaged file
 let app_path = join(app.getAppPath(), '..')
 if (app.isPackaged){
-    app_path = process.env['APPIMAGE']
-        || process.env['PORTABLE_EXECUTABLE_FILE']
-        || join(app.getAppPath(), '..', '..', '..')
+    if (linux_package_type){
+        app_path = join(app.getAppPath(), '..', '..')
+    } else {
+        app_path = process.env['APPIMAGE']
+            || process.env['PORTABLE_EXECUTABLE_FILE']
+            || join(app.getAppPath(), '..', '..', '..')
+    }
 }
 
 
@@ -68,4 +78,4 @@ export function restrict_path(root_dir:string, relative_path:string){
 }
 
 
-export {app_path, files_dir, data_dir}
+export {app_path, files_dir, data_dir, linux_package_type}

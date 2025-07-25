@@ -19,7 +19,7 @@ import {autoUpdater} from 'electron-updater'
 
 import {get_path, TESTING} from './utils/config'
 import {activate_app, open_window} from './utils/window'
-import {app_path} from './utils/paths'
+import {app_path, linux_package_type} from './utils/paths'
 import {get_free_space} from './utils/misc'
 
 
@@ -83,28 +83,31 @@ void app.whenReady().then(async () => {
         setInterval(check_for_updates, one_day_ms)
 
         // Warn if app cannot overwrite itself (and .'. can't update)
-        try {
-            await fs.access(app_path, fs_constants.W_OK)
-        } catch (error){
-            console.error(error)
-            let msg = `Stello is not able to auto-update because it doesn't have permission`
-                + ` to write to itself. Please correct the permissions for:\n\n${app_path}`
-            if (process.platform === 'darwin' && !app.isInApplicationsFolder()){
-                // App is most likely running from a read-only mount of the DMG
-                msg = "Please move Stello into your Applications folder and open it from there,"
-                    + " otherwise you will not be able to receive important updates."
-            }
-            const button_i = dialog.showMessageBoxSync({
-                title: "Stello is not yet installed properly",
-                message: msg,
-                type: 'warning',
-                buttons: ["CLOSE", "OPEN ANYWAY"],
-                defaultId: 0,
-                cancelId: 0,
-            })
-            if (button_i === 0){
-                app.quit()
-                return  // Avoid brief opening of window (as `app.quit()` is async)
+        // NOTE deb/rpm require sudo to update, so not expected to be able to access yet
+        if (linux_package_type !== 'deb' && linux_package_type !== 'rpm'){
+            try {
+                await fs.access(app_path, fs_constants.W_OK)
+            } catch (error){
+                console.error(error)
+                let msg = `Stello is not able to auto-update because it doesn't have permission`
+                    + ` to write to itself. Please correct the permissions for:\n\n${app_path}`
+                if (process.platform === 'darwin' && !app.isInApplicationsFolder()){
+                    // App is most likely running from a read-only mount of the DMG
+                    msg = "Please move Stello into your Applications folder and open it from there,"
+                        + " otherwise you will not be able to receive important updates."
+                }
+                const button_i = dialog.showMessageBoxSync({
+                    title: "Stello is not yet installed properly",
+                    message: msg,
+                    type: 'warning',
+                    buttons: ["CLOSE", "OPEN ANYWAY"],
+                    defaultId: 0,
+                    cancelId: 0,
+                })
+                if (button_i === 0){
+                    app.quit()
+                    return  // Avoid brief opening of window (as `app.quit()` is async)
+                }
             }
         }
     }
