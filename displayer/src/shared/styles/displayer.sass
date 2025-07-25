@@ -256,6 +256,9 @@
         @media print
             padding-left: 0 !important
             padding-right: 0 !important
+            // Avoid page break mid-line of text or mid-chart/image
+            display: block  // Flex only needed in editor for .movebar and causes mid-line breaks
+            break-inside: avoid  // Move row with chart/image/etc to next page rather than split
 
             &:first-child
                 padding-top: 0 !important
