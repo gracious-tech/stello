@@ -4,12 +4,13 @@
 div.unsubscribed(v-if='unsubscribed || config_error' class='ui')
     div.alert
 
-        template(v-if='config_error === "network"') Network issue detected
-        template(v-else-if='config_error === "decrypt"') Invalid URL
-        template(v-else-if='config_error === "inactive"') This account is no longer active
+        template(v-if='config_error === "network"') {{ $t("Network issue detected") }}
+        template(v-else-if='config_error === "decrypt"') {{ $t("Invalid URL") }}
+        template(v-else-if='config_error === "inactive"')
+            | {{ $t("This account is no longer active") }}
         template(v-else-if='unsubscribed')
-            | You've unsubscribed
-            a(@click='undo') UNDO
+            | {{ $t("You've unsubscribed") }}
+            a(@click='undo') {{ $t("UNDO") }}
 
 </template>
 

@@ -1,19 +1,19 @@
 
 <template lang='pug'>
 
-h2 Change email address
+h2 {{ $t("Change email address") }}
 
-p(v-if='old_address') This message was sent to: #[em {{ old_address }}]
+p(v-if='old_address') {{ $t("This message was sent to") }}: #[em {{ old_address }}]
 
-input(v-model='address' type='email' placeholder="New email address...")
+input(v-model='address' type='email' :placeholder='$t("New email address") + "..."')
 
 div.actions
-    button(@click='close' class='btn-text') Cancel
+    button(@click='close' class='btn-text') {{ $t("Cancel") }}
     button(@click='change' :disabled='!valid || progress' class='btn-text s-primary'
             :class='{error, progress}')
         template(v-if='progress')
             AppProgress
-        template(v-else) Change
+        template(v-else) {{ $t("Change") }}
 
 </template>
 

@@ -17,7 +17,7 @@ div.stello-displayer(:class='classes' :style='theme_style_props' tabindex='-1')
 
     //- This will only be shown if no hash and no history in db
     //- e.g. Manually copied URL without hash, or refreshed browser that has no idb access
-    h1.no_msg(v-else) Click original link to view message
+    h1.no_msg(v-else) {{ $t("Click original link to view message") }}
 
     AppHistory
 

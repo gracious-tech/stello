@@ -11,14 +11,15 @@ div.respondbar(v-if='allow_comments || allow_reactions' @mouseenter='have_hovere
             //- Using form important for enabling submit button in virtual keyboards
             form.popup(@submit.prevent='send_comment')
                 div.prev(v-if='replies.length')
-                    strong Commented:&nbsp;
+                    strong {{ $t("Commented") }}:&nbsp;
                     template(v-for='(reply, i) of replies' :key='reply.getTime()')
                         | {{ i === 0 ? '' : ', ' }}
                         span(:title='reply.toLocaleTimeString()') {{ reply.toLocaleDateString() }}
                 div.last(v-if='last_sent_contents') {{ last_sent_contents }}
                 div.fields
                     textarea(v-model='reply_text' ref='reply_textarea' :disabled='reply_waiting'
-                        @keyup.ctrl.enter='send_comment' placeholder="Only author can see...")
+                        @keyup.ctrl.enter='send_comment'
+                        :placeholder='$t("Only author can see") + "..."')
                     button(type='submit' class='btn-icon' :class='{error: reply_success === false}')
                         AppProgress(v-if='reply_waiting')
                         svg(v-else viewBox='0 0 24 24')
@@ -37,7 +38,7 @@ div.respondbar(v-if='allow_comments || allow_reactions' @mouseenter='have_hovere
                         //- Stop animations when popup hidden to reduce CPU usage
                         ReactionSvg.reaction(:reaction='reaction'
                             :chosen='reaction === chosen_reaction' :playing='react_popup_visible')
-                p.note Only author can see
+                p.note {{ $t("Only author can see") }}
 
 
 </template>

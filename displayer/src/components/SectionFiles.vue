@@ -4,7 +4,7 @@
 div.root
     AppBtn(@click='click' :progress='downloading' :error='error' class='s-primary')
         SharedFilesIcon(:download='content.download')
-        | {{ label }}
+        | {{ $t(label) }}
 
 </template>
 

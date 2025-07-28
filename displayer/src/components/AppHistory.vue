@@ -4,7 +4,7 @@
 div(v-if='current_date' class='ui')
     div(class='published') {{ current_date }}
     template(v-if='prev || next')
-        h2.title Previously opened
+        h2.title {{ $t("Previously opened") }}
         div.history
             div.prev(v-if='prev')
                 a(@click='prev.load') ← {{ prev.label }}

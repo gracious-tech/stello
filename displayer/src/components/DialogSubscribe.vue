@@ -3,18 +3,19 @@
 
 div.intro(v-html='form.text')
 
-input(v-model='name' placeholder="Full name...")
-input(v-model='address' type='email' placeholder="Email address...")
-textarea(v-if='form.accept_message' ref='textarea' v-model='message' placeholder="Message...")
-div.success(v-if='success') {{ success }}
+input(v-model='name' :placeholder='$t("Full name") + "..."')
+input(v-model='address' type='email' :placeholder='$t("Email address") + "..."')
+textarea(v-if='form.accept_message' ref='textarea' v-model='message'
+    :placeholder='$t("Message") + "..."')
+div.success(v-if='success') {{ address }} {{ $t("subscribed") }}
 
 div.actions
-    button(@click='close' class='btn-text') Close
+    button(@click='close' class='btn-text') {{ $t("Close") }}
     button(@click='send' :disabled='!valid || progress' class='btn-text s-primary'
             :class='{error, progress}')
         template(v-if='progress')
             AppProgress
-        template(v-else) Subscribe
+        template(v-else) {{ $t("Subscribe") }}
 
 </template>
 
@@ -42,7 +43,7 @@ export default defineComponent({
         const message = ref('')
         const progress = ref(false)
         const error = ref(false)
-        const success = ref(null as null|string)
+        const success = ref(false)
 
         // Computed
         const valid = computed(() => name.value && email_address_like(address.value))
@@ -52,9 +53,9 @@ export default defineComponent({
         const send = async () => {
             progress.value = true
             error.value = false
-            success.value = null
+            success.value = false
             if (await respond_subscribe(props.form.id, address.value, name.value, message.value)){
-                success.value = `${address.value} subscribed`
+                success.value = true
                 name.value = ''
                 address.value = ''
                 message.value = ''

@@ -5,15 +5,15 @@
 div.footer(v-if='msg?.data' class='ui')
 
     div(v-if='can_change_subscription')
-        a(@click='toggle_subscription' :class='{unsubscribed}') {{ toggle_label }}
+        a(@click='toggle_subscription' :class='{unsubscribed}') {{ $t(toggle_label) }}
         template(v-if='msg.data.contact_address ?? true')
             |
             | |
             |
-            a(@click='change_address') Change email address
+            a(@click='change_address') {{ $t("Change email address") }}
 
     div
-        | Created with
+        | {{ $t("Created with") }}
         |
         a(href='https://stello.news/' target='_blank') {{ app_name }}
 

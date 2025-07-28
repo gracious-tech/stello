@@ -5,21 +5,22 @@
 form(v-if='allow_replies' @submit.prevent='send_reply' class='ui')
 
     div.prev(v-if='replies.length')
-        strong Replied:&nbsp;
+        strong {{ $t("Replied") }}:&nbsp;
         template(v-for='(reply, i) of replies' :key='reply.getTime()')
             | {{ i === 0 ? '' : ', ' }}
             span(:title='reply.toLocaleTimeString()') {{ reply.toLocaleDateString() }}
-        | &nbsp;(only author can see)
+        | &nbsp;({{ $t("Only author can see") }})
     div.last {{ last_sent_contents }}
 
     div.fields
         textarea(v-model='text' ref='textarea' @keyup.ctrl.enter='send_reply' :disabled='waiting'
-            placeholder="Secure reply...")
+            :placeholder='$t("Secure reply") + "..."')
         button(type='submit' class='btn-icon' :class='{error: success === false}')
             AppProgress(v-if='waiting')
             svg(v-else viewBox='0 0 24 24')
                 path(d='M2.01 21L23 12 2.01 3 2 10l15 2-15 2z')
-    p.note All replies/comments/reactions securely encrypted &amp; only visible to author
+    p.note
+        | {{ $t("All responses are securely encrypted and only visible to author") }}
 
 </template>
 

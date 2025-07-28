@@ -1,13 +1,13 @@
 
 <template lang='pug'>
 
-h2 Unsubscribe
+h2 {{ $t("Unsubscribe") }}
 
-p Are you sure you'd like to unsubscribe?
+p {{ $t("Are you sure you'd like to unsubscribe?") }}
 
 div.actions
-    button(@click='close' class='btn-text') Cancel
-    button(@click='submit' class='btn-text s-primary') Unsubscribe
+    button(@click='close' class='btn-text') {{ $t("Cancel") }}
+    button(@click='submit' class='btn-text s-primary') {{ $t("Unsubscribe") }}
 
 </template>
 

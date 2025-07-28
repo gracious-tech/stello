@@ -13,8 +13,8 @@ div.no_data(v-else class='ui')
 
     AppProgress(v-if='!msg.data_error')
     template(v-else)
-        h2.error {{ error_desc }}
-        button(v-if='fix_label' @click='fix' class='btn-text s-primary') {{ fix_label }}
+        h2.error {{ $t(error_desc) }}
+        button(v-if='fix_label' @click='fix' class='btn-text s-primary') {{ $t(fix_label) }}
 
 </template>
 
