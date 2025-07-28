@@ -27,11 +27,6 @@ export default defineConfig(({mode}) => {
         build: {
             target: 'es2015',  // Currently supporting browsers ES2015+
             cssTarget: 'safari10',  // Prevent things like top/left/bottom/right -> 'inset'
-            rollupOptions: {
-                output: {
-                    manualChunks: () => 'everything.js',  // Hack to force all imports into one file
-                },
-            },
         },
         optimizeDeps: {
             include: [
