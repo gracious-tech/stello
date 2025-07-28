@@ -6,6 +6,7 @@ import './init_errors'
 import 'core-js/features/string/replace-all'
 
 import {createApp} from 'vue'
+import {createI18n} from 'petite-vue-i18n'
 
 import {store} from '../services/store'
 import {database} from '../services/database'
@@ -55,6 +56,20 @@ self.app_vue.config.warnHandler = (msg, vm, trace) => {
     if (import.meta.env.MODE !== 'production'){
         self.app_fail_visual()
     }
+}
+
+
+// Register i18n
+const supported_locales = ['vi']
+const browser_locale = navigator.language.toLowerCase().split('-')[0] ?? 'en'
+const i18n = createI18n({
+    locale: browser_locale,
+})
+self.app_vue.use(i18n)
+if (supported_locales.includes(browser_locale)){
+    import(`../locales/${browser_locale}.yaml`).then(messages => {
+        i18n.global.setLocaleMessage(browser_locale, messages.default)
+    })
 }
 
 
