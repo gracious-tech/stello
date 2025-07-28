@@ -10,7 +10,7 @@ div.unsubscribed(v-if='unsubscribed || config_error' class='ui')
             | {{ $t("This account is no longer active") }}
         template(v-else-if='unsubscribed')
             | {{ $t("You've unsubscribed") }}
-            a(@click='undo') {{ $t("UNDO") }}
+            a(@click='undo') {{ $t("undo") }}
 
 </template>
 
@@ -51,6 +51,7 @@ export default defineComponent({
             margin-left: 12px
             font-weight: bold
             color: inherit
+            text-transform: uppercase
 
             &:hover
                 text-decoration: underline
