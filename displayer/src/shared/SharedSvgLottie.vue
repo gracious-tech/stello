@@ -116,7 +116,4 @@ export default defineComponent({
 
 <style lang='sass' scoped>
 
-.lottie
-    padding: 4px  // So visible emoji is roughly 36x36px when container is 48x48px
-
 </style>

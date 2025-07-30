@@ -378,17 +378,18 @@
                 opacity: 0.75
                 background-color: var(--stello-hue-light)
 
-            svg
-                min-width: 36px
-                min-width: 36px
-                max-width: 36px
-                max-width: 36px
-                margin-right: 12px
+            > *:first-child
+                // NOTE This may be the <svg> or a sizing container of the <svg>
+                max-width: 28px
+                margin: 2px 12px 2px 0
 
-                &.borderless
-                    fill: currentColor
-                    padding: 6px
-                    box-sizing: border-box
+            // For default SVG icon that isn't an emoji
+            svg.borderless
+                fill: currentColor
+                padding: 2px
+                box-sizing: border-box
+                width: 100%
+                height: 100%
 
 
     // STANDOUT

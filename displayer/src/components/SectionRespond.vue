@@ -334,23 +334,18 @@ export default defineComponent({
                 display: flex
                 justify-content: center
                 align-items: center
-                // Make reaction div slighter larger than reaction to pad and make room for growing
-                width: 52px
-                height: 52px
+                width: 58px
+                height: 58px
+                transition: transform 0.1s
 
                 :deep(svg)
-                    display: flex
-                    width: 48px !important
-                    height: 48px !important
-                    transition: all 0.1s
+                    max-width: 48px
+                    max-height: 48px
 
-                // On devices with cursors make buttons larger and grow to fill when hovered
+                // Grow emojis on hover, but not on touch devices that merely emulate hover
+                // NOTE Not messing with transform on actual svgs as animations use it
                 @media (hover: hover)
-                    width: 64px
-                    height: 64px
-
-                    :deep(svg:hover)
-                        width: 64px !important
-                        height: 64px !important
+                    &:hover
+                        transform: scale(1.2)
 
 </style>

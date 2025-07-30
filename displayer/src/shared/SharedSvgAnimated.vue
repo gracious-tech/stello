@@ -2,7 +2,7 @@
 <template lang='pug'>
 
 component.root(:is='comp' :url='url' :playing='playing_final' @mouseenter.native='hovering = true'
-    @mouseleave.native='hovering = false')
+    @mouseleave.native='hovering = false' :class='{pray}')
 
 </template>
 
@@ -45,6 +45,9 @@ export default defineComponent({
         playing_final(){
             return this.playing || (this.hover && this.hovering)
         },
+        pray(){
+            return this.url.endsWith('pray.svg')
+        },
     },
 })
 
@@ -57,5 +60,9 @@ export default defineComponent({
     display: flex
     width: 100%
     height: 100%
+
+// Hack for prayer emoji to match scale of lottie emojis that don't have internal padding
+.pray ::v-deep svg
+    transform: scale(1.2)
 
 </style>
