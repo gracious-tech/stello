@@ -1,12 +1,13 @@
 {
     "private": true,
     "devDependencies": {
-        "@intlify/unplugin-vue-i18n": "^4.0.0",
         "@types/lodash": "^4.14.177",
+        "@types/papaparse": "^5.3.16",
         "@types/pug": "^2.0.5",
         "@types/sass": "^1.43.0",
         "@vitejs/plugin-vue": "^1.9.4",
         "@vue/compiler-sfc": "^3.2.22",
+        "papaparse": "^5.5.3",
         "pug": "^3.0.2",
         "sass": "^1.43.4",
         "vite": "^2.6.14"

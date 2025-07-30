@@ -14,6 +14,7 @@ import {error_to_string} from '../services/utils/exceptions'
 import App from '../components/App.vue'
 import AppBtn from '../components/AppBtn.vue'
 import AppProgress from '../components/AppProgress.vue'
+import locales_meta from '../locales.json'
 
 
 // Embed stello styles in JS (so doesn't block first render)
@@ -60,7 +61,6 @@ self.app_vue.config.warnHandler = (msg, vm, trace) => {
 
 
 // Register i18n
-const supported_locales = ['vi']  // TODO
 const lower_lang = navigator.language.toLowerCase()
 let browser_locale = lower_lang.split('-')[0] ?? 'en'
 if (browser_locale === 'zh' && ['hant', 'tw', 'hk', 'mo'].includes(lower_lang.split('-')[1] ?? '')){
@@ -70,9 +70,12 @@ const i18n = createI18n({
     locale: browser_locale,
 })
 self.app_vue.use(i18n)
-if (supported_locales.includes(browser_locale)){
-    void import(`../locales/${browser_locale}.yaml`).then(messages => {
+if (locales_meta.supported.includes(browser_locale)){
+    void import(`../locales/${browser_locale}.json`).then(messages => {
         i18n.global.setLocaleMessage(browser_locale, messages.default)
+    }).catch(() => {
+        // Don't result in error banner as non-essential
+        console.error(`Failed to load i18n for ${browser_locale}`)
     })
 }
 

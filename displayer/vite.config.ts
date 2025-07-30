@@ -2,21 +2,19 @@
 import path from 'path'
 
 import plugin_vue from '@vitejs/plugin-vue'
-import plugin_i18n from '@intlify/unplugin-vue-i18n/vite'
 import {defineConfig} from 'vite'
 
 import plugin_index from './vite_plugin_index'
+import {LocalesCsvToJsonPlugin} from './vite_plugin_i18n'
 
 
 export default defineConfig(({mode}) => {
     return {
         clearScreen: false,
         plugins: [
+            LocalesCsvToJsonPlugin,
             plugin_index(path.join(__dirname, 'src/index.pug')),
             plugin_vue(),
-            plugin_i18n({
-                include: path.join(__dirname, 'src/locales/**'),
-            }),
         ],
         resolve: {
             alias: [
