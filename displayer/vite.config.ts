@@ -12,7 +12,9 @@ export default defineConfig(({mode}) => {
     return {
         clearScreen: false,
         plugins: [
-            LocalesCsvToJsonPlugin,
+            // NOTE Disabled as some translations have been adjusted in json files already
+            //      If importing from CSV again, need to ensure good changes not erased
+            // LocalesCsvToJsonPlugin,
             plugin_index(path.join(__dirname, 'src/index.pug')),
             plugin_vue(),
         ],
