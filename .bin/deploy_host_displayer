@@ -17,8 +17,12 @@ echo "Uploading..."
 # Do fresh build of displayer
 .bin/build_displayer
 
-# Upload assets
+# Backup previously uploaded version in case something goes wrong
+# NOTE These files are gzip compressed
 cd displayer/dist_compressed
+aws s3 sync --delete "s3://$STELLO_HOSTED_BUCKET" ../dist_prev/
+
+# Upload assets
 aws s3 sync --content-encoding gzip --delete . "s3://$STELLO_HOSTED_BUCKET"
 
 # Invalidate cloudfront

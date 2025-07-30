@@ -28,6 +28,7 @@ test-results/
 /displayer/.env.development.local
 /displayer/dist/
 /displayer/dist_compressed/
+/displayer/dist_prev/
 /displayer/public/dev/
 
 /responder/aws/.aws-sam/
