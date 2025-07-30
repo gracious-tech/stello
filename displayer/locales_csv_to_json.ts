@@ -4,10 +4,9 @@ import path from 'node:path'
 
 import papaparse from 'papaparse'
 
-import type {Plugin} from 'vite'
 
-
-// Generate JSON locale files from CSV
+// Update JSON locale files with data from CSV
+// NOTE Adds to existing, so CSV can just contain any new strings, but must have all languages
 function generate_json(){
 
     // Parse CSV
@@ -23,33 +22,30 @@ function generate_json(){
         supported: langs.slice(1),
     }))
 
-    // Ensure locales dir exists
-    fs.mkdirSync('src/locales', {recursive: true})
-
-    // Save file for each language
+    // Update file for each language
     // NOTE Skips first column of originals
     for (let col_index = 1; col_index < langs.length; col_index++){
-        const translations = Object.fromEntries(rows.map(row => {
+        let translations = Object.fromEntries(rows.map(row => {
             return [row[0]!, row[col_index]!]
         }))
         const lang = langs[col_index]!
         const file_path = path.join('src/locales', `${lang}.json`)
+
+        // Get existing data
+        let existing:Record<string, string> = {}
+        if (fs.existsSync(file_path)){
+            existing = JSON.parse(fs.readFileSync(file_path, 'utf8')) as Record<string, string>
+        }
+        translations = {...existing, ...translations}
+
         // NOTE Indent so separate lines and easier to track changes (very small file anyway)
         fs.writeFileSync(file_path, JSON.stringify(translations, null, 4))
     }
 }
 
 
-// Export plugin
-export const LocalesCsvToJsonPlugin:Plugin = {
-    name: 'locales-csv-to-json',
-    buildStart(){
-        generate_json()
-    },
-    configureServer(){
-        generate_json()
-    },
-}
+// Execute
+generate_json()
 
 
 /* LOCATION OF STRINGS
