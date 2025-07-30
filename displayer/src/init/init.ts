@@ -60,14 +60,18 @@ self.app_vue.config.warnHandler = (msg, vm, trace) => {
 
 
 // Register i18n
-const supported_locales = ['vi']
-const browser_locale = navigator.language.toLowerCase().split('-')[0] ?? 'en'
+const supported_locales = ['vi']  // TODO
+const lower_lang = navigator.language.toLowerCase()
+let browser_locale = lower_lang.split('-')[0] ?? 'en'
+if (browser_locale === 'zh' && ['hant', 'tw', 'hk', 'mo'].includes(lower_lang.split('-')[1] ?? '')){
+    browser_locale = 'zh-hant'  // Such countries primarily use traditional script
+}
 const i18n = createI18n({
     locale: browser_locale,
 })
 self.app_vue.use(i18n)
 if (supported_locales.includes(browser_locale)){
-    import(`../locales/${browser_locale}.yaml`).then(messages => {
+    void import(`../locales/${browser_locale}.yaml`).then(messages => {
         i18n.global.setLocaleMessage(browser_locale, messages.default)
     })
 }
