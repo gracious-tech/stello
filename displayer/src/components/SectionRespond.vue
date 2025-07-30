@@ -6,7 +6,7 @@ div.respondbar(v-if='allow_comments || allow_reactions' @mouseenter='have_hovere
 
     div.reply_container(v-if='allow_comments')
         SharedRespondReply(@click='focus_reply_textarea' :replied='!!replies.length'
-            :class='{responded: !!replies.length}')
+            :class='{responded: !!replies.length}' :label='$t("Comment")')
         div.position(v-if='have_hovered')
             //- Using form important for enabling submit button in virtual keyboards
             form.popup(@submit.prevent='send_comment')
@@ -27,7 +27,8 @@ div.respondbar(v-if='allow_comments || allow_reactions' @mouseenter='have_hovere
 
     div.react_container(v-if='allow_reactions' @mouseenter='react_popup_visible = true'
             @mouseleave='react_popup_visible = false')
-        SharedRespondReact(@click='focus_react_button' :class='{responded: chosen_reaction}')
+        SharedRespondReact(@click='focus_react_button' :class='{responded: chosen_reaction}'
+                :label='$t("React")')
             ReactionSvg(v-if='chosen_reaction' :reaction='chosen_reaction')
         div.position(v-if='have_hovered')
             div.popup

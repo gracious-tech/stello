@@ -4,7 +4,7 @@
 button.respond(v-bind='$attrs' v-on='listeners' class='btn-text')
     svg(viewBox='0 0 24 24' class='borderless')
         path(:d='icon')
-    | Comment
+    | {{ label }}
 
 </template>
 
@@ -21,6 +21,10 @@ export default defineComponent({
         replied: {
             type: Boolean,
             default: false,
+        },
+        label: {
+            type: String,
+            default: "Comment",
         },
     },
 
