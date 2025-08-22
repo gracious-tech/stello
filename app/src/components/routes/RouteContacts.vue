@@ -60,6 +60,7 @@ div
                     v-divider
                     v-subheader Management
                     app-list-item(value='duplicates') Duplicates
+                    app-list-item(value='groupless') No group
                     app-list-item(v-for='profile of profiles' :key='profile.id'
                             :value='`disengaged_${profile.id}`')
                         | Disengaged ({{ profile.display }})
@@ -216,6 +217,10 @@ export default class extends Vue {
                 }
             }
             return Object.values(addresses).filter(items => items.length > 1).flat()
+        } else if (this.filter_group_id === 'groupless'){
+            // Show contacts that aren't part of any group
+            const contacts_with_group = this.groups.map(g => g.contacts).flat()
+            return this.contacts.filter(item => !contacts_with_group.includes(item.contact.id))
         } else if (this.filter_group_id.startsWith('disengaged_')){
             // Show only contacts who haven't read last 2 messages or have unsubscribed
             return this.contacts.filter(item => {
@@ -310,6 +315,8 @@ export default class extends Vue {
             return "Group empty"
         } else if (this.filter_group_id === 'duplicates'){
             return "No duplicates"
+        } else if (this.filter_group_id === 'groupless'){
+            return "All contacts are in at least one group"
         } else if (this.filter_group_id.startsWith('disengaged_')){
             return "No contacts are disengaged"
         }
