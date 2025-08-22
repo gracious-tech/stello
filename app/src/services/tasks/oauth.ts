@@ -174,6 +174,16 @@ async function oauth_authorize_init(issuer:OAuthIssuer, scope_sets:ScopeSet[], m
     const auth_config = await appauth.AuthorizationServiceConfiguration.fetchFromIssuer(
         issuer_config.endpoint, new appauth.FetchRequestor())
 
+    // Different request params are needed depending on if email is known or not
+    // If email is known then should supply to avoid need to select correct account
+    // If email is unknown then should force user to select from possible accounts
+    //     as some services may auto-select a default address not actually desired by the user
+    // NOTE prompt is not supported by Google for desktop apps, but may in future
+    // NOTE login_hint and select_account should never both be supplied together
+    // NOTE The default value of prompt is just "" as it's a list in spec
+    // WARN Do not add prompt:consent as that forces org-users to get admin consent every time
+    const email_related_extras = email ? {login_hint: email} : {prompt: 'select_account'}
+
     // Init auth request by opening issuer's URL (which will then redirect to own local server)
     const auth_handler = new appauth.RedirectRequestHandler()
     auth_handler.performAuthorizationRequest(auth_config, new appauth.AuthorizationRequest({
@@ -182,10 +192,7 @@ async function oauth_authorize_init(issuer:OAuthIssuer, scope_sets:ScopeSet[], m
         redirect_uri: REDIRECT_URI,
         scope: scopes.join(' '),
         extras: {
-            // These extras are supported by all issuers
-            ...email ? {login_hint: email} : {},  // Auto-select/fill correct address if known
-            // NOTE prompt is not supported by Google for desktop apps, but may in future
-            prompt: email ? 'consent' : 'select_account',  // Ask which account if adding a new one
+            ...email_related_extras,
             ...issuer_config.code_request_extras,
         },
         // Add data that's needed in complete step but stored securely internally
