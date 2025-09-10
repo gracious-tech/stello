@@ -17,6 +17,11 @@
         // Reduce padding when less than full width available
         --stello-gutter: 24px
 
+    // Raise dark toggle in displayer only as would otherwise overlap app's menus
+    .dark_toggle
+        // WARN Cannot be < 100 as first row will overlap, or > 100 as will overlap page toolbars
+        z-index: 100
+
     input, textarea
         box-sizing: border-box
         width: 100%
