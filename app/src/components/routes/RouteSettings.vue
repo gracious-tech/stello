@@ -68,9 +68,6 @@ import {save_contacts_to_dir} from '@/services/backup/contacts'
 import {save_all_messages} from '@/services/backup/generic'
 
 
-const native_paths = self.app_native.get_paths()
-
-
 @Component({
     components: {RouteSettingsProfiles, RouteSettingsContacts},
 })
@@ -82,8 +79,15 @@ export default class extends Vue {
     export_success = true
     export_msg = ''
 
-    files_dir = native_paths.files_dir
-    data_dir = native_paths.data_dir
+    files_dir = ''
+    data_dir = ''
+
+    created(){
+        // This may not be available until init.ts finishes, so get during create
+        const native_paths = self.app_native.get_paths()
+        this.files_dir = native_paths.files_dir
+        this.data_dir = native_paths.data_dir
+    }
 
     get dark(){
         return this.$store.state.dark
