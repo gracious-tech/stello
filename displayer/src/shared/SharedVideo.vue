@@ -3,7 +3,9 @@
 
 div
     div.aspect
-        iframe(v-if='src' :src='src' :sandbox='sandbox' :allow='allow')
+        //- NOTE Youtube requires referrer but CSP seems to hide it so need to explicitly allow
+        iframe(v-if='src' :src='src' :sandbox='sandbox' :allow='allow'
+            referrerpolicy='strict-origin-when-cross-origin')
         svg(v-else @click='$emit("modify")' width='32' height='18' viewBox='0 0 32 18')
             path(d=`M 22,4.5 H 10 c -1.1,0 -2,0.9 -2,2 v 5 c 0,1.1 0.9,2 2,2 h 12 c 1.1,0 2,-0.9 2,
                 -2 v -5 c 0,-1.1 -0.9,-2 -2,-2 z m -7.5,7 v -5 l 4,2.5 z`)
