@@ -75,6 +75,7 @@ export default defineComponent({
 
                 // Youtube needs a proxy when iframe served by file:/// url
                 // As file protocol doesn't send referer header which Youtube requires
+                // See https://developers.google.com/youtube/terms/required-minimum-functionality#embedded-player-api-client-identity
                 // But file protocol only used for app in production (not in dev, and not displayer)
                 const url =
                     `https://www.youtube-nocookie.com/embed/${this.safe_id}?${params.toString()}`
