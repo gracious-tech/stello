@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            background: #000;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <iframe
+        id="player"
+        referrerpolicy='strict-origin-when-cross-origin'
+        sandbox="allow-scripts allow-same-origin"
+        allow="fullscreen; encrypted-media; gyroscope; accelerometer; clipboard-write; picture-in-picture;"
+    >
+    </iframe>
+
+    <script>
+        document.getElementById('player').src = new URL(location.href).searchParams.get('url')
+    </script>
+</body>
+
+</html>

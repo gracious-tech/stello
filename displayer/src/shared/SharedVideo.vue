@@ -72,7 +72,19 @@ export default defineComponent({
                 if (typeof this.end === 'number'){
                     params.set('end', `${this.end}`)
                 }
-                return `https://www.youtube-nocookie.com/embed/${this.safe_id}?${params.toString()}`
+
+                // Youtube needs a proxy when iframe served by file:/// url
+                // As file protocol doesn't send referer header which Youtube requires
+                // But file protocol only used for app in production (not in dev, and not displayer)
+                const url =
+                    `https://www.youtube-nocookie.com/embed/${this.safe_id}?${params.toString()}`
+                if (self.location.protocol === 'file:'){
+                    const prod_oauth_port = '44932'
+                    return `http://127.0.0.1:${prod_oauth_port}/youtube?url=`
+                        + encodeURIComponent(url)
+                }
+                return url
+
             } else if (this.format === 'iframe_vimeo'){
                 const params = new URLSearchParams([
                     ['dnt', '1'],  // Do not track
