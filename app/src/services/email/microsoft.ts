@@ -37,7 +37,7 @@ export async function send_batch_microsoft(items:QueueItem[],
                     'Content-Type': 'application/json',
                 },
                 body: {
-                    saveToSentItems: false,
+                    saveToSentItems: true,  // Necessary for debug; user should trust own account
                     message: {
                         from: {emailAddress: email.from},
                         toRecipients: [{emailAddress: email.to}],
