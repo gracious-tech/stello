@@ -129,7 +129,8 @@ const arg_email = process.argv[5] ?? ''
 const arg_purge = process.argv[6] === 'purge'
 disable_account(arg_region, arg_stack, arg_username, arg_email, arg_purge).then(error => {
     if (error === null){
-        console.info("Successfully disabled account")
+        const verb = arg_purge ? "purged" : "disabled"
+        console.info(`Successfully ${verb} account`)
     } else if (error === 'email'){
         console.error(`Email address does not match account: ${arg_email}`)
     } else if (error === 'username'){
