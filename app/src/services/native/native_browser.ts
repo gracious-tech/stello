@@ -17,6 +17,10 @@ export class NativeBrowser implements NativeInterface {
         return []
     }
 
+    async user_file_read(path:string):Promise<ArrayBuffer>{
+        throw new Error('unsupported')
+    }
+
     async user_file_write(path:string, data:ArrayBuffer):Promise<void>{
         // Will not actually write anything
     }

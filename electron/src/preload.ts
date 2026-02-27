@@ -24,6 +24,10 @@ const native_electron:NativeInterface = {
         return ipcRenderer.invoke('user_file_list', path) as Promise<string[]>
     },
 
+    user_file_read(path:string){
+        return ipcRenderer.invoke('user_file_read', path) as Promise<ArrayBuffer>
+    },
+
     user_file_write(path:string, data:ArrayBuffer){
         return ipcRenderer.invoke('user_file_write', path, data) as Promise<void>
     },

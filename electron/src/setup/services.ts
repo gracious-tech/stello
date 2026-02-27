@@ -39,6 +39,13 @@ ipcMain.handle('user_file_list', async (event, relative_path:string):Promise<str
 })
 
 
+ipcMain.handle('user_file_read', async (event, relative_path:string):Promise<ArrayBuffer> => {
+    // Read a file from the user's files dir
+    const full_path = restrict_path(files_dir, relative_path)
+    return readFileSync(full_path).buffer
+})
+
+
 ipcMain.handle('user_file_write', async (event, relative_path:string, data:ArrayBuffer) => {
     // Write a file to the user's files dir
     const full_path = restrict_path(files_dir, relative_path)

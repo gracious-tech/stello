@@ -6,6 +6,7 @@ export interface NativeInterface {
     get_paths():{files_dir:string, data_dir:string}
     app_file_read(path:string):Promise<ArrayBuffer>
     user_file_list(path:string):Promise<string[]>
+    user_file_read(path:string):Promise<ArrayBuffer>
     user_file_write(path:string, data:ArrayBuffer):Promise<void>
     user_file_remove(path:string):Promise<void>
     restart_after_update():void
