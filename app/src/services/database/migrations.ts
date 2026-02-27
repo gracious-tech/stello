@@ -4,10 +4,10 @@
 
 import {AppDatabaseConnection, VersionChangeTransaction} from './types'
 import {to_12_from_1plus, to_12_from_1plus_async} from './migrations_pre12'
-import {generate_token} from '@/services/utils/crypt'
+import {generate_key_asym, generate_key_sym, generate_token} from '@/services/utils/crypt'
 
 
-export const DATABASE_VERSION = 20
+export const DATABASE_VERSION = 21
 
 
 export async function migrate(transaction:VersionChangeTransaction,
@@ -45,6 +45,8 @@ export async function migrate_async(db:AppDatabaseConnection, old_version:number
         await to_12_from_1plus_async(db)
     if (old_version < 14)
         await to_14_async(db)
+    if (old_version < 21)
+        await to_21_async(db)
 }
 
 
@@ -278,4 +280,20 @@ export async function to_20(transaction:VersionChangeTransaction){
         key: 'dbid',
         value: generate_token(3),
     })
+}
+
+
+export async function to_21_async(db:AppDatabaseConnection){
+
+    // Replace non-extractable keys with extractable and trigger config updates
+    // This is necessary because v1.8.3 and below can't extract existing keys
+    for (const profile of await db.getAll('profiles')){
+        profile.host_state.secret_old = profile.host_state.secret
+        profile.host_state.secret = await generate_key_sym(true, ['encrypt', 'decrypt'])
+        profile.host_state.resp_key_old = profile.host_state.resp_key
+        profile.host_state.resp_key = await generate_key_asym(true)
+        profile.host_state.displayer_config_uploaded = false
+        profile.host_state.responder_config_uploaded = false
+        await db.put('profiles', profile)
+    }
 }

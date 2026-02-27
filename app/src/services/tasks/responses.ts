@@ -100,14 +100,23 @@ async function download_response(profile:Profile, storage:HostUser, object_key:s
     // Download a response and process it
     // NOTE Can generally allow throws, except sometimes may want to delete object if safe to do so
 
-    // Access profile's key
-    const asym_secret = profile.host_state.resp_key.privateKey!
+    // Util for decrypting with resp_key that falls back on old non-extractable key if present
+    async function decrypt_with_resp_key(json:string){
+        try {
+            return await decrypt_asym(json, profile.host_state.resp_key.privateKey)
+        } catch (decrypt_error){
+            if (!profile.host_state.resp_key_old){
+                throw decrypt_error
+            }
+            return await decrypt_asym(json, profile.host_state.resp_key_old.privateKey)
+        }
+    }
 
     // Download and decrypt the data
     const resp = await storage.download_response(object_key)
     let binary_data:ArrayBuffer
     try {
-        binary_data = await decrypt_asym(utf8_to_string(resp), asym_secret)
+        binary_data = await decrypt_with_resp_key(utf8_to_string(resp))
     } catch {
         // Likely failed due to _responder_ having an old key of a profile
         // Since unlikely ever able to recover, delete response and throw
@@ -119,7 +128,7 @@ async function download_response(profile:Profile, storage:HostUser, object_key:s
     // Decrypt and unpack encrypted fields
     let encrypted_field:ArrayBuffer
     try {
-        encrypted_field = await decrypt_asym(data.event.encrypted, asym_secret)
+        encrypted_field = await decrypt_with_resp_key(data.event.encrypted)
     } catch {
         // Likely failed due to _displayer_ having an old key of a profile
         // Since unlikely ever able to recover, delete response and throw
@@ -171,8 +180,20 @@ async function process_data(profile:Profile, type:string, data:PostResponderData
     //      e.g. {a:'unauthed'} & {sym_encrypted:{a:'authed'}} would both result in {a:'...'}
     let sym_encrypted = {} as UnknownChainable
     if (data.event['sym_encrypted']){
-        sym_encrypted = JSON.parse(utf8_to_string(await decrypt_sym(url64_to_buffer(
-            data.event['sym_encrypted'] as string), profile.host_state.secret))) as UnknownChainable
+        const encrypted_buffer = url64_to_buffer(data.event['sym_encrypted'] as string)
+
+        // If decrypt fails, fall back on old non-extractable key if present
+        let decrypted:ArrayBuffer
+        try {
+            decrypted = await decrypt_sym(encrypted_buffer, profile.host_state.secret)
+        } catch (decrypt_error){
+            if (!profile.host_state.secret_old){
+                throw decrypt_error
+            }
+            decrypted = await decrypt_sym(encrypted_buffer, profile.host_state.secret_old)
+        }
+
+        sym_encrypted = JSON.parse(utf8_to_string(decrypted)) as UnknownChainable
         delete data.event['sym_encrypted']
     }
 

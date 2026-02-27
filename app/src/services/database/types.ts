@@ -103,8 +103,10 @@ export interface RecordProfileHostGracious {
 export interface RecordProfileHostState {
     version:number|null  // Host storage version currently deployed (null for gracious)
     secret:CryptoKey  // Private to user; used to send and get back data without revealing contents
+    secret_old:CryptoKey|null  // Copy of old non-extractable version of secret in case still needed
     shared_secret:CryptoKey  // Private to user & readers; for protecting non-message data
     resp_key:CryptoKeyPair  // Private to user; used to receive data without interception
+    resp_key_old:CryptoKeyPair|null  // Copy of old non-extractable version of resp_key
     displayer_config_uploaded:boolean  // False when it needs updating
     subscribe_config_uploaded:boolean  // False when it needs updating
     responder_config_uploaded:boolean  // False when it needs updating

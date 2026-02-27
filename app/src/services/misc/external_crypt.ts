@@ -16,6 +16,7 @@ export async function external_encrypt(secret:string):Promise<ArrayBuffer>{
         }
         // OS encryption unavailable so create a secret preserved within own db
         // NOTE Any previous secrets will fail to decrypt and need re-entering
+        // NOTE fallback_secret not extractable as new OS shouldn't use it if possible
         self.app_store.commit('dict_set', ['fallback_secret',
             await generate_key_sym(false, ['encrypt', 'decrypt'])])
         self.app_report_error(new Error("OS encryption unavailable (falling back on own)"))

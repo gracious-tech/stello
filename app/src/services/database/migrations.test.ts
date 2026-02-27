@@ -5,7 +5,7 @@ import 'fake-indexeddb/auto'  // WARN Must import before indexeddb accessed
 import {expect, test} from '@playwright/test'
 
 import {migrate, migrate_async, DATABASE_VERSION, to_12_from_0, _to1_creates, to_13, to_14,
-    to_14_async, to_15, to_16, to_17, to_18, to_19, to_20} from './migrations'
+    to_14_async, to_15, to_16, to_17, to_18, to_19, to_20, to_21_async} from './migrations'
 import {STORES_V12, STORES_V19, STORES_LATEST, test_stores, open_db, to_12_from_11}
     from './migrations.test_utils'
 
@@ -36,7 +36,7 @@ test.describe('migrate', async () => {
         await test_stores(db, STORES_V12)
     })
 
-    // NOTE Disabled since fake IDB has bug storing CryptoKey and this test isn't needed anymore
+    // NOTE Disabled since fake IDB had bug storing CryptoKey and this test isn't needed anymore
     // test('to_12_from_1', to_12_from_1)
 
     test('to_12_from_11', to_12_from_11)
@@ -267,6 +267,37 @@ test.describe('migrate', async () => {
 
         // Expect dbid record to exist
         expect(await db.get('state', 'dbid')).toBeDefined()
+    })
+
+    test('to_21', async () => {
+
+        // Setup
+        let db = await open_db('to_21', 20, async t => {
+            await to_12_from_0(t)
+            await to_13(t)
+            await to_14(t)
+            await to_15(t)
+            await to_16(t)
+            await to_17(t)
+            await to_18(t)
+            await to_19(t)
+            await to_20(t)
+        })
+        await db.put('profiles', {id: 'id',
+            host_state: {secret: 'secret', resp_key: 'resp_key'}} as any)
+
+        // Migrate
+        db.close()
+        db = await open_db('to_21', 21, ()=>{}, to_21_async)
+
+        // Expect new props to exist and configs to be flagged for upload
+        const record = await db.get('profiles', 'id')
+        expect(record?.host_state.secret).toBeInstanceOf(CryptoKey)
+        expect(record?.host_state.secret_old).toEqual('secret')
+        expect(record?.host_state.resp_key.publicKey).toBeInstanceOf(CryptoKey)
+        expect(record?.host_state.resp_key_old).toEqual('resp_key')
+        expect(record?.host_state.displayer_config_uploaded).toBe(false)
+        expect(record?.host_state.responder_config_uploaded).toBe(false)
     })
 
 })

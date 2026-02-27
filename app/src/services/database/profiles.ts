@@ -325,10 +325,12 @@ export class DatabaseProfiles {
             host: null,
             host_state: {
                 version: null,
-                secret: await generate_key_sym(false, ['encrypt', 'decrypt']),
+                secret: await generate_key_sym(true, ['encrypt', 'decrypt']),
+                secret_old: null,
                 // SECURITY short key as only for configs and better to keep URL short if possible
                 shared_secret: await generate_key_sym(true, ['encrypt'], true),
-                resp_key: await generate_key_asym(),
+                resp_key: await generate_key_asym(true),
+                resp_key_old: null,
                 displayer_config_uploaded: false,
                 subscribe_config_uploaded: false,
                 responder_config_uploaded: false,
