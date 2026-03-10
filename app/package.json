@@ -71,6 +71,9 @@
   },
   "vite": {
     "optimizeDeps": {
+      "exclude": [
+        "@aws-sdk/crt-loader"
+      ],
       "include": [
         "@aws-sdk/client-apigatewayv2",
         "@aws-sdk/client-cognito-identity",
@@ -120,6 +123,7 @@
         "js-untar",
         "lodash",
         "lottie-web/build/player/lottie_light",
+        "mime-types",
         "papaparse",
         "postal-mime",
         "prosemirror-state",
