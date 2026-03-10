@@ -54,6 +54,7 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 
 import SharedFilesIcon from '@/shared/SharedFilesIcon.vue'
 import {Section} from '@/services/database/sections'
+import {blobstore_new, blobstore_remove, blobstore_read} from '@/services/database/blobstore'
 import {ContentFiles} from '@/services/database/types'
 import {partition} from '@/services/utils/strings'
 
@@ -74,6 +75,14 @@ export default class extends Vue {
 
     limit = 50 * 1000 * 1000  // 50 MB
     exceeded_limit:{filename:string, megabytes:string}[] = []  // Files rejected due to limit
+    sizes:number[] = []  // Cache of file sizes
+
+    async created(){
+        // Cache sizes (files only ever removed or appended, so should match indexes ok)
+        this.sizes = await Promise.all(this.content.files.map(async file =>
+            (await blobstore_read(file.data)).size,
+        ))
+    }
 
     get content(){
         // Easier access to content
@@ -92,7 +101,7 @@ export default class extends Vue {
 
     get total_bytes(){
         // The total bytes of all files currently added
-        return this.content.files.reduce((total, file) => total + file.data.size, 0)
+        return this.sizes.reduce((total, size) => total + size, 0)
     }
 
     get total_megabytes(){
@@ -115,7 +124,7 @@ export default class extends Vue {
         return this.content.files.map((file, i) => {
             return {
                 get megabytes(){
-                    return mb(file.data.size)
+                    return mb(component.sizes[i] ?? 0)
                 },
                 get name(){
                     return file.name
@@ -126,13 +135,15 @@ export default class extends Vue {
                 },
                 remove: () => {
                     this.content.files.splice(i, 1)
+                    this.sizes.splice(i, 1)
                     this.save()
+                    void blobstore_remove(file.data)
                 },
             }
         })
     }
 
-    add_files(files:File[]){
+    async add_files(files:File[]){
         // Add files (if within limits)
 
         // Clear records of previously rejected files
@@ -154,10 +165,11 @@ export default class extends Vue {
             ext = ext ? '.' + ext.toLowerCase() : ''
 
             this.content.files.push({
-                data: new Blob([file], {type: file.type}),
+                data: await blobstore_new(new Blob([file], {type: file.type})),
                 name,
                 ext,
             })
+            this.sizes.push(file.size)
 
             // Use file name for label if not set yet
             if (!this.label){

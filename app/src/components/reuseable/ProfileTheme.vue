@@ -37,6 +37,7 @@ import SharedHero from '@/shared/SharedHero.vue'
 import {Profile} from '@/services/database/profiles'
 import {gen_theme_style_props} from '@/shared/shared_theme'
 import {debounce_set} from '@/services/misc'
+import {default_invite_image} from '@/services/database/blobstore'
 
 
 @Component({
@@ -69,10 +70,7 @@ export default class extends Vue {
 
     async created(){
         // Load example image for use in hero
-        this.hero_image = new Blob(
-            [await self.app_native.app_file_read('default_invite_image.jpg')],
-            {type: 'image/jpeg'},
-        )
+        this.hero_image = await default_invite_image()
     }
 
     get theme_style_props(){

@@ -9,6 +9,7 @@ import {escape_for_html, sanitize_filename} from '@/services/utils/strings'
 import {section_classes, floatify_rows} from '@/shared/shared_functions'
 import {gen_theme_style_props} from '@/shared/shared_theme'
 import {gen_variable_items, update_template_values} from '@/services/misc/templates'
+import {blobstore_read} from '@/services/database/blobstore'
 import SharedChart from '@/shared/SharedChart.vue'
 
 import type {Section} from '@/services/database/sections'
@@ -186,14 +187,12 @@ async function inner_section_to_html(section:Section):Promise<string>{
         let html = ''
         for (const image of section.content.images){
             // Ensure images are webp as file will be large if not
-            let webp:Blob
-            if (image.data.type === 'image/webp'){
-                webp = image.data
-            } else {
-                webp = await canvas_to_blob(await blob_to_bitcanvas(image.data), 'webp')
+            let image_blob = await blobstore_read(image.data)
+            if (image_blob.type !== 'image/webp'){
+                image_blob = await canvas_to_blob(await blob_to_bitcanvas(image_blob), 'webp')
             }
             html += `
-                <img src="${await blob_to_url(webp)}">
+                <img src="${await blob_to_url(image_blob)}">
                 <div class='cap'>${escape_for_html(image.caption)}</div>
             `
         }

@@ -30,6 +30,7 @@ import AppInviteText from '@/components/reuseable/AppInviteText.vue'
 import DialogImageChooser from '@/components/dialogs/reuseable/DialogImageChooser.vue'
 import {Profile} from '@/services/database/profiles'
 import {INVITE_HTML_MAX_WIDTH} from '@/services/misc/invites'
+import {blobstore_change} from '@/services/database/blobstore'
 
 
 @Component({
@@ -53,10 +54,6 @@ export default class extends Vue {
     }
     set invite_image(value){
         this.profile.msg_options_identity.invite_image = value
-        if (this.steps){
-            // Also set reply image to the same, if in setup steps
-            this.profile.options.reply_invite_image = value
-        }
         void this.save()
     }
 
@@ -117,9 +114,13 @@ export default class extends Vue {
                 invite: true,
                 crop: true,
             },
-        }) as Blob
+        }) as Blob|undefined
         if (blob){
-            this.invite_image = blob
+            this.invite_image = await blobstore_change(this.invite_image, blob)
+            if (this.steps){
+                // Set reply image as the same, during initial setup
+                this.reply_invite_image = await blobstore_change(this.reply_invite_image, blob)
+            }
         }
     }
 
@@ -132,9 +133,9 @@ export default class extends Vue {
                 invite: true,
                 crop: true,
             },
-        }) as Blob
+        }) as Blob|undefined
         if (blob){
-            this.reply_invite_image = blob
+            this.reply_invite_image = await blobstore_change(this.reply_invite_image, blob)
         }
     }
 

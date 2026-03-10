@@ -2,6 +2,7 @@
 import {AppDatabaseConnection, RecordDraft, RecordDraftRecipients, SectionIds} from './types'
 import {generate_token} from '@/services/utils/crypt'
 import {rm_sections} from '@/services/database/sections'
+import {blobstore_remove} from './blobstore'
 
 
 export class Draft implements RecordDraft {
@@ -15,7 +16,7 @@ export class Draft implements RecordDraft {
     profile!:string|null
     options_identity!:{
         sender_name:string
-        invite_image:Blob|null
+        invite_image:Blob|string|null
         invite_tmpl_email:string|null
         invite_tmpl_clipboard:null  // TODO rm, not used
         invite_button:string
@@ -108,14 +109,18 @@ export class DatabaseDrafts {
         const store_drafts = transaction.objectStore('drafts')
         const store_sections = transaction.objectStore('sections')
 
-        // Remove the draft and its sections
+        // Must get the draft so can know its sections and blobs
         const draft = await store_drafts.get(id)
-        if (draft){
-            void store_drafts.delete(id)
-            void rm_sections(store_sections, draft.sections)
+        if (!draft){
+            return
         }
 
-        // Task done when transaction completes
+        // Remove the draft and its sections
+        void store_drafts.delete(id)
+        void rm_sections(store_sections, draft.sections)
+
+        // Ensure removed record from db before removing blob files
         await transaction.done
+        await blobstore_remove(draft.options_identity.invite_image)
     }
 }

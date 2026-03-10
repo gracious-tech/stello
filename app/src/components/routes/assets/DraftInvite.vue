@@ -27,6 +27,7 @@ import {Draft} from '@/services/database/drafts'
 import {Profile} from '@/services/database/profiles'
 import {gen_variable_items, update_template_values} from '@/services/misc/templates'
 import {INVITE_HTML_MAX_WIDTH} from '@/services/misc/invites'
+import {blobstore_read, blobstore_change, default_invite_image} from '@/services/database/blobstore'
 
 
 @Component({
@@ -43,7 +44,7 @@ export default class extends Vue {
         URL.revokeObjectURL(this.image_url)
     }
 
-    get image():Blob{
+    get image():Blob|string|null{
         // Get invite's image, accounting for inheritance
         const default_image = this.draft.reply_to
             ? this.profile.options.reply_invite_image
@@ -94,9 +95,12 @@ export default class extends Vue {
             : this.profile.msg_options_identity.invite_button
     }
 
-    @Watch('image', {immediate: true}) watch_image(){
+    @Watch('image', {immediate: true}) async watch_image(){
         URL.revokeObjectURL(this.image_url)
-        this.image_url = URL.createObjectURL(this.image)
+        const blob = this.image
+            ? await blobstore_read(this.image)
+            : await default_invite_image()
+        this.image_url = URL.createObjectURL(blob)
     }
 
     async change_image():Promise<void>{
@@ -111,13 +115,15 @@ export default class extends Vue {
                 height: INVITE_HTML_MAX_WIDTH / 3,
                 // @ts-ignore -- Hack to get section data from DraftContent
                 // eslint-disable-next-line
-                suggestions: this.$parent.$refs['content'].get_existing_images(),
+                suggestions: await this.$parent.$refs['content'].get_existing_images(),
                 invite: true,
                 crop: true,
+                removeable: !!this.draft.options_identity.invite_image,
             },
-        }) as Blob
-        if (blob){
-            this.draft.options_identity.invite_image = blob
+        }) as Blob|null|undefined
+        if (blob !== undefined){
+            this.draft.options_identity.invite_image =
+                await blobstore_change(this.draft.options_identity.invite_image, blob)
             this.save()
         }
     }

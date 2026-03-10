@@ -25,6 +25,7 @@ import DialogImageChooser from '@/components/dialogs/reuseable/DialogImageChoose
 import {Section} from '@/services/database/sections'
 import {ContentPage} from '@/services/database/types'
 import {SECTION_IMAGE_WIDTH} from '@/services/misc'
+import {blobstore_read, blobstore_change} from '@/services/database/blobstore'
 
 
 // Generate a placeholder image
@@ -118,12 +119,12 @@ export default class extends Vue {
                 height: SECTION_IMAGE_WIDTH * 2,
                 // @ts-ignore -- Hack to get section data from DraftContent
                 // eslint-disable-next-line
-                suggestions: this.$parent.$refs['content'].get_existing_images(),
+                suggestions: await this.$parent.$refs['content'].get_existing_images(),
                 removeable: !!this.page.content.image,
             },
-        }) as Blob
+        }) as Blob|null|undefined
         if (blob !== undefined){  // may be null
-            this.page.content.image = blob
+            this.page.content.image = await blobstore_change(this.page.content.image, blob)
             this.save()
         }
     }
@@ -140,11 +141,12 @@ export default class extends Vue {
         })
     }
 
-    @Watch('page.content.image', {immediate: true}) watch_image(){
+    @Watch('page.content.image', {immediate: true}) async watch_image(){
         // Once div available in DOM, apply bg image (done via JS due to CSP)
         URL.revokeObjectURL(this.image_url)
-        this.image_url = URL.createObjectURL(
-            this.page.content.image ? this.page.content.image : PLACEHOLDER)
+        const img = this.page.content.image
+            ? await blobstore_read(this.page.content.image) : PLACEHOLDER
+        this.image_url = URL.createObjectURL(img)
         void this.$nextTick(() => {
             const div = this.$refs['image'] as HTMLDivElement
             div.style.backgroundImage = `url(${this.image_url})`

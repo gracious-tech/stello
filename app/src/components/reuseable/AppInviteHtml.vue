@@ -25,6 +25,7 @@ import {Component, Prop, Vue, Watch} from 'vue-property-decorator'
 
 import {gen_variable_items} from '@/services/misc/templates'
 import {gen_invite_styles} from '@/services/misc/invites'
+import {blobstore_read, default_invite_image} from '@/services/database/blobstore'
 import {Profile} from '@/services/database/profiles'
 import {Draft} from '@/services/database/drafts'
 
@@ -35,7 +36,7 @@ export default class extends Vue {
     @Prop(String) declare readonly value:string
     @Prop(String) declare readonly button:string
     @Prop({type: String, default: ''}) declare readonly button_default:string
-    @Prop({type: Blob}) declare readonly image:Blob
+    @Prop() declare readonly image:Blob|string|null
     @Prop({type: Profile, required: true}) declare readonly profile:Profile
     @Prop({type: Draft, default: null}) declare readonly draft:Draft
 
@@ -73,9 +74,12 @@ export default class extends Vue {
             (!this.button && this.button_default === "Open Message")
     }
 
-    @Watch('image', {immediate: true}) watch_image(){
+    @Watch('image', {immediate: true}) async watch_image(){
         URL.revokeObjectURL(this.image_src)
-        this.image_src = URL.createObjectURL(this.image)
+        const blob = this.image
+            ? await blobstore_read(this.image)
+            : await default_invite_image()
+        this.image_src = URL.createObjectURL(blob)
     }
 
     button_input(event:Event){

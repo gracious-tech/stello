@@ -1,4 +1,5 @@
 
+import {cloneDeep} from 'lodash'
 import {openDB} from 'idb/with-async-ittr.js'
 
 import {AppDatabaseSchema, AppDatabaseConnection, RecordReplaction, RecordDraft,
@@ -14,6 +15,7 @@ import {DatabaseDrafts, Draft} from './drafts'
 import {DatabaseMessages, Message} from './messages'
 import {DatabaseCopies, MessageCopy} from './copies'
 import {DatabaseSections, copy_sections} from './sections'
+import {blobstore_copy_impatient} from './blobstore'
 import {DatabaseReads, Read} from './reads'
 import {DatabaseReplies, Reply} from './replies'
 import {DatabaseReactions, Reaction} from './reactions'
@@ -99,17 +101,24 @@ export class Database {
         const copy = await this.drafts.create_object()
 
         // Only copy fields known to be safe to copy
+        // WARN Avoid sharing references as original may reference a draft passed in as arg
         copy.reply_to = original.reply_to
         copy.title = original.title
         copy.profile = original.profile
-        copy.options_identity = original.options_identity
-        copy.options_security = original.options_security
-        copy.recipients = original.recipients
+        copy.options_identity = cloneDeep(original.options_identity)
+        copy.options_security = cloneDeep(original.options_security)
+        copy.recipients = cloneDeep(original.recipients)
 
         // Override template property, else use existing
         copy.template = template ?? original.template
 
-        // Copy sections and save draft copy
+        // Copy invite_image blob file if draft has one (avoid shared ownership with original)
+        if (original.options_identity.invite_image){
+            copy.options_identity.invite_image =
+                blobstore_copy_impatient(original.options_identity.invite_image)
+        }
+
+        // Copy sections and save draft, all in one transaction
         const transaction = this._conn.transaction(['drafts', 'sections'], 'readwrite')
         copy.sections = await copy_sections(transaction.objectStore('sections'), original.sections)
         void transaction.objectStore('drafts').put(copy)

@@ -24,6 +24,7 @@ import {EmailTask, new_email_task} from '../email/email'
 import {configs_update} from './configs'
 import {hosts_storage_update} from '@/services/tasks/hosts'
 import {SectionIds} from '@/services/database/types'
+import {blobstore_read} from '@/services/database/blobstore'
 
 
 export async function send_oauth_setup(task:Task):Promise<void>{
@@ -108,10 +109,14 @@ export class Sender {
 
     get invite_image():Promise<ArrayBuffer>{
         // Get invite image, accounting for inheritance from profile
-        const default_image = this.msg.draft.reply_to
+        const profile_image = this.msg.draft.reply_to
             ? this.profile.options.reply_invite_image
             : this.profile.msg_options_identity.invite_image
-        return (this.msg.draft.options_identity.invite_image ?? default_image).arrayBuffer()
+        const image_ref = this.msg.draft.options_identity.invite_image ?? profile_image
+        if (image_ref){
+            return blobstore_read(image_ref).then(b => b.arrayBuffer())
+        }
+        return self.app_native.app_file_read('default_invite_image.jpg')
     }
 
     get invite_button():string{
@@ -441,7 +446,8 @@ async function process_section(section_id:string, pub_assets:PublishedAsset[],
         if (content.image){
             // Pagebait width/height is dynamic but does have approximate limits
             // Given maximums are based on expected use and slight chance of very minor mistarget
-            await process_image(pub_assets, section.id, content.image, 500*2, 300*2, true)
+            await process_image(pub_assets, section.id, await blobstore_read(content.image),
+                500*2, 300*2, true)
         }
         return {
             id: section.id,
@@ -516,15 +522,17 @@ async function process_section(section_id:string, pub_assets:PublishedAsset[],
         // Work out max width/height for all images
         const max_width = SECTION_IMAGE_WIDTH
         // Determine max height from first image's dimensions
-        const base_size = await blob_image_size(content.images[0]!.data)
+        const first_blob = await blobstore_read(content.images[0]!.data)
+        const base_size = await blob_image_size(first_blob)
         const base_ratio = base_size.width / base_size.height
         const max_height = max_width / base_ratio
 
         // Create assets for each image and collect other metadata into an images array
         const images:PublishedImage[] = []
         for (const image of content.images){
-            await process_image(pub_assets, image.id, image.data, max_width, max_height,
-                content.crop)
+            const blob = image === content.images[0]
+                ? first_blob : await blobstore_read(image.data)
+            await process_image(pub_assets, image.id, blob, max_width, max_height, content.crop)
             images.push({
                 id: image.id,
                 caption: image.caption,
@@ -556,16 +564,18 @@ async function process_section(section_id:string, pub_assets:PublishedAsset[],
         let filename:string
         let mimetype:string
         if (content.files.length === 1){
-            data = await content.files[0]!.data.arrayBuffer()
+            const file_blob = await blobstore_read(content.files[0]!.data)
+            data = await file_blob.arrayBuffer()
             filename = content.files[0]!.name + content.files[0]!.ext
-            mimetype = content.files[0]!.data.type
+            mimetype = file_blob.type
         } else {
             // Multiple files so need to combine into a zip
             const ziper = new zip.ZipWriter(new zip.Uint8ArrayWriter())
             const taken:string[] = []
             for (const file of content.files){
                 const token = taken.includes(file.name + file.ext) ? ' ' + generate_token() : ''
-                await ziper.add(file.name + token + file.ext, new zip.BlobReader(file.data))
+                await ziper.add(file.name + token + file.ext,
+                    new zip.BlobReader(await blobstore_read(file.data)))
                 taken.push(file.name + file.ext)
             }
             data = (await ziper.close() as Uint8Array).buffer

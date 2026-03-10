@@ -4,6 +4,7 @@ import {addDays, differenceInDays} from 'date-fns'
 import {enforce_range} from '../utils/numbers'
 import {AppDatabaseConnection, RecordMessage, RecordDraftPublished} from './types'
 import {rm_sections} from '@/services/database/sections'
+import {blobstore_remove} from './blobstore'
 
 
 export class Message implements RecordMessage {
@@ -109,14 +110,18 @@ export class DatabaseMessages {
             void store_copies.delete(copy_id)
         }
 
-        // Remove message and its sections
+        // Must get the message so can know its sections and blobs
         const msg_record = await store_messages.get(id)
-        if (msg_record){
-            void rm_sections(store_sections, msg_record.draft.sections)
-            void store_messages.delete(id)
+        if (!msg_record){
+            return
         }
 
-        // Task done when transaction completes
+        // Remove message and its sections
+        void rm_sections(store_sections, msg_record.draft.sections)
+        void store_messages.delete(id)
+
+        // Ensure removed record from db before removing blob files
         await transaction.done
+        await blobstore_remove(msg_record.draft.options_identity.invite_image)
     }
 }

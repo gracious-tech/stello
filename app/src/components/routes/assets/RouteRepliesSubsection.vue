@@ -41,6 +41,7 @@ import {Reaction} from '@/services/database/reactions'
 import {Section} from '@/services/database/sections'
 import {request_json} from '@/services/utils/http'
 import {escape_for_html} from '@/services/utils/strings'
+import {blobstore_read} from '@/services/database/blobstore'
 
 
 @Component({
@@ -69,6 +70,16 @@ export default class extends Vue {
             if (!this.section){
                 this.section_expanded = true  // Actually reduces height since only short note shown
                 return
+            }
+
+            // Pre-resolve image blob if section is images type
+            if (this.section.content.type === 'images'){
+                const image = this.section.content.images.find(
+                    i => i.id === this.first.subsection_id)
+                if (image){
+                    this.section_image_blob =
+                        URL.createObjectURL(await blobstore_read(image.data))
+                }
             }
 
             // If a vimeo section then need to do an API request to get the placeholder image
@@ -121,13 +132,7 @@ export default class extends Vue {
         // Return url for an image that represents the section (if any)
         // TODO Show heros using shared-hero component so text also included?
         if (this.section?.content.type === 'images'){
-            const images = this.section.content.images
-            const image = images.find(i => i.id === this.first.subsection_id)
-            if (image){
-                URL.revokeObjectURL(this.section_image_blob)
-                this.section_image_blob = URL.createObjectURL(image.data)
-                return this.section_image_blob
-            }
+            return this.section_image_blob || null
         } else if (this.section?.content.type === 'video'){
             const video_id = this.section.content.id!
             if (this.section.content.format === 'iframe_youtube'){

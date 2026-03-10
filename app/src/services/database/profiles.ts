@@ -3,6 +3,7 @@ import {cloneDeep} from 'lodash'
 
 import {AppDatabaseConnection, RecordProfile, RecordProfileHost, RecordProfileSmtp,
     RecordProfileOptions, RecordProfileHostState} from './types'
+import {blobstore_new, blobstore_read, blobstore_remove} from './blobstore'
 import {generate_token, generate_key_asym, generate_key_sym} from '@/services/utils/crypt'
 import {buffer_to_url64} from '@/services/utils/coding'
 import {OAUTH_SUPPORTED} from '@/services/tasks/oauth'
@@ -94,7 +95,7 @@ export class Profile implements RecordProfile {
     options!:RecordProfileOptions
     msg_options_identity!:{
         sender_name:string
-        invite_image:Blob
+        invite_image:Blob|string|null
         invite_tmpl_email:string
         invite_tmpl_clipboard:string
         invite_button:string
@@ -317,8 +318,6 @@ export class DatabaseProfiles {
     async create_object():Promise<Profile>{
         // Create a new profile object
         // NOTE Defaults are for 'very_high' security category
-        const default_invite_image = new Blob(
-            [await self.app_native.app_file_read('default_invite_image.jpg')], {type: 'image/jpeg'})
         return new Profile({
             id: generate_token(),
             setup_step: 0,
@@ -359,7 +358,7 @@ export class DatabaseProfiles {
                 social_referral_ban: true,
                 generic_domain: true,
                 reaction_options: ['like', 'love', 'yay', 'pray', 'laugh', 'wow', 'sad'],
-                reply_invite_image: default_invite_image,
+                reply_invite_image: null,
                 reply_invite_tmpl_email: `
                     <p>Hi <span data-mention data-id='contact_hello'></span>,</p>
                     <p><span data-mention data-id='sender_name'></span> has replied to you.</p>
@@ -370,7 +369,7 @@ export class DatabaseProfiles {
             },
             msg_options_identity: {
                 sender_name: '',
-                invite_image: default_invite_image,
+                invite_image: null,
                 invite_tmpl_email: `
                     <p>Hi <span data-mention data-id='contact_hello'></span>,</p>
                     <p>Please see below for latest news.</p>
@@ -408,6 +407,12 @@ export class DatabaseProfiles {
         copy.msg_options_identity = cloneDeep(original.msg_options_identity)
         copy.msg_options_security = cloneDeep(original.msg_options_security)
 
+        // Copy blob files so original and copy each have independent file ownership
+        copy.msg_options_identity.invite_image =
+            await blobstore_new(await blobstore_read(original.msg_options_identity.invite_image))
+        copy.options.reply_invite_image =
+            await blobstore_new(await blobstore_read(original.options.reply_invite_image))
+
         // Save the copy to the database and return
         await this.set(copy)
         return copy
@@ -423,6 +428,9 @@ export class DatabaseProfiles {
         const store_drafts = transaction.objectStore('drafts')
         const store_unsubs = transaction.objectStore('unsubscribes')
         const store_forms = transaction.objectStore('subscribe_forms')
+
+        // Read the profile before deleting (for blob cleanup later)
+        const profile = await store_profiles.get(id)
 
         // Remove the actual profile
         void store_profiles.delete(id)
@@ -450,6 +458,12 @@ export class DatabaseProfiles {
 
         // Task done when transaction completes
         await transaction.done
+
+        // Clean up blob files
+        if (profile){
+            await blobstore_remove(profile.msg_options_identity.invite_image)
+            await blobstore_remove(profile.options.reply_invite_image)
+        }
     }
 
     get_default_theme_color(){

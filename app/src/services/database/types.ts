@@ -70,7 +70,7 @@ export interface RecordProfile {
     // Default options that can be changed per-message (match props in RecordDraft)
     msg_options_identity:{
         sender_name:string
-        invite_image:Blob
+        invite_image:Blob|string|null
         invite_tmpl_email:string
         invite_tmpl_clipboard:string
         invite_button:string
@@ -140,7 +140,7 @@ export interface RecordProfileOptions {
     social_referral_ban:boolean
     generic_domain:boolean
     reaction_options:string[]
-    reply_invite_image:Blob  // Used for inheritance for replies instead of invite_image
+    reply_invite_image:Blob|string|null  // Used for inheritance for replies instead of invite_image
     reply_invite_tmpl_email:string  // Used for inheritance for replies instead of invite_tmpl_email
     reply_invite_button:string
     theme_style:ThemeStyle
@@ -174,7 +174,7 @@ export interface RecordDraft {
     profile:string|null
     options_identity:{
         sender_name:string  // No null as empty string triggers inheritance
-        invite_image:Blob|null
+        invite_image:Blob|string|null
         invite_tmpl_email:string|null
         invite_tmpl_clipboard:null  // TODO remove, not used
         invite_button:string  // No null as empty string triggers inheritance
@@ -220,7 +220,7 @@ export interface ContentImages {
 
 export interface ContentImageItem {
     id:string
-    data:Blob
+    data:Blob|string
     caption:string  // Writers with blind recipients can use captions instead of alt text too
 }
 
@@ -229,7 +229,7 @@ export interface ContentPage {
     button:boolean
     headline:string
     desc:string
-    image:Blob|null
+    image:Blob|string|null
     sections:SectionIds
 }
 
@@ -244,7 +244,7 @@ export interface ContentVideo {
 
 export interface ContentFiles {
     type:'files'
-    files:{data:Blob, name:string, ext:string}[]
+    files:{data:Blob|string, name:string, ext:string}[]
     label:string
 }
 

@@ -3,6 +3,7 @@ import {IDBPObjectStore} from 'idb'
 
 import {AppDatabaseConnection, RecordSection, RecordSectionContent, SectionIds,
     AppDatabaseSchema} from './types'
+import {blobstore_copy_impatient, blobstore_remove} from './blobstore'
 import {generate_token} from '@/services/utils/crypt'
 
 
@@ -55,8 +56,7 @@ export class Section<TContent
         if (this.content.type !== 'files'){
             return null
         }
-        return this.content.files.length !== 1 ||
-            this.content.files[0]!.data.type !== 'application/pdf'
+        return this.content.files.length !== 1 || this.content.files[0]!.ext !== '.pdf'
     }
 }
 
@@ -196,6 +196,15 @@ export async function rm_sections(sections_store:SectionsStore, section_ids:Sect
         removed.push(section)
         void sections_store.delete(section_id)  // Can wait on transaction later if needed
 
+        // Fire-and-forget blob file cleanup (no point failing if record already updated)
+        if (section.content.type === 'images'){
+            void Promise.all(section.content.images.map(image => blobstore_remove(image.data)))
+        } else if (section.content.type === 'files'){
+            void Promise.all(section.content.files.map(file => blobstore_remove(file.data)))
+        } else if (section.content.type === 'page'){
+            void blobstore_remove(section.content.image)
+        }
+
         // See if need to recurse through subpages
         if (section.content.type === 'page'){
             removed.push(... await rm_sections(sections_store, section.content.sections))
@@ -222,13 +231,22 @@ export async function copy_sections(sections_store:SectionsStore, section_ids:Se
                 continue
             }
 
-            section.id = generate_token()  // Change id of the section
+            // Change id of the section
+            section.id = generate_token()
+
+            // Sections with children or blobs need to copy them too
             if (section.content.type === 'images'){
                 // Each image needs a new id too as used to identify subsections for replactions
                 for (const image of section.content.images){
                     image.id = generate_token()
+                    image.data = blobstore_copy_impatient(image.data)
+                }
+            } else if (section.content.type === 'files'){
+                for (const file of section.content.files){
+                    file.data = blobstore_copy_impatient(file.data)
                 }
             } else if (section.content.type === 'page'){
+                section.content.image = blobstore_copy_impatient(section.content.image)
                 // Recurse for page's sections
                 section.content.sections =
                     await copy_sections(sections_store, section.content.sections)

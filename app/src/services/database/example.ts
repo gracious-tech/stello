@@ -8,6 +8,7 @@ import {Database} from './database'
 import {generate_token} from '../utils/crypt'
 import {Draft} from './drafts'
 import {external_encrypt} from '@/services/misc/external_crypt'
+import {default_invite_image} from './blobstore'
 
 
 export async function generate_example_data(db:Database, multiplier:number):Promise<void>{
@@ -82,8 +83,7 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
     await db.sections.set(section_text)
 
     // Create a image section
-    const image_blob = new Blob([await self.app_native.app_file_read('default_invite_image.jpg')],
-        {type: 'image/jpeg'})
+    const image_blob = await default_invite_image()
     const section_image = await db.sections.create_object({
         type: 'images',
         images: [{id: generate_token(), data: image_blob, caption: "An example image"}],

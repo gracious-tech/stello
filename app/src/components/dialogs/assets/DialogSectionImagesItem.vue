@@ -34,6 +34,7 @@ import SharedHero from '@/shared/SharedHero.vue'
 import ImageEditBar from '@/components/reuseable/ImageEditBar.vue'
 import {Section} from '@/services/database/sections'
 import {ContentImages} from '@/services/database/types'
+import {blobstore_read, blobstore_change, blobstore_remove} from '@/services/database/blobstore'
 
 
 @Component({
@@ -103,14 +104,14 @@ export default class extends Vue {
         </style>`
     }
 
-    @Watch('item.data', {immediate: true}) watch_data(){
+    @Watch('item.data', {immediate: true}) async watch_data(){
         URL.revokeObjectURL(this.img_src)
-        this.img_src = URL.createObjectURL(this.item.data)
+        this.img_src = URL.createObjectURL(await blobstore_read(this.item.data))
     }
 
-    image_edited(blob:Blob){
+    async image_edited(blob:Blob){
         // If image edited, replace and save record
-        this.item.data = blob
+        this.item.data = await blobstore_change(this.item.data, blob)
         this.save()
     }
 
@@ -132,6 +133,7 @@ export default class extends Vue {
         // Remove this image (and cause this component to be destroyed)
         this.section.content.images.splice(this.item_index, 1)
         this.save()
+        void blobstore_remove(this.item.data)
     }
 
     save(){

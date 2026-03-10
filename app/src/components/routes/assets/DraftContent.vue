@@ -43,6 +43,7 @@ import {floatify_rows} from '@/shared/shared_functions'
 import {Profile} from '@/services/database/profiles'
 import {RecordSection, RecordSectionContent, SectionIds} from '@/services/database/types'
 import {rm_section_id} from '@/services/database/utils'
+import {blobstore_read} from '@/services/database/blobstore'
 
 
 @Component({
@@ -103,18 +104,18 @@ export default class extends Vue {
         }
     }
 
-    get_existing_images(){
+    async get_existing_images():Promise<Blob[]>{
         // Return existing images used within sections (doesn't traverse pages)
         // WARN This method is accessed by sibling components like DraftInvite
-        const images:Blob[] = []
+        const refs:(Blob|string)[] = []
         for (const section of Object.values(this.records)){
             if (section.content.type === 'images'){
-                images.push(...section.content.images.map(i => i.data))
+                refs.push(...section.content.images.map(i => i.data))
             } else if (section.content.type === 'page' && section.content.image){
-                images.push(section.content.image)
+                refs.push(section.content.image)
             }
         }
-        return images
+        return Promise.all(refs.map(ref => blobstore_read(ref)))
     }
 
     async add_section(type:RecordSectionContent['type']|'paste', position:number){
