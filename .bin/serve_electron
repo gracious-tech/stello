@@ -7,4 +7,4 @@ cd "$(dirname "$(dirname "$0")")"
 .bin/build_electron
 cd electron
 # NOTE --disable-gpu set just to silence some warnings
-node_modules/.bin/electron --disable-gpu .
+node_modules/.bin/electron --ozone-platform=wayland --disable-gpu .
