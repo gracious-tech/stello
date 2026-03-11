@@ -24,7 +24,8 @@ ipcMain.handle('app_file_read', async (event, relative_path:string) => {
     if (!asset_path.startsWith(app_dir)){
         throw new Error("Cannot access file outside of app dir")
     }
-    return readFileSync(asset_path).buffer
+    // WARN Uint8Array wrapper required so .buffer returns exact bytes (not a shared pool buffer)
+    return new Uint8Array(readFileSync(asset_path)).buffer
 })
 
 
@@ -42,7 +43,8 @@ ipcMain.handle('user_file_list', async (event, relative_path:string):Promise<str
 ipcMain.handle('user_file_read', async (event, relative_path:string):Promise<ArrayBuffer> => {
     // Read a file from the user's files dir
     const full_path = restrict_path(files_dir, relative_path)
-    return readFileSync(full_path).buffer
+    // WARN Uint8Array wrapper required so .buffer returns exact bytes (not a shared pool buffer)
+    return new Uint8Array(readFileSync(full_path)).buffer
 })
 
 
