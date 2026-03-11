@@ -1,5 +1,5 @@
 
-import mime from 'mime-types'
+import mime from 'mime'
 
 import {generate_token} from '@/services/utils/crypt'
 
@@ -9,7 +9,7 @@ function _new_filename(ref:string|Blob){
     const date = new Date().toISOString().slice(0, 10).replace(/-/g, '_')
     const short_id = generate_token(6)
     const ext = typeof ref === 'string' ? ref.slice(ref.lastIndexOf('.') + 1)
-        : (mime.extension(ref.type) || 'bin')
+        : (mime.getExtension(ref.type) || 'bin')
     return `${date}_${short_id}.${ext}`
 }
 
@@ -34,7 +34,7 @@ export async function blobstore_read(ref:string|Blob|null):Promise<Blob|null>{
         return ref  // Either null or a blob already
     const ext = ref.slice(ref.lastIndexOf('.') + 1)
     const buffer = await self.app_native.user_file_read(`Internal Files/${ref}`)
-    const mimetype = mime.lookup(ext) || 'application/octet-stream'
+    const mimetype = mime.getType(ext) || 'application/octet-stream'
     return new Blob([buffer], {type: mimetype})
 }
 
