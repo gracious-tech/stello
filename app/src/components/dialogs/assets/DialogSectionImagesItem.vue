@@ -133,9 +133,9 @@ export default class extends Vue {
 
     remove(){
         // Remove this image (and cause this component to be destroyed)
+        void blobstore_remove(this.item.data)  // WARN Must be called before array changed
         this.section.content.images.splice(this.item_index, 1)
         this.save()
-        void blobstore_remove(this.item.data)
     }
 
     save(){
