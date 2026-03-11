@@ -85,7 +85,8 @@ ipcMain.handle('dns_mx', async (event, host:string) => {
 ipcMain.handle('os_encrypt', async (event, secret:string):Promise<ArrayBuffer|null> => {
     // Encrypt a string using OS keyring (returns null if can't encrypt)
     if (safeStorage.isEncryptionAvailable()){
-        return safeStorage.encryptString(secret).buffer
+        // WARN Uint8Array wrapper required so .buffer returns exact bytes (not a shared pool)
+        return new Uint8Array(safeStorage.encryptString(secret)).buffer
     }
     return null
 })
