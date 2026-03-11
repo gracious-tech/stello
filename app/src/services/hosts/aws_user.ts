@@ -357,7 +357,7 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
                 }),
             })
         } catch (error){
-            if ((error as AwsError)?.name !== 'EntityAlreadyExists'){
+            if ((error as AwsError)?.name !== 'EntityAlreadyExistsException'){
                 throw error
             }
         }
@@ -496,7 +496,7 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
                 Tags: [{Key: 'stello', Value: this.bucket}],
             })
         } catch (error){
-            if ((error as AwsError)?.name !== 'EntityAlreadyExists'){
+            if ((error as AwsError)?.name !== 'EntityAlreadyExistsException'){
                 throw error
             }
         }

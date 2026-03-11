@@ -216,7 +216,7 @@ export class HostManagerAws implements HostManager {
                 Tags: [{Key: 'stello', Value: bucket}],
             })
         } catch (error){
-            if (!(error instanceof Error) || error.name !== 'EntityAlreadyExists'){
+            if (!(error instanceof Error) || error.name !== 'EntityAlreadyExistsException'){
                 throw error
             }
         }
@@ -251,7 +251,7 @@ export class HostManagerAws implements HostManager {
                 }),
             })
         } catch (error){
-            if ((error as AwsError)?.name !== 'EntityAlreadyExists'){
+            if ((error as AwsError)?.name !== 'EntityAlreadyExistsException'){
                 throw error
             }
         }
