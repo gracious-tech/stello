@@ -51,6 +51,7 @@ v-card
 <script lang='ts'>
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
+import mime from 'mime'
 
 import SharedFilesIcon from '@/shared/SharedFilesIcon.vue'
 import {Section} from '@/services/database/sections'
@@ -165,7 +166,9 @@ export default class extends Vue {
             ext = ext ? '.' + ext.toLowerCase() : ''
 
             this.content.files.push({
-                data: await blobstore_new(new Blob([file], {type: file.type})),
+                // NOTE Use mime module for better ext detection (like .sh)
+                //      This only affects files saved on computer (not the download ext below)
+                data: await blobstore_new(new Blob([file], {type: mime.getType(ext) || file.type})),
                 name,
                 ext,
             })
