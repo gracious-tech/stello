@@ -29,7 +29,7 @@ section(@click.self='focus_editor' :class='classes')
             :download='section.files_download' @click='modify')
 
         shared-pagebait(v-if='content.type === "page"' :button='content.button'
-            :headline='page_headline' :desc='content.desc' :image='content.image'
+            :headline='page_headline' :desc='content.desc' :image='page_image_blob'
             @click.native='modify')
 
     draft-section-respond(:profile='profile' :section='section' @click.native.self='focus_editor')
@@ -75,6 +75,7 @@ export default class extends Vue {
 
     images_aspect:[number, number]|null = null
     images_blobs:Record<string, {ref:string|Blob, blob:Blob}> = {}
+    page_image_blob:Blob|null = null
 
     get content(){
         return this.section.content
@@ -163,6 +164,15 @@ export default class extends Vue {
         this.images_blobs = Object.fromEntries(entries)
         const size = await blob_image_size(entries[0]![1].blob)
         this.images_aspect = [size.width, size.height]
+    }
+
+    @Watch('content.image', {immediate: true}) async watch_page_image(){
+        // Load page image blob from blobstore when it changes
+        if (this.content.type === 'page' && this.content.image){
+            this.page_image_blob = await blobstore_read(this.content.image)
+        } else {
+            this.page_image_blob = null
+        }
     }
 }
 
