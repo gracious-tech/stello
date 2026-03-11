@@ -107,17 +107,6 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
     })
     await db.sections.set(section_youtube)
 
-    // Create a vimeo section
-    const section_vimeo = await db.sections.create_object({
-        type: 'video',
-        format: 'iframe_vimeo',
-        id: '168213438',
-        caption: '',
-        start: null,
-        end: null,
-    })
-    await db.sections.set(section_vimeo)
-
     // Create a chart section
     const section_chart = await db.sections.create_object({
         type: 'chart',
@@ -158,7 +147,7 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
     draft.profile = profile.id
     draft.sections = [
         [section_text.id, section_image.id],
-        [section_youtube.id, section_vimeo.id],
+        [section_youtube.id],
         [section_chart.id, section_files.id],
         [section_page.id],
     ]
