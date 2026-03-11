@@ -2,7 +2,7 @@
     "private": true,
     "devDependencies": {
         "@playwright/test": "^1.47.2",
-        "@types/node": "^16.11.8",
+        "@types/node": "^25.4.0",
         "@types/offscreencanvas": "^2019.6.4",
         "@typescript-eslint/eslint-plugin": "^5.4.0",
         "@typescript-eslint/parser": "^5.4.0",
