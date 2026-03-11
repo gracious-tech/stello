@@ -9,11 +9,10 @@ import {formatDistanceStrict} from 'date-fns'
 
 // SECTION SIZES
 
-const PIXELS_WIDTH_HANDHELD = 1242  // Current top range (iPhone 11 Pro Max)
 const SECTION_WIDTH_FULL = 700
 const ZOOM_FACTOR = 2
-// Let max image size be either highend device width OR desktop full width zoomed in
-export const SECTION_IMAGE_WIDTH = Math.max(PIXELS_WIDTH_HANDHELD, SECTION_WIDTH_FULL * ZOOM_FACTOR)
+// Make image width double necessary to support high-def displays and also zooming in
+export const SECTION_IMAGE_WIDTH = SECTION_WIDTH_FULL * ZOOM_FACTOR
 
 
 // OTHER
