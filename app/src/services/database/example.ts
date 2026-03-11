@@ -8,7 +8,7 @@ import {Database} from './database'
 import {generate_token} from '../utils/crypt'
 import {Draft} from './drafts'
 import {external_encrypt} from '@/services/misc/external_crypt'
-import {default_invite_image} from './blobstore'
+import {default_invite_image, blobstore_new} from './blobstore'
 
 
 export async function generate_example_data(db:Database, multiplier:number):Promise<void>{
@@ -86,7 +86,11 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
     const image_blob = await default_invite_image()
     const section_image = await db.sections.create_object({
         type: 'images',
-        images: [{id: generate_token(), data: image_blob, caption: "An example image"}],
+        images: [{
+            id: generate_token(),
+            data: await blobstore_new(image_blob),
+            caption: "An example image",
+        }],
         crop: true,
         hero: true,
     }) as Section<ContentImages>
@@ -133,7 +137,7 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
     const section_files = await db.sections.create_object({
         type: 'files',
         label: "Download example image",
-        files: [{data: image_blob, name: "Example image", ext: '.jpg'}],
+        files: [{data: await blobstore_new(image_blob), name: "Example image", ext: '.jpg'}],
     })
     await db.sections.set(section_files)
 
@@ -143,7 +147,7 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
         button: false,
         headline: "A headline for a page",
         desc: "A description for a page" + " about a page".repeat(10),
-        image: image_blob,
+        image: await blobstore_new(image_blob),
         sections: [],
     })
     await db.sections.set(section_page)

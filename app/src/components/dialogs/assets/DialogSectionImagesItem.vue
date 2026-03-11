@@ -8,7 +8,7 @@ div.dialog-section-images-item(class='my-5')
     div(class='d-flex align-center mb-3')
 
         div(class='flex d-flex justify-center')
-            image-edit-bar.bar(:blob='item.data' @changed='image_edited')
+            image-edit-bar.bar(v-if='blob' :blob='blob' @changed='image_edited')
                 shared-hero.hero(v-if='section.is_hero' ref='hero' :image='item'
                     :theme_style='theme_style' :first='false' :class='`style-${theme_style}`'
                     :style='theme_style_props' class='stello-displayer-styles')
@@ -48,6 +48,7 @@ export default class extends Vue {
     @Prop({type: String, required: true}) declare readonly aspect:string
 
     img_src = ''
+    blob:Blob|null = null
 
     async destroyed(){
         URL.revokeObjectURL(this.img_src)
@@ -106,7 +107,8 @@ export default class extends Vue {
 
     @Watch('item.data', {immediate: true}) async watch_data(){
         URL.revokeObjectURL(this.img_src)
-        this.img_src = URL.createObjectURL(await blobstore_read(this.item.data))
+        this.blob = await blobstore_read(this.item.data)
+        this.img_src = URL.createObjectURL(this.blob)
     }
 
     async image_edited(blob:Blob){
