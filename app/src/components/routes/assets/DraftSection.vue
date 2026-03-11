@@ -13,9 +13,9 @@ section(@click.self='focus_editor' :class='classes')
             :variables='text_variables')
 
         template(v-if='content.type === "images"')
-            shared-hero.hero(v-if='section.is_hero' :image='content.images[0]'
+            shared-hero.hero(v-if='section.is_hero' :image='images_resolved[0]'
                 :theme_style='theme_style' :first='first_hero' @click='modify')
-            shared-slideshow(v-else :images='content.images' :aspect='images_aspect'
+            shared-slideshow(v-else :images='images_resolved' :aspect='images_aspect'
                 :crop='content.crop' @img_click='modify')
 
         shared-video(v-if='content.type === "video"' @modify='modify' :format='content.format'
@@ -56,6 +56,7 @@ import {ContentPage, ContentText} from '@/services/database/types'
 import {section_classes} from '@/shared/shared_functions'
 import {Profile} from '@/services/database/profiles'
 import {blob_image_size} from '@/services/utils/image'
+import {blobstore_read} from '@/services/database/blobstore'
 
 
 @Component({
@@ -73,6 +74,7 @@ export default class extends Vue {
     @Prop({type: Boolean, required: true}) declare readonly first_hero:boolean
 
     images_aspect:[number, number]|null = null
+    images_blobs:Record<string, {ref:string|Blob, blob:Blob}> = {}
 
     get content(){
         return this.section.content
@@ -113,6 +115,16 @@ export default class extends Vue {
         void self.app_db.sections.set(this.section)
     }
 
+    get images_resolved():{id:string, data:Blob|null, caption:string}[]{
+        if (this.content.type !== 'images')
+            return []
+        return this.content.images.map(img => ({
+            id: img.id,
+            data: this.images_blobs[img.id]?.blob ?? null,
+            caption: img.caption,
+        }))
+    }
+
     get theme_style(){
         return this.profile?.options.theme_style ?? 'modern'
     }
@@ -136,14 +148,21 @@ export default class extends Vue {
         }
     }
 
-    @Watch('content.images.0.data', {immediate: true}) async watch_images(){
-        // Recalculate the aspect ratio for images section based on the first image
-        if (this.content.type === 'images' && this.content.images.length){
-            const size = await blob_image_size(this.content.images[0]!.data)
-            this.images_aspect = [size.width, size.height]
-        } else {
-            this.images_aspect = null  // Reset if had one before
+    @Watch('content.images', {immediate: true, deep: true}) async watch_images(){
+        // Load blobs from blobstore and recalculate aspect ratio when images change
+        if (this.content.type !== 'images' || !this.content.images.length){
+            this.images_blobs = {}
+            this.images_aspect = null
+            return
         }
+        const entries = await Promise.all(this.content.images.map(async img => {
+            const cached = this.images_blobs[img.id]
+            const blob = cached?.ref === img.data ? cached.blob : await blobstore_read(img.data)
+            return [img.id, {ref: img.data, blob}] as [string, {ref:string|Blob, blob:Blob}]
+        }))
+        this.images_blobs = Object.fromEntries(entries)
+        const size = await blob_image_size(entries[0]![1].blob)
+        this.images_aspect = [size.width, size.height]
     }
 }
 
