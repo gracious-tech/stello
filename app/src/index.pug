@@ -12,6 +12,7 @@ html
         //- SECURITY
         //- Only allow whilelisted requests to guard against compromised dependencies etc
         //- NOTE Can't set as HTTP header due to using file protocol, so meta tag instead
+        //- NOTE data: only needed for a tiptap placeholder image (I think)
         //- TODO eventually remove 'unsafe-inline' for styles once all uses refactored
         meta(http-equiv='Content-Security-Policy' content=`
             base-uri 'none';
@@ -20,7 +21,7 @@ html
             script-src 'self';
             connect-src 'self' ${VITE_HOSTED_API} https://*.amazonaws.com https://accounts.google.com https://oauth2.googleapis.com https://gmail.googleapis.com https://people.googleapis.com https://login.microsoftonline.com https://graph.microsoft.com https://api.rollbar.com https://vimeo.com;
             style-src 'self' 'unsafe-inline';
-            img-src 'self' blob: https://img.youtube.com https://i.vimeocdn.com;
+            img-src 'self' blob: data: https://img.youtube.com https://i.vimeocdn.com;
             media-src 'self';
             font-src 'self';
             frame-src https://www.youtube-nocookie.com https://player.vimeo.com http://127.0.0.1:44932;
