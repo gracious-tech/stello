@@ -6,7 +6,12 @@ import {EmailSettings, Email, EmailError, NativeInterface} from './types'
 export class NativeBrowser implements NativeInterface {
 
     get_paths(){
-        return {files_dir: 'localhost', data_dir: 'localhost'}
+        return {
+            files_dir: 'localhost',
+            data_dir: 'localhost',
+            internal_files_dir: 'localhost',
+            sep: '/',
+        }
     }
 
     async app_file_read(path:string):Promise<ArrayBuffer>{

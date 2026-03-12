@@ -43,7 +43,7 @@ import {floatify_rows} from '@/shared/shared_functions'
 import {Profile} from '@/services/database/profiles'
 import {RecordSection, RecordSectionContent, SectionIds} from '@/services/database/types'
 import {rm_section_id} from '@/services/database/utils'
-import {blobstore_read} from '@/services/database/blobstore'
+import {blobstore_read_image} from '@/services/database/blobstore'
 
 
 @Component({
@@ -115,7 +115,7 @@ export default class extends Vue {
                 refs.push(section.content.image)
             }
         }
-        return Promise.all(refs.map(ref => blobstore_read(ref)))
+        return Promise.all(refs.map(ref => blobstore_read_image(ref)))
     }
 
     async add_section(type:RecordSectionContent['type']|'paste', position:number){

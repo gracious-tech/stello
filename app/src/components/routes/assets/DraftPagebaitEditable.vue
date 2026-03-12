@@ -25,7 +25,7 @@ import DialogImageChooser from '@/components/dialogs/reuseable/DialogImageChoose
 import {Section} from '@/services/database/sections'
 import {ContentPage} from '@/services/database/types'
 import {SECTION_IMAGE_WIDTH} from '@/services/misc'
-import {blobstore_read, blobstore_change} from '@/services/database/blobstore'
+import {blobstore_read_image, blobstore_change} from '@/services/database/blobstore'
 
 
 // Generate a placeholder image
@@ -145,7 +145,7 @@ export default class extends Vue {
         // Once div available in DOM, apply bg image (done via JS due to CSP)
         URL.revokeObjectURL(this.image_url)
         const img = this.page.content.image
-            ? await blobstore_read(this.page.content.image) : PLACEHOLDER
+            ? await blobstore_read_image(this.page.content.image) : PLACEHOLDER
         this.image_url = URL.createObjectURL(img)
         void this.$nextTick(() => {
             const div = this.$refs['image'] as HTMLDivElement

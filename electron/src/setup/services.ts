@@ -12,7 +12,8 @@ import {files_dir, data_dir, restrict_path} from '../utils/paths'
 
 ipcMain.on('get_paths', event => {
     // Expose paths to renderer (synchronous)
-    event.returnValue = {files_dir, data_dir}
+    const internal_files_dir = path.join(files_dir, 'Internal Files')
+    event.returnValue = {files_dir, data_dir, internal_files_dir, sep: path.sep}
 })
 
 

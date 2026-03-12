@@ -34,7 +34,8 @@ import SharedHero from '@/shared/SharedHero.vue'
 import ImageEditBar from '@/components/reuseable/ImageEditBar.vue'
 import {Section} from '@/services/database/sections'
 import {ContentImages} from '@/services/database/types'
-import {blobstore_read, blobstore_change, blobstore_remove} from '@/services/database/blobstore'
+import {blobstore_read_image, blobstore_change, blobstore_remove}
+    from '@/services/database/blobstore'
 
 
 @Component({
@@ -107,7 +108,7 @@ export default class extends Vue {
 
     @Watch('item.data', {immediate: true}) async watch_data(){
         URL.revokeObjectURL(this.img_src)
-        this.blob = await blobstore_read(this.item.data)
+        this.blob = await blobstore_read_image(this.item.data)
         this.img_src = URL.createObjectURL(this.blob)
     }
 

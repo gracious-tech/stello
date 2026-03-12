@@ -62,6 +62,11 @@ export class MustRecover extends CustomError {
 }
 
 
+export class MustRestore extends CustomError {
+    // Use for when database is corrupted or files moved and must manually restore or load backup
+}
+
+
 export class MustInterpret extends CustomError {
     // Use for unknown errors that have data available that could be interpreted
     data:unknown

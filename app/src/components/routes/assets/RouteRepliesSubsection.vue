@@ -41,7 +41,7 @@ import {Reaction} from '@/services/database/reactions'
 import {Section} from '@/services/database/sections'
 import {request_json} from '@/services/utils/http'
 import {escape_for_html} from '@/services/utils/strings'
-import {blobstore_read} from '@/services/database/blobstore'
+import {blobstore_read_image} from '@/services/database/blobstore'
 
 
 @Component({
@@ -78,7 +78,7 @@ export default class extends Vue {
                     i => i.id === this.first.subsection_id)
                 if (image){
                     this.section_image_blob =
-                        URL.createObjectURL(await blobstore_read(image.data))
+                        URL.createObjectURL(await blobstore_read_image(image.data))
                 }
             }
 

@@ -25,7 +25,7 @@ import {Component, Prop, Vue, Watch} from 'vue-property-decorator'
 
 import {gen_variable_items} from '@/services/misc/templates'
 import {gen_invite_styles} from '@/services/misc/invites'
-import {blobstore_read, default_invite_image} from '@/services/database/blobstore'
+import {blobstore_read_image, default_invite_image} from '@/services/database/blobstore'
 import {Profile} from '@/services/database/profiles'
 import {Draft} from '@/services/database/drafts'
 
@@ -77,7 +77,7 @@ export default class extends Vue {
     @Watch('image', {immediate: true}) async watch_image(){
         URL.revokeObjectURL(this.image_src)
         const blob = this.image
-            ? await blobstore_read(this.image)
+            ? await blobstore_read_image(this.image)
             : await default_invite_image()
         this.image_src = URL.createObjectURL(blob)
     }

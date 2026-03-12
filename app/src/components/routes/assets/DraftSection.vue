@@ -56,7 +56,7 @@ import {ContentPage, ContentText} from '@/services/database/types'
 import {section_classes} from '@/shared/shared_functions'
 import {Profile} from '@/services/database/profiles'
 import {blob_image_size} from '@/services/utils/image'
-import {blobstore_read} from '@/services/database/blobstore'
+import {blobstore_read_image} from '@/services/database/blobstore'
 
 
 @Component({
@@ -158,7 +158,8 @@ export default class extends Vue {
         }
         const entries = await Promise.all(this.content.images.map(async img => {
             const cached = this.images_blobs[img.id]
-            const blob = cached?.ref === img.data ? cached.blob : await blobstore_read(img.data)
+            const blob = cached?.ref === img.data
+                ? cached.blob : await blobstore_read_image(img.data)
             return [img.id, {ref: img.data, blob}] as [string, {ref:string|Blob, blob:Blob}]
         }))
         this.images_blobs = Object.fromEntries(entries)
@@ -169,7 +170,7 @@ export default class extends Vue {
     @Watch('content.image', {immediate: true}) async watch_page_image(){
         // Load page image blob from blobstore when it changes
         if (this.content.type === 'page' && this.content.image){
-            this.page_image_blob = await blobstore_read(this.content.image)
+            this.page_image_blob = await blobstore_read_image(this.content.image)
         } else {
             this.page_image_blob = null
         }

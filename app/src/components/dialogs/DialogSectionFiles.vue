@@ -55,7 +55,7 @@ import mime from 'mime'
 
 import SharedFilesIcon from '@/shared/SharedFilesIcon.vue'
 import {Section} from '@/services/database/sections'
-import {blobstore_new, blobstore_remove, blobstore_read} from '@/services/database/blobstore'
+import {blobstore_new, blobstore_remove, blobstore_read_file} from '@/services/database/blobstore'
 import {ContentFiles} from '@/services/database/types'
 import {partition} from '@/services/utils/strings'
 
@@ -81,7 +81,7 @@ export default class extends Vue {
     async created(){
         // Cache sizes (files only ever removed or appended, so should match indexes ok)
         this.sizes = await Promise.all(this.content.files.map(async file =>
-            (await blobstore_read(file.data)).size,
+            (await blobstore_read_file(file.data)).size,
         ))
     }
 

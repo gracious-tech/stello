@@ -27,7 +27,8 @@ import {Draft} from '@/services/database/drafts'
 import {Profile} from '@/services/database/profiles'
 import {gen_variable_items, update_template_values} from '@/services/misc/templates'
 import {INVITE_HTML_MAX_WIDTH} from '@/services/misc/invites'
-import {blobstore_read, blobstore_change, default_invite_image} from '@/services/database/blobstore'
+import {blobstore_read_image, blobstore_change, default_invite_image}
+    from '@/services/database/blobstore'
 
 
 @Component({
@@ -98,7 +99,7 @@ export default class extends Vue {
     @Watch('image', {immediate: true}) async watch_image(){
         URL.revokeObjectURL(this.image_url)
         const blob = this.image
-            ? await blobstore_read(this.image)
+            ? await blobstore_read_image(this.image)
             : await default_invite_image()
         this.image_url = URL.createObjectURL(blob)
     }

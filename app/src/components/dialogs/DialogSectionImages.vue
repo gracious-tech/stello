@@ -32,7 +32,7 @@ import {get_clipboard_blobs} from '@/services/utils/misc'
 import {SECTION_IMAGE_WIDTH} from '@/services/misc'
 import {Section} from '@/services/database/sections'
 import {ContentImages} from '@/services/database/types'
-import {blobstore_new, blobstore_read} from '@/services/database/blobstore'
+import {blobstore_new, blobstore_read_image} from '@/services/database/blobstore'
 
 
 @Component({
@@ -134,7 +134,7 @@ export default class extends Vue {
     @Watch('images.0.data', {immediate: true}) async watch_first_image(){
         // Recalculate aspect ratio for all images whenever first image changes
         if (this.images.length){
-            const blob = await blobstore_read(this.images[0]!.data)
+            const blob = await blobstore_read_image(this.images[0]!.data)
             const first_size = await blob_image_size(blob)
             this.aspect = `${first_size.width}/${first_size.height}`
         } else {

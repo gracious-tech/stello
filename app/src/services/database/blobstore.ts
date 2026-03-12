@@ -2,6 +2,7 @@
 import mime from 'mime'
 
 import {generate_token} from '@/services/utils/crypt'
+import {MustRestore} from '@/services/utils/exceptions'
 
 
 function _new_filename(ref:string|Blob){
@@ -33,9 +34,42 @@ export async function blobstore_read(ref:string|Blob|null):Promise<Blob|null>{
     if (typeof ref !== 'string')
         return ref  // Either null or a blob already
     const ext = ref.slice(ref.lastIndexOf('.') + 1)
-    const buffer = await self.app_native.user_file_read(`Internal Files/${ref}`)
+    let buffer:ArrayBuffer
+    try {
+        buffer = await self.app_native.user_file_read(`Internal Files/${ref}`)
+    } catch {
+        throw new MustRestore(ref)
+    }
     const mimetype = mime.getType(ext) || 'application/octet-stream'
     return new Blob([buffer], {type: mimetype})
+}
+
+
+export async function blobstore_read_image(ref:string|Blob):Promise<Blob>
+export async function blobstore_read_image(ref:string|Blob|null):Promise<Blob|null>
+export async function blobstore_read_image(ref:string|Blob|null):Promise<Blob|null>{
+    // Load an image blob, returning a placeholder if the file is missing
+    try {
+        return await blobstore_read(ref)
+    } catch (error){
+        if (error instanceof MustRestore)
+            return missing_image_placeholder()
+        throw error
+    }
+}
+
+
+export async function blobstore_read_file(ref:string|Blob):Promise<Blob>
+export async function blobstore_read_file(ref:string|Blob|null):Promise<Blob|null>
+export async function blobstore_read_file(ref:string|Blob|null):Promise<Blob|null>{
+    // Load a file blob, returning an empty blob if the file is missing
+    try {
+        return await blobstore_read(ref)
+    } catch (error){
+        if (error instanceof MustRestore)
+            return new Blob([])
+        throw error
+    }
 }
 
 
@@ -77,4 +111,11 @@ export async function default_invite_image(){
     // Get the default invite image as a blob
     const data = await self.app_native.app_file_read('default_invite_image.jpg')
     return new Blob([data], {type: 'image/jpeg'})
+}
+
+
+export async function missing_image_placeholder(){
+    // Get placeholder to show when an image can't be loaded for some reason
+    const data = await self.app_native.app_file_read('missing_image_placeholder.png')
+    return new Blob([data], {type: 'image/png'})
 }

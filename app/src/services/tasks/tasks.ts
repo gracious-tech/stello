@@ -10,7 +10,7 @@ import {contacts_oauth_setup, contacts_sync, contacts_change_property, contacts_
     contacts_remove, contacts_create, contacts_group_create, contacts_group_remove,
     contacts_group_name, contacts_group_fill, contacts_group_drain} from './contacts'
 import {send_oauth_setup, send_message} from './sending'
-import {CustomError, MustReauthenticate, MustReconfigure, MustReconnect, MustWait}
+import {CustomError, MustReauthenticate, MustReconfigure, MustReconnect, MustWait, MustRestore}
     from '../utils/exceptions'
 import {hosts_storage_update, hosts_manager_delete, hosts_manager_update} from './hosts'
 import {retract_message} from './management'
@@ -19,7 +19,7 @@ import {retract_message} from './management'
 export type TaskStartArgs = [string, unknown[]?, unknown[]?]
 // Task functions return a promise which may resolve to single/array of other subtask promises
 export type TaskReturn = Promise<Promise<unknown>|Promise<unknown>[]|void>
-export type TaskErrorType = 'network'|'auth'|'settings'|'throttled'|'unknown'
+export type TaskErrorType = 'network'|'auth'|'settings'|'throttled'|'restore'|'unknown'
 export type TaskFunction = (task:Task)=>TaskReturn
 
 
@@ -119,6 +119,8 @@ export class Task {
             return 'settings'
         } else if (this.error instanceof MustWait){
             return 'throttled'
+        } else if (this.error instanceof MustRestore){
+            return 'restore'
         }
         return 'unknown'
     }

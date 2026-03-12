@@ -28,8 +28,11 @@ export default class extends Vue {
     @Prop() declare readonly task:Task
 
     oauth:OAuth|null = null
+    paths:ReturnType<typeof self.app_native.get_paths>|null = null
 
     async created(){
+        // This may not be available until init.ts finishes, so get during create
+        this.paths = self.app_native.get_paths()
         // If task refers to an oauth, get fresh copy of it
         if (this.task.fix_oauth){
             this.oauth = await self.app_db.oauths.get(this.task.fix_oauth) ?? null
@@ -67,6 +70,7 @@ export default class extends Vue {
             oauth_useless: `Account not valid (${this.oauth?.email ?? ''})`,
             settings: "Incorrect settings",
             throttled: "Limit exceeded",
+            restore: "Can't read file",
             unknown: "Unexpected error",
         }[this.error_type]
     }
@@ -97,8 +101,14 @@ export default class extends Vue {
         } else if (this.error_type === 'throttled'){
             return `You've exceeded a limit for your account and must wait a moment before retrying.
                 This is a limit set by your connected account, not by Stello.
-                You may find you can retry within minutes, hours, or at worst a day.
-                `
+                You may find you can retry within minutes, hours, or at worst a day.`
+        } else if (this.error_type === 'restore'){
+            const filename = (this.task.error as Error|null)?.message ?? 'unknown'
+            const path = this.paths
+                ? `${this.paths.internal_files_dir}${this.paths.sep}${filename}` : filename
+            return `A file required by this message is missing and cannot be sent (${path}).`
+                + ` To fix this, restore the file if you moved it or edit the draft to replace the missing`
+                + ` content, then try sending again.`
         }
         return "Something has gone wrong. Let us know so we can prevent it from happening again."
     }
