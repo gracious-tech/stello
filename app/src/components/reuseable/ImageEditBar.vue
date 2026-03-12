@@ -43,6 +43,7 @@ export default class extends Vue {
 
     @Prop({type: Blob, required: true}) declare readonly blob:Blob
     @Prop({type: Number, default: undefined}) declare readonly aspect:number|undefined
+    @Prop({type: Number, default: 0.9}) declare readonly quality:number
 
     declare original:Blob  // Will be set during created hook
 
@@ -232,8 +233,9 @@ export default class extends Vue {
             filtered = filter_image(this.unfiltered, this.active_filter)
         }
 
-        // Emit as a blob
-        this.$emit('changed', await canvas_to_blob(filtered))
+        // Emit as a blob, preserving the original format
+        const format = this.blob.type.split('/')[1] as 'png'|'jpeg'|'webp'
+        this.$emit('changed', await canvas_to_blob(filtered, format, this.quality))
     }
 
     async undo(){

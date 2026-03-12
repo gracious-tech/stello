@@ -534,6 +534,7 @@ def inviter_image(api_event):
         user = params['user']
         copy_id = params['copy']
         secret = params['k']
+        img_format = "png" if params.get('f', 'jpeg') == "png" else "jpeg"
     except KeyError:
         raise Abort()  # Incorrect params given
 
@@ -553,7 +554,7 @@ def inviter_image(api_event):
     return {
         'statusCode': 200,
         'headers': {
-            'content-type': 'image/jpeg',
+            'content-type': f'image/{img_format}',
             'cache-control': 'no-store',
         },
         'isBase64Encoded': True,

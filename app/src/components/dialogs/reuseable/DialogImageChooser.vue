@@ -42,7 +42,7 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 
 import {bitmap_to_blob, blob_to_bitmap} from '@/services/utils/coding'
 import {get_clipboard_blobs} from '@/services/utils/misc'
-import {_tmp_normalize_orientation, resize_bitmap} from '@/services/utils/image'
+import {_tmp_normalize_orientation, resize_bitmap, compress_bitmap} from '@/services/utils/image'
 
 
 @Component({})
@@ -129,9 +129,12 @@ export default class extends Vue {
         let bitmap = await blob_to_bitmap(this.image!)
         bitmap = await resize_bitmap(bitmap, this.width, this.height, this.crop)
 
-        // Emit as a blob
-        const format = this.invite ? 'jpeg' : 'png'  // Many email clients only support jpeg
-        this.$emit('close', await bitmap_to_blob(bitmap, format))
+        // Selectively compress as png/jpeg for invite images, otherwise almost lossless webp
+        // This is the final format for invite images since they can't be altered once added
+        const blob = this.invite
+            ? await compress_bitmap(bitmap)
+            : await bitmap_to_blob(bitmap, 'webp', 0.9)
+        this.$emit('close', blob)
     }
 
     remove(){

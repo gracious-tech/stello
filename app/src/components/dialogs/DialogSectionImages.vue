@@ -91,7 +91,7 @@ export default class extends Vue {
         // Resize the image, just to save space, as will resize again when publish message
         // Use double possible published width for both dimensions in case rotate or crop later
         bitmap = await resize_bitmap(bitmap, SECTION_IMAGE_WIDTH * 2, SECTION_IMAGE_WIDTH * 2)
-        blob = await bitmap_to_blob(bitmap)
+        blob = await bitmap_to_blob(bitmap, 'webp', 0.9)  // Almost lossless webp
 
         // Add to images set
         this.images.push({

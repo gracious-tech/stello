@@ -24,7 +24,7 @@ import {EmailTask, new_email_task} from '../email/email'
 import {configs_update} from './configs'
 import {hosts_storage_update} from '@/services/tasks/hosts'
 import {SectionIds} from '@/services/database/types'
-import {blobstore_read} from '@/services/database/blobstore'
+import {blobstore_read, default_invite_image} from '@/services/database/blobstore'
 
 
 export async function send_oauth_setup(task:Task):Promise<void>{
@@ -100,6 +100,7 @@ export class Sender {
     tmpl_variables!:TemplateVariables
     email_client!:EmailTask
     shared_secret_64!:string
+    invite_image_blob!:Blob
 
     get sender_name():string{
         // Get sender name, accounting for inheritance from profile
@@ -107,16 +108,12 @@ export class Sender {
             || this.profile.msg_options_identity.sender_name
     }
 
-    get invite_image():Promise<ArrayBuffer>{
+    get invite_image():Blob|string|null{
         // Get invite image, accounting for inheritance from profile
         const profile_image = this.msg.draft.reply_to
             ? this.profile.options.reply_invite_image
             : this.profile.msg_options_identity.invite_image
-        const image_ref = this.msg.draft.options_identity.invite_image ?? profile_image
-        if (image_ref){
-            return blobstore_read(image_ref).then(b => b.arrayBuffer())
-        }
-        return self.app_native.app_file_read('default_invite_image.jpg')
+        return this.msg.draft.options_identity.invite_image ?? profile_image
     }
 
     get invite_button():string{
@@ -222,6 +219,10 @@ export class Sender {
         // Encode shared secret for use in URLs
         this.shared_secret_64 = buffer_to_url64(
             await export_key(this.profile.host_state.shared_secret))
+
+        // Resolve invite image once (same for all copies)
+        this.invite_image_blob = this.invite_image
+            ? await blobstore_read(this.invite_image) : await default_invite_image()
 
         // Init email sender
         this.email_client = new_email_task(await this.profile.get_authed_smtp_settings())
@@ -337,8 +338,10 @@ export class Sender {
             this.msg.safe_lifespan_remaining, max_reads)
 
         // Encrypt and upload invite image
+        // NOTE No further compression as already scaled and compressed as either png or jpeg
         // NOTE Uploaded even if not sending by email (re-eval if non-email invites widely used)
-        const encrypted_image = await encrypt_sym(await this.invite_image, copy.secret_sse)
+        const encrypted_image = await encrypt_sym(
+            await this.invite_image_blob.arrayBuffer(), copy.secret_sse)
         await this.host.upload_file(`invite_images/${copy.id}`, encrypted_image,
             this.msg.safe_lifespan_remaining)
 
@@ -378,6 +381,7 @@ export class Sender {
             const secret_sse_url64 = buffer_to_url64(await export_key(copy.secret_sse))
             const image = `${this.profile.api}inviter/image?user=${this.profile.user}`
                 + `&copy=${copy.id}&k=${secret_sse_url64}`
+                + `&f=${this.invite_image_blob.type === 'image/png' ? 'png' : 'jpeg'}`
             const address_buffer = string_to_utf8(JSON.stringify({address: copy.contact_address}))
             let encrypted_address:string|undefined = undefined
             if (!copy.contact_multiple){  // Don't show subscription links if multiple people
@@ -616,6 +620,8 @@ async function process_image(pub_assets:PublishedAsset[], id:string, image:Blob,
     const bitcanvas = bitmap_to_bitcanvas(bitmap)  // bitmap_to_blob uses canvas anyway, save mem
 
     // Add assets
+    // NOTE Not using PNG as image size is large (1400px) so PNG will always be far larger than webp
+    //      PNG is beneficial for vector invite images but section images look fine anyway due to x2
     pub_assets.push({
         id: id,
         data: await (await canvas_to_blob(bitcanvas, 'webp')).arrayBuffer(),

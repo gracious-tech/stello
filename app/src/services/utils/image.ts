@@ -1,4 +1,7 @@
 
+import {canvas_to_blob, bitmap_to_bitcanvas} from './coding'
+
+
 export async function _tmp_normalize_orientation(blob:Blob):Promise<Blob>{
     // Normalize image orientation by producing new image with standard orientation
     // NOTE Output is always a PNG to avoid losing any quality since can't otherwise know it
@@ -131,4 +134,21 @@ export function filter_image(source:OffscreenCanvas|ImageBitmap, filter:string):
     context.filter = ''
 
     return canvas
+}
+
+
+export async function compress_bitmap(bitmap:ImageBitmap, lossy_format:'jpeg'|'webp'='jpeg',
+        quality=0.9, png_max=50*1024):Promise<Blob>{
+    // Compress bitmap using either PNG (preferred) or lossy if PNG exceeds max size
+    /* NOTE Defaults are optimized for invite images (600x200px)
+        Photos as jpeg q0.8 were 20-50kb, text were 5-15kb
+        Quality now bumped to 0.9 so sizes will be a bit larger
+        But very reasonable to use PNG up to 50kb since jpegs were previously that anyway
+    */
+    const bitcanvas = bitmap_to_bitcanvas(bitmap)  // bitmap_to_blob uses canvas anyway, save mem
+    const png = await canvas_to_blob(bitcanvas, 'png')
+    if (png.size <= png_max){
+        return png
+    }
+    return canvas_to_blob(bitcanvas, lossy_format, quality)
 }
