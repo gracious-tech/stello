@@ -27,7 +27,7 @@ import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 import DialogSectionImagesItem from './assets/DialogSectionImagesItem.vue'
 import {_tmp_normalize_orientation, resize_bitmap, blob_image_size} from '@/services/utils/image'
 import {generate_token} from '@/services/utils/crypt'
-import {bitmap_to_blob, blob_to_bitmap} from '@/services/utils/coding'
+import {bitmap_to_blob} from '@/services/utils/coding'
 import {get_clipboard_blobs} from '@/services/utils/misc'
 import {SECTION_IMAGE_WIDTH} from '@/services/misc'
 import {Section} from '@/services/database/sections'
@@ -81,8 +81,7 @@ export default class extends Vue {
         // Ensure blob is an image
         let bitmap:ImageBitmap
         try {
-            blob = await _tmp_normalize_orientation(blob)  // TODO rm once bug fixed
-            bitmap = await blob_to_bitmap(blob)
+            bitmap = await _tmp_normalize_orientation(blob)  // TODO rm once bug fixed
         } catch {
             console.warn(`Not an image: ${blob.type}`)
             return false

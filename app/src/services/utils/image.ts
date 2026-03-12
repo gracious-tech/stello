@@ -2,15 +2,11 @@
 import {canvas_to_blob, bitmap_to_bitcanvas} from './coding'
 
 
-export async function _tmp_normalize_orientation(blob:Blob):Promise<Blob>{
+export async function _tmp_normalize_orientation(blob:Blob):Promise<ImageBitmap>{
     // Normalize image orientation by producing new image with standard orientation
-    // NOTE Output is always a PNG to avoid losing any quality since can't otherwise know it
     // WARN This is required before using createImageBitmap with images in Chrome
     // See https://bugs.chromium.org/p/chromium/issues/detail?id=1220671#c15
     // TODO Remove once Chrome bug fixed
-    if (blob.type === 'image/png'){
-        return blob  // PNG has no orientation meta data
-    }
 
     // Img element supports orientation (bitmap doesn't) so need to first turn into img
     const img = self.document.createElement('img')
@@ -27,7 +23,7 @@ export async function _tmp_normalize_orientation(blob:Blob):Promise<Blob>{
     // Clear original blob from memory so can be garbage collected
     URL.revokeObjectURL(img.src)
 
-    return canvas.convertToBlob({type: 'image/png'})
+    return canvas.transferToImageBitmap()
 }
 
 

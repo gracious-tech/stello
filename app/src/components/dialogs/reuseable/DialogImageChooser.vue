@@ -89,14 +89,12 @@ export default class extends Vue {
 
         // Ensure is an image
         try {
-            blob = await _tmp_normalize_orientation(blob)  // TODO rm when bug fixed
-            await blob_to_bitmap(blob)
+            // Just store as png as will compress more before save anyway
+            this.image = await bitmap_to_blob(await _tmp_normalize_orientation(blob), 'png')
         } catch {
             console.warn(`Not an image: ${blob.type}`)
             return false
         }
-
-        this.image = blob
         return true
     }
 
