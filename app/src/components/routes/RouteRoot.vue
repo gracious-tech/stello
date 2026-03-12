@@ -12,6 +12,8 @@ div
 
         img.decor(src='@/assets/decor/welcome.svg')
 
+        RouteRootBlobstoreMigrate
+
         v-card(class='pa-4')
             v-card-title(class='justify-center') New features
             v-list
@@ -52,11 +54,13 @@ import {Component, Vue} from 'vue-property-decorator'
 import app_config from '@/app_config.json'
 import RouteRootAddressRequests from './assets/RouteRootAddressRequests.vue'
 import RouteRootResendRequests from './assets/RouteRootResendRequests.vue'
+import RouteRootBlobstoreMigrate from './assets/RouteRootBlobstoreMigrate.vue'
 import RequestsSubscribe from '@/components/reuseable/RequestsSubscribe.vue'
 
 
 @Component({
-    components: {RouteRootAddressRequests, RouteRootResendRequests, RequestsSubscribe},
+    components: {RouteRootAddressRequests, RouteRootResendRequests, RouteRootBlobstoreMigrate,
+        RequestsSubscribe},
 })
 export default class extends Vue {
 

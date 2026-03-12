@@ -243,6 +243,7 @@ void open_db().then(async connection => {
     self.app_store.commit('dict_set', ['usage_opens', self.app_store.state.usage_opens + 1])
     if (self.app_store.state.usage_installed === null){
         self.app_store.commit('dict_set', ['usage_installed', new Date()])
+        self.app_store.commit('dict_set', ['show_blobstore_migrate', false])  // Only for <= v1.8.3
     }
 
     // Schedule backups

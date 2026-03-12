@@ -33,6 +33,7 @@ export async function get_initial_state(db:Database):Promise<AppStoreState>{
         show_splash_welcome: true,
         show_splash_disclaimer: true,
         show_guide_default: true,
+        show_blobstore_migrate: true,  // Set to false in init.ts for new users after v1.8.3
 
         // Tmp
         tmp: {

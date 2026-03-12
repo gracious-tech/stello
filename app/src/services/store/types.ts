@@ -27,6 +27,7 @@ export interface AppStoreState {
     show_splash_welcome:boolean
     show_splash_disclaimer:boolean
     show_guide_default:boolean
+    show_blobstore_migrate:boolean
 
     // Tmp
     tmp:{
