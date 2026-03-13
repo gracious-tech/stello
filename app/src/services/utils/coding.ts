@@ -33,14 +33,19 @@ export function url64_to_buffer(encoded:string):ArrayBuffer{
 
 export function standard_url64_to_buffer(encoded:string):ArrayBuffer{
     // Convert a URL-safe base64 encoded string to an ArrayBuffer
+    return base64_to_buffer(encoded.replaceAll('-', '+').replaceAll('_', '/'))
+}
+
+
+export function base64_to_buffer(encoded:string):ArrayBuffer{
+    // Decode a standard base64 string to an ArrayBuffer
     /* Explanation of decoding
         atob() is weird in that its "binary" output is still a string
         While JS uses UTF-16, atob() will only ever generate chars that take up 1 of the 2 bytes
         Which means that charCodeAt() will return integers up to 1 byte only (even if supports 2)
         Which can then be fed into a Uint8Array!
     */
-    const regular_base64 = encoded.replaceAll('-', '+').replaceAll('_', '/')
-    const binary_string = atob(regular_base64)
+    const binary_string = atob(encoded)
     return Uint8Array.from(binary_string, c => c.charCodeAt(0)).buffer
 }
 
