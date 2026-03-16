@@ -6,5 +6,10 @@ cd "$(dirname "$0")"
 # Should be same as github actions that build app (electron has own internal version)
 VERSION="25.8.1"
 
+mkdir -p nodejs
 curl -fsSL https://nodejs.org/dist/v${VERSION}/node-v${VERSION}-linux-x64.tar.xz \
-    | tar -xJ --strip-components=2 -C . node-v${VERSION}-linux-x64/bin/node
+    | tar -xJ --strip-components=1 -C nodejs node-v${VERSION}-linux-x64
+
+ln -sf nodejs/bin/node node
+ln -sf nodejs/bin/npm npm
+ln -sf nodejs/bin/npx npx
