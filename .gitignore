@@ -3,6 +3,7 @@
 node_modules/
 test-results/
 
+/.bin/node
 /.bin/deploy_host_*.env
 /.bin/build_electron.env
 

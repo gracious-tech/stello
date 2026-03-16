@@ -1,0 +1,10 @@
+#!/bin/bash
+# Install node
+set -e
+cd "$(dirname "$0")"
+
+# Should be same as github actions that build app (electron has own internal version)
+VERSION="25.8.1"
+
+curl -fsSL https://nodejs.org/dist/v${VERSION}/node-v${VERSION}-linux-x64.tar.xz \
+    | tar -xJ --strip-components=2 -C . node-v${VERSION}-linux-x64/bin/node
