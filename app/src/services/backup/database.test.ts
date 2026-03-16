@@ -5,6 +5,11 @@ import {expect, test} from '@playwright/test'
 import {NativeBrowser} from '../native/native_browser'
 import {migrate, migrate_async, DATABASE_VERSION} from '../database/migrations'
 import {open_db} from '../database/migrations.test_utils'
+import {DatabaseContacts} from '../database/contacts'
+import {DatabaseGroups} from '../database/groups'
+import {DatabaseSubscribeForms} from '../database/subscribe_forms'
+import {DatabaseSections} from '../database/sections'
+import {DatabaseDrafts} from '../database/drafts'
 import {generate_token, generate_key_sym, generate_key_asym} from '../utils/crypt'
 import {export_database, import_database} from './database'
 
@@ -15,6 +20,7 @@ import {export_database, import_database} from './database'
 global.self = global as Window & typeof globalThis
 self.app_native = new NativeBrowser()
 self.app_native.app_file_read = async () => new ArrayBuffer(0)
+self.app_store = {state: {default_profile: null}} as typeof self.app_store
 
 
 // UTILS
@@ -34,7 +40,13 @@ test('export and import produces identical data', async () => {
     const db1 = await open_test_db('backup_source')
     self.app_db = {_conn: db1} as typeof self.app_db
 
-    // Profile
+    const contacts = new DatabaseContacts(db1)
+    const groups = new DatabaseGroups(db1)
+    const subscribe_forms = new DatabaseSubscribeForms(db1)
+    const sections = new DatabaseSections(db1)
+    const drafts = new DatabaseDrafts(db1)
+
+    // Profile (generates CryptoKeys; DatabaseProfiles not importable due to transitive ESM deps)
     const profile_id = generate_token()
     await db1.put('profiles', {
         id: profile_id,
@@ -85,28 +97,10 @@ test('export and import produces identical data', async () => {
     })
 
     // Contact (has created:Date field)
-    const contact_id = generate_token()
-    await db1.put('contacts', {
-        id: contact_id,
-        created: new Date(),
-        name: 'Test User',
-        name_hello: '',
-        address: 'user@example.com',
-        notes: '',
-        service_account: null,
-        service_id: null,
-        multiple: false,
-    })
+    const contact = await contacts.create({name: 'Test User', address: 'user@example.com'})
 
     // Group
-    const group_id = generate_token()
-    await db1.put('groups', {
-        id: group_id,
-        name: 'Test Group',
-        contacts: [contact_id],
-        service_account: null,
-        service_id: null,
-    })
+    const group = await groups.create('Test Group', [contact.id])
 
     // OAuth (has ArrayBuffer tokens and nullable Dates)
     const dummy_buf = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]).buffer
@@ -127,64 +121,38 @@ test('export and import produces identical data', async () => {
     })
 
     // Subscribe form
-    await db1.put('subscribe_forms', {
-        id: generate_token(),
-        profile: profile_id,
-        text: '<h2>Subscribe to newsletter</h2>\n<p>To get our latest news.</p>',
-        accept_message: false,
-        groups: [],
-        service_account: null,
-    })
+    await subscribe_forms.create(profile_id)
 
     // Section
-    const section_id = generate_token()
-    await db1.put('sections', {
-        id: section_id,
-        respondable: null,
-        content: {type: 'text', html: '<p>Hello world</p>', standout: null},
+    const section = await sections.create_object({
+        type: 'text',
+        html: '<p>Hello world</p>',
+        standout: null,
     })
+    await sections.set(section)
 
     // Draft (standalone — kept in drafts table after message creation below)
-    const draft_id = generate_token()
-    const draft_record = {
-        id: draft_id,
-        template: false as const,
-        reply_to: null,
-        modified: new Date(),
-        title: 'Test Draft',
-        sections: [[section_id]] as [string][],
-        profile: profile_id,
-        options_identity: {
-            sender_name: '',
-            invite_image: null,
-            invite_tmpl_email: null,
-            invite_tmpl_clipboard: null,
-            invite_button: '',
-        },
-        options_security: {lifespan: null, max_reads: null},
-        recipients: {
-            include_groups: [],
-            include_contacts: [contact_id],
-            exclude_groups: [],
-            exclude_contacts: [],
-        },
-    }
-    await db1.put('drafts', draft_record)
+    const draft = await drafts.create_object()
+    draft.profile = profile_id
+    draft.title = 'Test Draft'
+    draft.sections = [[section.id] as [string]]
+    draft.recipients.include_contacts = [contact.id]
+    await drafts.set(draft)
 
     // Message + Copy (directly constructed)
     const msg_id = generate_token()
+    const copy_id = generate_token()
     const resp_token = generate_token()
     await db1.put('messages', {
         id: msg_id,
         published: new Date('2024-06-01T00:00:00.000Z'),
         expired: false,
-        draft: draft_record,
+        draft: draft as typeof draft & {profile: string, template: false},
         assets_key: await generate_key_sym(true),
         assets_uploaded: {},
         lifespan: Infinity,
         max_reads: Infinity,
     })
-    const copy_id = generate_token()
     await db1.put('copies', {
         id: copy_id,
         msg_id,
@@ -195,11 +163,11 @@ test('export and import produces identical data', async () => {
         uploaded_latest: false,
         invited: null,
         expired: false,
-        contact_id,
-        contact_name: 'Test User',
-        contact_hello: 'Test User',
-        contact_address: 'user@example.com',
-        contact_multiple: false,
+        contact_id: contact.id,
+        contact_name: contact.name,
+        contact_hello: contact.name_hello,
+        contact_address: contact.address,
+        contact_multiple: contact.multiple,
     })
 
     // Responses (read, reply, reaction)
@@ -218,9 +186,9 @@ test('export and import produces identical data', async () => {
         user_agent: 'Mozilla/5.0',
         copy_id,
         msg_id,
-        msg_title: 'Test Draft',
-        contact_id,
-        contact_name: 'Test User',
+        msg_title: draft.title,
+        contact_id: contact.id,
+        contact_name: contact.name,
         section_id: null,
         subsection_id: null,
         content: 'Loved it!',
@@ -235,10 +203,10 @@ test('export and import produces identical data', async () => {
         user_agent: 'Mozilla/5.0',
         copy_id,
         msg_id,
-        msg_title: 'Test Draft',
-        contact_id,
-        contact_name: 'Test User',
-        section_id,
+        msg_title: draft.title,
+        contact_id: contact.id,
+        contact_name: contact.name,
+        section_id: section.id,
         subsection_id: null,
         content: 'like',
         read: false,
@@ -249,7 +217,7 @@ test('export and import produces identical data', async () => {
     // Unsubscribe (composite key: [profile, contact])
     await db1.put('unsubscribes', {
         profile: profile_id,
-        contact: contact_id,
+        contact: contact.id,
         sent: new Date('2024-03-01T00:00:00.000Z'),
         ip: null,
         user_agent: null,
@@ -257,7 +225,7 @@ test('export and import produces identical data', async () => {
 
     // Request address
     await db1.put('request_address', {
-        contact: contact_id,
+        contact: contact.id,
         old_address: 'old@example.com',
         new_address: 'new@example.com',
         sent: new Date('2024-04-01T00:00:00.000Z'),
@@ -267,7 +235,7 @@ test('export and import produces identical data', async () => {
 
     // Request resend (composite key: [contact, message])
     await db1.put('request_resend', {
-        contact: contact_id,
+        contact: contact.id,
         message: msg_id,
         reason: 'Please resend this',
         sent: new Date('2024-05-01T00:00:00.000Z'),
@@ -282,7 +250,7 @@ test('export and import produces identical data', async () => {
         address: 'new@example.com',
         message: 'Please subscribe me',
         profile: profile_id,
-        groups: [group_id],
+        groups: [group.id],
         service_account: null,
         sent: new Date('2024-07-01T00:00:00.000Z'),
         ip: null,
