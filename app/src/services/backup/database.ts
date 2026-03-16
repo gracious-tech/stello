@@ -1,7 +1,7 @@
 
 import {buffer_to_base64, base64_to_buffer} from '@/services/utils/coding'
 import {import_key_sym, import_key_asym} from '@/services/utils/crypt'
-import type {RecordState, RecordContact, RecordOAuth, RecordProfile, RecordDraft,
+import type {RecordContact, RecordOAuth, RecordProfile, RecordDraft,
     RecordDraftPublished, RecordMessage, RecordMessageCopy} from '@/services/database/types'
 
 
@@ -99,11 +99,10 @@ async function import_sym_key(s:string):Promise<CryptoKey>{
 
 async function import_key_pair(obj:{priv:string, pub:string}):Promise<CryptoKeyPair>{
     // Restore an RSA key pair from SPKI (public) and PKCS8 (private) encoded as base64
-    // NOTE Always extractable and allow both encrypt/decrypt, just in case
-    const pub = await import_key_asym(base64_to_buffer(obj.pub), true, ['encrypt', 'decrypt'])
+    const pub = await import_key_asym(base64_to_buffer(obj.pub), true, ['encrypt'])
     const priv = await crypto.subtle.importKey(
         'pkcs8', base64_to_buffer(obj.priv), {name: 'RSA-OAEP', hash: 'SHA-256'}, true,
-        ['encrypt', 'decrypt'])
+        ['decrypt'])
     return {privateKey: priv, publicKey: pub}
 }
 
@@ -112,16 +111,6 @@ async function import_key_pair(obj:{priv:string, pub:string}):Promise<CryptoKeyP
 // Each function handles only the fields that can't round-trip through JSON natively.
 // Tables with no special fields (groups, subscribe_forms, sections) are passed as-is.
 
-
-function export_state(r:RecordState):RecordState{
-    if (r.key === 'fallback_secret'){
-        return {...r, value: null}  // CryptoKey — non-extractable
-    }
-    if (r.key === 'usage_installed'){
-        return {...r, value: (r.value as Date|null)?.toISOString() ?? null}
-    }
-    return r
-}
 
 function export_contact(r:RecordContact):ExportedContact{
     // Only `created` is non-JSON-native
@@ -190,13 +179,6 @@ function export_generic_with_sent<T extends {sent:Date}>(r:T):Omit<T, 'sent'> & 
 
 // PER-TABLE CONVERTERS - import
 
-
-function import_state(r:RecordState):RecordState{
-    if (r.key === 'usage_installed'){
-        return {...r, value: r.value ? new Date(r.value as string) : null}
-    }
-    return r
-}
 
 function import_contact(r:ExportedContact):RecordContact{
     // Restore created date
@@ -269,9 +251,9 @@ export async function export_database():Promise<string>{
     // Export entire IndexedDB to a JSON string suitable for backup and later restoration
     // Blobs are assumed to already be blobstore filename strings after migration
     // CryptoKeys are exported as base64; non-extractable old keys become null
+    // NOTE No records in 'state' are backedup since would overwrite existing and none needed yet
     const db = self.app_db._conn
     const tables = {
-        state: (await db.getAll('state')).map(export_state),
         contacts: (await db.getAll('contacts')).map(export_contact),
         groups: await db.getAll('groups'),
         oauths: (await db.getAll('oauths')).map(export_oauth),
@@ -298,7 +280,6 @@ export async function import_database(json:string):Promise<{added:number, skippe
     // This is additive-only — existing records are never overwritten
 
     const converters:Record<string, (r:unknown) => unknown> = {
-        state: r => import_state(r as RecordState),
         contacts: r => import_contact(r as ExportedContact),
         groups: r => r,
         oauths: r => import_oauth(r as ExportedOAuth),
