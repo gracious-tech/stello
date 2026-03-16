@@ -1,5 +1,6 @@
 
-import {buffer_to_base64, base64_to_buffer} from '@/services/utils/coding'
+import {buffer_to_base64, base64_to_buffer, string_to_utf8, utf8_to_string}
+    from '@/services/utils/coding'
 import {import_key_sym, import_key_asym} from '@/services/utils/crypt'
 import type {RecordContact, RecordOAuth, RecordProfile, RecordDraft,
     RecordDraftPublished, RecordMessage, RecordMessageCopy} from '@/services/database/types'
@@ -253,8 +254,8 @@ function import_generic_with_sent<T extends {sent:string}>(r:T):Omit<T, 'sent'> 
 // MAIN
 
 
-export async function export_database():Promise<string>{
-    // Export entire IndexedDB to a JSON string suitable for backup and later restoration
+export async function export_database():Promise<ArrayBuffer>{
+    // Export entire IndexedDB to a JSON-encoded ArrayBuffer for backup and later restoration
     // Blobs are assumed to already be blobstore filename strings after migration
     // CryptoKeys are exported as base64; non-extractable old keys become null
     // NOTE No records in 'state' are backedup since would overwrite existing and none needed yet
@@ -281,11 +282,11 @@ export async function export_database():Promise<string>{
         version: 1,
         tables,
     }
-    return JSON.stringify(exported, null, 2)
+    return string_to_utf8(JSON.stringify(exported, null, 2))
 }
 
 
-export async function import_database(json:string):Promise<{added:number, skipped:number}>{
+export async function import_database(buffer:ArrayBuffer):Promise<{added:number, skipped:number}>{
     // Restore records from a JSON backup, skipping any that already exist in the DB
     // This is additive-only — existing records are never overwritten
 
@@ -308,7 +309,7 @@ export async function import_database(json:string):Promise<{added:number, skippe
         request_subscribe: r => import_generic_with_sent(r as {sent:string}),
     }
 
-    const {tables} = JSON.parse(json) as ExportedDatabase
+    const {tables} = JSON.parse(utf8_to_string(buffer)) as ExportedDatabase
     const db = self.app_db._conn
     let added = 0
     let skipped = 0
