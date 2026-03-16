@@ -297,3 +297,6 @@ export async function to_21_async(db:AppDatabaseConnection){
         await db.put('profiles', profile)
     }
 }
+
+
+// WARN Remember to also update import_database/export_database to be compatible
