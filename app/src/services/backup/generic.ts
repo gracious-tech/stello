@@ -1,5 +1,6 @@
 
 import {backup_contacts} from '@/services/backup/contacts'
+import {export_database} from '@/services/backup/database'
 import {save_drafts_to_dir, save_messages_to_dir} from '@/services/backup/drafts'
 import {save_replies_to_dir} from '@/services/backup/replies'
 
@@ -83,9 +84,15 @@ export async function save_all_messages(parent_dir:string):Promise<string[]>{
 
 // Run all backups
 export async function run_backups(setting:'none'|'contacts'|'all'){
+
+    // Always backup database to JSON regardless of setting so can recover from corruption
+    await self.app_native.user_file_write(`${get_backups_dir()}/database.json`,
+        await export_database())
+
     if (setting === 'none'){
         return
     }
+
     // Do one after another, but silently report errors and avoid preventing others from running
     try {
         await backup_contacts()
