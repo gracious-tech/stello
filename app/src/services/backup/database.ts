@@ -282,7 +282,11 @@ export async function export_database():Promise<ArrayBuffer>{
         version: 1,
         tables,
     }
-    return string_to_utf8(JSON.stringify(exported, null, 2))
+
+    // If any blobs haven't been converted to blobstore yet, simply save them as 'blob'
+    //    so size not huge and app will fallback on placeholders in worst case scenario
+    const replacer = (_key:string, val:unknown) => val instanceof Blob ? 'blob' : val
+    return string_to_utf8(JSON.stringify(exported, replacer, 2))
 }
 
 
