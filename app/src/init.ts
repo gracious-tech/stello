@@ -19,7 +19,7 @@ import {get_store} from '@/services/store/store'
 import {get_router} from '@/services/router'
 import {NativeBrowser} from './services/native/native_browser'
 import {task_manager, TaskManager} from '@/services/tasks/tasks'
-import {run_backups} from '@/services/backup/generic'
+import {run_backups, find_other_backup_dbids} from '@/services/backup/generic'
 import {setIntervalPlus} from '@/services/utils/async'
 
 // Components
@@ -225,6 +225,12 @@ void open_db().then(async connection => {
     // NOTE Can't just rely on self.app_vue as some methods (like router guards) called before ready
     const store = await get_store(self.app_db)
     self.app_store = store
+
+    // Check for backups from a different dbid (in case current db wiped)
+    const other_dbids = await find_other_backup_dbids(store.state.dbid)
+    const restore_dbid = other_dbids.find(id => !store.state.dismissed_dbids.includes(id))
+    if (restore_dbid)
+        store.commit('tmp_set', ['restore_backup', restore_dbid])
 
     // Init Vuetify dark setting based on store value
     vuetify.framework.theme.dark = store.state.dark

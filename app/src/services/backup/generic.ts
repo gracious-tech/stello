@@ -12,6 +12,23 @@ export function get_backups_dir(){
 }
 
 
+// Find dbids of backup dirs that differ from the given current dbid and contain a database.json
+export async function find_other_backup_dbids(current_dbid:string):Promise<string[]>{
+    const items = await self.app_native.user_file_list('')
+    const other_dbids:string[] = []
+    for (const item of items){
+        const match = item.match(/^Backups \[(.+)\]$/)
+        if (match && match[1] !== current_dbid){
+            const contents = await self.app_native.user_file_list(item)
+            if (contents.includes('database.json')){
+                other_dbids.push(match[1]!)
+            }
+        }
+    }
+    return other_dbids
+}
+
+
 // Determine which dir to backup to and which to delete if backup successful
 export async function determine_backup_dir(category:string):Promise<[string|null, string|null]>{
 

@@ -34,6 +34,7 @@ export async function get_initial_state(db:Database):Promise<AppStoreState>{
         show_splash_disclaimer: true,
         show_guide_default: true,
         show_blobstore_migrate: true,  // Set to false in init.ts for new users after v1.8.3
+        dismissed_dbids: [],
 
         // Tmp
         tmp: {
@@ -50,6 +51,7 @@ export async function get_initial_state(db:Database):Promise<AppStoreState>{
             prev_state_contacts: null,
             cut_section: null,
             closing: false,
+            restore_backup: null,
 
             // Unread responses
             unread_replies: {},

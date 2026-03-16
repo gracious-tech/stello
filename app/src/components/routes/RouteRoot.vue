@@ -4,6 +4,8 @@
 div
     app-content(class='pa-6')
 
+        RouteRootRecoverBackup
+
         RequestsSubscribe
 
         RouteRootAddressRequests
@@ -55,12 +57,13 @@ import app_config from '@/app_config.json'
 import RouteRootAddressRequests from './assets/RouteRootAddressRequests.vue'
 import RouteRootResendRequests from './assets/RouteRootResendRequests.vue'
 import RouteRootBlobstoreMigrate from './assets/RouteRootBlobstoreMigrate.vue'
+import RouteRootRecoverBackup from './assets/RouteRootRecoverBackup.vue'
 import RequestsSubscribe from '@/components/reuseable/RequestsSubscribe.vue'
 
 
 @Component({
     components: {RouteRootAddressRequests, RouteRootResendRequests, RouteRootBlobstoreMigrate,
-        RequestsSubscribe},
+        RouteRootRecoverBackup, RequestsSubscribe},
 })
 export default class extends Vue {
 

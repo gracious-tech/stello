@@ -28,6 +28,7 @@ export interface AppStoreState {
     show_splash_disclaimer:boolean
     show_guide_default:boolean
     show_blobstore_migrate:boolean
+    dismissed_dbids:string[]
 
     // Tmp
     tmp:{
@@ -43,6 +44,7 @@ export interface AppStoreState {
         prev_state_contacts:{filter_group_id:string, search:string, scroll_top:number}|null,
         cut_section:RecordSection[]|null,  // First section is one that was cut, others subsections
         closing:boolean|'force'
+        restore_backup:string|null,
 
         // Unread responses
         // NOTE Using objects with `true` constant for performance and reactivity
