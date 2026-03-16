@@ -52,7 +52,7 @@ export function import_key_sym(secret:ArrayBuffer, extractable=false, modes:KeyU
 export function import_key_asym(secret:ArrayBuffer, extractable=false, modes:KeyUsage[]=['encrypt'])
         :Promise<CryptoKey>{
     // Return a new asym key object from given binary data
-    // NOTE The public key part is always extractable, while secret key part is configurable
+    // WARN This is currently only used to import public key (not private)
     const algorithm:RsaHashedImportParams = {name: 'RSA-OAEP', hash: 'SHA-256'}
     return crypto.subtle.importKey('spki', secret, algorithm, extractable, modes)
 }
