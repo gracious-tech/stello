@@ -8,6 +8,12 @@ import type {RecordContact, RecordOAuth, RecordProfile, RecordDraft,
 // EXPORTED TYPES
 // Each mirrors a DB record with non-JSON-native fields replaced by JSON-safe equivalents.
 
+
+type ExportedDatabase = {
+    version:number
+    tables:Record<string, unknown[]>
+}
+
 interface ExportedContact extends Omit<RecordContact, 'created'> {
     created:string
 }
@@ -271,7 +277,11 @@ export async function export_database():Promise<string>{
         request_resend: (await db.getAll('request_resend')).map(export_generic_with_sent),
         request_subscribe: (await db.getAll('request_subscribe')).map(export_generic_with_sent),
     }
-    return JSON.stringify({version: 1, tables}, null, 2)
+    const exported:ExportedDatabase = {
+        version: 1,
+        tables,
+    }
+    return JSON.stringify(exported, null, 2)
 }
 
 
@@ -298,7 +308,7 @@ export async function import_database(json:string):Promise<{added:number, skippe
         request_subscribe: r => import_generic_with_sent(r as {sent:string}),
     }
 
-    const {tables} = JSON.parse(json) as {version:number, tables:Record<string, unknown[]>}
+    const {tables} = JSON.parse(json) as ExportedDatabase
     const db = self.app_db._conn
     let added = 0
     let skipped = 0
