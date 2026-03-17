@@ -99,12 +99,15 @@ export async function save_all_messages(parent_dir:string):Promise<string[]>{
 }
 
 
-// Run all backups
-export async function run_backups(setting:'none'|'contacts'|'all'){
-
-    // Always backup database to JSON regardless of setting so can recover from corruption
+// Backup database to JSON (run independently of other backups)
+export async function run_database_backup(){
     await self.app_native.user_file_write(`${get_backups_dir()}/database.json`,
         await export_database())
+}
+
+
+// Run all backups
+export async function run_backups(setting:'none'|'contacts'|'all'){
 
     if (setting === 'none'){
         return

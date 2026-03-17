@@ -19,7 +19,7 @@ import {get_store} from '@/services/store/store'
 import {get_router} from '@/services/router'
 import {NativeBrowser} from './services/native/native_browser'
 import {task_manager, TaskManager} from '@/services/tasks/tasks'
-import {run_backups, find_other_backup_dbids} from '@/services/backup/generic'
+import {run_backups, run_database_backup, find_other_backup_dbids} from '@/services/backup/generic'
 import {setIntervalPlus} from '@/services/utils/async'
 
 // Components
@@ -253,11 +253,17 @@ void open_db().then(async connection => {
     }
 
     // Schedule backups
-    // NOTE Contacts keeps ~3 backups, but messages only ever have one
+    // NOTE Do first backups after short delay to not slow anything down on app start
+    setTimeout(() => {
+        setIntervalPlus(3, 'h', true, () => {
+            void run_database_backup()
+        })
+    }, 1000 * 30)
     setTimeout(() => {
         setIntervalPlus(24, 'h', true, () => {
+            // NOTE Contacts keeps ~3 backups, but messages only ever have one
             void run_backups(store.state.backups)
         })
-    }, 1000 * 30)  // Do initial backup 30 seconds after starting to not slow anything down
+    }, 1000 * 60)
 
 }).catch(error_handling.handle_db_error)
