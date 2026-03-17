@@ -26,16 +26,21 @@ div
             v-radio(label="None" value='none' color='accent')
             v-radio(label="Contacts" value='contacts' color='accent')
             v-radio(label="Contacts & Messages" value='all' color='accent')
+        div(class='caption opacity-secondary')
+            div #[strong Stello Files location:] {{ files_dir }}
+            div #[strong Internal Data location:] {{ data_dir }}
+
+        hr(class='mt-16')
+
+        h1(class='text-h6 mb-4') Export Data
+        p(class='text-body-2') You can export all your contacts and messages so you can switch to a different newsletter system, or simply view them outside of Stello.
         div(class='mb-4')
             app-btn(@click='export_contacts' :disabled='export_ing') Export Contacts
             app-btn(@click='export_messages' :disabled='export_ing') Export Messages
         v-alert(v-if='export_ing || export_msg' :color='export_success ? "primary" : "error"'
                 class='text-center')
             v-progress-circular(v-if='export_ing' indeterminate)
-            div(v-else) {{ export_msg }}
-        div(class='caption opacity-secondary')
-            div #[strong Stello Files location:] {{ files_dir }}
-            div #[strong Internal Data location:] {{ data_dir }}
+            div.export-msg(v-else) {{ export_msg }}
 
         hr(class='mt-16')
 
@@ -81,12 +86,14 @@ export default class extends Vue {
 
     files_dir = ''
     data_dir = ''
+    sep = '/'
 
     created(){
         // This may not be available until init.ts finishes, so get during create
         const native_paths = self.app_native.get_paths()
         this.files_dir = native_paths.files_dir
         this.data_dir = native_paths.data_dir
+        this.sep = native_paths.sep
     }
 
     get dark(){
@@ -108,11 +115,11 @@ export default class extends Vue {
     async export_contacts(){
         this.export_ing = true
         this.export_success = true
+        const export_dir = `Exported${this.sep}Contacts`
         try {
-            const export_dir = 'Exported/Contacts'
             await self.app_native.user_file_remove(export_dir)  // Clear previous
             await save_contacts_to_dir(export_dir)
-            this.export_msg = `Contacts exported to "Stello Files/${export_dir}"`
+            this.export_msg = `Contacts exported to\n${this.files_dir}${this.sep}${export_dir}`
         } catch (error){
             this.export_success = false
             this.export_msg = "Failed to export contacts."
@@ -124,10 +131,10 @@ export default class extends Vue {
     async export_messages(){
         this.export_ing = true
         this.export_success = true
+        const export_dir = 'Exported'  // Save method creates multiple subdirs
         try {
-            const export_dir = 'Exported'  // Save method creates multiple subdirs
             const failed_titles = await save_all_messages(export_dir)
-            this.export_msg = `Messages exported to "Stello Files/${export_dir}"`
+            this.export_msg = `Messages exported to\n${this.files_dir}${this.sep}${export_dir}`
             if (failed_titles.length){
                 this.export_success = false
                 const ts = failed_titles.map(t => `"${t}"`).slice(0, 3).join(', ')
@@ -147,5 +154,8 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
+.export-msg
+    white-space: pre-wrap
+    overflow-wrap: anywhere
 
 </style>
