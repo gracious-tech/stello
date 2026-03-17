@@ -30,6 +30,15 @@ div
             div #[strong Stello Files location:] {{ files_dir }}
             div #[strong Internal Data location:] {{ data_dir }}
 
+        h2(class='text-h6 my-4') Restore from backup
+        p(class='text-body-2') Stello automatically backs up its database, which you can restore from the backups folder at:<br>"Stello Files/Backups [...]/database.json".
+        div(class='mb-4')
+            app-file(@input='import_db' accept='.json' :disabled='import_ing') Import Database
+        v-alert(v-if='import_ing || import_msg' :color='import_success ? "primary" : "error"'
+                class='text-center')
+            v-progress-circular(v-if='import_ing' indeterminate)
+            div.result-msg(v-else) {{ import_msg }}
+
         hr(class='mt-16')
 
         h1(class='text-h6 mb-4') Export Data
@@ -40,7 +49,7 @@ div
         v-alert(v-if='export_ing || export_msg' :color='export_success ? "primary" : "error"'
                 class='text-center')
             v-progress-circular(v-if='export_ing' indeterminate)
-            div.export-msg(v-else) {{ export_msg }}
+            div.result-msg(v-else) {{ export_msg }}
 
         hr(class='mt-16')
 
@@ -71,6 +80,7 @@ import RouteSettingsProfiles from './assets/RouteSettingsProfiles.vue'
 import RouteSettingsContacts from './assets/RouteSettingsContacts.vue'
 import {save_contacts_to_dir} from '@/services/backup/contacts'
 import {save_all_messages} from '@/services/backup/generic'
+import {import_database} from '@/services/backup/database'
 
 
 @Component({
@@ -79,6 +89,10 @@ import {save_all_messages} from '@/services/backup/generic'
 export default class extends Vue {
 
     show_more = false
+
+    import_ing = false
+    import_success = true
+    import_msg = ''
 
     export_ing = false
     export_success = true
@@ -128,6 +142,21 @@ export default class extends Vue {
         this.export_ing = false
     }
 
+    async import_db(file:File){
+        this.import_ing = true
+        this.import_success = true
+        try {
+            const buffer = await file.arrayBuffer()
+            const {added, skipped} = await import_database(buffer)
+            this.import_msg = `Imported ${added} records (${skipped} already existed)`
+        } catch (error){
+            this.import_success = false
+            this.import_msg = "Failed to import database."
+            self.app_report_error(error)
+        }
+        this.import_ing = false
+    }
+
     async export_messages(){
         this.export_ing = true
         this.export_success = true
@@ -154,7 +183,7 @@ export default class extends Vue {
 
 <style lang='sass' scoped>
 
-.export-msg
+.result-msg
     white-space: pre-wrap
     overflow-wrap: anywhere
 
