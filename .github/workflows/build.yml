@@ -110,7 +110,7 @@ jobs:
                     name: app_base
                     path: electron/dist/app
                 # WARN Electron builder will publish (to proposed) before confirming tests pass
-                # TODO Waiting on https://github.com/electron-userland/electron-builder/issues/4535
+                #      This allows ignoring tests if false positives, and still be able to publish
             -   run: .bin/build_electron_package
                 env:
                     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
