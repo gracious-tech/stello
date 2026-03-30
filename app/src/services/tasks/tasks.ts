@@ -14,6 +14,7 @@ import {CustomError, MustReauthenticate, MustReconfigure, MustReconnect, MustWai
     from '../utils/exceptions'
 import {hosts_storage_update, hosts_manager_delete, hosts_manager_update} from './hosts'
 import {retract_message} from './management'
+import {storage_oauth_setup, cloudbackup_sync} from './cloudbackup'
 
 
 export type TaskStartArgs = [string, unknown[]?, unknown[]?]
@@ -34,6 +35,7 @@ const TASKS:Record<string, TaskFunction> = Object.fromEntries([
     responses_receive,
     hosts_storage_update, hosts_manager_delete, hosts_manager_update,
     retract_message,
+    storage_oauth_setup, cloudbackup_sync,
 ].map(fn => [fn.name, fn]))
 
 

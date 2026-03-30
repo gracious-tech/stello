@@ -5,6 +5,10 @@ import {generate_token} from '@/services/utils/crypt'
 import {MustRestore} from '@/services/utils/exceptions'
 
 
+// IMPORTANT: Files in Internal Files are always written with a unique name and never overwritten
+// cloudbackup takes advantage of this by avoiding re-uploading existing files
+
+
 function _new_filename(ref:string|Blob){
     // Generate new filename with date and ext so still easy to find manually in filesystem
     const date = new Date().toISOString().slice(0, 10).replace(/-/g, '_')

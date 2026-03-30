@@ -11,11 +11,31 @@ div
     div(class='caption opacity-secondary')
         div #[strong Stello Files location:] {{ files_dir }}
         div #[strong Internal Data location:] {{ data_dir }}
+    div(class='mt-4')
+        template(v-if='!cloudbackup_oauth')
+            app-btn(@click='open_cloudbackup_dialog') Backup to Google Drive
+        template(v-else)
+            p Backing up to Google Drive account {{ cloudbackup_oauth.email }}
+            p(v-if='!cloudbackup_enabled' class='text-body-2 error--text')
+                | Backup to Google Drive not enabled
+            p(v-else-if='cloudbackup_last' class='text-body-2 opacity-secondary')
+                | Last backed up: {{ cloudbackup_last }}
+            div
+                app-btn(@click='backup_now') Backup Now
+                app-btn(@click='open_cloudbackup_dialog') Change Settings
+                app-btn(@click='disable_cloudbackup') Disable
 
-    h2(class='text-h6 my-4') Restore from backup
-    p(class='text-body-2') Stello automatically backs up its database, which you can restore from the backups folder at:<br>"Stello Files/Backups [...]/database.json".
+    hr(class='mt-16')
+
+    h1(class='text-h6 my-4') Restore from backup
+    p(class='text-body-2')
+        | Stello automatically backs up its database, which you can restore from the backups
+        |  folder at:
+        br
+        | "Stello Files/Backups [...]/database.json".
     div(class='mb-4')
         app-file(@input='import_db' accept='.json' :disabled='import_ing') Import Database
+        app-btn(@click='open_restore_dialog') Restore from Google Drive
     v-alert(v-if='import_ing || import_msg' :color='import_success ? "primary" : "error"'
             class='text-center')
         v-progress-circular(v-if='import_ing' indeterminate)
@@ -38,11 +58,19 @@ div
 
 <script lang='ts'>
 
-import {Component, Vue} from 'vue-property-decorator'
+import {Component, Vue, Watch} from 'vue-property-decorator'
 
 import {save_contacts_to_dir} from '@/services/backup/contacts'
 import {save_all_messages} from '@/services/backup/generic'
 import {import_database} from '@/services/backup/database'
+import {OAuth} from '@/services/database/oauths'
+import {AppStoreState} from '@/services/store/types'
+import {oauth_revoke_if_obsolete} from '@/services/tasks/oauth'
+import {task_manager} from '@/services/tasks/tasks'
+import {drive_wipe_all_google} from '@/services/tasks/cloudbackup'
+import DialogGenericConfirm from '@/components/dialogs/generic/DialogGenericConfirm.vue'
+import DialogCloudbackupSetup from '@/components/dialogs/specific/DialogCloudbackupSetup.vue'
+import DialogCloudbackupRestore from '@/components/dialogs/specific/DialogCloudbackupRestore.vue'
 
 
 @Component({})
@@ -56,6 +84,8 @@ export default class extends Vue {
     export_success = true
     export_msg = ''
 
+    cloudbackup_oauth:OAuth|null = null
+
     files_dir = ''
     data_dir = ''
     sep = '/'
@@ -66,6 +96,20 @@ export default class extends Vue {
         this.files_dir = native_paths.files_dir
         this.data_dir = native_paths.data_dir
         this.sep = native_paths.sep
+    }
+
+    @Watch('$store.state.storage_oauth', {immediate: true})
+    async watch_storage_oauth(id:string|null){
+        this.cloudbackup_oauth = id ? (await self.app_db.oauths.get(id) ?? null) : null
+    }
+
+    get cloudbackup_enabled():boolean{
+        return !!(this.$store.state as AppStoreState).cloudbackup
+    }
+
+    get cloudbackup_last():string|null{
+        const date = this.$store.state.cloudbackup_last as Date|null
+        return date?.toLocaleString() ?? null
     }
 
     get backups(){
@@ -125,6 +169,49 @@ export default class extends Vue {
             self.app_report_error(error)
         }
         this.export_ing = false
+    }
+
+    backup_now(){
+        void task_manager.start('cloudbackup_sync')
+    }
+
+    open_cloudbackup_dialog(){
+        void this.$store.dispatch('show_dialog', {component: DialogCloudbackupSetup})
+    }
+
+    open_restore_dialog(){
+        void this.$store.dispatch('show_dialog', {component: DialogCloudbackupRestore})
+    }
+
+    async disable_cloudbackup(){
+
+        // Confirm with user before continuing
+        const confirmed = await this.$store.dispatch('show_dialog', {
+            component: DialogGenericConfirm,
+            props: {
+                title: "Disable Backup to Google Drive",
+                text: "This will also delete the backup files from Google Drive.",
+                confirm: 'Disable',
+                confirm_danger: true,
+            },
+        }) as boolean|undefined
+        if (!confirmed)
+            return
+
+        // Disable in settings and then trigger tasks
+        const oauth = this.cloudbackup_oauth  // WARN Keep copy before triggering change
+        this.$store.commit('dict_set', ['storage_oauth', null])
+        this.$store.commit('dict_set', ['cloudbackup', null])
+        this.$store.commit('dict_set', ['cloudbackup_key', null])
+        this.$store.commit('dict_set', ['cloudbackup_last', null])
+        if (oauth){
+            // Best-effort wipe — notify user if it fails so they can delete manually
+            drive_wipe_all_google(oauth).catch(() => {
+                void this.$store.dispatch('show_snackbar',
+                    "Could not delete backup from Google Drive — please delete it manually")
+            })
+            void oauth_revoke_if_obsolete(oauth)
+        }
     }
 }
 

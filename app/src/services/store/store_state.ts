@@ -25,6 +25,10 @@ export async function get_initial_state(db:Database):Promise<AppStoreState>{
         manager_aws_key_id: '',
         manager_aws_max_lifespan: Infinity,
         fallback_secret: null,
+        storage_oauth: null,
+        cloudbackup: null,
+        cloudbackup_key: null,
+        cloudbackup_last: null,
 
         // Private state
         usage_installed: null,  // Will be inited via main.ts if null
@@ -34,6 +38,7 @@ export async function get_initial_state(db:Database):Promise<AppStoreState>{
         show_splash_disclaimer: true,
         show_guide_default: true,
         show_blobstore_migrate: true,  // Set to false in init.ts for new users after v1.8.3
+        show_cloudbackup_suggest: true,
         dismissed_dbids: [],
 
         // Tmp

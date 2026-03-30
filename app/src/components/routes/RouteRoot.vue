@@ -12,9 +12,11 @@ div
 
         RouteRootResendRequests
 
-        img.decor(src='@/assets/decor/welcome.svg')
-
         RouteRootBlobstoreMigrate
+
+        RouteRootCloudbackup
+
+        img.decor(src='@/assets/decor/welcome.svg')
 
         v-card(class='pa-4')
             v-card-title(class='justify-center') New features
@@ -58,12 +60,13 @@ import RouteRootAddressRequests from './assets/RouteRootAddressRequests.vue'
 import RouteRootResendRequests from './assets/RouteRootResendRequests.vue'
 import RouteRootBlobstoreMigrate from './assets/RouteRootBlobstoreMigrate.vue'
 import RouteRootRecoverBackup from './assets/RouteRootRecoverBackup.vue'
+import RouteRootCloudbackup from './assets/RouteRootCloudbackup.vue'
 import RequestsSubscribe from '@/components/reuseable/RequestsSubscribe.vue'
 
 
 @Component({
     components: {RouteRootAddressRequests, RouteRootResendRequests, RouteRootBlobstoreMigrate,
-        RouteRootRecoverBackup, RequestsSubscribe},
+        RouteRootRecoverBackup, RouteRootCloudbackup, RequestsSubscribe},
 })
 export default class extends Vue {
 

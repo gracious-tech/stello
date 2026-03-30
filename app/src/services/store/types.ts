@@ -19,6 +19,10 @@ export interface AppStoreState {
     manager_aws_key_id:string
     manager_aws_max_lifespan:number  // Added after 0.8.3
     fallback_secret:CryptoKey|null  // Added after 1.4.9
+    storage_oauth:string|null
+    cloudbackup:'database'|'all'|null
+    cloudbackup_key:CryptoKey|null
+    cloudbackup_last:Date|null
 
     // Private state
     usage_installed:Date|null
@@ -28,6 +32,7 @@ export interface AppStoreState {
     show_splash_disclaimer:boolean
     show_guide_default:boolean
     show_blobstore_migrate:boolean
+    show_cloudbackup_suggest:boolean
     dismissed_dbids:string[]
 
     // Tmp

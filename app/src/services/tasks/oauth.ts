@@ -32,7 +32,7 @@ import {external_decrypt, external_encrypt} from '@/services/misc/external_crypt
 
 
 export type OAuthIssuer = 'google'|'microsoft'
-export type ScopeSet = 'email_send'|'contacts'
+export type ScopeSet = 'email_send'|'contacts'|'storage'
 
 
 interface IssuerConfig {
@@ -40,7 +40,7 @@ interface IssuerConfig {
     endpoint:string
     client_id:string
     client_secret:string  // Shouldn't be required for desktop apps, but Google does anyway
-    scopes:{always:string[], email_send:string[], contacts:string[]}
+    scopes:{always:string[], email_send:string[], contacts:string[], storage:string[]}
     code_request_extras:Record<string, string>  // Must be strings as sent as params, not JSON
 }
 
@@ -115,6 +115,7 @@ export const OAUTH_SUPPORTED:Record<OAuthIssuer, IssuerConfig> = {
             always: [],
             email_send: ['https://www.googleapis.com/auth/gmail.send'],
             contacts: ['https://www.googleapis.com/auth/contacts'],
+            storage: ['https://www.googleapis.com/auth/drive.appdata'],
         },
         code_request_extras: {
             access_type: 'offline',  // Request refresh tokens (Google only)
@@ -134,6 +135,7 @@ export const OAUTH_SUPPORTED:Record<OAuthIssuer, IssuerConfig> = {
             always: ['offline_access'],  // Request refresh tokens (like Google's `access_type`)
             email_send: ['https://graph.microsoft.com/Mail.Send'],
             contacts: ['https://graph.microsoft.com/Contacts.ReadWrite'],
+            storage: [],
         },
         code_request_extras: {},
     },
@@ -297,7 +299,8 @@ async function oauth_authorize_complete(url:string):Promise<AuthCompletion>{
 // PRETASK FUNCTIONS (getting auth for tasks that need it)
 
 
-export async function oauth_pretask_new_usage(task_name:'contacts_oauth_setup'|'send_oauth_setup',
+export async function oauth_pretask_new_usage(
+        task_name:'contacts_oauth_setup'|'send_oauth_setup'|'storage_oauth_setup',
         extra_params:string[], issuer:OAuthIssuer, email?:string):Promise<void>{
     // Setup a new usage of an oauth, either using an existing auth or a new one
     // NOTE The chosen oauth's id will be passed as the first parameter when executing the task
@@ -374,6 +377,9 @@ export async function oauth_pretask_reauth(task:TaskStartArgs, oauth:OAuth):Prom
     //      revoke access to the previously granted permissions
     if (oauth.contacts_sync && !scope_sets.includes('contacts')){
         scope_sets.push('contacts')
+    }
+    if (self.app_store.state.storage_oauth === oauth.id && !scope_sets.includes('storage')){
+        scope_sets.push('storage')
     }
     if (!scope_sets.includes('email_send')){
         for (const profile of await self.app_db.profiles.list()){
@@ -508,8 +514,8 @@ export async function oauth_revoke(oauth:OAuth):Promise<void>{
 export async function oauth_revoke_if_obsolete(oauth:OAuth):Promise<void>{
     // Check if an oauth is obsolete and, if so, revoke and delete from db
 
-    // If using for contacts sync, keep
-    if (oauth.contacts_sync){
+    // If using for contacts sync or storage, keep
+    if (oauth.contacts_sync || self.app_store.state.storage_oauth === oauth.id){
         return
     }
 
@@ -580,6 +586,8 @@ export function scope_set_for_task(task_name:string):ScopeSet|null{
         return 'contacts'
     } else if (task_name.startsWith('send_')){
         return 'email_send'
+    } else if (task_name.startsWith('cloudbackup_')){
+        return 'storage'
     }
     return null
 }

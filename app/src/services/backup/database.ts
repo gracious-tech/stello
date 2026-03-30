@@ -12,6 +12,7 @@ import type {RecordContact, RecordOAuth, RecordProfile, RecordDraft,
 
 type ExportedDatabase = {
     version:number
+    dbid:string
     tables:Record<string, unknown[]>
 }
 
@@ -280,6 +281,7 @@ export async function export_database():Promise<ArrayBuffer>{
     }
     const exported:ExportedDatabase = {
         version: 1,
+        dbid: (await db.get('state', 'dbid'))!.value as string,
         tables,
     }
 

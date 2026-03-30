@@ -14,7 +14,7 @@ export class OAuth implements RecordOAuth {
     issuer_config!:Record<string, unknown>
     email!:string
     name!:string
-    scope_sets!:('email_send'|'contacts')[]
+    scope_sets!:('email_send'|'contacts'|'storage')[]
     token_refresh!:ArrayBuffer
     token_access!:ArrayBuffer
     token_access_expires!:Date|null

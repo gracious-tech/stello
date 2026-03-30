@@ -256,7 +256,12 @@ void open_db().then(async connection => {
     // NOTE Do first backups after short delay to not slow anything down on app start
     setTimeout(() => {
         setIntervalPlus(3, 'h', true, () => {
-            void run_database_backup()
+            if (store.state.cloudbackup){
+                // This will also save exported db locally, so don't need `run_database_backup`
+                void task_manager.start('cloudbackup_sync', [], [], true)
+            } else {
+                void run_database_backup()
+            }
         })
     }, 1000 * 30)
     setTimeout(() => {

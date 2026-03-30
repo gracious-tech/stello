@@ -46,7 +46,7 @@ export interface RecordOAuth {
     issuer_config:Record<string, unknown>
     email:string
     name:string|null  // May be null if not required
-    scope_sets:('email_send'|'contacts')[]
+    scope_sets:('email_send'|'contacts'|'storage')[]
     token_refresh:ArrayBuffer  // Externally encrypted
     token_access:ArrayBuffer  // Externally encrypted
     token_access_expires:Date|null  // When access token will expire (null = doesn't expire)

@@ -99,10 +99,11 @@ export async function save_all_messages(parent_dir:string):Promise<string[]>{
 }
 
 
-// Backup database to JSON (run independently of other backups)
-export async function run_database_backup(){
-    await self.app_native.user_file_write(`${get_backups_dir()}/database.json`,
-        await export_database())
+// Backup database to JSON, returning the exported buffer so can be reused if desired
+export async function run_database_backup():Promise<ArrayBuffer>{
+    const buffer = await export_database()
+    await self.app_native.user_file_write(`${get_backups_dir()}/database.json`, buffer)
+    return buffer
 }
 
 

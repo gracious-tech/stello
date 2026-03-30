@@ -1,6 +1,6 @@
 
 import {join_buffers, buffers_equal} from './buffers'
-import {buffer_to_url64, url64_to_buffer} from './coding'
+import {buffer_to_url64, url64_to_buffer, string_to_utf8} from './coding'
 
 
 // NIST recommends 96 bits (12 bytes) IV, and 128 bits (16 bytes) tag
@@ -61,6 +61,20 @@ export function import_key_asym(secret:ArrayBuffer, extractable=false, modes:Key
 export function export_key(key:CryptoKey):Promise<ArrayBuffer>{
     // Return the raw binary secret of a CryptoKey
     return crypto.subtle.exportKey(key.algorithm.name === 'RSA-OAEP' ? 'spki' : 'raw', key)
+}
+
+
+export async function password_to_key(password:string, salt:ArrayBuffer):Promise<CryptoKey>{
+    // Generate a strong key using given human-input password and salt
+    const key_material = await crypto.subtle.importKey(
+        'raw', string_to_utf8(password), 'PBKDF2', true, ['deriveKey'])
+    return crypto.subtle.deriveKey(
+        {name: 'PBKDF2', salt, iterations: 100_000, hash: 'SHA-256'},
+        key_material,
+        {name: 'AES-GCM', length: SYM_KEY_BITS},
+        true,
+        ['encrypt', 'decrypt'],
+    )
 }
 
 
