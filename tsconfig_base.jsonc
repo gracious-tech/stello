@@ -3,7 +3,6 @@
     "compilerOptions": {
         "noEmit": true,  // Never create JS files, always bundle or pipe instead
         "resolveJsonModule": true,  // Import JSON as objects
-        "moduleResolution": "Node",  // All should use node-like module resolution, not just node
         "importHelpers": true,  // Avoid duplicate utils when targeting old JS
         "esModuleInterop": true,  // Make require imports work like es6 ones do
         "experimentalDecorators": true,  // Allow @decorators

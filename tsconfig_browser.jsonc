@@ -6,6 +6,7 @@
         // Build for latest browser (use esbuild etc to target old browsers if necessary)
         "lib": ["ESNext", "DOM", "DOM.Iterable"],
         "module": "ESNext",
+        "moduleResolution": "bundler",
         "target": "ESNext",
     },
 }

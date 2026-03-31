@@ -5,7 +5,8 @@
     "compilerOptions": {
         // Based on Node 14 (review when upgraded)
         "lib": ["ES2020"],
-        "module": "CommonJS",
+        "module": "nodenext",
+        "moduleResolution": "nodenext",
         "target": "ES2020",
         "types": ["node"],  // Node is system-wide, where as all others must be per component
     },
