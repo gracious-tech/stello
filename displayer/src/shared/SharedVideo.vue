@@ -92,7 +92,7 @@ export default defineComponent({
                 ])
                 // If in private mode, vimeo id should be `id/password`
                 if (this.id!.includes('/')){
-                    params.append('h', this.id!.split('/')[1]!)
+                    params.append('h', this.id!.split('/')[1])
                 }
                 let hash = ''
                 if (this.start){

@@ -30,7 +30,7 @@ export async function configs_update(task:Task){
     // Prep for upload tasks
     const storage = await self.app_db.new_host_user(profile)
     const resp_key_public = buffer_to_url64(
-        await export_key(profile.host_state.resp_key.publicKey!))
+        await export_key(profile.host_state.resp_key.publicKey))
     let upload_displayer = Promise.resolve()
     let upload_subscribe = Promise.resolve()
     let upload_responder = Promise.resolve()

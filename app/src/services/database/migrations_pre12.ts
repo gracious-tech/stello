@@ -223,7 +223,7 @@ async function to6(transaction:VersionChangeTransaction):Promise<void>{
     for await (const cursor of transaction.objectStore('profiles')){
         if (cursor.value.options.reaction_options === undefined){
             cursor.value.options.reaction_options =
-                ['like', 'love', 'yay', 'pray', 'laugh', 'wow', 'sad'],
+                ['like', 'love', 'yay', 'pray', 'laugh', 'wow', 'sad']
             await cursor.update(cursor.value)
         }
     }

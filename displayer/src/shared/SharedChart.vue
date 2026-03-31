@@ -128,7 +128,7 @@ export default defineComponent({
             // Data that takes into account if a threshold-shortfall item is included
             const items = [...this.parsed_data]
             if (this.type === 'doughnut' && this.total_threshold_shortfall){
-                const float = this.threshold_num! - this.total
+                const float = this.threshold_num - this.total
                 items.push({
                     number: mimic_formatting(this.threshold, float),
                     label: '',

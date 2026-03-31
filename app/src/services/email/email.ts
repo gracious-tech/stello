@@ -47,8 +47,8 @@ export function new_email_task(settings:Profile['smtp_settings']){
 
     // Provide access to send and abort methods
     return {
-        send: (email:Email) => manager!.send(task_id, email),
-        abort: () => manager!.abort(task_id),
+        send: (email:Email) => manager.send(task_id, email),
+        abort: () => manager.abort(task_id),
     }
 }
 

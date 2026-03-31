@@ -76,7 +76,7 @@ export default class extends Vue {
         }
         const invalid = /[^a-z0-9-]/.exec(this.username_punycode)
         if (invalid){
-            return `Username cannot contain: ${invalid[0]!}`
+            return `Username cannot contain: ${invalid[0]}`
         }
         return null
     }

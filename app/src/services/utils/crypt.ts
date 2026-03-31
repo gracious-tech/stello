@@ -91,7 +91,7 @@ export async function encrypt_sym(data:ArrayBuffer, key:CryptoKey):Promise<Array
 
     // Encrypt the provided data
     const algorithm = {name: 'AES-GCM', tagLength: SYM_TAG_BITS, iv}
-    const encrypted = await crypto.subtle.encrypt(algorithm, key, data) as ArrayBuffer
+    const encrypted = await crypto.subtle.encrypt(algorithm, key, data)
 
     // Return encrypted buffer with iv prepended
     return join_buffers([iv, encrypted])
@@ -100,7 +100,7 @@ export async function encrypt_sym(data:ArrayBuffer, key:CryptoKey):Promise<Array
 
 export async function encrypt_asym_primitive(data:ArrayBuffer, key:CryptoKey):Promise<ArrayBuffer>{
     // Do primitive asymmetric encryption of given data (must be shorter than key size)
-    return await crypto.subtle.encrypt({name: 'RSA-OAEP'}, key, data) as ArrayBuffer
+    return await crypto.subtle.encrypt({name: 'RSA-OAEP'}, key, data)
 }
 
 
@@ -135,7 +135,7 @@ export async function decrypt_sym(buffer:ArrayBuffer, key:CryptoKey):Promise<Arr
     // Decrypt
     const algorithm = {name: 'AES-GCM', tagLength: SYM_TAG_BITS, iv}
     try {
-        return await crypto.subtle.decrypt(algorithm, key, encrypted) as ArrayBuffer
+        return await crypto.subtle.decrypt(algorithm, key, encrypted)
     } catch (error){
         throw error instanceof DOMException ? new Error(`${error.name}: Failed to decrypt`) : error
     }
@@ -146,7 +146,7 @@ export async function decrypt_asym_primitive(buffer:ArrayBuffer, key:CryptoKey)
         :Promise<ArrayBuffer>{
     // Do primitive asymmetric decryption of given buffer
     try {
-        return await crypto.subtle.decrypt({name: 'RSA-OAEP'}, key, buffer) as ArrayBuffer
+        return await crypto.subtle.decrypt({name: 'RSA-OAEP'}, key, buffer)
     } catch (error){
         throw error instanceof DOMException ? new Error(`${error.name}: Failed to decrypt`) : error
     }

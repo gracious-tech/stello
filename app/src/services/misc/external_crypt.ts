@@ -23,7 +23,7 @@ export async function external_encrypt(secret:string):Promise<ArrayBuffer>{
     }
 
     // OS encryption unavailable so use own
-    return encrypt_sym(string_to_utf8(secret), self.app_store.state.fallback_secret!)
+    return encrypt_sym(string_to_utf8(secret), self.app_store.state.fallback_secret)
 }
 
 
