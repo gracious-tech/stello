@@ -1,0 +1,30 @@
+#!/bin/bash
+# Install AWS SAM CLI into .bin/ (re-run safe)
+set -e
+cd "$(dirname "$(dirname "$0")")"
+
+
+# Skip if already installed
+if [[ -f .bin/sam ]]; then
+    echo "SAM CLI already installed"
+    exit 0
+fi
+
+
+# Download and extract the installer
+tmp=$(mktemp -d)
+trap "rm -rf $tmp" EXIT
+
+echo "Downloading SAM CLI..."
+curl -fsSL "https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip" -o "$tmp/sam.zip"
+unzip -q "$tmp/sam.zip" -d "$tmp/sam"
+
+
+# Install package files
+"$tmp/sam/install" --install-dir .bin/sam_install
+
+# Create symlink to the versioned binary (version dir is the only subdir of sam_install)
+cd .bin
+ln -sf $(echo sam_install/*/bin/sam) sam
+
+echo "SAM CLI installed: $(./sam --version)"

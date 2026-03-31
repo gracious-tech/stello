@@ -3,6 +3,8 @@
 node_modules/
 test-results/
 
+/.bin/sam
+/.bin/sam_install/
 /.bin/deploy_host_*.env
 /.bin/build_electron.env
 
