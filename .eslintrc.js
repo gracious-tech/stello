@@ -17,14 +17,11 @@ module.exports = {
     },
     plugins: [
         '@typescript-eslint',
-        'import',
     ],
     extends: [
         'eslint:recommended',
         'plugin:@typescript-eslint/recommended',
         'plugin:@typescript-eslint/recommended-requiring-type-checking',
-        'plugin:import/recommended',
-        'plugin:import/typescript',
         'plugin:vue/recommended',
         'plugin:vue/vue3-recommended',
         'plugin:vue-pug/recommended',
@@ -64,9 +61,6 @@ module.exports = {
         'vue/max-attributes-per-line': 'off',  // Fit attributes based on char length not attr num
         'vue/attributes-order': 'off',  // Have own preferences for attribute order
         'vue/no-v-html': 'off',  // Many safe uses
-
-        // Disable as already covered by other audits (such as tsc)
-        'import/no-unresolved': 'off',  // Vite imports complex and already handled by tsc
 
         // Disable as are valid in either Vue 2 or 3 (but not both)
         'vue/no-deprecated-dollar-listeners-api': 'off',
