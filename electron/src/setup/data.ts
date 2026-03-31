@@ -1,38 +1,33 @@
 
-import {join} from 'path'
-import {existsSync, mkdirSync, writeFileSync} from 'original-fs'
+import {mkdirSync} from 'original-fs'
+import {join} from 'node:path'
+import {tmpdir} from 'node:os'
 
 import {app} from 'electron'
 
-import {files_dir, data_dir} from '../utils/paths'
+import {files_dir, data_dir, files_dir_missing} from '../utils/paths'
+import {write_immobile_config} from '../utils/immobile_config'
+import {write_warning_file} from '../utils/warning'
 
 
-// Ensure files dir exists
-mkdirSync(files_dir, {recursive: true})
+// If files dir is missing, prevent creating Stello Files as will relaunch
+if (files_dir_missing){
+    // Set tmp dir for userData to avoid creating empty Stello Files and confusing user
+    app.setPath('userData', join(tmpdir(), 'stello_removeable'))
+} else {
+    // Ensure files dir exists
+    mkdirSync(files_dir, {recursive: true})
 
+    // Save warning file (if needed)
+    void write_warning_file(files_dir)
 
-// Ensure warning file exists
-const warn_text = `
-Stello uses this folder to store your data.
-Close Stello before copying/moving this folder.
-If you are changing computer, copy this folder to the same place on your new computer.
-If enabling portable mode (keeping your data on an external drive) move it next to the Stello app.
+    // Remember current files dir so can detect if it goes missing later
+    write_immobile_config(files_dir)
 
-Internal Data - Contains your data, don't touch it
-Backups - Contains automated backups you can use to recover lost contacts etc.
-
-See the guide at stello.news for further instructions and old locations of data
-(if the Internal Data folder doesn't exist).
-`
-const warn_file = join(files_dir, 'READ ME before moving this folder.txt')
-if (!existsSync(warn_file)){
-    writeFileSync(warn_file, warn_text)
+    // Set path for Electron's data
+    mkdirSync(data_dir, {recursive: true})
+    app.setPath('userData', data_dir)
 }
-
-
-// Set path for Electron's data
-mkdirSync(data_dir, {recursive: true})
-app.setPath('userData', data_dir)
 
 
 // Cease execution if another instance of Stello is already running

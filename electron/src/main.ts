@@ -19,8 +19,9 @@ import {autoUpdater} from 'electron-updater'
 
 import {get_path, TESTING} from './utils/config'
 import {activate_app, open_window} from './utils/window'
-import {app_path, linux_package_type} from './utils/paths'
+import {app_path, files_dir_missing, linux_package_type} from './utils/paths'
 import {get_free_space} from './utils/misc'
+import {locate_files_dir} from './utils/dialogs'
 
 
 // Milliseconds for one day (used for intervals)
@@ -140,6 +141,13 @@ void app.whenReady().then(async () => {
             }).show()
         }
     }, one_day_ms)
+
+    // If files dir is missing, locate and quit so can reset userData path in data.ts
+    if (files_dir_missing){
+        locate_files_dir()  // This may flag for relaunch after quit
+        app.quit()
+        return  // Avoid brief opening of window (as `app.quit()` is async)
+    }
 
     // Open primary window for first time
     void open_window()

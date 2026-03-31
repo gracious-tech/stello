@@ -4,6 +4,8 @@ import {existsSync, readFileSync} from 'original-fs'
 
 import {app} from 'electron'
 
+import {read_immobile_config} from './immobile_config'
+
 
 // Detect if a deb/rpm package (AppImage not considered a package in this case)
 const package_type_path = join(app.getAppPath(), '..', 'package-type')
@@ -45,29 +47,52 @@ try {
 }
 
 
-// Internal data may be in `Stello Files` for new users or old locations for long-term users
-// NOTE Also within `Stello Files` for Mac/Linux users who received 1.6.6 update before 1.6.7
-const possible_data_locations = [
-    join(app_path, '..', 'Stello Files', 'Internal Data'),  // Portable mode
-    join(docs_dir, 'Stello Files', 'Internal Data'),  // Normal mode
-    join(app_path, '..', 'stello_data'),  // Old portable location
-    app.getPath('userData'),  // Old normal location
-]
-// NOTE Check for existance of IndexedDB dir as chance Electron may create empty dir before check
+// Determine the possible locations for Stello Files
+const stello_files_default = join(docs_dir, 'Stello Files')
+const stello_files_portable = join(app_path, '..', 'Stello Files')
+const stello_files_remembered = read_immobile_config()  // NOTE May be same as one above
+
+
+// Determine the possible locations for internal data
+const internal_data_default = join(stello_files_default, 'Internal Data')
+const internal_data_portable = join(stello_files_portable, 'Internal Data')
+const internal_data_remembered =
+    stello_files_remembered && join(stello_files_remembered, 'Internal Data')
+const internal_data_old = app.getPath('userData')
+const internal_data_portable_old = join(app_path, '..', 'stello_data')
+
+
+// Discover any existing internal data
+// It may be in `Stello Files` for new users or old locations for long-term users
+// Check for existance of IndexedDB dir as chance Electron may create empty dir before check
 // (there was an issue with this on Windows at least, but couldn't confirm why, possibly lockfile)
-const data_dir = possible_data_locations.find(l => existsSync(join(l, 'IndexedDB')))
-    || possible_data_locations[1]!  // Use normal dir for new users (not portable)
+const found_data_dir = [
+    internal_data_portable,  // Highest priority
+    ...(internal_data_remembered ? [internal_data_remembered] : []),
+    internal_data_default,
+    internal_data_portable_old,
+    internal_data_old,  // Lowest priority
+].find(l => existsSync(join(l, 'IndexedDB')))
+const data_dir = found_data_dir ?? internal_data_default
 
 
-// Files dir will always be a new `Stello Files` location even if data_dir is an old location
-// This will allow Stello to gradually move data over to new location for long-term users
-// It will either be the documents or portable location depending on whether data_dir is portable
-const files_dir = [0, 2].includes(possible_data_locations.indexOf(data_dir))
-    ? join(app_path, '..', 'Stello Files')
-    : join(docs_dir, 'Stello Files')
+// Portable mode is only triggered if a portable data dir already exists
+const is_portable = [internal_data_portable, internal_data_portable_old].includes(data_dir)
 
 
-export function restrict_path(root_dir:string, relative_path:string){
+// Determine files dir location based on same priorities above for internal data dir
+// This should result is Stello Files containing internal data dir, unless it's at old location
+const files_dir = is_portable
+    ? stello_files_portable
+    : (stello_files_remembered ?? stello_files_default)
+
+
+// Consider the files dir as missing if there's no existing dir detected and it was remembered
+// NOTE This still allows moving Stello Files to portable mode without triggering this
+const files_dir_missing = !existsSync(files_dir) && stello_files_remembered !== null
+
+
+function restrict_path(root_dir:string, relative_path:string){
     // Restrict a relative path to the given root dir (returning absolute path)
     // NOTE This should also normalize path separators for the right platform
     const full_path = resolve(root_dir, relative_path)
@@ -79,4 +104,5 @@ export function restrict_path(root_dir:string, relative_path:string){
 }
 
 
-export {app_path, files_dir, data_dir, linux_package_type}
+export {app_path, files_dir, data_dir, linux_package_type, files_dir_missing, is_portable,
+    restrict_path}
