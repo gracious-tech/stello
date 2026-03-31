@@ -1,6 +1,8 @@
 {
     "private": true,
     "devDependencies": {
+        "@eslint/compat": "^2.0.3",
+        "@eslint/js": "^10.0.1",
         "@playwright/test": "^1.58.2",
         "@types/node": "^25.5.0",
         "@types/offscreencanvas": "^2019.7.3",
