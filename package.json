@@ -2,20 +2,19 @@
     "private": true,
     "devDependencies": {
         "@playwright/test": "^1.58.2",
-        "@types/node": "^25.4.0",
-        "@types/offscreencanvas": "^2019.6.4",
-        "@typescript-eslint/eslint-plugin": "^5.4.0",
-        "@typescript-eslint/parser": "^5.4.0",
-        "@vue/runtime-dom": "^3.2.22",
-        "eslint": "^8.2.0",
+        "@types/node": "^25.5.0",
+        "@types/offscreencanvas": "^2019.7.3",
+        "@typescript-eslint/eslint-plugin": "^8.58.0",
+        "@typescript-eslint/parser": "^8.58.0",
+        "@vue/runtime-dom": "^3.5.31",
+        "eslint": "^10.1.0",
         "eslint-formatter-summary-chart": "git+https://github.com/shadow-light/eslint-formatter-summary-chart.git",
-        "eslint-plugin-import": "^2.25.3",
-        "eslint-plugin-vue": "^9.28.0",
-        "eslint-plugin-vue-pug": "^0.6.2",
+        "eslint-plugin-vue": "^10.8.0",
+        "eslint-plugin-vue-pug": "^1.0.0-alpha.5",
         "fake-indexeddb": "^6.2.5",
-        "npm-check-updates": "^12.0.2",
-        "ts-node": "^10.4.0",
-        "typescript": "^4.5.2",
-        "vue-tsc": "^0.29.5"
+        "npm-check-updates": "^19.6.6",
+        "ts-node": "^10.9.2",
+        "typescript": "^6.0.2",
+        "vue-tsc": "^3.2.6"
     }
 }
