@@ -223,7 +223,6 @@ stello_app2/
 ### Prerequisites
 
 - Linux, macOS, or Windows
-- Python 3.11+ with pipenv
 - Git
 
 ### Initial Setup
@@ -232,7 +231,7 @@ stello_app2/
 # Install project-scoped Node.js (v25) into .bin/
 .bin/setup_node
 
-# Install all dependencies (pipenv + npm ci in all subdirs)
+# Install all dependencies (npm ci in all subdirs)
 .bin/setup_dev
 ```
 

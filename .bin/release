@@ -10,4 +10,4 @@ if [[ "$run_audit" != "n" ]]; then
     .bin/audit
 fi
 
-pipenv run python .bin/release.py
+node .bin/release.mts

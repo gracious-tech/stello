@@ -5,7 +5,6 @@ cd "$(dirname "$(dirname "$0")")"
 
 
 # Install packages
-pipenv sync
 .bin/all_node npm ci
 
 
