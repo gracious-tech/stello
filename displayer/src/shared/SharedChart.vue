@@ -96,6 +96,7 @@ export default defineComponent({
 
         total(){
             // Total value of all items
+            // eslint-disable-next-line @typescript-eslint/restrict-plus-operands -- false pos.
             return this.parsed_data.reduce((total, item) => total + item.float, 0)
         },
 
