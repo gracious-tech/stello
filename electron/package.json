@@ -15,7 +15,7 @@
         "electron-context-menu": "^4.1.1",
         "electron-updater": "^6.8.3",
         "nodemailer": "^8.0.2",
-        "rollbar": "^3.0.0",
+        "rollbar": "^2.26.5",
         "semver": "^7.7.4"
     },
     "devDependencies": {
