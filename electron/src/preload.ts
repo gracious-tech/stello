@@ -12,7 +12,8 @@ const native_electron:NativeInterface = {
     // Functions
 
     get_paths(){
-        return ipcRenderer.sendSync('get_paths') as {files_dir:string, data_dir:string}
+        return ipcRenderer.sendSync('get_paths') as
+            {files_dir:string, data_dir:string, internal_files_dir:string, sep:string}
     },
 
     app_file_read(path:string){
