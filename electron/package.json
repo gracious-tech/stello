@@ -8,6 +8,7 @@
         "email": "support@gracious.tech"
     },
     "private": true,
+    "type": "module",
     "main": "dist/main.js",
     "dependencies": {
         "@types/node": "^22.19.15",

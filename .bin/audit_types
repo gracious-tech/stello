@@ -15,6 +15,11 @@ if [[ "$1" == "" || "$1" == "." ]]; then
 fi
 
 
+if [[ "$1" == "" || "$1" == "electron" ]]; then
+    node_modules/.bin/tsc --project electron || EXIT_CODE=1
+fi
+
+
 if [[ "$1" == "" || "$1" == "app" ]]; then
     # NOTE Need to force tsc to show colors when piped
     # TODO Rm disabling of strict types when ready
