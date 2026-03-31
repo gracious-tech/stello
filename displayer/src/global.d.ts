@@ -5,6 +5,10 @@ import {database} from './services/database'
 import {store} from './services/store'
 
 
+// Allow side-effect imports of sass files
+declare module '*.sass' {}
+
+
 declare global {
 
     type MinOne<T> = [T, ...T[]]

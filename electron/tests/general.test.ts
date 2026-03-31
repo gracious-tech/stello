@@ -1,5 +1,5 @@
 
-import {test, expect} from './playwright.config'
+import {test, expect} from './playwright.config.js'
 
 
 test("Visit all main routes", async ({page}) => {

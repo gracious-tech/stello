@@ -11,6 +11,7 @@ process.stdin.on('data', data => {
     for (let line of data.toString('utf-8').split('\n')){
 
         // Remove color codes so can filter plain text
+        // eslint-disable-next-line no-control-regex
         const plain_line = line.replace(/\u001b\[.*?m/g, '')
 
         // Re-assess keep upon each new file

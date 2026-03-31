@@ -108,7 +108,7 @@ export default class extends Vue {
     @debounce_method() async check_availability(value:string){
         // Check if username is available
         this.username_checking = value
-        let success:boolean|null = false
+        let success:boolean|null
         try {
             const result = await username_available(value)
             success = result.valid && result.available

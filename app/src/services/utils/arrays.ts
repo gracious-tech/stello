@@ -1,4 +1,6 @@
 
+// Generic array utility functions require `any` for flexible typing across different element types
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export function sort(array:any[], property:string|number|null=null, ascending=true):void{
     /* Improved sorting of arrays

@@ -5,6 +5,8 @@
         "types": ["lodash", "offscreencanvas"],
         "paths": {
             "@/*": ["./*"],
+            // vue-demi's exports field lacks a 'types' condition, so map it explicitly
+            "vue-demi": ["../node_modules/vue-demi/lib/index.d.ts"],
         },
     },
 }

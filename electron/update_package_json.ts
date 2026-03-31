@@ -5,8 +5,8 @@ import {writeFileSync} from 'fs'
 
 import type {Metadata} from 'electron-builder'
 
-import app_config from './app_config.json'
-import package_json from './package.json'
+import app_config from './app_config.json' with {type: 'json'}
+import package_json from './package.json' with {type: 'json'}
 
 
 interface PackageJsonMissing {

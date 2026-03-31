@@ -87,6 +87,7 @@ export default [
             '@typescript-eslint/no-non-null-assertion': 'off',  // trailing ! can be useful
             '@typescript-eslint/require-await': 'off',  // Some fns async to match spec or await later
             '@typescript-eslint/no-empty-function': 'off',  // Empty fns may be used to match a spec
+            '@typescript-eslint/no-empty-object-type': 'off',  // Used for interfaces
             '@typescript-eslint/explicit-module-boundary-types': 'off',  // TS auto detect saves time
             'vue/html-quotes': 'off',  // Have own preferences for quote choice
             'vue/first-attribute-linebreak': 'off',  // Have own preferences for making lines fit
@@ -108,6 +109,7 @@ export default [
             'no-undef': 'off',  // TS handles these better
             'vue/no-child-content': 'off',  // Causes crash with pug templates
             'vue/html-indent': 'off',  // Causes crash with pug templates
+            '@typescript-eslint/only-throw-error': 'off',  // Project throws for some value passing
 
             // Default to error but should be warnings
             'no-empty': 'warn',
@@ -130,8 +132,6 @@ export default [
             '@typescript-eslint/no-unused-vars': ['warn', {args: 'none'}],  // Unused args (eg event) ok
             // Trying to refactor async fns to please checksVoidReturn is more trouble than worth
             '@typescript-eslint/no-misused-promises': ['error', {checksVoidReturn: false}],
-            // Allow re-throwing unknown/any values from catch blocks
-            '@typescript-eslint/only-throw-error': ['error', {allowThrowingAny: true, allowThrowingUnknown: true}],
             // There are some issues (such as Vue 2/3 compatibility) that can't be solved otherwise
             '@typescript-eslint/ban-ts-comment': ['error', {'ts-ignore': 'allow-with-description'}],
         },
