@@ -272,5 +272,5 @@ test('export and import produces identical data', async () => {
     // Re-export from destination and compare — should be byte-for-byte identical
     // This verifies all field types (Dates, ArrayBuffers, CryptoKeys) round-trip correctly
     const json2 = await export_database()
-    expect(json2).toBe(json)
+    expect(json2).toEqual(json)
 })
