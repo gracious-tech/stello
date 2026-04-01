@@ -7,10 +7,11 @@ cd "$(dirname "$(dirname "$0")")"
 # Determine whether to publish
 # Github actions provides $GITHUB_REF and allows avoiding double publish for master and tag
 publish='never'
+extra_args=''
 if [[ "$GITHUB_REF" =~ ^refs/tags/v ]]; then
     publish='always'
 else
-    unset CSC_LINK  # Prevents electron builder from signing and skips notarizing
+    extra_args='-c.mac.identity=null'  # Disables signing and notarizing on mac
 fi
 
 
@@ -36,4 +37,4 @@ fi
 
 # Package electron app for platform
 cd electron
-./node_modules/.bin/electron-builder $PLATFORM_ARGS --publish=$publish
+./node_modules/.bin/electron-builder $PLATFORM_ARGS --publish=$publish $extra_args
