@@ -229,7 +229,12 @@ async function oauth_authorize_complete(url:string):Promise<AuthCompletion>{
     const [auth_request, auth_resp] = await new Promise
         <[appauth.AuthorizationRequest, appauth.AuthorizationResponse]>((resolve, reject) => {
             auth_notifier.setAuthorizationListener((request, response, error) => {
-                error ? reject(error) : resolve([request, response!])
+                if (error){
+                    // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+                    reject(error)
+                } else {
+                    resolve([request, response!])
+                }
             })
             void auth_handler.completeAuthorizationRequestIfPossible()
         })

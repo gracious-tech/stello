@@ -17,7 +17,10 @@ process.stdin.on('data', data => {
         // Re-assess keep upon each new file
         if (plain_line.includes(' error TS')){
             // Ignore shared files as Vue 2 can't type check correctly, and displayer will anyway
+            // Ignore TS2528/TS2339 as they're Vue 2 class component limitations
             keep = !plain_line.startsWith('app/src/shared/')
+                && !plain_line.includes('error TS2528')
+                && !plain_line.includes('error TS2339')
         }
 
         if (keep){

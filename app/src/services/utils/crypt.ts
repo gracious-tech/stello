@@ -94,7 +94,7 @@ export async function encrypt_sym(data:ArrayBuffer, key:CryptoKey):Promise<Array
     const encrypted = await crypto.subtle.encrypt(algorithm, key, data)
 
     // Return encrypted buffer with iv prepended
-    return join_buffers([iv, encrypted])
+    return join_buffers([iv.buffer, encrypted])
 }
 
 

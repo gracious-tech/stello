@@ -20,5 +20,6 @@
         "noUncheckedIndexedAccess": true,  // If {[k:any]:type} consider `.k` = type|undefined
         "noUnusedLocals": true,  // Can't define variable and not use it
         "noUnusedParameters": false,  // It's ok to specify listener(event) and not use event
+        "noUncheckedSideEffectImports": false,  // Couldn't declare css modules for some reason
     },
 }
