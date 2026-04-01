@@ -1,9 +1,12 @@
 
 import path from 'path'
-import {URL} from 'url'
+import {fileURLToPath, URL} from 'url'
 
 import {PlaywrightTestConfig, test, expect, Page, Response, ElectronApplication,
     _electron as electron} from '@playwright/test'
+
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 
 // Detect path to electron binary
