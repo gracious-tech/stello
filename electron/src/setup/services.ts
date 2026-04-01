@@ -4,7 +4,8 @@ import {readFileSync, writeFileSync, readdirSync, rmSync, mkdirSync} from 'fs'
 import {promises as dns} from 'dns'
 
 import {app, BrowserWindow, dialog, ipcMain, safeStorage} from 'electron'
-import autoUpdater from 'electron-updater'
+import electron_updater from 'electron-updater'
+const {autoUpdater} = electron_updater  // Get around CJS module issue
 
 import {get_path} from '../utils/config.js'
 import {files_dir, data_dir, restrict_path} from '../utils/paths.js'
