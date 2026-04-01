@@ -243,6 +243,7 @@ void open_db().then(async connection => {
 
     // Mount app
     const render = (ce:CreateElement) => ce(App)
+    // @ts-ignore TS2769 vuex augments Vue options but typing doesn't reflect it
     self.app_vue = new Vue({store, router, i18n, vuetify, render}).$mount('#app')
 
     // Increment opens count

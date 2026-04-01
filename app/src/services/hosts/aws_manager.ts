@@ -5,7 +5,7 @@ import {STS} from '@aws-sdk/client-sts'
 import {SSM} from '@aws-sdk/client-ssm'
 import {IAM, waitUntilUserExists, paginateListUsers} from '@aws-sdk/client-iam'
 import {EC2} from '@aws-sdk/client-ec2'
-import {S3} from '@aws-sdk/client-s3'
+import {S3, BucketLocationConstraint} from '@aws-sdk/client-s3'
 import {ApiGatewayV2} from '@aws-sdk/client-apigatewayv2'
 import {ResourceGroupsTaggingAPI, paginateGetResources}
     from '@aws-sdk/client-resource-groups-tagging-api'
@@ -183,7 +183,9 @@ export class HostManagerAws implements HostManager {
             if (error instanceof Error && error.name === 'NotFound'){
                 // Must recreate S3 client to change region
                 await regioned_s3.createBucket({Bucket: bucket,
-                        CreateBucketConfiguration: {LocationConstraint: region}})
+                    CreateBucketConfiguration: {
+                        LocationConstraint: region as BucketLocationConstraint,
+                    }})
             } else {
                 throw error
             }

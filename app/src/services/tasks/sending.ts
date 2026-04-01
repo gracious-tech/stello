@@ -582,7 +582,7 @@ async function process_section(section_id:string, pub_assets:PublishedAsset[],
                     new zip.BlobReader(await blobstore_read(file.data)))
                 taken.push(file.name + file.ext)
             }
-            data = (await ziper.close() as Uint8Array).buffer
+            data = (await ziper.close() as Uint8Array).buffer as ArrayBuffer
             filename = content.label + '.zip'
             mimetype = 'application/zip'
         }

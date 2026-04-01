@@ -1,7 +1,7 @@
 
 import {waitUntilBucketExists} from '@aws-sdk/client-s3'
 import {waitUntilRoleExists} from '@aws-sdk/client-iam'
-import {GetFunctionCommandOutput, waitUntilFunctionExists} from '@aws-sdk/client-lambda'
+import {GetFunctionCommandOutput, waitUntilFunctionExists, Runtime} from '@aws-sdk/client-lambda'
 
 import app_config from '@/app_config.json'
 import {HostUserAwsBase} from '@/services/hosts/aws_user_base'
@@ -254,7 +254,7 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
         // NOTE Limit is 1,000 rules
         const rules = [...Array(365 * 2).keys()].map(n => n + 1).map(n => {
             return {
-                Status: 'Enabled',
+                Status: 'Enabled' as const,
                 Expiration: {Days: n},
                 Filter: {Tag: {Key: 'stello-lifespan', Value: `${n}`}},
             }
@@ -424,7 +424,7 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
         // Function config that can be used in a create or update request
         const fn_config = {
             FunctionName: this._lambda_id,
-            Runtime: 'python3.13',
+            Runtime: 'python3.13' as Runtime,
             Role: await this._get_lambda_role_arn(),
             Handler: 'responder.entry',
             Timeout: 5,
