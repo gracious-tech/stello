@@ -123,5 +123,8 @@ jobs:
                     APPLE_ID: ${{ secrets.APPLE_ID_EMAIL }}
                     APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
                     APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+            -   if: github.event.inputs.run_tests != 'false' && runner.os == 'Linux'
+                # Disable apparmor so doesn't prevent Electron launching
+                run: echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
             -   if: github.event.inputs.run_tests != 'false'
                 run: .bin/audit_e2e_electron
