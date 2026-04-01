@@ -21,11 +21,7 @@ mkdir dist_compressed
 cp --archive dist/index.html dist/displayer dist_compressed
 gzip -r --best dist_compressed
 # Remove the .gz extension that was added to all files
-python3 -c '
-from pathlib import Path
-for file in Path().glob("dist_compressed/**/*.gz"):
-    file.rename(file.parent / file.stem)
-'
+find dist_compressed -name '*.gz' -exec bash -c 'mv "$1" "${1%.gz}"' _ {} \;
 
 # Place tar'd copy in app component
 cd dist_compressed
