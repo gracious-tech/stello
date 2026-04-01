@@ -23,8 +23,11 @@ cp -Rp src dist
 echo "{\"rollbar_electron\": \"$ROLLBAR_ELECTRON\", \"hosted_api\": \"$HOSTED_API\"}" > dist/config.json
 
 
-# Build main and preload scripts
+# Build with ESM
 ./node_modules/.bin/esbuild dist/*.ts dist/**/*.ts --platform=node --format=esm --sourcemap --outdir=dist
+
+# Rebuild just preload.js as CJS as Electron doesn't allow ESM for preload script
+./node_modules/.bin/esbuild dist/preload.ts --platform=node --format=cjs --sourcemap --outdir=dist
 
 
 # Rm typescript files

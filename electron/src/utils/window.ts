@@ -1,8 +1,8 @@
 
 import {app, BrowserWindow, session, shell, screen} from 'electron'
 
-import store from './store'
-import {get_path, TESTING, CONFIG} from './config'
+import store from './store.js'
+import {get_path, TESTING, CONFIG} from './config.js'
 
 
 export async function activate_app(){

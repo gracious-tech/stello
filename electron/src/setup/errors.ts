@@ -4,7 +4,7 @@ import path from 'path'
 import Rollbar from 'rollbar'
 import {app} from 'electron'
 
-import {CONFIG, get_path} from '../utils/config'
+import {CONFIG, get_path} from '../utils/config.js'
 
 
 // Report errors to Rollbar in production

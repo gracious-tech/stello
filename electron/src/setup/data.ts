@@ -5,9 +5,9 @@ import {tmpdir} from 'node:os'
 
 import {app} from 'electron'
 
-import {files_dir, data_dir, files_dir_missing} from '../utils/paths'
-import {write_immobile_config} from '../utils/immobile_config'
-import {write_warning_file} from '../utils/warning'
+import {files_dir, data_dir, files_dir_missing} from '../utils/paths.js'
+import {write_immobile_config} from '../utils/immobile_config.js'
+import {write_warning_file} from '../utils/warning.js'
 
 
 // If files dir is missing, prevent creating Stello Files as will relaunch

@@ -4,7 +4,7 @@ import {existsSync, readFileSync} from 'original-fs'
 
 import {app} from 'electron'
 
-import {read_immobile_config} from './immobile_config'
+import {read_immobile_config} from './immobile_config.js'
 
 
 // Detect if a deb/rpm package (AppImage not considered a package in this case)

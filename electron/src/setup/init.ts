@@ -6,7 +6,7 @@ import {promises as fs} from 'original-fs'
 import semver from 'semver'
 import {app, dialog} from 'electron'
 
-import store from '../utils/store'
+import store from '../utils/store.js'
 
 
 // Prevent loading data from a previous version as Chrome will purge the whole db!

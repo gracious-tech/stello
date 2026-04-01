@@ -2,26 +2,26 @@
 
 // Trigger setup steps
 // WARN Order matters
-import './setup/errors'
-import './setup/data'  // WARN Must happen before all other imports which will rely on path set
-import './setup/init'
-import './setup/menus'
-import './setup/oauths'
-import './setup/services'
-import './setup/services_smtp'
+import './setup/errors.js'
+import './setup/data.js'  // WARN Must happen before all other imports which will rely on path set
+import './setup/init.js'
+import './setup/menus.js'
+import './setup/oauths.js'
+import './setup/services.js'
+import './setup/services_smtp.js'
 
 // WARN Electron overrides `fs` module with magic for asar files, which breaks `access()` test
 import {promises as fs, constants as fs_constants, existsSync} from 'original-fs'
 import {join} from 'node:path'
 
 import {app, BrowserWindow, dialog, Notification, session} from 'electron'
-import {autoUpdater} from 'electron-updater'
+import autoUpdater from 'electron-updater'
 
-import {get_path, TESTING} from './utils/config'
-import {activate_app, open_window} from './utils/window'
-import {app_path, files_dir_missing, linux_package_type} from './utils/paths'
-import {get_free_space} from './utils/misc'
-import {locate_files_dir} from './utils/dialogs'
+import {get_path, TESTING} from './utils/config.js'
+import {activate_app, open_window} from './utils/window.js'
+import {app_path, files_dir_missing, linux_package_type} from './utils/paths.js'
+import {get_free_space} from './utils/misc.js'
+import {locate_files_dir} from './utils/dialogs.js'
 
 
 // Milliseconds for one day (used for intervals)

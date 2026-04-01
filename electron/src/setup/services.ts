@@ -4,10 +4,10 @@ import {readFileSync, writeFileSync, readdirSync, rmSync, mkdirSync} from 'fs'
 import {promises as dns} from 'dns'
 
 import {app, BrowserWindow, dialog, ipcMain, safeStorage} from 'electron'
-import {autoUpdater} from 'electron-updater'
+import autoUpdater from 'electron-updater'
 
-import {get_path} from '../utils/config'
-import {files_dir, data_dir, restrict_path} from '../utils/paths'
+import {get_path} from '../utils/config.js'
+import {files_dir, data_dir, restrict_path} from '../utils/paths.js'
 
 
 ipcMain.on('get_paths', event => {

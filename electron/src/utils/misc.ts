@@ -1,7 +1,7 @@
 
 import check_disk_space from 'check-disk-space'
 
-import {data_dir} from './paths'
+import {data_dir} from './paths.js'
 
 
 // Get percent of free disk space for drive for data_dir (defaults to 100 if error)

@@ -4,7 +4,7 @@
 
 import {contextBridge, ipcRenderer} from 'electron'
 
-import {EmailSettings, Email, EmailError, NativeInterface} from './native_types'
+import type {EmailSettings, Email, EmailError, NativeInterface} from './native_types'
 
 
 const native_electron:NativeInterface = {

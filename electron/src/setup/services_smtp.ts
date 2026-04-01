@@ -2,8 +2,8 @@
 import {app, ipcMain} from 'electron'
 import nodemailer from 'nodemailer'
 
-import {sleep} from '../utils/async'
-import {Email, EmailSettings, EmailError} from '../native_types'
+import {sleep} from '../utils/async.js'
+import {Email, EmailSettings, EmailError} from '../native_types.js'
 
 
 interface SmtpSettings {

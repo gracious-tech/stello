@@ -5,8 +5,8 @@ import {readFileSync} from 'fs'
 
 import {app} from 'electron'
 
-import {get_path} from '../utils/config'
-import {activate_app} from '../utils/window'
+import {get_path} from '../utils/config.js'
+import {activate_app} from '../utils/window.js'
 
 
 // Load oauth html

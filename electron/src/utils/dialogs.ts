@@ -4,8 +4,8 @@ import {join} from 'node:path'
 
 import {app, dialog} from 'electron'
 
-import {write_immobile_config} from './immobile_config'
-import {readme_filename} from './warning'
+import {write_immobile_config} from './immobile_config.js'
+import {readme_filename} from './warning.js'
 
 
 export function locate_files_dir():void{
