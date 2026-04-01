@@ -14,12 +14,6 @@ import {AppDatabaseConnection, AppDatabaseSchema, VersionChangeTransaction} from
 // Implement self (node does not have by default)
 global.self = global as Window & typeof globalThis
 
-// Some migrations use String.replaceAll
-// @ts-ignore Doesn't need to fully mock
-String.prototype.replaceAll = function(old_val:string, new_val:string){
-    return this.split(old_val).join(new_val)
-}
-
 // Some migrations access app_native
 global.app_native = new NativeBrowser()
 global.app_native.app_file_read = async () => new ArrayBuffer(0)
