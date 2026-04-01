@@ -15,7 +15,8 @@ import {promises as fs, constants as fs_constants, existsSync} from 'original-fs
 import {join} from 'node:path'
 
 import {app, BrowserWindow, dialog, Notification, session} from 'electron'
-import autoUpdater from 'electron-updater'
+import electron_updater from 'electron-updater'
+const {autoUpdater} = electron_updater  // Get around CJS module issue
 
 import {get_path, TESTING} from './utils/config.js'
 import {activate_app, open_window} from './utils/window.js'
