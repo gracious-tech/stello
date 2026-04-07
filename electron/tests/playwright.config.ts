@@ -24,6 +24,8 @@ if (process.platform === 'linux'){
 
 // Common config
 const test_config_common:PlaywrightTestConfig = {
+    // Must run serially — Electron's single-instance lock prevents multiple simultaneous instances
+    workers: 1,
 }
 
 
@@ -98,43 +100,32 @@ const test_interface_electron = test.extend<ElectronTestFixtures, ElectronWorker
 })
 
 
-// Config for running tests via network port (serving app in development)
-const test_config_port:PlaywrightTestConfig = {
+// Config for running tests via unpackaged Electron with dev server (PWDEBUG=1)
+const test_config_electron_dev:PlaywrightTestConfig = {
     ...test_config_common,
     webServer: {
         command: path.join(__dirname, '../../.bin/serve_app'),
         port: 8000,
-        reuseExistingServer: !process.env['CI'],
+        reuseExistingServer: true,
     },
-    projects: [
-        {use: {browserName: 'chromium'}},  // WARN Chance chromium is diff version to Electron
-    ],
 }
-const test_interface_port = test.extend<{gotohash:(path:string)=>Promise<Response|null>}>({
+const test_interface_electron_dev = test_interface_electron.extend<{}, ElectronWorkerFixtures>({
 
-    // Override standard page fixture to auto click through welcome splashes
-    // NOTE Must be same as Electron setup
-    page: async ({page}, run) => {
-        // Listen for JS errors
-        attach_js_error_handler(page)
-        // Click through welcome splashes
-        await page.goto('http://localhost:8000')
-        await page.click('button:has-text("continue")')
-        await page.click('button:has-text("agree")')
-        // Run test
-        await run(page)
-    },
-
-    gotohash: async ({page}, run) => {
-        // Provide just to stay same as electron implementation
-        await run(path => page.goto(path))
-    },
+    // Override electron app fixture to launch unpackaged electron (loads app from localhost:8000)
+    // eslint-disable-next-line no-empty-pattern -- Playwright requires destructuring first arg {}
+    _electron_app: [async ({}, use) => {
+        const electron_app = await electron.launch({
+            executablePath: path.join(__dirname, '../node_modules/.bin/electron'),
+            args: ['--disable-gpu', path.join(__dirname, '..')],
+        })
+        await use(electron_app)
+    }, {scope: 'worker'}],
 
 })
 
 
-// Test via electron app by default, but against dev server if in debug mode
-export default process.env['PWDEBUG'] === '1' ? test_config_port : test_config_electron
+// Test via packaged electron by default, or unpackaged with dev server when PWDEBUG=1
+export default process.env['PWDEBUG'] === '1' ? test_config_electron_dev : test_config_electron
 const test_interface =
-    process.env['PWDEBUG'] === '1' ? test_interface_port : test_interface_electron
+    process.env['PWDEBUG'] === '1' ? test_interface_electron_dev : test_interface_electron
 export {expect, test_interface as test}

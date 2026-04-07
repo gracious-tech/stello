@@ -1,5 +1,5 @@
 #!/bin/bash
-# Run tests for electron
+# Run tests for electron on packaged binaries
 set -e
 cd "$(dirname "$(dirname "$0")")"
 
