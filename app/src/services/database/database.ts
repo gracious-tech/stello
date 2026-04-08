@@ -24,6 +24,7 @@ import {buffer_to_url64} from '../utils/coding'
 import {migrate, migrate_async, DATABASE_VERSION} from './migrations'
 import {get_final_recipients} from '../misc/recipients'
 import {generate_example_data} from './example'
+import {merge_contacts} from './contacts_merge'
 import {HostUser} from '@/services/hosts/types'
 import {get_host_user} from '@/services/hosts/hosts'
 import {HostStorageGeneratedGracious, new_credentials, new_login}
@@ -443,6 +444,11 @@ export class Database {
         reply.id = generate_token()
         await this._conn.add('replies', reply)
         return reply
+    }
+
+    async contacts_merge(primary_id:string, secondary_ids:string[]):Promise<void>{
+        // Merge secondary contacts into primary across all stores
+        await merge_contacts(this._conn, primary_id, secondary_ids)
     }
 
     async generate_example_data(multiplier:number){

@@ -25,12 +25,20 @@ div
         span(v-else-if='search || filter_group' class='text--secondary')
             | {{ contacts_matched.length }} {{ search ? "matched" : "included" }}
         v-spacer
-        app-btn(@click='new_contact' icon='add' fab class='mr-2')
-        app-menu-more
-            v-subheader New contact in...
-            app-list-item(@click='new_contact_stello') Stello
-            app-list-item(v-for='account of accounts' :key='account.id'
-                @click='new_contact_service(account.oauth)') {{ account.display }}
+        //- Special management views replace the add button with a contextual action
+        app-btn(v-if='filter_group_id === "duplicates"' @click='do_selected_merge_duplicates')
+            | Merge duplicates
+        app-btn(v-else-if='filter_group_id === "groupless"' @click='do_selected_join_group'
+                :disabled='!some_selected') Add to a group
+        app-btn(v-else-if='filter_group_id.startsWith("disengaged_")' color='error'
+                @click='do_selected_delete' :disabled='!some_selected') Delete
+        template(v-else)
+            app-btn(@click='new_contact' icon='add' fab class='mr-2')
+            app-menu-more
+                v-subheader New contact in...
+                app-list-item(@click='new_contact_stello') Stello
+                app-list-item(v-for='account of accounts' :key='account.id'
+                    @click='new_contact_service(account.oauth)') {{ account.display }}
 
     div.groups_contacts
 
@@ -206,7 +214,7 @@ export default class extends Vue {
             return this.contacts.filter(
                 item => this.filter_group!.contacts.includes(item.contact.id))
         } else if (this.filter_group_id === 'duplicates'){
-            // Show all contacts that don't have a unique address
+            // Show all contacts that don't have a unique address (first group by address)
             const addresses:Record<string, ContactItem[]> = {}
             for (const item of this.contacts){
                 const address = item.contact.address.trim().toLowerCase()
@@ -216,7 +224,9 @@ export default class extends Vue {
                     addresses[address] = [item]
                 }
             }
-            return Object.values(addresses).filter(items => items.length > 1).flat()
+            // Just show duplicates, sorted by address, and flattened to list of contacts
+            return Object.entries(addresses).filter(([address, items]) => items.length > 1)
+                .sort(([a], [b]) => a.localeCompare(b)).flatMap(([address, items]) => items)
         } else if (this.filter_group_id === 'groupless'){
             // Show contacts that aren't part of any group
             const contacts_with_group = this.groups.map(g => g.contacts).flat()
@@ -872,6 +882,75 @@ export default class extends Vue {
         }
         // Clear selection so user doesn't get confused
         this.clear_selected()
+    }
+
+    async do_selected_merge_duplicates():Promise<void>{
+        // Merge duplicate contacts (selected ones if any, otherwise all)
+
+        // If nothing selected, confirm before merging everything in view
+        if (!this.contacts_selected.length){
+            const confirmed = await this.$store.dispatch('show_dialog', {
+                component: DialogGenericConfirm,
+                props: {
+                    title: "Merge all duplicates?",
+                    text: "Contacts sharing an email address will be merged into one.",
+                    confirm: "Merge all",
+                },
+            }) as true|undefined
+            if (!confirmed){
+                return
+            }
+        }
+
+        // Work with selected contacts, or all currently shown if none selected
+        const to_merge = this.contacts_selected.length
+            ? this.contacts_selected : this.contacts_matched
+
+        // Group contacts by address to identify merge sets
+        const by_address = new Map<string, Contact[]>()
+        for (const item of to_merge){
+            const address = item.contact.address.trim().toLowerCase()
+            if (!address){
+                continue
+            }
+            const group = by_address.get(address) ?? []
+            group.push(item.contact)
+            by_address.set(address, group)
+        }
+
+        // Merge each address group
+        let had_service_secondary = false
+        for (const contacts of by_address.values()){
+            if (contacts.length < 2){
+                continue
+            }
+
+            // Determine primary: prefer service account contacts, then oldest by created date
+            const sorted = contacts.slice().sort((a, b) => {
+                if (!!a.service_account !== !!b.service_account){
+                    return a.service_account ? -1 : 1
+                }
+                return a.created.getTime() - b.created.getTime()
+            })
+            const primary = sorted[0]!
+            const secondaries = sorted.slice(1)
+            await self.app_db.contacts_merge(primary.id, secondaries.map(c => c.id))
+
+            // Track whether any service account contacts were encountered as secondaries
+            if (secondaries.some(c => c.service_account)){
+                had_service_secondary = true
+            }
+        }
+
+        // Reload to reflect the merged state
+        await this.load_contacts()
+
+        // Notify user if any service account contacts couldn't be fully merged
+        if (had_service_secondary){
+            void this.$store.dispatch('show_snackbar',
+                "Some contacts belong to a connected account and couldn't be fully merged"
+                + " — delete them manually")
+        }
     }
 
     async do_selected_new_draft():Promise<void>{
