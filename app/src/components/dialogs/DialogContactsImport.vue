@@ -105,6 +105,8 @@ v-card
             | No contacts detected
 
     v-card-actions
+        p(v-if='deselected_warning' class='text-subtitle-2 warning--text flex-grow-1 pr-4 ma-0')
+            | {{ deselected_warning }}
         app-btn(@click='dismiss') Close
         app-btn(@click='import_selected' :disabled='!some_selected')
             | {{ some_selected ? `Import ${selected.length} of ${contacts.length}` : "Import" }}
@@ -139,7 +141,9 @@ export default class extends Vue {
     csv_column_name:string|null = null
     csv_column_name2:string|null = null
     csv_column_email:string|null = null
-    contacts:{id:string, name:string, email:string, notes:string, include:boolean}[] = []
+    contacts:{id:string, name:string, email:string, notes:string, include:boolean,
+        duplicate:boolean}[] = []
+    existing_emails = new Set<string>()
     progress = false
 
     get selected(){
@@ -162,9 +166,30 @@ export default class extends Vue {
         return this.all_selected ? true : (this.some_selected ? null : false)
     }
 
+    get deselected_warning():string|null{
+        // Warning message when some contacts were auto-deselected on load
+        if (!this.contacts.length)
+            return null
+        const no_email = this.contacts.filter(c => !c.email).length
+        const duplicate = this.contacts.filter(c => c.duplicate).length
+        const parts:string[] = []
+        if (no_email)
+            parts.push(`${no_email} have no email address`)
+        if (duplicate)
+            parts.push(`${duplicate} already exist`)
+        return parts.length ? `${parts.join(' and ')} and were deselected.` : null
+    }
+
     get csv_columns_optional(){
         // Get CSV columns with a null option at the start
         return [{value: null, text: "—"}, ...this.csv_columns]
+    }
+
+    async created(){
+        // Load existing contact emails once for duplicate detection during import
+        const existing = await self.app_db.contacts.list()
+        this.existing_emails = new Set(
+            existing.map(c => c.address.trim().toLowerCase()).filter(Boolean))
     }
 
     @Watch('csv_column_name') watch_column_name(){
@@ -336,8 +361,9 @@ export default class extends Vue {
             const notes = (contact.notes || '').trim()
             // Ensure contacts unique by email (and if no email then by name)
             const id = email || name
-            // Default to only selecting those with email addresses
-            return {id, name, email, notes, include: !!email}
+            // Default to only selecting those with email addresses, excluding existing duplicates
+            const duplicate = this.existing_emails.has(email.toLowerCase())
+            return {id, name, email, notes, duplicate, include: !!email && !duplicate}
         })
 
         // Only accept unique contacts and exclude empty
