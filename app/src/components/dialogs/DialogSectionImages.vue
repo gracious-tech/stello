@@ -25,9 +25,9 @@ v-card
 import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import DialogSectionImagesItem from './assets/DialogSectionImagesItem.vue'
-import {_tmp_normalize_orientation, resize_bitmap, blob_image_size} from '@/services/utils/image'
+import {_tmp_normalize_orientation, resize_image, blob_image_size} from '@/services/utils/image'
 import {generate_token} from '@/services/utils/crypt'
-import {bitmap_to_blob} from '@/services/utils/coding'
+import {canvas_to_blob} from '@/services/utils/coding'
 import {get_clipboard_blobs} from '@/services/utils/misc'
 import {SECTION_IMAGE_WIDTH} from '@/services/misc'
 import {Section} from '@/services/database/sections'
@@ -79,9 +79,9 @@ export default class extends Vue {
         // Handle a blob, resizing and adding if an image, otherwise returning false for failure
 
         // Ensure blob is an image
-        let bitmap:ImageBitmap
+        let canvas:OffscreenCanvas
         try {
-            bitmap = await _tmp_normalize_orientation(blob)  // TODO rm once bug fixed
+            canvas = await _tmp_normalize_orientation(blob)  // TODO rm once bug fixed
         } catch {
             console.warn(`Not an image: ${blob.type}`)
             return false
@@ -89,8 +89,9 @@ export default class extends Vue {
 
         // Resize the image, just to save space, as will resize again when publish message
         // Use double possible published width for both dimensions in case rotate or crop later
-        bitmap = await resize_bitmap(bitmap, SECTION_IMAGE_WIDTH * 2, SECTION_IMAGE_WIDTH * 2)
-        blob = await bitmap_to_blob(bitmap, 'webp', 0.9)  // Almost lossless webp
+        canvas = await resize_image(canvas, SECTION_IMAGE_WIDTH * 2,
+            SECTION_IMAGE_WIDTH * 2)
+        blob = await canvas_to_blob(canvas, 'webp', 0.9)  // Almost lossless webp
 
         // Add to images set
         this.images.push({

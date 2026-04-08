@@ -1,8 +1,14 @@
 
+import Pica from 'pica'
+
 import {canvas_to_blob, bitmap_to_bitcanvas} from './coding'
 
 
-export async function _tmp_normalize_orientation(blob:Blob):Promise<ImageBitmap>{
+// Init globally so can share worker
+const pica_instance = Pica()
+
+
+export async function _tmp_normalize_orientation(blob:Blob):Promise<OffscreenCanvas>{
     // Normalize image orientation by producing new image with standard orientation
     // WARN This is required before using createImageBitmap with images in Chrome
     // See https://bugs.chromium.org/p/chromium/issues/detail?id=1220671#c15
@@ -23,7 +29,7 @@ export async function _tmp_normalize_orientation(blob:Blob):Promise<ImageBitmap>
     // Clear original blob from memory so can be garbage collected
     URL.revokeObjectURL(img.src)
 
-    return canvas.transferToImageBitmap()
+    return canvas
 }
 
 
@@ -39,23 +45,33 @@ export async function blob_image_size(blob:Blob):Promise<{width:number, height:n
 }
 
 
-export async function resize_bitmap(bitmap:ImageBitmap, max_width:number, max_height:number,
-        crop=false):Promise<ImageBitmap>{
-    // Resize/crop an image bitmap, but only if needed
+export interface ResizeCalc {
+    // Calculated crop region and final dimensions for resize_image
+    src:{x:number, y:number, w:number, h:number}
+    final_width:number
+    final_height:number
+}
+
+
+export function _resize_image_calc(src_width:number, src_height:number, max_width:number,
+        max_height:number, crop=false):ResizeCalc|null{
+    // Calculate the crop region and final dimensions for a resize operation
+    // Returns null if no resize/crop is needed
 
     // Determine ratios
-    const actual_ratio = bitmap.width / bitmap.height
+    const actual_ratio = src_width / src_height
     const desired_ratio = max_width / max_height  // Only relevant if cropping
 
-    // If don't need to resize and don't need to crop, just return original
-    if (bitmap.width <= max_width && bitmap.height <= max_height
+    // If don't need to resize and don't need to crop, return null
+    if (src_width <= max_width && src_height <= max_height
             && (!crop || actual_ratio === desired_ratio)){
-        return bitmap
+        return null
     }
 
-    // The args needed for resizing
-    let src_args:[number, number, number, number] = [0, 0, bitmap.width, bitmap.height]
-    const resize_args:ImageBitmapOptions = {resizeQuality: 'high'}
+    // The crop region of the source
+    let src = {x: 0, y: 0, w: src_width, h: src_height}
+    let final_height = max_height
+    let final_width = max_width
 
     // If not cropping or ratio already correct, just need a simple scale down
     if (!crop || actual_ratio === desired_ratio){
@@ -63,9 +79,9 @@ export async function resize_bitmap(bitmap:ImageBitmap, max_width:number, max_he
         // Work out which aspect to set to ensure all dimensions within limits
         const hypothetical_height = max_width / actual_ratio
         if (hypothetical_height > max_height){
-            resize_args.resizeHeight = max_height
+            final_width = max_height * actual_ratio
         } else {
-            resize_args.resizeWidth = max_width
+            final_height = hypothetical_height
         }
 
     } else {
@@ -73,25 +89,51 @@ export async function resize_bitmap(bitmap:ImageBitmap, max_width:number, max_he
         // Crop source and then scale (and work out if cropping the width or the height)
         if (actual_ratio > desired_ratio){
             // Image too wide
-            const pre_scale_width = bitmap.height * desired_ratio
-            const x = (bitmap.width - pre_scale_width) / 2
-            src_args = [x, 0, pre_scale_width, bitmap.height]  // x, y, w, h
+            const pre_scale_width = src_height * desired_ratio
+            const x = (src_width - pre_scale_width) / 2
+            src = {x, y: 0, w: pre_scale_width, h: src_height}
             // Start with height (either original or reduced) and work out new width from there
-            resize_args.resizeHeight = Math.min(max_height, bitmap.height)
-            resize_args.resizeWidth = resize_args.resizeHeight * desired_ratio
+            final_height = Math.min(max_height, src_height)
+            final_width = final_height * desired_ratio
         } else {
             // Image too high
-            const pre_scale_height = bitmap.width / desired_ratio
-            const y = (bitmap.height - pre_scale_height) / 2
-            src_args = [0, y, bitmap.width, pre_scale_height]  // x, y, w, h
+            const pre_scale_height = src_width / desired_ratio
+            const y = (src_height - pre_scale_height) / 2
+            src = {x: 0, y, w: src_width, h: pre_scale_height}
             // Start with width (either original or reduced) and work out new height from there
-            resize_args.resizeWidth = Math.min(max_width, bitmap.width)
-            resize_args.resizeHeight = resize_args.resizeWidth / desired_ratio
+            final_width = Math.min(max_width, src_width)
+            final_height = final_width / desired_ratio
         }
     }
 
-    // Resize
-    return createImageBitmap(bitmap, ...src_args, resize_args)
+    return {src, final_width: Math.round(final_width), final_height: Math.round(final_height)}
+}
+
+
+export async function resize_image(bitcanvas:ImageBitmap|OffscreenCanvas, max_width:number,
+        max_height:number, crop=false):Promise<OffscreenCanvas>{
+    // Resize/crop an image bitmap or canvas, returning a canvas
+
+    // Calculate dimensions, returning original if no resize needed
+    const calc = _resize_image_calc(bitcanvas.width, bitcanvas.height, max_width, max_height, crop)
+    if (!calc){
+        return bitcanvas instanceof OffscreenCanvas ? bitcanvas : bitmap_to_bitcanvas(bitcanvas)
+    }
+
+    // Draw (and crop) the bitmap onto a source canvas
+    const {src, final_width, final_height} = calc
+    const src_canvas = new OffscreenCanvas(src.w, src.h)
+    src_canvas.getContext('2d')!.drawImage(
+        bitcanvas, src.x, src.y, src.w, src.h, 0, 0, src.w, src.h)
+
+    // Resize using pica for high quality Lanczos downscaling
+    // Chrome's resizeQuality is broken and results in pixelation/rough edges
+    // See https://issues.chromium.org/issues/41313833
+    const dst_canvas = new OffscreenCanvas(final_width, final_height)
+    await pica_instance.resize(src_canvas as unknown as HTMLCanvasElement,
+        dst_canvas as unknown as HTMLCanvasElement)
+
+    return dst_canvas
 }
 
 
@@ -133,18 +175,28 @@ export function filter_image(source:OffscreenCanvas|ImageBitmap, filter:string):
 }
 
 
-export async function compress_bitmap(bitmap:ImageBitmap, lossy_format:'jpeg'|'webp'='jpeg',
-        quality=0.9, png_max=50*1024):Promise<Blob>{
-    // Compress bitmap using either PNG (preferred) or lossy if PNG exceeds max size
+export async function canvas_to_blob_smart(canvas:OffscreenCanvas,
+        lossy_format:'jpeg'|'webp'='jpeg', min_quality=0.9, max_size=100*1024):Promise<Blob>{
+    // Compress canvas using highest quality format that is less than max size
     /* NOTE Defaults are optimized for invite images (600x200px)
-        Photos as jpeg q0.8 were 20-50kb, text were 5-15kb
-        Quality now bumped to 0.9 so sizes will be a bit larger
-        But very reasonable to use PNG up to 50kb since jpegs were previously that anyway
+        Previously photos as jpeg q0.8 were 20-50kb, and text images were 5-15kb
+        Jpeg quality now bumped to 0.9 so sizes will be a bit larger
+        But very reasonable to use PNG up to ~50kb since jpegs were previously that anyway
+
+        Detailed photo: 300kb (png), 67kb (jpeg 0.95), 49kb (jpeg 0.90)
+            And looks fine at any of those since no sharp edges
+        Detailed illustration: 96kb (png), 54kb (jpeg 0.95), 42kb (jpeg 0.90)
+            Can get away with jpeg 0.9 but 0.95 better
+        Mostly text: 37kb (png), 18kb (jpeg 0.95), 15kb (jpeg 0.90)
+            Needs at least 0.95 jpeg
     */
-    const bitcanvas = bitmap_to_bitcanvas(bitmap)  // bitmap_to_blob uses canvas anyway, save mem
-    const png = await canvas_to_blob(bitcanvas, 'png')
-    if (png.size <= png_max){
-        return png
+    let blob = await canvas_to_blob(canvas, 'png')
+    if (blob.size <= max_size){
+        return blob
     }
-    return canvas_to_blob(bitcanvas, lossy_format, quality)
+    blob = await canvas_to_blob(canvas, lossy_format, 0.95)
+    if (blob.size <= max_size){
+        return blob
+    }
+    return canvas_to_blob(canvas, lossy_format, min_quality)
 }

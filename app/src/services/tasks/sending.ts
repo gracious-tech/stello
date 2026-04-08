@@ -8,8 +8,8 @@ import {Profile} from '../database/profiles'
 import {MessageCopy} from '../database/copies'
 import {concurrent} from '@/services/utils/async'
 import {email_address_like} from '@/services/utils/misc'
-import {resize_bitmap, blob_image_size} from '@/services/utils/image'
-import {bitmap_to_bitcanvas, blob_to_bitmap, canvas_to_blob, buffer_to_url64, string_to_utf8}
+import {resize_image, blob_image_size} from '@/services/utils/image'
+import {blob_to_bitmap, canvas_to_blob, buffer_to_url64, string_to_utf8}
     from '../utils/coding'
 import {encrypt_sym, export_key, generate_token} from '../utils/crypt'
 import {SECTION_IMAGE_WIDTH} from '../misc'
@@ -615,9 +615,8 @@ async function process_image(pub_assets:PublishedAsset[], id:string, image:Blob,
     // Compress image and add to pub_assets
 
     // Resize the image
-    let bitmap = await blob_to_bitmap(image)
-    bitmap = await resize_bitmap(bitmap, max_width, max_height, crop)
-    const bitcanvas = bitmap_to_bitcanvas(bitmap)  // bitmap_to_blob uses canvas anyway, save mem
+    const bitmap = await blob_to_bitmap(image)
+    const bitcanvas = await resize_image(bitmap, max_width, max_height, crop)
 
     // Add assets
     // NOTE Not using PNG as image size is large (1400px) so PNG will always be far larger than webp

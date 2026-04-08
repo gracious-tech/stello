@@ -40,9 +40,10 @@ v-card
 
 import {Component, Vue, Prop} from 'vue-property-decorator'
 
-import {bitmap_to_blob, blob_to_bitmap} from '@/services/utils/coding'
+import {canvas_to_blob, blob_to_bitmap} from '@/services/utils/coding'
 import {get_clipboard_blobs} from '@/services/utils/misc'
-import {_tmp_normalize_orientation, resize_bitmap, compress_bitmap} from '@/services/utils/image'
+import {_tmp_normalize_orientation, resize_image, canvas_to_blob_smart}
+    from '@/services/utils/image'
 
 
 @Component({})
@@ -90,7 +91,7 @@ export default class extends Vue {
         // Ensure is an image
         try {
             // Just store as png as will compress more before save anyway
-            this.image = await bitmap_to_blob(await _tmp_normalize_orientation(blob), 'png')
+            this.image = await canvas_to_blob(await _tmp_normalize_orientation(blob), 'png')
         } catch {
             console.warn(`Not an image: ${blob.type}`)
             return false
@@ -124,14 +125,14 @@ export default class extends Vue {
     async done(){
         // Crop and resize based on the user's preference
         // WARN Never trust user crop as they can rotate image to again ruin aspect ratio
-        let bitmap = await blob_to_bitmap(this.image!)
-        bitmap = await resize_bitmap(bitmap, this.width, this.height, this.crop)
+        const bitmap = await blob_to_bitmap(this.image!)
+        const canvas = await resize_image(bitmap, this.width, this.height, this.crop)
 
         // Selectively compress as png/jpeg for invite images, otherwise almost lossless webp
         // This is the final format for invite images since they can't be altered once added
         const blob = this.invite
-            ? await compress_bitmap(bitmap)
-            : await bitmap_to_blob(bitmap, 'webp', 0.9)
+            ? await canvas_to_blob_smart(canvas)
+            : await canvas_to_blob(canvas, 'webp', 0.9)
         this.$emit('close', blob)
     }
 
