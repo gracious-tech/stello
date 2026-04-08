@@ -14,6 +14,9 @@ div
         div #[strong Stello Files location:] {{ files_dir }}
         div #[strong Internal Data location:] {{ data_dir }}
 
+    v-alert(type='warning' text class='mt-4')
+        | Do not move the "Stello Files" folder while Stello is running.
+
     h1(class='text-h6 mt-8 mb-2') Auto-export
     p(class='text-body-2') You can automatically export contacts and messages to files that can
         |  be read by any software. If anything happens to Stello, this ensures you still have a
