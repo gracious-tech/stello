@@ -90,7 +90,7 @@ export default class extends Vue {
         },
         {
             title: "Reduced storage use",
-            desc: "Stello now internally uses for efficient storage to save you disk space",
+            desc: "Stello now internally uses more efficient storage to save you disk space",
         },
     ]
     todo = [
