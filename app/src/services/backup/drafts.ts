@@ -186,8 +186,15 @@ async function inner_section_to_html(section:Section):Promise<string>{
     } else if (section.content.type === 'images'){
         let html = ''
         for (const image of section.content.images){
+            // Try to read the blob file
+            let image_blob:Blob
+            try {
+                image_blob = await blobstore_read(image.data)
+            } catch {
+                console.error(`Skipped unreadable image for section ${section.id}`)
+                continue
+            }
             // Ensure images are webp as file will be large if not
-            let image_blob = await blobstore_read(image.data)
             if (image_blob.type !== 'image/webp'){
                 image_blob = await canvas_to_blob(await blob_to_bitcanvas(image_blob), 'webp')
             }
