@@ -72,8 +72,20 @@ export default class extends Vue {
 
     added = [
         {
-            title: "Identify contacts not part of any group",
-            desc: `A new "No group" list is available in the contacts page`,
+            title: "Backup to Google Drive",
+            desc: "Optionally store an encrypted backup in your Google Account",
+        },
+        {
+            title: "More reliable transfer and recovery",
+            desc: "Issues related to transferring data to new computers have been resolved",
+        },
+        {
+            title: "Better header images",
+            desc: "Header images in emails are now higher quality (re-add yours to update it)",
+        },
+        {
+            title: "Reduced storage use",
+            desc: "Stello now internally uses for efficient storage to save you disk space",
         },
     ]
     todo = [
