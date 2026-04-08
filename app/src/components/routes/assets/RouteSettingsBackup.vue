@@ -2,7 +2,7 @@
 <template lang='pug'>
 
 div
-    h1(class='text-h6 mb-4') Backup
+    h1(class='text-h5 mb-4') Backup
     p(class='text-body-2') Stello uses a database that can lose data if your harddrive becomes full. To mitigate this risk, it will automatically backup the latest copy of your contacts and messages into the "Stello Files" folder. This is kept offline and exists on your device only. You should still regularly backup your whole computer yourself as data cannot be recovered from Stello sending accounts.
     v-radio-group(v-model='backups' row label="Auto-backup:")
         v-radio(label="None" value='none' color='accent')
@@ -25,8 +25,6 @@ div
                 app-btn(@click='open_cloudbackup_dialog') Change Settings
                 app-btn(@click='disable_cloudbackup') Disable
 
-    hr(class='mt-16')
-
     h1(class='text-h6 my-4') Restore from backup
     p(class='text-body-2')
         | Stello automatically backs up its database, which you can restore from the backups
@@ -43,7 +41,7 @@ div
 
     hr(class='mt-16')
 
-    h1(class='text-h6 mb-4') Export Data
+    h1(class='text-h5 mb-4') Export Data
     p(class='text-body-2') You can export all your contacts and messages so you can switch to a different newsletter system, or simply view them outside of Stello.
     div(class='mb-4')
         app-btn(@click='export_contacts' :disabled='export_ing') Export Contacts

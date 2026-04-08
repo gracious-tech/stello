@@ -2,7 +2,7 @@
 <template lang='pug'>
 
 div(class='my-6')
-    h1(class='text-h6') Sending Accounts
+    h1(class='text-h5 mb-2') Sending Accounts
     p(class='body-2 text--secondary')
         | Create multiple accounts to distinguish between different newsletters, identities,
         | languages, etc.

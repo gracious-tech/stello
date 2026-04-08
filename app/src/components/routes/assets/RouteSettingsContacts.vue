@@ -2,7 +2,7 @@
 <template lang='pug'>
 
 div(class='my-6')
-    h1(class='text-h6') Contact Syncing
+    h1(class='text-h5 mb-2') Contact Syncing
     p(class='body-2 text--secondary') Accounts that support ongoing syncing of contacts
 
     v-list
