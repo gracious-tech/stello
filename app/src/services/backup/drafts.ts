@@ -9,7 +9,7 @@ import {escape_for_html, sanitize_filename} from '@/services/utils/strings'
 import {section_classes, floatify_rows} from '@/shared/shared_functions'
 import {gen_theme_style_props} from '@/shared/shared_theme'
 import {gen_variable_items, update_template_values} from '@/services/misc/templates'
-import {blobstore_read} from '@/services/database/blobstore'
+import {blobstore_read_null} from '@/services/database/blobstore'
 import SharedChart from '@/shared/SharedChart.vue'
 
 import type {Section} from '@/services/database/sections'
@@ -187,10 +187,8 @@ async function inner_section_to_html(section:Section):Promise<string>{
         let html = ''
         for (const image of section.content.images){
             // Try to read the blob file
-            let image_blob:Blob
-            try {
-                image_blob = await blobstore_read(image.data)
-            } catch {
+            let image_blob = await blobstore_read_null(image.data)
+            if (!image_blob){
                 console.error(`Skipped unreadable image for section ${section.id}`)
                 continue
             }
