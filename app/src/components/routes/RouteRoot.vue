@@ -82,6 +82,10 @@ export default class extends Vue {
             desc: "Issues related to transferring data to new computers have been resolved",
         },
         {
+            title: "Merge duplicate contacts",
+            desc: "Contacts with the same email address can be automatically merged",
+        },
+        {
             title: "Better header images",
             desc: "Header images in emails are now higher quality (re-add yours to update it)",
         },
