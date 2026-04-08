@@ -8,6 +8,7 @@ import {Database} from './database'
 import {generate_token} from '../utils/crypt'
 import {Draft} from './drafts'
 import {external_encrypt} from '@/services/misc/external_crypt'
+import {bitmap_to_blob, blob_to_bitmap} from '../utils/coding'
 import {default_invite_image, blobstore_new} from './blobstore'
 
 
@@ -82,8 +83,9 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
     })
     await db.sections.set(section_text)
 
-    // Create a image section
-    const image_blob = await default_invite_image()
+    // Create an image section (convert to webp like the editor does)
+    const image_blob = await bitmap_to_blob(await blob_to_bitmap(await default_invite_image()),
+        'webp', 0.9)
     const section_image = await db.sections.create_object({
         type: 'images',
         images: [{
@@ -126,7 +128,7 @@ export async function generate_example_data(db:Database, multiplier:number):Prom
     const section_files = await db.sections.create_object({
         type: 'files',
         label: "Download example image",
-        files: [{data: await blobstore_new(image_blob), name: "Example image", ext: '.jpg'}],
+        files: [{data: await blobstore_new(image_blob), name: "Example image", ext: '.webp'}],
     })
     await db.sections.set(section_files)
 
