@@ -35,15 +35,20 @@ function attach_js_error_handler(page:Page){
     // Log js messages via node, and fail if any are errors
     page.on('console', msg => {
         if (msg.type() === 'error' || msg.type() === 'warning'){
-            console.error(msg.text())
-            throw ''  // Msg not in actual throw as throw doesn't get colored as error text
+            const text = msg.text()
+            // Ignore Playwright-internal CDP errors for Autofill commands unsupported by Electron
+            if (text.startsWith('Request Autofill.')){
+                return
+            }
+            console.error(text)
+            throw 'Test failed due to JS console error/warning (see above)'
         }
     })
 
     // Fail if any unhandled exceptions occur
     page.on('pageerror', error => {
         console.error(`${error.name}: ${error.message}\n${error.stack ?? ''}`)
-        throw ''  // Msg not in actual throw as throw doesn't get colored as error text
+        throw 'Test failed due to JS pageerror (see above)'
     })
 }
 
@@ -62,7 +67,6 @@ const test_interface_electron = test.extend<ElectronTestFixtures, ElectronWorker
         // Start the electron app
         const electron_app = await electron.launch({
             executablePath: path.join(__dirname, binary_path),
-            // TODO Use xvfb-run to run headless on Linux
         })
 
         // Provide access to app in tests
@@ -100,7 +104,7 @@ const test_interface_electron = test.extend<ElectronTestFixtures, ElectronWorker
 })
 
 
-// Config for running tests via unpackaged Electron with dev server (PWDEBUG=1)
+// Config for running tests via unpackaged Electron with dev server (DEV=1)
 const test_config_electron_dev:PlaywrightTestConfig = {
     ...test_config_common,
     webServer: {
@@ -116,7 +120,7 @@ const test_interface_electron_dev = test_interface_electron.extend<{}, ElectronW
     _electron_app: [async ({}, use) => {
         const electron_app = await electron.launch({
             executablePath: path.join(__dirname, '../node_modules/.bin/electron'),
-            args: ['--disable-gpu', path.join(__dirname, '..')],
+            args: ['--disable-gpu', '--ozone-platform=wayland', path.join(__dirname, '..')],
         })
         await use(electron_app)
     }, {scope: 'worker'}],
@@ -124,8 +128,8 @@ const test_interface_electron_dev = test_interface_electron.extend<{}, ElectronW
 })
 
 
-// Test via packaged electron by default, or unpackaged with dev server when PWDEBUG=1
-export default process.env['PWDEBUG'] === '1' ? test_config_electron_dev : test_config_electron
+// Test via packaged electron by default, or unpackaged with dev server when DEV=1
+export default process.env['DEV'] === '1' ? test_config_electron_dev : test_config_electron
 const test_interface =
-    process.env['PWDEBUG'] === '1' ? test_interface_electron_dev : test_interface_electron
+    process.env['DEV'] === '1' ? test_interface_electron_dev : test_interface_electron
 export {expect, test_interface as test}

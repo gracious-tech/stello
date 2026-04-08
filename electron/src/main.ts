@@ -33,7 +33,9 @@ const one_day_ms = 1000 * 60 * 60 * 24
 void app.whenReady().then(async () => {
 
     // Load vue dev tools extension if available (must load before page does)
-    if (!app.isPackaged){
+    // Skip when testing as extension uses defaultSession but tests use a partitioned session,
+    // causing cross-session messaging errors ("Ignoring unauthorized client request from null")
+    if (!app.isPackaged && !TESTING){
         const vue_ext_path = get_path('../.chrome_ext_vue')
         try {
             await fs.access(vue_ext_path)  // Throw when missing, as below just blocks with no throw

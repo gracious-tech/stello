@@ -80,11 +80,8 @@ export async function open_window(){
         window.setMenuBarVisibility(false)
     }
 
-    // Env specific
-    if (app.isPackaged){
-        // Production
-    } else {
-        // Development
+    // Open DevTools in development (skip when testing as it confuses Playwright's firstWindow())
+    if (!app.isPackaged && !TESTING){
         window.webContents.openDevTools()
     }
 

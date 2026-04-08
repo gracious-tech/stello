@@ -8,7 +8,7 @@ v-card
     v-card-text
 
         v-list
-            v-list-item(v-for='file of files' dense)
+            v-list-item(v-for='(file, i) of files' :key='i' dense)
                 v-list-item-content
                     app-text.name(v-model='file.name' outlined dense)
                 v-list-item-action(class='ml-4')
@@ -29,7 +29,7 @@ v-card
             div
                 strong These files would exceed the {{ limit_mb }} limit
             v-list
-                v-list-item(v-for='file of exceeded_limit' dense)
+                v-list-item(v-for='(file, i) of exceeded_limit' :key='i' dense)
                     v-list-item-content
                         v-list-item-title {{ file.filename }}
                     v-list-item-action
