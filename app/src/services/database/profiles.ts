@@ -3,7 +3,7 @@ import {cloneDeep} from 'lodash'
 
 import {AppDatabaseConnection, RecordProfile, RecordProfileHost, RecordProfileSmtp,
     RecordProfileOptions, RecordProfileHostState} from './types'
-import {blobstore_new, blobstore_read, blobstore_remove} from './blobstore'
+import {blobstore_new, blobstore_read_null, blobstore_remove} from './blobstore'
 import {generate_token, generate_key_asym, generate_key_sym} from '@/services/utils/crypt'
 import {buffer_to_url64} from '@/services/utils/coding'
 import {OAUTH_SUPPORTED} from '@/services/tasks/oauth'
@@ -408,10 +408,10 @@ export class DatabaseProfiles {
         copy.msg_options_security = cloneDeep(original.msg_options_security)
 
         // Copy blob files so original and copy each have independent file ownership
-        copy.msg_options_identity.invite_image =
-            await blobstore_new(await blobstore_read(original.msg_options_identity.invite_image))
-        copy.options.reply_invite_image =
-            await blobstore_new(await blobstore_read(original.options.reply_invite_image))
+        copy.msg_options_identity.invite_image = await blobstore_new(
+            await blobstore_read_null(original.msg_options_identity.invite_image))
+        copy.options.reply_invite_image = await blobstore_new(
+            await blobstore_read_null(original.options.reply_invite_image))
 
         // Save the copy to the database and return
         await this.set(copy)

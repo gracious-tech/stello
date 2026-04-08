@@ -49,6 +49,18 @@ export async function blobstore_read(ref:string|Blob|null):Promise<Blob|null>{
 }
 
 
+export async function blobstore_read_null(ref:string|Blob|null):Promise<Blob|null>{
+    // Load a blob and fallback on null if can't load it
+    try {
+        return await blobstore_read(ref)
+    } catch (error){
+        if (error instanceof MustRestore)
+            return null
+        throw error
+    }
+}
+
+
 export async function blobstore_read_image(ref:string|Blob):Promise<Blob>
 export async function blobstore_read_image(ref:string|Blob|null):Promise<Blob|null>
 export async function blobstore_read_image(ref:string|Blob|null):Promise<Blob|null>{
