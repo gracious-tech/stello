@@ -9,7 +9,8 @@ div.dialog-section-images-item(class='my-5')
 
         div(class='flex d-flex justify-center')
             image-edit-bar.bar(v-if='blob' :blob='blob' @changed='image_edited')
-                shared-hero.hero(v-if='section.is_hero' ref='hero' :image='item'
+                shared-hero.hero(v-if='section.is_hero' ref='hero'
+                    :image='{data: blob, caption: item.caption}'
                     :theme_style='theme_style' :first='false' :class='`style-${theme_style}`'
                     :style='theme_style_props' class='stello-displayer-styles')
                 img.img(v-else ref='img' :src='img_src' :class='{multiple, crop}')
