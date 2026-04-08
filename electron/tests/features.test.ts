@@ -6,7 +6,7 @@ import {test, expect} from './playwright.config.js'
 
 // UTILS
 
-interface StelloWindow extends Window {
+interface StelloWindow {
     // Subset of the Vuex store exposed by the Stello app on window
     app_store:{commit(mutation:string, payload:unknown):void}
 }
@@ -15,7 +15,7 @@ async function set_store(page:Page, key:string,
         value:string|number|boolean|null, tmp=false):Promise<void>{
     // Set a value in the Vuex store from outside the app (via Playwright page.evaluate)
     await page.evaluate(
-        ([k, v, t]) => (window as unknown as StelloWindow).app_store.commit(
+        ([k, v, t]) => (globalThis as unknown as StelloWindow).app_store.commit(
             t ? 'tmp_set' : 'dict_set', [k, v],
         ),
         [key, value, tmp] as [string, string|number|boolean|null, boolean],
