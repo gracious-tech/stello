@@ -40,6 +40,7 @@ export async function get_initial_state(db:Database):Promise<AppStoreState>{
         show_blobstore_migrate: true,  // Set to false in init.ts for new users after v1.8.3
         show_cloudbackup_suggest: true,
         dismissed_dbids: [],
+        dismissed_features: '',
 
         // Tmp
         tmp: {

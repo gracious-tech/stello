@@ -34,6 +34,7 @@ export interface AppStoreState {
     show_blobstore_migrate:boolean
     show_cloudbackup_suggest:boolean
     dismissed_dbids:string[]
+    dismissed_features:string  // App version
 
     // Tmp
     tmp:{

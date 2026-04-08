@@ -18,7 +18,7 @@ div
 
         img.decor(src='@/assets/decor/welcome.svg')
 
-        v-card(class='pa-4')
+        v-card(v-if='show_features' class='pa-4')
             v-card-title(class='justify-center') New features
             v-list
                 v-subheader Recently added
@@ -37,14 +37,16 @@ div
                             v-list-item-subtitle {{ feature.desc }}
                         v-list-item-icon
                             app-svg(name='icon_pending' color='#fa5788')
-            v-divider
             div(class='text-center my-6')
-                p(class='text-body-2')
-                    | Every feature added to Stello is made free for everyone.
-                    | Help fund more features that we can all benefit from.
-                div(class='my-3')
-                    app-btn(href='https://gracious.tech/donate' color='#fa5788' raised small)
-                        | Donate
+                    app-btn(@click='dismiss_features')
+                        | Dismiss
+
+        div(class='text-center my-6')
+            p(class='text-body-2')
+                | Stello is a free open-source app by Gracious Tech,<br>
+                |  made possible by our generous supporters.
+            app-btn(href='https://gracious.tech/donate' color='#fa5788' raised small)
+                | Learn More
 
         div(class='mt-15 text-body-2 opacity-secondary text-center') Version {{ version }}
 
@@ -93,6 +95,16 @@ export default class extends Vue {
 
     get version(){
         return app_config.version
+    }
+
+    get show_features(){
+        // Show if the user hasn't dismissed for this version yet
+        return self.app_store.state.dismissed_features !== app_config.version
+    }
+
+    dismiss_features(){
+        // Persist the current version as dismissed so the card won't show again until next update
+        self.app_store.commit('dict_set', ['dismissed_features', app_config.version])
     }
 
 }
