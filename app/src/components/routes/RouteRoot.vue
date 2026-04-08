@@ -21,7 +21,6 @@ div
         v-card(v-if='show_features' class='pa-4')
             v-card-title(class='justify-center') New features
             v-list
-                v-subheader Recently added
                 v-list-item(v-for='feature of added' :key='feature.title')
                     v-list-item-content
                         v-list-item-title {{ feature.title }}
