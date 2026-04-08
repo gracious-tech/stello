@@ -10,19 +10,24 @@ div
         li #[strong(class='warning--text') If you lose your computer, you lose all your data.]
     p For this reason, you should ensure you have your own system for backing up your computer, or enable backups to Google Drive.
 
-    div(class='caption opacity-secondary')
+    div(class='caption opacity-secondary ml-6')
         div #[strong Stello Files location:] {{ files_dir }}
         div #[strong Internal Data location:] {{ data_dir }}
 
     h1(class='text-h6 mt-8 mb-2') Auto-export
-    p(class='text-body-2') You can automatically export contacts and messages to files that can be read by any software. If anything happens to Stello, this ensures you still have a record of everything.<br>(Stello will always backup its own database, even if auto-export is disabled.)
+    p(class='text-body-2') You can automatically export contacts and messages to files that can
+        |  be read by any software. If anything happens to Stello, this ensures you still have a
+        |  record of everything.
+        br
+        |  (Stello will always backup its own database, even if auto-export is disabled.)
     v-radio-group(v-model='backups' row label="Auto-export:")
         v-radio(label="None" value='none' color='accent')
         v-radio(label="Contacts" value='contacts' color='accent')
         v-radio(label="Contacts & Messages" value='all' color='accent')
 
     h1(class='text-h6 mt-8 mb-2') Backup to Google Drive
-    p(class='text-body-2') Stello can periodically save its database and files to Google Drive. If you add a password, the backup will be end-to-end encrypted and unreadable by Google.
+    p(class='text-body-2') Stello can periodically save its database and files to Google Drive.
+        |  If you add a password, the backup will be end-to-end encrypted and unreadable by Google.
     div(class='mt-4')
         template(v-if='!cloudbackup_oauth')
             app-btn(@click='open_cloudbackup_dialog') Backup to Google Drive
@@ -41,8 +46,8 @@ div
     p(class='text-body-2')
         | Stello automatically backs up its database, which you can restore from the backups
         |  folder at:
-        br
-        | "Stello Files/Backups [...]/database.json".
+    div(class='opacity-secondary ml-6 mb-4')
+        | Stello Files{{ sep }}Backups [...]{{ sep }}database.json
     div(class='mb-4')
         app-file(@input='import_db' accept='.json' :disabled='import_ing') Import Database
         app-btn(@click='open_restore_dialog') Restore from Google Drive
@@ -54,7 +59,8 @@ div
     hr(class='mt-16')
 
     h1(class='text-h5 mb-4') Export Data
-    p(class='text-body-2') Do an immediate export of all your contacts and messages so you can switch to a different newsletter system, or simply view them outside of Stello.
+    p(class='text-body-2') Do an immediate export of all your contacts and messages so you can
+        |  switch to a different newsletter system, or simply view them outside of Stello.
     div(class='mb-4')
         app-btn(@click='export_contacts' :disabled='export_ing') Export Contacts
         app-btn(@click='export_messages' :disabled='export_ing') Export Messages
