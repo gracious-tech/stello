@@ -15,7 +15,6 @@ test-results/
 /app/static/displayer.tar
 /app/static/responder_aws.zip
 
-/electron/.chrome_ext_vue/
 /electron/src/app
 /electron/dist/
 /electron/packaged/

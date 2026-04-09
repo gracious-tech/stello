@@ -14,11 +14,11 @@ import './setup/services_smtp.js'
 import {promises as fs, constants as fs_constants, existsSync} from 'original-fs'
 import {join} from 'node:path'
 
-import {app, BrowserWindow, dialog, session} from 'electron'
+import {app, BrowserWindow, dialog} from 'electron'
 import electron_updater from 'electron-updater'
 const {autoUpdater} = electron_updater  // Get around CJS module issue
 
-import {get_path, TESTING} from './utils/config.js'
+import {TESTING} from './utils/config.js'
 import {activate_app, open_window} from './utils/window.js'
 import {app_path, files_dir_missing, linux_package_type} from './utils/paths.js'
 import {get_free_space} from './utils/misc.js'
@@ -31,19 +31,6 @@ const one_day_ms = 1000 * 60 * 60 * 24
 
 // Setup that relies on ready event
 void app.whenReady().then(async () => {
-
-    // Load vue dev tools extension if available (must load before page does)
-    // Skip when testing as extension uses defaultSession but tests use a partitioned session,
-    // causing cross-session messaging errors ("Ignoring unauthorized client request from null")
-    if (!app.isPackaged && !TESTING){
-        const vue_ext_path = get_path('../.chrome_ext_vue')
-        try {
-            await fs.access(vue_ext_path)  // Throw when missing, as below just blocks with no throw
-            await session.defaultSession.loadExtension(vue_ext_path, {allowFileAccess: true})
-        } catch {
-            console.warn(`Failed to load Vue dev tools extension at: ${vue_ext_path}`)
-        }
-    }
 
     // Try to auto-update (if packaging format supports it)
     // NOTE Appx updates are handled by the Windows store and Windows portable can't update at all
