@@ -14,7 +14,7 @@ import './setup/services_smtp.js'
 import {promises as fs, constants as fs_constants, existsSync} from 'original-fs'
 import {join} from 'node:path'
 
-import {app, BrowserWindow, dialog, Notification, session} from 'electron'
+import {app, BrowserWindow, dialog, session} from 'electron'
 import electron_updater from 'electron-updater'
 const {autoUpdater} = electron_updater  // Get around CJS module issue
 
@@ -118,12 +118,11 @@ void app.whenReady().then(async () => {
 
     // Warn if disk space low as Chromium may wipe data if < 2%
     // See https://github.com/electron/electron/issues/41877#issuecomment-2844841416
-    const low_disk_threshold = 2.5
     const disk_space_percent = await get_free_space()
-    if (disk_space_percent < low_disk_threshold){
+    if (disk_space_percent < 2.5){
         const button_i = dialog.showMessageBoxSync({
             title: `Disk space critically low (${disk_space_percent.toFixed(1)}% free)`,
-            message: "Stello may lose its data if you run out of disk space, or get below 2%.",
+            message: "Stello may lose its data if you run out of disk space.",
             type: 'warning',
             buttons: ["CLOSE", "OPEN ANYWAY"],
             defaultId: 0,
@@ -134,17 +133,6 @@ void app.whenReady().then(async () => {
             return  // Avoid brief opening of window (as `app.quit()` is async)
         }
     }
-
-    // Check free disk space every day and notify user if low
-    setInterval(async () => {
-        const latest_percent = await get_free_space()
-        if (latest_percent < low_disk_threshold){
-            new Notification({
-                title: `Disk space critically low (${latest_percent.toFixed(1)}% free)`,
-                body: "Stello may lose its data if you run out of disk space, or get below 2%.",
-            }).show()
-        }
-    }, one_day_ms)
 
     // If files dir is missing, locate and quit so can reset userData path in data.ts
     if (files_dir_missing){
