@@ -7,6 +7,7 @@ import RouteAbout from '@/components/routes/RouteAbout.vue'
 import RouteSettings from '@/components/routes/RouteSettings.vue'
 import RouteProfile from '@/components/routes/RouteProfile.vue'
 import RouteStorage from '@/components/routes/RouteStorage.vue'
+import RouteBackup from '@/components/routes/RouteBackup.vue'
 import RouteInvalid from '@/components/routes/RouteInvalid.vue'
 import RouteContacts from '@/components/routes/RouteContacts.vue'
 import RouteContact from '@/components/routes/RouteContact.vue'
@@ -34,6 +35,7 @@ const routes:RouteConfig[] = [
     {path: '/settings/', component: RouteSettings},
     {path: '/settings/profiles/', redirect: '/settings/'},  // Embedded in RouteSettings
     {path: '/settings/profiles/:profile_id/', component: RouteProfile, name: 'profile', props:true},
+    {path: '/settings/backup/', component: RouteBackup},
     {path: '/settings/storage/', component: RouteStorage},
     {path: '/about/', component: RouteAbout},
     {path: '*', component: RouteInvalid},

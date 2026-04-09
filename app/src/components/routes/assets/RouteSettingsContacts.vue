@@ -3,7 +3,7 @@
 
 div(class='my-6')
     h1(class='text-h5 mb-2') Contact Syncing
-    p(class='body-2 text--secondary') Accounts that support ongoing syncing of contacts
+    p(class='text--secondary') Accounts that support ongoing syncing of contacts
 
     v-list
         route-settings-contacts-item(v-for='oauth of oauths' :key='oauth.id' :oauth='oauth'
