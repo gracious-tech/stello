@@ -118,8 +118,9 @@ void app.whenReady().then(async () => {
 
     // Warn if disk space low as Chromium may wipe data if < 2%
     // See https://github.com/electron/electron/issues/41877#issuecomment-2844841416
+    const low_disk_threshold = 2.5
     const disk_space_percent = await get_free_space()
-    if (disk_space_percent < 2.5){
+    if (disk_space_percent < low_disk_threshold){
         const button_i = dialog.showMessageBoxSync({
             title: `Disk space critically low (${disk_space_percent.toFixed(1)}% free)`,
             message: "Stello may lose its data if you run out of disk space, or get below 2%.",
@@ -137,7 +138,7 @@ void app.whenReady().then(async () => {
     // Check free disk space every day and notify user if low
     setInterval(async () => {
         const latest_percent = await get_free_space()
-        if (latest_percent < 2.5){
+        if (latest_percent < low_disk_threshold){
             new Notification({
                 title: `Disk space critically low (${latest_percent.toFixed(1)}% free)`,
                 body: "Stello may lose its data if you run out of disk space, or get below 2%.",
