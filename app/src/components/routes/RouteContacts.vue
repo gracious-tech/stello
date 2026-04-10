@@ -44,6 +44,8 @@ div
 
         div.groups(v-if='something_added' class='app-bg-primary-relative')
             app-text.search(v-model='search' placeholder="Search...")
+                template(#prepend-inner)
+                    app-svg.search-icon(name='icon_search')
                 template(#append)
                     app-btn(v-if='search' @click='search = ""' icon='close')
             v-list(dense)
@@ -1005,6 +1007,15 @@ $groups_sidebar_width: 250px
                 // Vertically center clear button for search
                 margin-top: 0
                 align-self: center
+            .v-input__prepend-inner
+                // Vertically center search icon
+                margin-top: 0
+                align-self: center
+                margin-right: 8px
+            &.v-input--is-dirty
+                // Hide search icon when field has a value
+                .search-icon
+                    display: none
 
         .v-list
             overflow-y: auto

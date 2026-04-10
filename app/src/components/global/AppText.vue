@@ -11,6 +11,8 @@ v-text-field(
     :spellcheck='spellcheck'
     filled
 )
+    template(v-if='$slots["prepend-inner"]' #prepend-inner)
+        slot(name='prepend-inner')
     template(#append)
         slot(name='append')
         app-security-icon(v-if='security' :msg='security')
