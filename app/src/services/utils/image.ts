@@ -176,7 +176,7 @@ export function filter_image(source:OffscreenCanvas|ImageBitmap, filter:string):
 
 
 export async function canvas_to_blob_smart(canvas:OffscreenCanvas,
-        lossy_format:'jpeg'|'webp'='jpeg', min_quality=0.9, max_size=100*1024):Promise<Blob>{
+        lossy_format:'jpeg'|'webp'='jpeg', min_quality=0.9, max_size=50*1024):Promise<Blob>{
     // Compress canvas using highest quality format that is less than max size
     /* NOTE Defaults are optimized for invite images (600x200px)
         Previously photos as jpeg q0.8 were 20-50kb, and text images were 5-15kb
@@ -189,6 +189,13 @@ export async function canvas_to_blob_smart(canvas:OffscreenCanvas,
             Can get away with jpeg 0.9 but 0.95 better
         Mostly text: 37kb (png), 18kb (jpeg 0.95), 15kb (jpeg 0.90)
             Needs at least 0.95 jpeg
+
+        Testing on gmail after letting gmail cache them
+            30kb -> ~1 second load
+            66kb -> ~2 second load
+
+        Chosen 50kb max_size so most load within 1 second (2 feels too long)
+            and many illustrations will still get a higher quality than 0.9
     */
     let blob = await canvas_to_blob(canvas, 'png')
     if (blob.size <= max_size){
