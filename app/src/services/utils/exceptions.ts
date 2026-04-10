@@ -67,6 +67,11 @@ export class MustRestore extends CustomError {
 }
 
 
+export class MustMakeSpace extends CustomError {
+    // Use for when cloud storage is full and user needs to free up space
+}
+
+
 export class MustInterpret extends CustomError {
     // Use for unknown errors that have data available that could be interpreted
     data:unknown

@@ -6,7 +6,8 @@ import {oauth_request} from './oauth'
 import {import_database} from '../backup/database'
 import {run_database_backup} from '../backup/generic'
 import {encrypt_sym, decrypt_sym, password_to_key, random_buffer} from '../utils/crypt'
-import {MustReauthenticate, MustWait, MustRecover, MustInterpret} from '../utils/exceptions'
+import {MustReauthenticate, MustWait, MustRecover, MustInterpret, MustMakeSpace}
+    from '../utils/exceptions'
 import {buffer_to_base64, base64_to_buffer, string_to_utf8, utf8_to_string} from '../utils/coding'
 
 // NOTE All Drive filenames are prefixed with backup_ to avoid potential future clashes
@@ -62,6 +63,12 @@ async function drive_request_google(oauth:OAuth, path:string, params?:Record<str
     if (resp.status === 401){
         throw new MustReauthenticate()  // Token expired or revoked
     } else if (resp.status === 403){
+        // Check if the error is due to storage quota being exceeded
+        const body_403 = await resp.json() as {error?:{errors?:{reason?:string}[]}}
+        const reason = body_403?.error?.errors?.[0]?.reason
+        if (reason === 'storageQuotaExceeded'){
+            throw new MustMakeSpace()
+        }
         throw new MustReauthenticate()  // Insufficient scope (e.g. Drive permission not granted)
     } else if (resp.status === 404){
         throw new MustRecover()  // File deleted externally

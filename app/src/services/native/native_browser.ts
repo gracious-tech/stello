@@ -22,6 +22,10 @@ export class NativeBrowser implements NativeInterface {
         return []
     }
 
+    async user_file_size_total(path:string):Promise<number>{
+        return 0
+    }
+
     async user_file_read(path:string):Promise<ArrayBuffer>{
         throw new Error('unsupported')
     }

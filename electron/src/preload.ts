@@ -25,6 +25,10 @@ const native_electron:NativeInterface = {
         return ipcRenderer.invoke('user_file_list', path) as Promise<string[]>
     },
 
+    user_file_size_total(path:string){
+        return ipcRenderer.invoke('user_file_size_total', path) as Promise<number>
+    },
+
     user_file_read(path:string){
         return ipcRenderer.invoke('user_file_read', path) as Promise<ArrayBuffer>
     },

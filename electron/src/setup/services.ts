@@ -1,6 +1,6 @@
 
 import path from 'path'
-import {readFileSync, writeFileSync, readdirSync, rmSync, mkdirSync} from 'fs'
+import {readFileSync, writeFileSync, readdirSync, rmSync, mkdirSync, statSync} from 'fs'
 import {promises as dns} from 'dns'
 
 import {app, BrowserWindow, dialog, ipcMain, safeStorage} from 'electron'
@@ -38,6 +38,18 @@ ipcMain.handle('user_file_list', async (event, relative_path:string):Promise<str
         return readdirSync(full_path)
     } catch {
         return []  // Path probably doesn't exist yet
+    }
+})
+
+
+ipcMain.handle('user_file_size_total', async (event, relative_path:string):Promise<number> => {
+    // Get total size in bytes of all files in a dir in the user's files dir
+    const full_path = restrict_path(files_dir, relative_path)
+    try {
+        return readdirSync(full_path)
+            .reduce((sum, name) => sum + statSync(path.join(full_path, name)).size, 0)
+    } catch {
+        return 0  // Path probably doesn't exist yet
     }
 })
 

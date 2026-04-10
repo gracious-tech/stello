@@ -71,6 +71,7 @@ export default class extends Vue {
             settings: "Incorrect settings",
             throttled: "Limit exceeded",
             restore: "Can't read file",
+            storage: "Storage full",
             unknown: "Unexpected error",
         }[this.error_type]
     }
@@ -109,6 +110,9 @@ export default class extends Vue {
             return `A file required by this message is missing and cannot be sent (${path}).`
                 + ` To fix this, restore the file if you moved it or edit the draft to replace the missing`
                 + ` content, then try sending again.`
+        } else if (this.error_type === 'storage'){
+            return "Your Google Drive is full. Free up space in your Google Drive"
+                + " or upgrade your storage plan, then retry."
         }
         return "Something has gone wrong. Let us know so we can prevent it from happening again."
     }

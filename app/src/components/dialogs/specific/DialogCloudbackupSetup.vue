@@ -14,8 +14,10 @@ v-card
             v-radio-group(v-model='level_input' row label="What to backup:")
                 v-radio(label="Everything" value='all' color='accent')
                 v-radio(label="Everything except images/files" value='database' color='accent')
-            v-text-field(v-model='password_input' label='Encryption Password'
-                    type='password' placeholder='(optional)')
+            p(class='accent--text')
+                | Estimated backup size: {{ size_estimate }}
+            app-text(v-model='password_input' label='Encryption password (optional)'
+                type='password')
 
     v-card-actions
         span(v-if='connected && !password_input' class='text-body-2 opacity-secondary')
@@ -46,6 +48,7 @@ export default class extends Vue {
     password_input = ''
     level_input:'database'|'all' = 'all'  // Default to all if null
     loading = false
+    size_total = 0
 
     get state(){
         return this.$store.state as AppStoreState
@@ -53,6 +56,19 @@ export default class extends Vue {
 
     get connected(){
         return !!this.state.storage_oauth
+    }
+
+    get size_estimate():string{
+        // Show estimated backup size based on level and known file sizes
+        const database_mb = 5
+        if (this.level_input === 'database'){
+            return `~${database_mb} MB`
+        }
+        if (!this.size_total){
+            return "Unknown"
+        }
+        const mb = database_mb + Math.ceil(this.size_total / 1000 / 1000)
+        return `~${mb} MB`
     }
 
     get title(){
@@ -68,6 +84,11 @@ export default class extends Vue {
         if (this.state.cloudbackup){
             this.level_input = this.state.cloudbackup
         }
+
+        // Get total size of Internal Files for the size estimate
+        void self.app_native.user_file_size_total('Internal Files').then(size => {
+            this.size_total = size
+        })
 
         // Check if the existing Drive backup belongs to a different database
         const oauth_id = this.state.storage_oauth
