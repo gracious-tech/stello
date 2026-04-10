@@ -9,7 +9,6 @@ div.root(:style='styles.container')
     div.security(class='d-flex align-items-center justify-end warning--text')
         app-svg(name='icon_error')
         span(class='ml-1 noselect') Invitation text never expires
-    hr(:style='styles.hr')
     div(:style='styles.action')
         input.button(ref='button' :value='button' :placeholder='button_default'
             :style='styles.button' @input='button_input')

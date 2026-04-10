@@ -34,9 +34,6 @@ export function gen_invite_styles(hue:number){
             + `background-color: ${bg_color};`,
         // NOTE Some clients (e.g. Thunderbird) don't respect img aspect ratio, so max-height helps
         image: `width: 100%; height: auto; max-height: ${INVITE_IMG_HEIGHT}px; display: block;`,
-        // NOTE hr has border same color as action area so invisible unless old client that needs it
-        hr: `margin: 0; border-style: solid; border-color: ${bg_color};`
-            + `border-width: 1px 0 0 0;`,
         action: `border-radius: 0 0 12px 12px; padding: 36px 0; text-align: center;`
             + `background-color: ${bg_color};`,
         button: `padding: 12px 0; border-radius: 12px; text-decoration: none;`
@@ -71,8 +68,8 @@ export function render_invite_html(contents:string, url:string, image:string, bu
         const unsub_url = `${url},unsub,${encrypted_address}`
         const address_url = `${url},address,${encrypted_address}`
         subscription_links = `
-            <hr style='border-style: none;'>
             <p>&nbsp;</p>
+            <hr style='border-style: none;'>
             <p style='text-align: center; color: #aaaaaa;'>
                 <a href='${html_escape(unsub_url)}' style='color: #aaaaaa;'>
                     <small>Unsubscribe</small></a>
@@ -98,7 +95,7 @@ export function render_invite_html(contents:string, url:string, image:string, bu
                 <div style='padding: 16px;'>
                     ${contents}
                 </div>
-                <hr style='${styles.hr}'>
+                <hr style='border-style: none;'>
                 <div style='${styles.action}'>
                     <a href='${html_escape(url)}' style='${styles.button}'>
                         <span style='mso-text-raise: 20pt;'>&nbsp;</span>
