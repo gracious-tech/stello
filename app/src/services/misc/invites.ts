@@ -22,22 +22,26 @@ export function gen_invite_styles(hue:number){
     // NOTE lightness exact middle to support both light/dark themes
     const bg_color = chroma.hsl(hue, 0.2, 0.5).hex()
     const button_color = chroma.hsl(hue, 0.8, 0.5).hex()
+    const button_border_color = chroma.hsl(hue, 0.5, 0.7).hex()
 
     // WARN Don't use 'em' as SpamAssassin thinks it's hiding words when less than 0 (e.g. 0.8em)
     // See https://github.com/apache/spamassassin/blob/d092a416336117b34ca49ef57be31b8c0b5b0422/rulesrc/sandbox/jhardin/20_misc_testing.cf#L2569
     return {
         container: `border-radius: 12px; max-width: ${INVITE_HTML_MAX_WIDTH}px; margin: 0 auto;`
             + 'background-color: rgba(127, 127, 127, 0.15);',
+        // NOTE Gmail strips border-radius on <img>, so rounding is on the wrapper instead
+        image_wrap: `display: block; border-radius: 12px 12px 0 0; overflow: hidden;`
+            + `background-color: ${bg_color};`,
         // NOTE Some clients (e.g. Thunderbird) don't respect img aspect ratio, so max-height helps
-        image: `border-radius: 12px 12px 0 0; width: 100%; height: auto;`
-            + `background-color: ${bg_color};`
-            + `border-bottom: 1px solid #888888; max-height: ${INVITE_IMG_HEIGHT}px;`,
-        hr: `margin: 0; border-style: solid; border-color: #888888;`
+        image: `width: 100%; height: auto; max-height: ${INVITE_IMG_HEIGHT}px; display: block;`,
+        // NOTE hr has border same color as action area so invisible unless old client that needs it
+        hr: `margin: 0; border-style: solid; border-color: ${bg_color};`
             + `border-width: 1px 0 0 0;`,
         action: `border-radius: 0 0 12px 12px; padding: 36px 0; text-align: center;`
             + `background-color: ${bg_color};`,
         button: `padding: 12px 0; border-radius: 12px; text-decoration: none;`
-            + `font-family: sans-serif; background-color: ${button_color}; color: #ffffff;`,
+            + `font-family: sans-serif; background-color: ${button_color}; color: #ffffff;`
+            + `border: 1px solid ${button_border_color};`,
     }
 }
 
@@ -87,7 +91,7 @@ export function render_invite_html(contents:string, url:string, image:string, bu
         </head>
         <body style='padding-top: 4px; padding-bottom: 150px;'>
             <div style='${styles.container}'>
-                <a href='${html_escape(url)}'>
+                <a href='${html_escape(url)}' style='${styles.image_wrap}'>
                     <img src='${html_escape(image)}' height='${INVITE_IMG_HEIGHT}'
                         width='${INVITE_HTML_MAX_WIDTH}' style='${styles.image}'>
                 </a>
