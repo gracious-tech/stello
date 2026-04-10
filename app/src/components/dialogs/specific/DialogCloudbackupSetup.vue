@@ -44,7 +44,7 @@ export default class extends Vue {
 
     different_db = false
     password_input = ''
-    level_input:'database'|'all' = 'database'  // Default to database if null
+    level_input:'database'|'all' = 'all'  // Default to all if null
     loading = false
 
     get state(){
