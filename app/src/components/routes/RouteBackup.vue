@@ -7,24 +7,16 @@ div
         v-toolbar-title Backups
 
     app-content(class='pa-5 pt-12')
-        p Stello keeps your data on your own computer for your security, in the "Stello Files"
-            |  folder. Please note that sending accounts are for sending messages only
-            |  and cannot be used to recover your data.
-        p #[strong(class='warning--text') So if you lose your computer, you lose all your data.]
-        p For this reason, you should ensure you have your own system for backing up your computer,
-            |  or else enable backups to Google Drive below.
-
-        hr(class='mt-16')
-
-        h1(class='text-h5 mt-8 mb-2') Your own backups
-        p Stello stores all of your data in the following location:
+        p Stello keeps all your data on your own computer in the following folder:
         p(class='opacity-secondary ml-6')
             strong {{ files_dir }}
-        p To backup the data or change computer, you can simply copy this folder.
-        p If you move this folder (while Stello is closed) Stello will ask where you put it,
-            |  allowing you to store it in a custom location (such as an external harddrive).
         v-alert(type='warning' text class='mt-4')
-            | Do not move the "Stello Files" folder while Stello is running.
+            | Do not move this folder while Stello is running.
+        p Please note that sending accounts are for sending messages only
+            |  and cannot be used to recover your data.
+            |  #[strong(class='warning--text') So if you lose your computer, you lose all your data.]
+        p For this reason, you should ensure you have your own system for backing up your computer,
+            |  or else enable backups to Google Drive below.
         v-alert(v-if='data_dir_outside' type='warning' text class='mt-4')
             p Your Internal Data is stored outside the "Stello Files" folder due to starting with an
                 |  older version of Stello.
@@ -34,18 +26,30 @@ div
 
         hr(class='mt-16')
 
+        h1(class='text-h5 mt-8 mb-2') Changing computer
+        p To change to a new computer, you can simply copy this folder and follow the
+            |  instructions in the restore section below:
+        p(class='opacity-secondary ml-6')
+            strong {{ files_dir }}
+        p But it's best to first
+            |  trigger an internal backup of the database. Stello regularly does this automatically,
+            |  but triggering it now will ensure it has all the lastest changes. Stello will be able
+            |  to restore from it if anything goes wrong during the transfer.
+        div(class='text-center')
+            app-btn(@click='backup_db' :loading='backup_db_ing') Run Internal Backup Now
+
+        hr(class='mt-16')
+
         h1(class='text-h5 mt-8 mb-2') Auto-export
-        p You can automatically export contacts and messages to files that can
-            |  be read by any software. These will be stored in a "Backups" folder within "Stello Files". If anything happens to Stello, this ensures you still have a
-            |  record of everything.
-            br
-            |  (Stello will always backup its own database, even if auto-export is disabled.)
+        p You can automatically export contacts and messages to files that can be read by any
+            |  software. These will be stored in a "Backups" folder within "Stello Files".
+            |  If anything happens to Stello, this ensures you still have a record of everything.
         v-radio-group(v-model='backups' row label="Auto-export:")
             v-radio(label="None" value='none' color='accent')
             v-radio(label="Contacts" value='contacts' color='accent')
             v-radio(label="Contacts & Messages" value='all' color='accent')
-        p(class='text--secondary') You may like to disable this to save some disk space if you are
-            |  confident your data is being backed up properly.
+        p(class='text--secondary') Disabling this will save some disk space, but you won't be able
+            |  to access your data without Stello installed.
 
         hr(class='mt-16')
 
@@ -118,6 +122,7 @@ div
 import {Component, Vue, Watch} from 'vue-property-decorator'
 
 import {import_database} from '@/services/backup/database'
+import {run_database_backup} from '@/services/backup/generic'
 import {OAuth} from '@/services/database/oauths'
 import {AppStoreState} from '@/services/store/types'
 import {oauth_revoke_if_obsolete} from '@/services/tasks/oauth'
@@ -134,6 +139,7 @@ export default class extends Vue {
     import_ing = false
     import_success = true
     import_msg = ''
+    backup_db_ing = false
 
     cloudbackup_oauth:OAuth|null = null
 
@@ -206,6 +212,19 @@ export default class extends Vue {
             self.app_report_error(error)
         }
         this.import_ing = false
+    }
+
+    async backup_db(){
+        // Trigger an internal database backup to the Stello Files folder
+        this.backup_db_ing = true
+        try {
+            await run_database_backup()
+            void this.$store.dispatch('show_snackbar', "Database backed up successfully")
+        } catch (error){
+            void this.$store.dispatch('show_snackbar', "Backup failed — please try again")
+            self.app_report_error(error)
+        }
+        this.backup_db_ing = false
     }
 
     backup_now(){
