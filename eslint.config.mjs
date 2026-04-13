@@ -18,7 +18,8 @@ export default [
     // Ignore files listed in .gitignore
     includeIgnoreFile(path.join(__dirname, '.gitignore')),
     // NOTE Avoid linting shared dir twice (lint via displayer since typings work better with Vue 3)
-    {ignores: ['app/src/shared/**/*', 'host/manual/src/utils/**/*', '.private/**']},
+    // NOTE Exclude site/ as it's mostly static content with its own VitePress tsconfig
+    {ignores: ['app/src/shared/**/*', 'host/manual/src/utils/**/*', '.private/**', 'site/**/*']},
 
     // Base recommended rules
     js.configs.recommended,
