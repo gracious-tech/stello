@@ -207,8 +207,8 @@ export async function storage_oauth_setup(task:Task):Promise<void>{
 export async function cloudbackup_sync(task:Task):Promise<void>{
     // Back up the database (and optionally Internal Files) to Google Drive
 
-    const oauth_id = self.app_store.state.storage_oauth as string
-    const oauth = await self.app_db.oauths.get(oauth_id)
+    const oauth_id = self.app_store.state.storage_oauth as string|null
+    const oauth = oauth_id ? await self.app_db.oauths.get(oauth_id) : undefined
     if (!oauth){
         throw task.abort("No longer have access to Google account")
     }
