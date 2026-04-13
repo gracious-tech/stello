@@ -2,8 +2,8 @@
 
 import chroma from 'chroma-js'
 
-import {colors} from './colors'
-import {AppConfig, AppConfigTheme} from './types'
+import {colors} from './colors.ts'
+import type {AppConfig, AppConfigTheme} from './types.ts'
 
 
 export function generate_theme(config:AppConfig):void{

@@ -1,5 +1,6 @@
 {
     "private": true,
+    "type": "module",
     "dependencies": {
         "chroma-js": "^2.1.2",
         "js-yaml": "^4.1.0"
