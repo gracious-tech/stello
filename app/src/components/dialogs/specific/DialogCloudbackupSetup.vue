@@ -15,7 +15,7 @@ v-card
                 | Back up to a private area of your Google Drive that only this app can access.
                 |  If you add a password, the backup will also be end-to-end encrypted so that
                 |  not even Google can read it.
-            v-radio-group(v-model='level_input' row label="What to back up:")
+            v-radio-group(v-model='level_input' row)
                 v-radio(:label='`Everything (${size_estimates.all})`'
                     value='all' color='accent')
                 v-radio(:label='`Everything except images/files (${size_estimates.database})`'

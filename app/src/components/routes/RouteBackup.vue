@@ -68,7 +68,7 @@ div
                 p(v-else-if='cloudbackup_last' class='text-body-2 opacity-secondary')
                     | Last backed up: {{ cloudbackup_last }}
                 v-radio-group(v-if='cloudbackup_enabled' v-model='cloudbackup_level' row
-                        label="What to back up:" class='mt-0')
+                        class='mt-0')
                     v-radio(:label='`Everything (${size_estimates.all})`'
                         value='all' color='accent')
                     v-radio(:label='`Everything except images/files (${size_estimates.database})`'
@@ -265,8 +265,9 @@ export default class extends Vue {
             drive_wipe_all_google(oauth).catch(() => {
                 void this.$store.dispatch('show_snackbar',
                     "Could not delete backup from Google Drive — please delete it manually")
+            }).finally(() => {
+                void oauth_revoke_if_obsolete(oauth)
             })
-            void oauth_revoke_if_obsolete(oauth)
         }
     }
 }
