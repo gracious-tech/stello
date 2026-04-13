@@ -40,4 +40,4 @@ When contacts unsubscribe they unsubscribe from the sending profile you used to 
 
 
 ## Exporting contacts
-You can export contacts from Stello by first selecting the contacts you wish to export and then performing the "Export selected" bulk action.
+You can export contacts from Stello by first selecting the contacts you wish to export and then performing the "Export selected" bulk action. You can also export them all from the settings page.

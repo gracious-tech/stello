@@ -19,11 +19,11 @@ Stello is a desktop app for sending newsletters, with a focus on simplicity and 
 
 ## What do I _need_ to know?
 
-#### 1. Stello is a tool not a service
+#### 1. Stello is primarily a tool rather than a service
 We don't send messages for you like Mailchimp does, you send them yourself... using Stello.
 
 #### 2. Stello is limited by your email account
-It can send as many messages as your email account allows, which is usually between 100-300 per day for free accounts (more for paid accounts).
+It can send as many messages as your email account allows, which is usually between 100-300 per day for free accounts (more for paid accounts). Stello makes it easy to get around that limit by letting you resume sending the next day when the limit resets.
 
 #### 3. Stello stores all your data on your device
 So you can't login on another device, and you're responsible for backing up your own computer.
@@ -37,13 +37,12 @@ Stello is only as strong as the method you use to send messages (which is usuall
 1. Enhances security with expiration and retraction
 2. Allows richer interactive content (like slideshows/videos/etc)
 3. Recipients can comment and react to message sections
-4. Messages are less likely to go to spam than other services
+4. Avoids some of the spam issues other services have
 5. Looks great on mobile phones
 
 #### Disadvantages
-1. Can only use on one device
-2. Data cannot be recovered if you lose your device
-3. Sending is subject to email account limits
+1. Can only access messages on the computer it's setup on
+2. Sending is subject to email account limits
 
 &nbsp;
 

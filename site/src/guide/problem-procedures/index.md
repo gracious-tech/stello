@@ -22,14 +22,6 @@ It is common to want to center headings. Instead, consider creating a banner ima
 ### Underline/strike/etc text
 You cannot modify text beyond the options already available. Underlining text is commonly used for links in webpages which might confuse some readers if they can't click on them. Consider using the highlight feature instead to draw attention to text.
 
-## View a sent message
-It is recommended to include yourself as a recipient when sending messages so you can view them as well. You can create a contact without an email address to do this if you don't want to get emailed for each message. If you haven't sent it to yourself you can copy it to a new draft and view the contents that way instead. (We may make this easier in future)
-
-## Print / PDF
-If you need to print your message or transmit it as a PDF for printing, you can send yourself a copy of it and use your browser to print it or save it as a PDF. If some parts of the message are missing try enabling "background graphics" when printing/saving. If you already sent the message you can copy it to a new draft and send it only to yourself.
-
-If you used pages in your message you can not easily print them. We hope to make this easier in future.
-
 ## Login on another device
 Stello does not support multiple devices. We prioritise security over convenience and the safest place for your private content is on your own device rather than our servers.
 
@@ -37,7 +29,8 @@ If you need to create newsletters collaboratively, you could:
 
  - Draft letters in a Google doc and copy/paste into Stello when done
  - Take it in turns to write a newsletter on the same device
- - Use Stello in [portable mode](/guide/backup/#portable-use) (Mac & Linux only)
+ - Use Stello in [portable mode](/guide/portable/) (Mac & Linux only)
+ - Use a file syncing service like Dropbox/OneDrive/Google Drive (and only ever access on one device at a time)
 
 If you are trying to move to a new device see [Backup & restoration](/guide/backup/), or if you have lost your old device see [Account recovery](/guide/problem-recovery/).
 

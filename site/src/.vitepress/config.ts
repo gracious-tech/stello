@@ -103,8 +103,7 @@ export default defineConfig({
                         {text: "Trouble sending", link: '/guide/problem-sending/'},
                         {text: "Messages not received", link: '/guide/problem-opens/'},
                         {text: "Messages marked as spam", link: '/guide/problem-spam/'},
-                        {text: "Recover Stello account", link: '/guide/problem-recovery/'},
-                        {text: "My data disappeared", link: '/guide/problem-wiped/'},
+                        {text: "Recovering data", link: '/guide/problem-recovery/'},
                         {text: "Issues with ProtonMail", link: '/guide/problem-protonmail/'},
                         {text: "Something else...", link: '/guide/problem-other/'},
                     ]

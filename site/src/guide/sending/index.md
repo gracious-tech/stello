@@ -42,8 +42,8 @@ Message sending limits for popular services are:
 | **Gmail**     | [500/day](https://support.google.com/mail/answer/22839)   | [2000/day](https://support.google.com/a/answer/166852)
 | **Outlook**   | ~300/day                                                  | [5000/day](https://support.microsoft.com/en-us/office/sending-limits-in-outlook-com-279ee200-594c-40f0-9ec8-bb6af7735c2e)
 | **iCloud**    | [1000/day](https://support.apple.com/en-au/HT202305)      | [1000/day](https://support.apple.com/en-au/HT202305)
-| **ProtonMail**| [50/hour, 150/day](https://protonmail.com/support/knowledge-base/sending-limit/) | [300/hour, 1000/day](https://protonmail.com/support/knowledge-base/sending-limit/)
 | **Fastmail**  | N/A    | [2000/hour, 4000/day](https://www.fastmail.help/hc/en-us/articles/1500000277382-Account-limits)
+| **ProtonMail** | [not recommended](/guide/problem-protonmail/) | [not recommended](/guide/problem-protonmail/)
 
 ::: warning
 Most services will further reduce limits for new accounts, accounts with suspicious activity, and will consider other factors too (so don't be surprised if your real limit is less than stated).

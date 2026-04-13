@@ -5,7 +5,7 @@ Stello uses the same technology (SMTP) as regular email programs like Outlook an
 
 
 ## Providers that don't support SMTP
-There are some email providers that do not allow you to use an external program to send email. The only significant provider we know of so far is Tutanota. ProtonMail is another but they do allow connecting as long as you are a paid user and use their [bridge software](https://protonmail.com/bridge). Usually providers do this for security reasons, but when you are sending messages to a variety of contacts the security benefits of such systems are usually negated anyway and it is reasonable to just use a different email provider.
+There are some email providers that do not allow you to use an external program to send email. The only significant provider we know of so far is Tutanota. ProtonMail is another but they do allow connecting as long as you are a paid user and use their [bridge software](/guide/problem-protonmail/). Usually providers do this for security reasons, but when you are sending messages to a variety of contacts the security benefits of such systems are usually negated anyway and it is reasonable to just use a different email provider.
 
 
 ## Anti-virus issues

@@ -26,3 +26,8 @@ Please choose the format most suitable for your Linux distribution:
 
 ### Chrome OS
 Recent Chromebooks support Linux by default and so you should be able to download Stello for Linux and follow the instructions above.
+
+### Not supported
+Stello cannot be installed on Android, iPhones, or iPads.
+
+(sent messages can of course be viewed on such devices though)
