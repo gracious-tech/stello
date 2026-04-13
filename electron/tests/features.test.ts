@@ -28,11 +28,11 @@ async function set_store(page:Page, key:string,
 test.describe('settings backup page', () => {
 
     test('backup section renders with all expected controls', async ({page, gotohash}) => {
-        // Navigate to the settings page and check the backup section is present with key elements
-        await gotohash('#/settings/')
+        // Navigate to the backup settings page and check key elements are present
+        await gotohash('#/settings/backup/')
 
-        // Auto-backup radio group
-        await expect(page.locator('text=Auto-backup:')).toBeVisible()
+        // Auto-export radio group
+        await expect(page.locator('text=Auto-export:')).toBeVisible()
         await expect(page.getByRole('radio', {name: 'None'})).toBeVisible()
         await expect(page.getByRole('radio', {name: 'Contacts', exact: true})).toBeVisible()
         await expect(page.getByRole('radio', {name: 'Contacts & Messages'})).toBeVisible()
@@ -40,18 +40,21 @@ test.describe('settings backup page', () => {
         // Cloud backup
         await expect(page.locator('button:has-text("Backup to Google Drive")')).toBeVisible()
 
-        // Database import/export
+        // Database import/restore
         await expect(page.locator('text=Import Database')).toBeVisible()
         await expect(page.locator('button:has-text("Restore from Google Drive")')).toBeVisible()
+
+        // Export controls are on the main settings page
+        await gotohash('#/settings/')
         await expect(page.locator('button:has-text("Export Contacts")')).toBeVisible()
         await expect(page.locator('button:has-text("Export Messages")')).toBeVisible()
     })
 
     test('auto-backup setting can be changed', async ({page, gotohash}) => {
-        // Verify the auto-backup radio buttons are interactive
-        await gotohash('#/settings/')
+        // Verify the auto-export radio buttons are interactive
+        await gotohash('#/settings/backup/')
 
-        // Default is 'contacts' — click labels (Vuetify 2 hides the actual <input> with opacity:0)
+        // Click labels to change settings (Vuetify 2 hides the actual <input> with opacity:0)
         await page.locator('label.v-label:text-is("Contacts & Messages")').click()
         await page.locator('label.v-label:text-is("Contacts")').click()
 
@@ -117,10 +120,11 @@ test.describe('recover backup prompt', () => {
         await gotohash('#/')
         await set_store(page, 'restore_backup', 'other_dbid_12345', true)
 
-        // The recover data card should appear
-        await expect(page.locator('text=Recover data from backup')).toBeVisible()
-        await expect(page.locator('button:has-text("Recover data")')).toBeVisible()
-        await expect(page.locator('button:has-text("Dismiss")')).toBeVisible()
+        // The recover data card should appear with its action buttons
+        const recover_card = page.locator('.v-card:has-text("Recover data from backup")')
+        await expect(recover_card).toBeVisible()
+        await expect(recover_card.locator('button:has-text("Recover data")')).toBeVisible()
+        await expect(recover_card.locator('button:has-text("Dismiss")')).toBeVisible()
     })
 
     test('dismissing the recovery prompt hides the card', async ({page, gotohash}) => {
