@@ -100,8 +100,9 @@ jobs:
 
             # Use Electron 32 on macOS so can still support macOS 10.15
             # macOS 10.15 is still widely used and supported by Apple as of March 2026
-            -   if: runner.os == 'macOS'
-                run: cd electron; npm install electron@32
+            # TODO re-enable after testing
+            # -   if: runner.os == 'macOS'
+            #     run: cd electron; npm install electron@32
 
             -   run: .bin/build_electron
                 env:
