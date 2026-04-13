@@ -1,0 +1,6 @@
+#!/bin/bash
+set -e
+cd "$(realpath -m "$0/../..")"
+
+.bin/build_site
+npx esbuild --platform=node .bin/deploy_site.ts | node --input-type=module

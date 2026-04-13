@@ -1,0 +1,116 @@
+
+:root
+    --primary: #455a64
+    --primary-lighter: #718792
+    --primary-darker: #1c313a
+    --secondary: #00e676
+    --secondary-lighter: #66ffa6
+    --secondary-darker: rgb(0, 178, 72)
+
+body
+    --c-bg: hsl(0, 0%, 10%)
+    --c-text: hsla(0, 0%, 100%, 0.8)
+    --c-text-light: hsla(0, 0%, 100%, 0.7)
+    --c-text-lighter: hsla(0, 0%, 100%, 0.6)
+    --c-brand: var(--secondary-lighter)
+    --c-brand-light: var(--secondary-lighter)
+
+    word-break: break-word
+
+
+// UTILS
+
+
+.center
+    text-align: center
+
+.btn
+    display: inline-flex
+    line-height: 1
+    padding: 10px 12px
+    border-radius: 8px
+    font-weight: bold
+    text-decoration: none
+
+    &:hover
+        text-decoration: none
+
+    &:not(.outline)
+        color: black
+        background-color: var(--secondary)
+
+    &.outline
+        color: currentColor
+        border: 1px solid currentColor
+
+        &:hover
+            background-color: hsla(0, 0%, 100%, 0.1)
+
+
+// NOT APPLICABLE TO ROOT
+
+
+.nav-bar
+    --c-bg: #455a64
+    --c-text: white
+
+    .nav-bar-title
+        color: transparent !important  // Show only Stello logo
+
+    .logo
+        height: 30px !important
+
+
+.sidebar
+    // Don't use opacity as sidebar will overlay page on narrow screens
+    --c-bg: hsla(0, 0%, 15%)
+    --c-text: white
+
+    // Color troubleshooting pages redish
+    > .sidebar-links > .sidebar-link:last-child > .sidebar-links .sidebar-link-item
+        color: hsl(10, 100%, 75%)
+
+    // Subtle category headings
+    > .sidebar-links > .sidebar-link > .sidebar-link-item
+        --c-text: hsla(0, 0%, 100%, 0.5)
+
+    // Don't show deeper than 3 levels in sidebar
+    // NOTE sidebarDepth currently only available to set per-page, not globally
+    .sidebar-link .sidebar-link .sidebar-link .sidebar-link
+        display: none !important
+
+
+.page
+    // Modify generic elements for docs pages (but not root)
+
+    h2
+        color: hsl(200, 40%, 70%)  // More saturated/light primary color
+
+    h4
+        margin-top: 1rem
+        font-style: italic
+
+    img, video
+        width: 100%
+        margin: 1rem 0
+
+    ul, ol
+        padding-left: 2em  // Default doesn't indent at all
+
+    tr:nth-child(2n)
+        background-color: transparent  // Disable default table stripes
+
+    blockquote
+        color: var(--c-text-light)
+
+    .custom-block
+        color: white
+        &.tip
+            background-color: hsla(0, 0%, 100%, 0.1)
+        &.warning
+            background-color: hsla(40, 100%, 50%, 0.2)
+        &.danger
+            background-color: hsla(0, 100%, 50%, 0.2)
+
+        .custom-block-title
+            color: hsla(0, 0%, 100%, 0.5)

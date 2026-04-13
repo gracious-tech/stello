@@ -35,3 +35,5 @@ test-results/
 /responder/aws/.aws-sam/
 /responder/aws/.dev_env.json
 /responder/aws/.dev_env_key
+
+/site/dist
