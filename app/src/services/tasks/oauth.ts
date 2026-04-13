@@ -407,8 +407,15 @@ export async function oauth_pretask_process(url:string):Promise<void>{
     // Process url
     const {auth, meta} = await oauth_authorize_complete(url) as AuthCompletion<PretaskMeta>
 
-    // See if existing auth exists for the auth'd account
-    const existing = await self.app_db.oauths.get_by_issuer_id(auth.issuer, auth.issuer_id)
+    // Get all existing auth records for the account
+    const all_for_account = await self.app_db.oauths.list_by_issuer_id(auth.issuer, auth.issuer_id)
+    const existing = all_for_account[0]
+
+    // Remove any additional records found as should not have duplicates
+    // NOTE This should never happen, but just to be safe...
+    for (const dup of all_for_account.slice(1)){
+        await self.app_db.oauths.remove(dup.id)
+    }
 
     // Either update existing auth, or create new one
     let oauth_instance:OAuth

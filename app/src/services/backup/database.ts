@@ -2,7 +2,7 @@
 import {buffer_to_base64, base64_to_buffer, string_to_utf8, utf8_to_string}
     from '@/services/utils/coding'
 import {import_key_sym, import_key_asym} from '@/services/utils/crypt'
-import type {RecordContact, RecordOAuth, RecordProfile, RecordDraft,
+import type {RecordContact, RecordProfile, RecordDraft,
     RecordDraftPublished, RecordMessage, RecordMessageCopy} from '@/services/database/types'
 
 
@@ -18,14 +18,6 @@ type ExportedDatabase = {
 
 interface ExportedContact extends Omit<RecordContact, 'created'> {
     created:string
-}
-
-interface ExportedOAuth extends Omit<RecordOAuth,
-        'token_refresh'|'token_access'|'token_access_expires'|'contacts_sync_last'> {
-    token_refresh:string
-    token_access:string
-    token_access_expires:string|null
-    contacts_sync_last:string|null
 }
 
 interface ExportedProfile extends Omit<RecordProfile, 'smtp'|'host_state'> {
@@ -62,16 +54,6 @@ interface ExportedMessageCopy extends Omit<RecordMessageCopy, 'secret'|'secret_s
 // Convert non-JSON-native DB field types to serializable equivalents
 
 
-function export_date_nullable(d:Date|null):string|null{
-    // Nullable Date → ISO string, null passes through
-    return d ? d.toISOString() : null
-}
-
-function export_buf_nullable(b:ArrayBuffer|null):string|null{
-    // Nullable ArrayBuffer → base64, null passes through
-    return b ? buffer_to_base64(b) : null
-}
-
 async function export_sym_key(key:CryptoKey):Promise<string>{
     // Export a symmetric (AES-GCM) key as raw bytes encoded as base64
     return buffer_to_base64(await crypto.subtle.exportKey('raw', key))
@@ -88,11 +70,6 @@ async function export_key_pair(pair:CryptoKeyPair):Promise<{priv:string, pub:str
 // HELPERS - import
 // Reverse the above conversions when restoring from JSON
 
-
-function import_date_nullable(s:string|null):Date|null{
-    // Nullable ISO string → Date, null passes through
-    return s ? new Date(s) : null
-}
 
 function import_buf_nullable(s:string|null):ArrayBuffer|null{
     // Nullable base64 → ArrayBuffer, null passes through
@@ -125,23 +102,12 @@ function export_contact(r:RecordContact):ExportedContact{
     return {...r, created: r.created.toISOString()}
 }
 
-function export_oauth(r:RecordOAuth):ExportedOAuth{
-    // Encrypted token buffers and nullable dates
-    return {
-        ...r,
-        token_refresh: buffer_to_base64(r.token_refresh),
-        token_access: buffer_to_base64(r.token_access),
-        token_access_expires: export_date_nullable(r.token_access_expires),
-        contacts_sync_last: export_date_nullable(r.contacts_sync_last),
-    }
-}
-
 async function export_profile(r:RecordProfile):Promise<ExportedProfile>{
     // Async due to CryptoKey exports in host_state; smtp.pass is also an encrypted buffer
     const hs = r.host_state
     return {
         ...r,
-        smtp: {...r.smtp, pass: export_buf_nullable(r.smtp.pass)},
+        smtp: {...r.smtp, pass: null},  // smtp.pass not backed up for security
         host_state: {
             ...hs,
             secret: await export_sym_key(hs.secret),
@@ -191,17 +157,6 @@ function export_generic_with_sent<T extends {sent:Date}>(r:T):Omit<T, 'sent'> & 
 function import_contact(r:ExportedContact):RecordContact{
     // Restore created date
     return {...r, created: new Date(r.created)}
-}
-
-function import_oauth(r:ExportedOAuth):RecordOAuth{
-    // Restore token buffers and nullable dates
-    return {
-        ...r,
-        token_refresh: base64_to_buffer(r.token_refresh),
-        token_access: base64_to_buffer(r.token_access),
-        token_access_expires: import_date_nullable(r.token_access_expires),
-        contacts_sync_last: import_date_nullable(r.contacts_sync_last),
-    }
 }
 
 async function import_profile(r:ExportedProfile):Promise<RecordProfile>{
@@ -259,12 +214,12 @@ export async function export_database():Promise<ArrayBuffer>{
     // Export entire IndexedDB to a JSON-encoded ArrayBuffer for backup and later restoration
     // Blobs are assumed to already be blobstore filename strings after migration
     // CryptoKeys are exported as base64; non-extractable old keys become null
+    // NOTE oauths are not backed up given they have credentials and user can just sign in again
     // NOTE No records in 'state' are backedup since would overwrite existing and none needed yet
     const db = self.app_db._conn
     const tables = {
         contacts: (await db.getAll('contacts')).map(export_contact),
         groups: await db.getAll('groups'),
-        oauths: (await db.getAll('oauths')).map(export_oauth),
         profiles: await Promise.all((await db.getAll('profiles')).map(export_profile)),
         subscribe_forms: await db.getAll('subscribe_forms'),
         drafts: (await db.getAll('drafts')).map(export_draft),
@@ -299,7 +254,6 @@ export async function import_database(buffer:ArrayBuffer):Promise<{added:number,
     const converters:Record<string, (r:unknown) => unknown> = {
         contacts: r => import_contact(r as ExportedContact),
         groups: r => r,
-        oauths: r => import_oauth(r as ExportedOAuth),
         profiles: r => import_profile(r as ExportedProfile),
         subscribe_forms: r => r,
         drafts: r => import_draft(r as ExportedDraft),

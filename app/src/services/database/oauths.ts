@@ -54,6 +54,14 @@ export class DatabaseOAuths {
         return (await this._conn.getAll('oauths')).map(oauth => new OAuth(oauth))
     }
 
+    async list_by_issuer_id(issuer:string, issuer_id:string):Promise<OAuth[]>{
+        // Get all oauth records for a given issuer id
+        // NOTE Duplicates shouldn't exist, but to be careful, this allows finding any
+        const oauths =
+            await this._conn.getAllFromIndex('oauths', 'by_issuer_id', [issuer, issuer_id])
+        return oauths.map(oauth => new OAuth(oauth))
+    }
+
     async get(id:string):Promise<OAuth|undefined>{
         // Get single oauth by id
         const oauth = await this._conn.get('oauths', id)
