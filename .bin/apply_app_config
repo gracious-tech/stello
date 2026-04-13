@@ -5,7 +5,7 @@ cd "$(dirname "$(dirname "$0")")"
 
 
 # Apply app config to all components
-./node_modules/.bin/ts-node app_config/apply.ts
+node app_config/apply.ts
 
 # electron/package.json relies on app_config but is static, so must also be updated
-./node_modules/.bin/ts-node electron/update_package_json.ts
+node electron/update_package_json.ts
