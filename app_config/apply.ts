@@ -4,7 +4,7 @@ import yaml from 'js-yaml'
 import {resolve} from 'path'
 import {writeFileSync, readFileSync} from 'fs'
 
-import {generate_theme} from './theme_generation'
+import {generate_theme} from './theme_generation.js'
 import {AppConfig} from './types'
 
 
