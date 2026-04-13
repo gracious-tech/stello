@@ -53,7 +53,7 @@ export interface ResizeCalc {
 }
 
 
-export function _resize_image_calc(src_width:number, src_height:number, max_width:number,
+export function resize_image_calc(src_width:number, src_height:number, max_width:number,
         max_height:number, crop=false):ResizeCalc|null{
     // Calculate the crop region and final dimensions for a resize operation
     // Returns null if no resize/crop is needed
@@ -115,7 +115,7 @@ export async function resize_image(bitcanvas:ImageBitmap|OffscreenCanvas, max_wi
     // Resize/crop an image bitmap or canvas, returning a canvas
 
     // Calculate dimensions, returning original if no resize needed
-    const calc = _resize_image_calc(bitcanvas.width, bitcanvas.height, max_width, max_height, crop)
+    const calc = resize_image_calc(bitcanvas.width, bitcanvas.height, max_width, max_height, crop)
     if (!calc){
         return bitcanvas instanceof OffscreenCanvas ? bitcanvas : bitmap_to_bitcanvas(bitcanvas)
     }
