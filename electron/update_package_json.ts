@@ -29,6 +29,7 @@ const new_contents:Metadata|PackageJsonMissing = {
 
     // Code related
     private: true,
+    type: 'module',
     main: 'dist/main.js',
     dependencies: package_json.dependencies,
     devDependencies: package_json.devDependencies,
