@@ -8,15 +8,15 @@ import {Profile} from '../database/profiles'
 import {MessageCopy} from '../database/copies'
 import {concurrent} from '@/services/utils/async'
 import {email_address_like} from '@/services/utils/misc'
-import {resize_image, blob_image_size} from '@/services/utils/image'
-import {blob_to_bitmap, canvas_to_blob, buffer_to_url64, string_to_utf8}
-    from '../utils/coding'
+import {blob_image_size} from '@/services/utils/image'
+import {blob_to_bitmap, canvas_to_blob, buffer_to_url64, string_to_utf8} from '../utils/coding'
 import {encrypt_sym, export_key, generate_token} from '../utils/crypt'
 import {SECTION_IMAGE_WIDTH} from '../misc'
 import {HostUser} from '../hosts/types'
 import type {PublishedCopyBase, PublishedAsset, PublishedCopy, PublishedSection, PublishedImage,
     PublishedContentText} from '@/shared/shared_types'
 import {render_invite_html} from '../misc/invites'
+import {resize_image} from '@/services/misc/images'
 import {zip} from '@/services/misc/zip'
 import {gen_variable_items, update_template_values, TemplateVariables, msg_max_reads_value}
     from '../misc/templates'

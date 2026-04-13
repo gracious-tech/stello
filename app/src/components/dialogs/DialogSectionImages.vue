@@ -25,11 +25,12 @@ v-card
 import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
 
 import DialogSectionImagesItem from './assets/DialogSectionImagesItem.vue'
-import {_tmp_normalize_orientation, resize_image, blob_image_size} from '@/services/utils/image'
+import {_tmp_normalize_orientation, blob_image_size} from '@/services/utils/image'
 import {generate_token} from '@/services/utils/crypt'
 import {canvas_to_blob} from '@/services/utils/coding'
 import {get_clipboard_blobs} from '@/services/utils/misc'
 import {SECTION_IMAGE_WIDTH} from '@/services/misc'
+import {resize_image} from '@/services/misc/images'
 import {Section} from '@/services/database/sections'
 import {ContentImages} from '@/services/database/types'
 import {blobstore_new, blobstore_read_image} from '@/services/database/blobstore'

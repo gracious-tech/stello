@@ -42,8 +42,8 @@ import {Component, Vue, Prop} from 'vue-property-decorator'
 
 import {canvas_to_blob, blob_to_bitmap} from '@/services/utils/coding'
 import {get_clipboard_blobs} from '@/services/utils/misc'
-import {_tmp_normalize_orientation, resize_image, canvas_to_blob_smart}
-    from '@/services/utils/image'
+import {_tmp_normalize_orientation, canvas_to_blob_smart} from '@/services/utils/image'
+import {resize_image} from '@/services/misc/images'
 
 
 @Component({})
