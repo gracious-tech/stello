@@ -30,10 +30,10 @@ class MockCanvas {
     }
 }
 
-const _global = global as Record<string, unknown>
-_global.OffscreenCanvas = MockCanvas
+const _global = globalThis as Record<string, unknown>
+_global['OffscreenCanvas'] = MockCanvas
 if (typeof self === 'undefined'){
-    _global.self = _global
+    _global['self'] = _global
 }
 
 // Must import after mock is set (canvas_to_blob_smart uses canvas_to_blob from coding.ts)
