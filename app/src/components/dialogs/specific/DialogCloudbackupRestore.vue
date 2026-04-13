@@ -32,6 +32,7 @@ import {Component, Vue, Watch} from 'vue-property-decorator'
 
 import {oauth_pretask_new_usage} from '@/services/tasks/oauth'
 import {cloudbackup_restore_direct} from '@/services/tasks/cloudbackup'
+import {MustReauthenticate, MustReconnect, MustWait} from '@/services/utils/exceptions'
 
 
 @Component({})
@@ -75,10 +76,21 @@ export default class extends Vue {
             this.result_success = true
             this.result_msg =
                 `Restored ${added} records (${skipped} already existed)`
-        }
-        catch (error){
+        } catch (error){
             this.result_success = false
-            if (error instanceof Error){
+            if (error instanceof MustReconnect){
+                this.result_msg = "Could not connect — check your internet connection"
+                    + " and try again."
+            } else if (error instanceof MustReauthenticate){
+                // Token expired or permission revoked — clear OAuth so user can reconnect manually
+                this.result_msg = "Your Google sign-in has expired. Please connect again."
+                self.app_store.commit('dict_set', ['storage_oauth', null])
+            } else if (error instanceof MustWait){
+                this.result_msg = "Google Drive is temporarily limiting requests."
+                    + " Please wait a few minutes and try again."
+            } else if (error instanceof Error){
+                // Errors thrown directly by cloudbackup_restore_direct already carry a user message
+                // (e.g. "Incorrect password", "No backup metadata found")
                 this.result_msg = error.message
             } else {
                 this.result_msg = "Failed to restore backup"

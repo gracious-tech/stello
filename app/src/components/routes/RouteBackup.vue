@@ -58,13 +58,19 @@ div
                 app-btn(@click='open_cloudbackup_dialog') Backup to Google Drive
             template(v-else)
                 p Backing up to Google Drive account {{ cloudbackup_oauth.email }}
-                p(v-if='!cloudbackup_enabled' class='text-body-2 error--text')
-                    | Backup to Google Drive not enabled
+                template(v-if='!cloudbackup_enabled')
+                    app-btn(@click='open_cloudbackup_dialog') Enable Backup
+                    app-btn(@click='disable_cloudbackup') Disconnect
                 p(v-else-if='cloudbackup_last' class='text-body-2 opacity-secondary')
                     | Last backed up: {{ cloudbackup_last }}
+                v-radio-group(v-if='cloudbackup_enabled' v-model='cloudbackup_level' row
+                        label="What to back up:" class='mt-0')
+                    v-radio(:label='`Everything (${size_estimates.all})`'
+                        value='all' color='accent')
+                    v-radio(:label='`Everything except images/files (${size_estimates.database})`'
+                        value='database' color='accent')
                 div
                     app-btn(@click='backup_now') Backup Now
-                    app-btn(@click='open_cloudbackup_dialog') Change Settings
                     app-btn(@click='disable_cloudbackup') Disable
 
         hr(class='mt-16')
@@ -116,7 +122,7 @@ import {OAuth} from '@/services/database/oauths'
 import {AppStoreState} from '@/services/store/types'
 import {oauth_revoke_if_obsolete} from '@/services/tasks/oauth'
 import {task_manager} from '@/services/tasks/tasks'
-import {drive_wipe_all_google} from '@/services/tasks/cloudbackup'
+import {drive_wipe_all_google, cloudbackup_size_estimates} from '@/services/tasks/cloudbackup'
 import DialogGenericConfirm from '@/components/dialogs/generic/DialogGenericConfirm.vue'
 import DialogCloudbackupSetup from '@/components/dialogs/specific/DialogCloudbackupSetup.vue'
 import DialogCloudbackupRestore from '@/components/dialogs/specific/DialogCloudbackupRestore.vue'
@@ -135,12 +141,19 @@ export default class extends Vue {
     data_dir = ''
     sep = '/'
 
+    size_estimates:{database:string, all:string} = {database: '', all: ''}
+
     created(){
         // This may not be available until init.ts finishes, so get during create
         const native_paths = self.app_native.get_paths()
         this.files_dir = native_paths.files_dir
         this.data_dir = native_paths.data_dir
         this.sep = native_paths.sep
+
+        // Fetch size estimates for each backup level
+        void cloudbackup_size_estimates().then(sizes => {
+            this.size_estimates = sizes
+        })
     }
 
     @Watch('$store.state.storage_oauth', {immediate: true})
@@ -168,6 +181,16 @@ export default class extends Vue {
 
     set backups(value:'none'|'contacts'|'all'){
         this.$store.commit('dict_set', ['backups', value])
+    }
+
+    get cloudbackup_level():'database'|'all'|null{
+        return (this.$store.state as AppStoreState).cloudbackup
+    }
+
+    set cloudbackup_level(value:'database'|'all'|null){
+        // Save and kick off a sync so the changed level takes effect immediately
+        this.$store.commit('dict_set', ['cloudbackup', value])
+        void task_manager.start('cloudbackup_sync')
     }
 
     async import_db(file:File){

@@ -591,7 +591,7 @@ export function scope_set_for_task(task_name:string):ScopeSet|null{
         return 'contacts'
     } else if (task_name.startsWith('send_')){
         return 'email_send'
-    } else if (task_name.startsWith('cloudbackup_')){
+    } else if (task_name.startsWith('cloudbackup_') || task_name.startsWith('storage_')){
         return 'storage'
     }
     return null

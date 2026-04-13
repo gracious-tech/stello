@@ -66,8 +66,9 @@ export function export_key(key:CryptoKey):Promise<ArrayBuffer>{
 
 export async function password_to_key(password:string, salt:ArrayBuffer):Promise<CryptoKey>{
     // Generate a strong key using given human-input password and salt
+    // NOTE PBKDF2 keys must set extractable=false (but only using temporarily anyway)
     const key_material = await crypto.subtle.importKey(
-        'raw', string_to_utf8(password), 'PBKDF2', true, ['deriveKey'])
+        'raw', string_to_utf8(password), 'PBKDF2', false, ['deriveKey'])
     return crypto.subtle.deriveKey(
         {name: 'PBKDF2', salt, iterations: 100_000, hash: 'SHA-256'},
         key_material,

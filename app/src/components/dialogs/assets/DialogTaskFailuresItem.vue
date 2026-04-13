@@ -83,6 +83,7 @@ export default class extends Vue {
         const scopes_ui = {
             contacts: "Read contacts and save changes to them",
             email_send: "Send emails",
+            storage: "Store data in Google Drive",
         }
 
         if (this.error_type === 'network'){

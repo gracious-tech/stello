@@ -13,6 +13,18 @@ import {buffer_to_base64, base64_to_buffer, string_to_utf8, utf8_to_string} from
 // NOTE All Drive filenames are prefixed with backup_ to avoid potential future clashes
 
 
+export async function cloudbackup_size_estimates():Promise<{database:string, all:string}>{
+    // Estimate cloud backup sizes for each level by measuring total Internal Files
+    const database_mb = 5
+    const size_total = await self.app_native.user_file_size_total('Internal Files')
+    const all_mb = database_mb + Math.ceil(size_total / 1000 / 1000)
+    return {
+        database: `~${database_mb} MB`,
+        all: `~${all_mb} MB`,
+    }
+}
+
+
 interface BackupMeta {
     salt:string  // Must be available unencrypted to recover using only password
     dbid:string  // Needed to avoid accidently overwriting a backup for new Stello db
@@ -176,6 +188,12 @@ export async function storage_oauth_setup(task:Task):Promise<void>{
         throw task.abort("No longer have access to Google account")
     }
 
+    // Refuse to enable cloud storage unless the storage scope was actually granted
+    // Google's consent screen lets users deselect individual scopes, so verify before committing
+    if (!oauth.scope_sets.includes('storage')){
+        throw task.abort("Google Drive permission was not granted")
+    }
+
     self.app_store.commit('dict_set', ['storage_oauth', oauth.id])
 }
 
@@ -193,10 +211,10 @@ export async function cloudbackup_sync(task:Task):Promise<void>{
     task.show_count = true
     task.fix_oauth = oauth_id
 
-    // If a new password is given, wipe Drive first so everything re-encrypts with new key
-    const [new_password] = task.options as [string?]
+    // If starting a fresh backup, wipe Drive first so everything re-encrypts with the given key
+    const [fresh_backup_password] = task.options as [string?]
     let drive_files = await drive_list_files_google(oauth)
-    if (new_password !== undefined){
+    if (fresh_backup_password !== undefined){
         await Promise.all(drive_files.map(f => drive_delete_file_google(oauth, f.id)))
         drive_files = []
         self.app_store.commit('dict_set', ['cloudbackup_key', null])
@@ -210,7 +228,7 @@ export async function cloudbackup_sync(task:Task):Promise<void>{
     const meta = await get_meta(oauth, drive_map)
     if (!meta){
         // First sync or force resync — create meta and derive the key from the new salt
-        await create_meta_and_init_key(oauth, current_dbid, new_password ?? '')
+        await create_meta_and_init_key(oauth, current_dbid, fresh_backup_password ?? '')
     } else if (meta.dbid !== current_dbid){
         throw task.abort("Backup belongs to a different database")
     }
@@ -230,32 +248,33 @@ export async function cloudbackup_sync(task:Task):Promise<void>{
     const encrypted_db = await encrypt_sym(db_buffer, key)
     await task.expected(drive_upload_file_google(oauth, 'backup_database.json', encrypted_db))
 
-    // Internal Files sync (if level is 'all')
-    if (self.app_store.state.cloudbackup === 'all'){
-        const local_names = new Set(await self.app_native.user_file_list('Internal Files'))
-        const drive_internal = drive_files.filter(f => f.name.startsWith('backup_files_'))
+    // Internal Files sync — reconcile backup_files_* against local files
+    // When level is 'database', the desired set is empty so any existing backup_files_* are deleted
+    const local_names = self.app_store.state.cloudbackup === 'all'
+        ? new Set(await self.app_native.user_file_list('Internal Files'))
+        : new Set<string>()
+    const drive_internal = drive_files.filter(f => f.name.startsWith('backup_files_'))
 
-        // Internal Files are immutable (see blobstore.ts) so only sync new/deleted, not changed
-        // Drive names are prefixed, so strip prefix when comparing against local names
-        const drive_name_set = new Set(
-            drive_internal.map(f => f.name.slice('backup_files_'.length)))
-        const to_delete = drive_internal.filter(
-            f => !local_names.has(f.name.slice('backup_files_'.length)))
-        const to_upload = [...local_names].filter(name => !drive_name_set.has(name))
+    // Internal Files are immutable (see blobstore.ts) so only sync new/deleted, not changed
+    // Drive names are prefixed, so strip prefix when comparing against local names
+    const drive_name_set = new Set(
+        drive_internal.map(f => f.name.slice('backup_files_'.length)))
+    const to_delete = drive_internal.filter(
+        f => !local_names.has(f.name.slice('backup_files_'.length)))
+    const to_upload = [...local_names].filter(name => !drive_name_set.has(name))
 
-        // We know in advance how many subtasks there will be
-        task.upcoming(to_delete.length + to_upload.length)
+    // We know in advance how many subtasks there will be
+    task.upcoming(to_delete.length + to_upload.length)
 
-        // Add subtasks
-        const delete_tasks = to_delete.map(file =>
-            () => task.expected(drive_delete_file_google(oauth, file.id)))
-        const upload_tasks = to_upload.map(name => async () => {
-            const raw = await self.app_native.user_file_read(`Internal Files/${name}`)
-            const encrypted = await encrypt_sym(raw, key)
-            await task.expected(drive_upload_file_google(oauth, `backup_files_${name}`, encrypted))
-        })
-        await concurrent([...delete_tasks, ...upload_tasks])
-    }
+    // Add subtasks
+    const delete_tasks = to_delete.map(file =>
+        () => task.expected(drive_delete_file_google(oauth, file.id)))
+    const upload_tasks = to_upload.map(name => async () => {
+        const raw = await self.app_native.user_file_read(`Internal Files/${name}`)
+        const encrypted = await encrypt_sym(raw, key)
+        await task.expected(drive_upload_file_google(oauth, `backup_files_${name}`, encrypted))
+    })
+    await concurrent([...delete_tasks, ...upload_tasks])
 
     // Record completion time after all files are done successfully
     self.app_store.commit('dict_set', ['cloudbackup_last', new Date()])
