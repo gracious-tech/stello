@@ -7,15 +7,17 @@ v-card
     v-card-text
         div(v-if='progress' class='text-center my-4')
             v-progress-circular(indeterminate)
-        v-alert(v-else-if='result_msg'
-                :color='result_success ? "primary" : "error"' class='text-center')
+        v-alert(v-else-if='result_success' text color='accent' class='text-center')
             | {{ result_msg }}
         template(v-else)
             p(class='text-body-2')
                 | This will restore data you have previously backed up to Google Drive.
                 |  You can use it to recover data after losing access to it.
-            v-text-field(v-model='password_input' label='Your Password' type='password'
-                hint="The one you used when you first setup backups to Google Drive.")
+            app-text(v-model='password_input' label='Your password (if used)'
+                type='password'
+                hint="Leave blank if you didn't set a password when setting up backups.")
+            v-alert(v-if='result_msg' text color='error' class='text-center mt-4')
+                | {{ result_msg }}
 
     v-card-actions
         app-btn(@click='dismiss' :disabled='progress')

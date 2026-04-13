@@ -6,7 +6,7 @@ v-card(class='pa-6')
     template(v-if='phase === "ready"')
         v-card-title(class='justify-center') Upgrade database
         v-card-text
-            v-alert(v-if='error' type='error' class='mb-4') {{ error }}
+            v-alert(v-if='error' text color='error' class='mb-4') {{ error }}
             p Stello has updated how images and files are stored. Running this optimization will
                 |  save space on your hard drive and ensure your files can be backed up properly.
             p(class='mt-3 font-weight-bold')

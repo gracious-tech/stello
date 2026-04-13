@@ -10,14 +10,14 @@ div
         p Stello keeps all your data on your own computer in the following folder:
         p(class='opacity-secondary ml-6')
             strong {{ files_dir }}
-        v-alert(type='warning' text class='mt-4')
+        v-alert(color='warning' text class='mt-4 text-center')
             | Do not move this folder while Stello is running.
         p Please note that sending accounts are for sending messages only
             |  and cannot be used to recover your data.
             |  #[strong(class='warning--text') So if you lose your computer, you lose all your data.]
         p For this reason, you should ensure you have your own system for backing up your computer,
             |  or else enable backups to Google Drive below.
-        v-alert(v-if='data_dir_outside' type='warning' text class='mt-4')
+        v-alert(v-if='data_dir_outside' color='warning' text class='mt-4')
             p Your Internal Data is stored outside the "Stello Files" folder due to starting with an
                 |  older version of Stello.
                 |  However, this is not an issue as Stello keeps a backup of it within
@@ -67,17 +67,17 @@ div
                 template(v-if='!cloudbackup_enabled')
                     app-btn(@click='open_cloudbackup_dialog') Enable Backup
                     app-btn(@click='disable_cloudbackup') Disconnect
-                p(v-else-if='cloudbackup_last' class='text-body-2 opacity-secondary')
-                    | Last backed up: {{ cloudbackup_last }}
-                v-radio-group(v-if='cloudbackup_enabled' v-model='cloudbackup_level' row
-                        class='mt-0')
-                    v-radio(:label='`Everything (${size_estimates.all})`'
-                        value='all' color='accent')
-                    v-radio(:label='`Everything except images/files (${size_estimates.database})`'
-                        value='database' color='accent')
-                div
-                    app-btn(@click='backup_now') Backup Now
-                    app-btn(@click='disable_cloudbackup') Disable
+                template(v-else)
+                    p(v-if='cloudbackup_last' class='text-body-2 opacity-secondary')
+                        | Last backed up: {{ cloudbackup_last }}
+                    v-radio-group(v-model='cloudbackup_level' row class='mt-0')
+                        v-radio(:label='`Everything (${size_estimates.all})`'
+                            value='all' color='accent')
+                        v-radio(:label='`Everything except images/files (${size_estimates.database})`'
+                            value='database' color='accent')
+                    div
+                        app-btn(@click='backup_now') Backup Now
+                        app-btn(@click='disable_cloudbackup') Disable
 
         hr(class='mt-16')
 

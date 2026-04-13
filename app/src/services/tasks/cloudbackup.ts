@@ -164,8 +164,14 @@ async function drive_upload_file_google(oauth:OAuth, name:string, buffer:ArrayBu
 
 
 async function drive_delete_file_google(oauth:OAuth, file_id:string):Promise<void>{
-    // Delete a file from Drive by id
-    await drive_request_google(oauth, `drive/v3/files/${file_id}`, undefined, 'DELETE')
+    // Delete a file from Drive by id (404 means already deleted, which is fine)
+    try {
+        await drive_request_google(oauth, `drive/v3/files/${file_id}`, undefined, 'DELETE')
+    } catch(error){
+        if (!(error instanceof MustRecover)){
+            throw error
+        }
+    }
 }
 
 
