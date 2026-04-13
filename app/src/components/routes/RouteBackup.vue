@@ -61,7 +61,9 @@ div
             template(v-if='!cloudbackup_oauth')
                 app-btn(@click='open_cloudbackup_dialog') Backup to Google Drive
             template(v-else)
-                p Backing up to Google Drive account {{ cloudbackup_oauth.email }}
+                p
+                    strong(class='mr-4') Google Drive account:
+                    span(class='text--secondary') {{ cloudbackup_oauth.email }}
                 template(v-if='!cloudbackup_enabled')
                     app-btn(@click='open_cloudbackup_dialog') Enable Backup
                     app-btn(@click='disable_cloudbackup') Disconnect
