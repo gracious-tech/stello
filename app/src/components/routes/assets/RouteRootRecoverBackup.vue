@@ -36,6 +36,8 @@ export default class extends Vue {
         const dbid = this.$store.state.tmp.restore_backup as string
         try {
             const json = await self.app_native.user_file_read(`Backups [${dbid}]/database.json`)
+            if (json === null)
+                throw new Error("Backup file disappeared")
             const {added, skipped} = await import_database(json)
             this.dismiss()
             void this.$store.dispatch('show_snackbar',

@@ -54,11 +54,17 @@ ipcMain.handle('user_file_size_total', async (event, relative_path:string):Promi
 })
 
 
-ipcMain.handle('user_file_read', async (event, relative_path:string):Promise<ArrayBuffer> => {
-    // Read a file from the user's files dir
+ipcMain.handle('user_file_read', async (event, relative_path:string):Promise<ArrayBuffer|null> => {
+    // Read a file from the user's files dir (returns null if file doesn't exist)
     const full_path = restrict_path(files_dir, relative_path)
-    // WARN Uint8Array wrapper required so .buffer returns exact bytes (not a shared pool buffer)
-    return new Uint8Array(readFileSync(full_path)).buffer
+    try {
+        // WARN Uint8Array wrapper required so .buffer returns exact bytes (not a shared pool buffer)
+        return new Uint8Array(readFileSync(full_path)).buffer
+    } catch (error){
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT')
+            return null
+        throw error
+    }
 })
 
 

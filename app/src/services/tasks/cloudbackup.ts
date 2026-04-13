@@ -271,6 +271,8 @@ export async function cloudbackup_sync(task:Task):Promise<void>{
         () => task.expected(drive_delete_file_google(oauth, file.id)))
     const upload_tasks = to_upload.map(name => async () => {
         const raw = await self.app_native.user_file_read(`Internal Files/${name}`)
+        if (raw === null)
+            throw new Error(`Blob file not found: ${name}`)
         const encrypted = await encrypt_sym(raw, key)
         await task.expected(drive_upload_file_google(oauth, `backup_files_${name}`, encrypted))
     })

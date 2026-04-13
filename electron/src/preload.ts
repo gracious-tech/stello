@@ -30,7 +30,7 @@ const native_electron:NativeInterface = {
     },
 
     user_file_read(path:string){
-        return ipcRenderer.invoke('user_file_read', path) as Promise<ArrayBuffer>
+        return ipcRenderer.invoke('user_file_read', path) as Promise<ArrayBuffer|null>
     },
 
     user_file_write(path:string, data:ArrayBuffer){

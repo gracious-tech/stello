@@ -38,12 +38,9 @@ export async function blobstore_read(ref:string|Blob|null):Promise<Blob|null>{
     if (typeof ref !== 'string')
         return ref  // Either null or a blob already
     const ext = ref.slice(ref.lastIndexOf('.') + 1)
-    let buffer:ArrayBuffer
-    try {
-        buffer = await self.app_native.user_file_read(`Internal Files/${ref}`)
-    } catch {
+    const buffer = await self.app_native.user_file_read(`Internal Files/${ref}`)
+    if (buffer === null)
         throw new MustRestore(ref)
-    }
     const mimetype = mime.getType(ext) || 'application/octet-stream'
     return new Blob([buffer], {type: mimetype})
 }
@@ -51,6 +48,8 @@ export async function blobstore_read(ref:string|Blob|null):Promise<Blob|null>{
 
 export async function blobstore_read_null(ref:string|Blob|null):Promise<Blob|null>{
     // Load a blob and fallback on null if can't load it
+    // NOTE Even though user_file_read returns null when missing, blobstore_read still handles
+    //      passing of literal null values which must be distinguished from read failures
     try {
         return await blobstore_read(ref)
     } catch (error){
