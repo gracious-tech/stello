@@ -2,5 +2,12 @@
 set -e
 cd "$(realpath -m "$0/../..")"
 
+# Prompt for AWS credentials
+read -rp "AWS_ACCESS_KEY_ID: " AWS_ACCESS_KEY_ID
+read -rsp "AWS_SECRET_ACCESS_KEY: " AWS_SECRET_ACCESS_KEY
+echo
+export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
+
 .bin/build_site
-npx esbuild --platform=node .bin/deploy_site.ts | node --input-type=module
+cd site
+node ./deploy_site.ts
