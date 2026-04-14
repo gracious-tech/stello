@@ -28,7 +28,7 @@ function make_mock_native(){
     }
     mock.user_file_read = async (path:string) => {
         if (!files.has(path)){
-            throw new Error(`File not found: ${path}`)
+            return null
         }
         return files.get(path)!
     }
