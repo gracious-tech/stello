@@ -70,9 +70,10 @@ export async function send_oauth_setup(task:Task):Promise<void>{
         await new_email_task(profile.smtp_settings).send({
             id: 'none',
             from: {name: '', address: profile.email},
-            to: {name: '', address: 'blackhole@gracious.tech'},
-            subject: "Confirm can send",
-            html: "<p>Confirm can send</p>",
+            to: {name: '', address: profile.email},
+            subject: "Test message from Stello",
+            html: "<p>This email was sent by Stello as part of the process of connecting to your"
+                + " email account to confirm sending works. You can simply delete it.</p>",
         })
     } catch (error){
         console.warn(error)
