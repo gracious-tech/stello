@@ -138,7 +138,7 @@ export function render_invite_text(template:string, {contact, sender, title, url
         text += `\n\n${url}`
     }
 
-    return text
+    return text.trim()
 }
 
 
