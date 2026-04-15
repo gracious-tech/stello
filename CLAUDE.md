@@ -4,7 +4,7 @@
 ## Project Overview
 
 Stello is a cross-platform desktop application (Electron) for sending encrypted, interactive
-newsletters ("webletters"). Users compose messages in a rich editor, send invitation emails through
+newsletters. Users compose messages in a rich editor, send invitation emails through
 their own email accounts (Gmail, Outlook, SMTP), and recipients view decrypted content in a browser.
 
 **Key features:**

@@ -6,7 +6,7 @@ Stello is not your typical newsletter software and you'll find it different in s
 Stello tries to strike a balance between security and convenience. For example, you can only use Stello on one device but this also means all your private data stays with you and not us. And Stello security is not as strong as the best end-to-end encrypted apps out there, but your recipients also don't need to install anything or remember any passwords.
 
 ### The best of all worlds
-Stello has borrowed concepts from social media and major websites and has brought them to revolutionize newsletters, making them both interactive and more secure. We only take the good bits though... We call this new type of newsletter "webletters". As there is so much more that's possible with webpages than is possible with email, like slideshows, videos that play without opening a new window, commenting and reacting, opening pages, etc.
+Stello has borrowed concepts from social media and major websites to improve newsletters, making them both interactive and more secure. We only take the good bits though... There is so much more that's possible with webpages than is possible with email, like slideshows, videos that play without opening a new window, commenting and reacting, opening pages, etc.
 
 ### Less is more
 
