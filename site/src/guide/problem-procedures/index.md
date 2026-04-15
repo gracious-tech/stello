@@ -34,6 +34,15 @@ If you need to create newsletters collaboratively, you could:
 
 If you are trying to move to a new device see [Backup & restoration](/guide/backup/), or if you have lost your old device see [Account recovery](/guide/problem-recovery/).
 
+## Share a link to a message
+If you'd like to share a link rather than send an email, you can create a contact without an email address and add them as a recipient. Stello will create a message for the contact and prompt you to copy the link to them yourself. You can also copy the link for someone you've already sent a message to using the "Copy invite" menu option when viewing a sent message.
+
+::: tip
+Sharing the URL from the browser when viewing a message won't work as Stello auto-removes the decryption key for security.
+:::
+
+If you want to share the link with a group of people, be sure to enable the "This is a mailing list" option when creating the contact.
+
 ## Send in multiple languages
 You should create a separate sending profile for each language and create contact groups for each language. You can then write a message in one language, copy the draft, and translate it into the other language and assign the correct sending profile and contact group. Then the message, invitation text, and other text will all be in the correct language for each recipient.
 
