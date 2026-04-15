@@ -49,12 +49,15 @@ export async function open_window(){
     //   e.g. A secondary monitor may have negative position relative to the primary monitor
     //   And when things go wrong it can make Stello unusable
     //   So just restoring window size and letting OS determine position each time
-    let window_width = 1200  // Wide enough to display drafts/columns comfortably
-    let window_height = 800
+    const min_width = 1200  // Wide enough to display drafts/columns comfortably
+    const min_height = 800
+    let window_width = min_width
+    let window_height = min_height
     if (store.state.window_bounds){
-        // Don't exceed largest monitor available
-        window_width = Math.min(store.state.window_bounds.width, max_width)
-        window_height = Math.min(store.state.window_bounds.height, max_height)
+        // Don't exceed largest monitor available and don't be smaller than min usable size
+        // This avoids being invisible if user make window tiny by accident and closed Stello
+        window_width = Math.max(Math.min(store.state.window_bounds.width, max_width), min_width)
+        window_height = Math.max(Math.min(store.state.window_bounds.height, max_height), min_height)
     }
 
     // Open window
