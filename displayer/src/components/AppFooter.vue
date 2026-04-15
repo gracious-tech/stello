@@ -12,7 +12,7 @@ div.footer(v-if='msg?.data' class='ui')
             |
             a(@click='change_address') {{ $t("Change email address") }}
 
-    div
+    div(v-if='on_stello_domain')
         | {{ $t("Created with") }}
         |
         a(href='https://stello.news/' target='_blank') {{ app_name }}
@@ -53,6 +53,9 @@ export default defineComponent({
             })
         }
 
+        // Only show Stello credit when displayer is running on a stello.news subdomain
+        const on_stello_domain = self.location.hostname.endsWith('.stello.news')
+
         return {
             msg,
             app_name: app_config.name,
@@ -61,6 +64,7 @@ export default defineComponent({
             toggle_label,
             change_address,
             can_change_subscription,
+            on_stello_domain,
         }
     },
 })
