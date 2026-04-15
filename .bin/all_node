@@ -13,6 +13,8 @@ cd ../displayer
 "$@"
 cd ../electron
 "$@"
+cd ../site
+"$@"
 cd ../host/accounts
 "$@"
 cd ../../host/manual
