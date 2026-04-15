@@ -17,7 +17,7 @@ div
 
     app-content(class='pa-5')
 
-        transition-group(name='trans-right')
+        transition-group(:name="loaded ? 'trans-right' : ''")
             route-replies-subsection(v-for='replactions of subsections_visible'
                 :replactions='replactions.items' :key='replactions.key' :names='contact_names'
                 @removed='on_removed')
@@ -51,6 +51,7 @@ type MinOne<T> = [T, ...T[]]
 export default class extends Vue {
 
     replactions:(Reply|Reaction)[] = []
+    loaded = false  // Delay animations until after initial render
     contact_names:Record<string, string> = {}  // Cache of up-to-date contact names
     pages = 1
     filter_current = true  // Only show current (non-archived)
@@ -163,6 +164,14 @@ export default class extends Vue {
         // Merge into one array and sort by date
         this.replactions = [...replies, ...reactions]
         sort(this.replactions, 'sent', false)
+
+        // Enable animations after first render
+        // Animating all in is laggy, but also Vue has a race condition that can result all getting
+        //      stuck with class 'trans-right-enter-to' which limits max-height
+        if (!this.loaded){
+            await this.$nextTick()  // Must be next tick so replactions renders first
+            this.loaded = true
+        }
 
         // Also load contacts in case names have been updated
         // NOTE Important when user hasn't previously bothered to enter names, just addresses
