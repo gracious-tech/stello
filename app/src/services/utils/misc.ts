@@ -5,34 +5,33 @@ export async function get_clipboard_blobs(preferred:string[]=[]):Promise<Blob[]>
     // Return clipboard's contents as blobs
     // NOTE May be multiple clipboard items, so an array is returned
 
-    // Get clipboard items
+    // Get clipboard items and extract a blob from each
     // NOTE In some circumstances a DOMException may occur if no data (possibly only on Windows)
-    const items:ClipboardItem[] = []
-    try {
-        // NOTE This may trigger a CSP warning which is harmless
-        //      Browser seems to try to fetch a copied image from its original URL for some reason
-        items.push(...await self.navigator.clipboard.read())
-    } catch {
-        return []
-    }
+    // NOTE This may trigger a CSP warning which is harmless
+    //      Browser seems to try to fetch a copied image from its original URL for some reason
+    const blobs:Blob[] = []
+    for (const item of await self.navigator.clipboard.read().catch(() => [])){
 
-    // Choose preferred format for each item
-    // NOTE Each item may be in multiple formats (e.g. Chrome copy image = [text/html, image/png])
-    const blobs = await Promise.all(items.map(item => {
-        for (const type_prefix of preferred){
-            for (const type of item.types){
-                if (type.startsWith(type_prefix)){
-                    return item.getType(type)
-                }
+        // Each item may be in multiple formats (e.g. Chrome copy image = [text/html, image/png])
+        // Sort so preferred types come first (in preference order), non-preferred types last
+        const types_to_try = [...item.types].sort((a, b) => {
+            const ai = preferred.findIndex(p => a.startsWith(p))
+            const bi = preferred.findIndex(p => b.startsWith(p))
+            return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi)
+        })
+
+        for (const type of types_to_try){
+            // getType() may return null despite not being in spec
+            //     e.g. When clipboard empty, a text/plain item may exist but its contents is null
+            // getType() may also throw for some types on some OSs, so ignore and try next if so
+            const blob = await item.getType(type).catch(() => null)
+            if (blob){
+                blobs.push(blob)
+                break  // Only return one type of each clipboard item
             }
         }
-        // No preferences matched so just return the first
-        return item.getType(item.types[0]!)
-    }))
-
-    // `getType()` of some items may return null so filter them out
-    // e.g. When clipboard empty, a text/plain item may exist but its contents is null
-    return blobs.filter(blob => blob)
+    }
+    return blobs
 }
 
 
