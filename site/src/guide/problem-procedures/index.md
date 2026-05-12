@@ -23,6 +23,16 @@ Sharing the URL from the browser when viewing a message won't work as Stello aut
 
 If you want to share the link with a group of people, be sure to enable the "This is a mailing list" option when creating the contact.
 
+
+## Include an unsubscribe button
+A link to unsubscribe will automatically appear at the bottom of messages after you've sent them, except for:
+
+ 1. Messages auto-sent to yourself.
+ 2. Messages to contacts that have been marked as a mailing list, since that would go to multiple recipients and you wouldn't want one person to unsubscribe the whole group.
+
+You can test the unsubscribe link by simply adding yourself as a regular contact and sending to that.
+
+
 ## Send in multiple languages
 You should create a separate sending profile for each language and create contact groups for each language. You can then write a message in one language, copy the draft, and translate it into the other language and assign the correct sending profile and contact group. Then the message, invitation text, and other text will all be in the correct language for each recipient.
 
