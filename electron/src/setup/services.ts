@@ -78,8 +78,9 @@ ipcMain.handle('user_file_write', async (event, relative_path:string, data:Array
 
 ipcMain.handle('user_file_remove', async (event, relative_path:string):Promise<void> => {
     // Remove a file or dir recursively in the user's files dir
+    // NOTE Windows especially may need retry due to anti-virus and other things holding locks
     const full_path = restrict_path(files_dir, relative_path)
-    rmSync(full_path, {force: true, recursive: true})
+    rmSync(full_path, {force: true, recursive: true, maxRetries: 3})
 })
 
 
