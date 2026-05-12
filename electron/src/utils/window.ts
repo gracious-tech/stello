@@ -130,41 +130,54 @@ export async function open_window(){
     })
 
     // Disable CORS when it blocks access to a required origin (security still handled by CSP)
+    // WARN These overrides do NOT affect dev tools which will only show original status/headers
+    // If want to test then should await fetch(url, {mode: 'cors'}) in app and examine headers
+    //     WARN Be sure to test a URL below as other urls do not get headers modified
     const no_cors = {urls: [
         `${CONFIG.hosted_api}*`,
         'https://*.amazonaws.com/*',
         'https://login.microsoftonline.com/*',
         'https://gmail.googleapis.com/*',
     ]}
-    window.webContents.session.webRequest.onBeforeSendHeaders(no_cors, (details, callback) => {
-        for (const header of Object.keys(details.requestHeaders)){
-            if (header.toLowerCase() === 'origin'){
-                // Don't send origin header as may trigger origin mismatch (e.g. Microsoft OAuth)
-                delete details.requestHeaders[header]
-            }
-        }
-        callback({requestHeaders: details.requestHeaders})
-    })
     window.webContents.session.webRequest.onHeadersReceived(no_cors, (details, callback) => {
 
-        // Must first convert all header keys to lowercase to prevent duplication when adding
-        const headers = Object.fromEntries(Object.entries(details.responseHeaders ?? {}).map(
-            ([k, v]) => [k.toLowerCase(), v],
-        ))
-
-        // Ensure every response says any origin is allowed
-        headers['access-control-allow-origin'] = ['*']
-
+        /* If an OPTIONS response, completely replace it with allow all requests
+            NOTE response may be 400 if to S3 bucket that doesn't have a CORS policy.
+            OPTIONS is just to determine if actual request should be sent or not so completely
+            meaningless for actual request and can be completely replaced.
+            The JS code never gets access to anything in the OPTIONS request or response.
+        */
         if (details.method === 'OPTIONS'){
-            // OPTIONS requests expect extra CORS headers
-            headers['access-control-allow-headers'] = ['*']
-            headers['access-control-allow-methods'] = ['*']
-            // Preflight OPTIONS request may get rejected (e.g. if server doesn't support CORS)
-            // So ignore any errors and always return success so actual request still gets sent
-            callback({responseHeaders: headers, statusLine: '200 OK'})
-        } else {
-            callback({responseHeaders: headers})
+            const http_version = details.statusLine.split(' ')[0]
+            callback({
+                // Completely replace status and headers in case server responded with failure
+                statusLine: `${http_version} 200 OK`,
+                responseHeaders: {
+                    'access-control-allow-origin': '*',
+                    'access-control-allow-methods': '*',
+                    'access-control-allow-headers': '*',
+                },
+            })
+            return
         }
+
+        // For actual response, ensure all headers are available in JS
+        const new_headers = {
+            'access-control-allow-origin': ['*'],
+            'access-control-expose-headers': ['*'],
+        }
+
+        // Remove any existing clashes regardless of case
+        const new_headers_lower = Object.keys(new_headers).map(k => k.toLowerCase())
+        const old_headers = details.responseHeaders ?? {}
+        for (const old_name of Object.keys(old_headers)){
+            if (new_headers_lower.includes(old_name.toLowerCase())){
+                delete old_headers[old_name]
+            }
+        }
+
+        // Return response with new headers added
+        callback({responseHeaders: {...old_headers, ...new_headers}})
     })
 
     // Save window position when closed
