@@ -1,9 +1,10 @@
 
-import {HttpRequest} from '@aws-sdk/protocol-http'
-import {FetchHttpHandler} from '@aws-sdk/fetch-http-handler'
-import {HttpHandlerOptions} from '@aws-sdk/types'
+import {FetchHttpHandler} from '@smithy/fetch-http-handler'
+import type {HttpRequest} from '@smithy/protocol-http'
+import type {HttpHandlerOptions, MiddlewareStack} from '@smithy/types'
 
-import {MustReconnect} from '../utils/exceptions'
+import {MustReconnect, MustSyncClock} from '../utils/exceptions'
+import {sleep} from '@/services/utils/async'
 
 
 export interface HostCredentialsAws {
@@ -103,4 +104,43 @@ export class RequestHandler extends FetchHttpHandler {
             throw new MustReconnect(request.path)
         }
     }
+}
+
+
+export function add_clock_skew_middleware(client:{middlewareStack:MiddlewareStack<object, object>}){
+    // Retry RequestTimeTooSkewed once then throw MustSyncClock
+    client.middlewareStack.add((next, context) => {
+        return async (args) => {
+            try {
+                return await next(args)
+            } catch (error) {
+
+                // If not a clock stew error, simply rethrow
+                if ((error as AwsError)?.name !== 'RequestTimeTooSkewed') {
+                    throw error
+                }
+
+                // AWS SDK has built-in retry with clock correction offset.
+                // Since RequestTimeTooSkewed was raised and not auto-corrected, it's likely this
+                // was an initial parallel request that fired before the correction could happen.
+                // When it returns the client thinks it tried with the corrected time but actually
+                // didn't have access to the correction when it was first sent.
+                // So wait a second to ensure first request done and time corrected and retry
+                await sleep(1000)
+                try {
+                    return await next(args)
+                } catch (retry_error) {
+                    if ((retry_error as AwsError)?.name === 'RequestTimeTooSkewed') {
+                        // Throw special error so can show explanation in UI
+                        throw new MustSyncClock()
+                    }
+                    throw retry_error  // Something else
+                }
+            }
+        }
+    }, {
+        name: 'clock_skew_handler',
+        // Add at low priority so it wraps all other middleware including the SDK's own retry
+        priority: 'low',
+    })
 }

@@ -72,6 +72,7 @@ export default class extends Vue {
             throttled: "Limit exceeded",
             restore: "Can't read file",
             storage: "Storage full",
+            clock: "Clock out of sync",
             unknown: "Unexpected error",
         }[this.error_type]
     }
@@ -114,6 +115,10 @@ export default class extends Vue {
         } else if (this.error_type === 'storage'){
             return "Your Google Drive is full. Free up space in your Google Drive"
                 + " or upgrade your storage plan, then retry."
+        } else if (this.error_type === 'clock'){
+            return "Your computer's clock is out of sync."
+                + " Fix it by syncing your system clock in your computer's Date & Time settings."
+                + " (your timezone does not need to be changed, just the accuracy of the time)"
         }
         return "Something has gone wrong. Let us know so we can prevent it from happening again."
     }

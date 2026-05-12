@@ -7,8 +7,8 @@ import {Lambda} from '@aws-sdk/client-lambda'
 import {ApiGatewayV2} from '@aws-sdk/client-apigatewayv2'
 import {ResourceGroupsTaggingAPI} from '@aws-sdk/client-resource-groups-tagging-api'
 
-import {StorageBaseAws, no404, HostStorageGeneratedAws, RequestHandler}
-    from '@/services/hosts/aws_common'
+import {StorageBaseAws, no404, HostStorageGeneratedAws, RequestHandler,
+    add_clock_skew_middleware} from '@/services/hosts/aws_common'
 import {enforce_range} from '../utils/numbers'
 import {stream_to_buffer} from '../utils/coding'
 import {sort} from '../utils/arrays'
@@ -53,6 +53,13 @@ export class HostUserAwsBase extends StorageBaseAws {
             requestHandler: new RequestHandler()})
         this.tagging = new ResourceGroupsTaggingAPI({apiVersion: '2017-01-26', credentials, region,
             requestHandler: new RequestHandler()})
+
+        // Apply clock skew middleware to all clients
+        for (const client of
+            [this.s3, this.sns, this.iam, this.sts, this.lambda, this.gateway, this.tagging]){
+            // @ts-ignore Typing too complicated due to many different services
+            add_clock_skew_middleware(client)
+        }
     }
 
     async upload_file(path:string, data:Blob|ArrayBuffer, lifespan=Infinity,

@@ -72,6 +72,11 @@ export class MustMakeSpace extends CustomError {
 }
 
 
+export class MustSyncClock extends CustomError {
+    // Use for when system clock is too far off and must be synced
+}
+
+
 export class MustInterpret extends CustomError {
     // Use for unknown errors that have data available that could be interpreted
     data:unknown
