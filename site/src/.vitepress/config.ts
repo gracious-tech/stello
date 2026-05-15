@@ -104,6 +104,7 @@ export default defineConfig({
                         {text: "Messages not received", link: '/guide/problem-opens/'},
                         {text: "Messages marked as spam", link: '/guide/problem-spam/'},
                         {text: "Recovering data", link: '/guide/problem-recovery/'},
+                        {text: "Files permission (macOS)", link: '/guide/problem-permission-mac/'},
                         {text: "Issues with ProtonMail", link: '/guide/problem-protonmail/'},
                         {text: "Something else...", link: '/guide/problem-other/'},
                     ]
