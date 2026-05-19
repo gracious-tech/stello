@@ -101,8 +101,10 @@ export default class extends Vue {
     }
 
     get show_features(){
-        // Show if the user hasn't dismissed for this version yet
-        return self.app_store.state.dismissed_features !== app_config.version
+        // Show if user hasn't dismissed for this major.minor version yet (patches don't re-show)
+        const strip_patch = (v:string) => v.split('.').slice(0, 2).join('.')
+        const dismissed = strip_patch(self.app_store.state.dismissed_features as string ?? '')
+        return dismissed !== strip_patch(app_config.version)
     }
 
     dismiss_features(){
