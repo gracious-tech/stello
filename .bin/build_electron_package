@@ -27,7 +27,7 @@ if [[ "$OSTYPE" == "linux-gnu" ]]; then
         exit 1
     fi
     PLATFORM_ARGS='--linux AppImage deb rpm'
-elif [[ "$OSTYPE" == "msys" ]]; then
+elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
     PLATFORM_ARGS='--windows appx portable'
     # CI will have this var set for code signing on mac, but it will also trigger signing on windows
     # So must unset, as Windows store handles signing, so it isn't required for appx
