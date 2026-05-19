@@ -2,8 +2,9 @@
 import {existsSync} from 'original-fs'
 import {join} from 'node:path'
 
-import {app, dialog} from 'electron'
+import {app, dialog, shell} from 'electron'
 
+import {report_error} from '../setup/errors.js'
 import {write_immobile_config} from './immobile_config.js'
 import {readme_filename} from './warning.js'
 
@@ -63,5 +64,54 @@ export function locate_files_dir():void{
         write_immobile_config(result[0])
         app.relaunch()
         return
+    }
+}
+
+
+// Track whether the EPERM dialog has been shown this session to avoid repeated dialogs
+let eperm_dialog_shown = false
+
+
+export async function warn_eperm(type:string, path:string):Promise<void>{
+    // Show a dialog directing users to fix the permission issue
+    // NOTE Only shows dialog once per session to avoid spamming when many file ops fail
+
+    // Only show dialog once per session
+    if (eperm_dialog_shown){
+        return
+    }
+    eperm_dialog_shown = true
+
+    // Send error report
+    // NOTE Intentionally not sending for every error as this is mostly user's responsibility to fix
+    //      It's just helpful to know how many users it is affecting
+    const error_msg = `Permission error (${type})\nPath: ${path}`
+    const error_id = report_error(error_msg)
+    const url_desc = `${error_msg}\nError ID: ${error_id}`
+    const contact_url = `https://gracious.tech/contact?desc=${encodeURIComponent(url_desc)}`
+
+    // Mac gets a button to open the specific support page, others get the contact page
+    const is_mac = process.platform === 'darwin'
+    const support_url = is_mac ? 'https://stello.news/guide/problem-permission-mac/' : contact_url
+
+    // Show a dialog explaining the permission issue
+    let os_message = "You may need to check your file permission settings."
+    if (is_mac){
+        os_message = "Continue for instructions on how to resolve this or see the Stello guide."
+    }
+    // NOTE async dialog doesn't freeze app while it's open like sync does
+    const button_i = await dialog.showMessageBox({
+        title: "Stello can't access its own files",
+        message: "Your operating system is blocking Stello from accessing its own files."
+            + " This can prevent Stello from working properly. " + os_message,
+        type: 'warning',
+        buttons: ["Dismiss", is_mac ? "How to fix" : "Get help"],
+        defaultId: 1,
+        cancelId: 0,
+    })
+
+    // Open support page if user clicked the button
+    if (button_i.response === 1){
+        void shell.openExternal(support_url)
     }
 }

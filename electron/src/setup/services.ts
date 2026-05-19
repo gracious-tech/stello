@@ -9,6 +9,8 @@ const {autoUpdater} = electron_updater  // Get around CJS module issue
 
 import {get_path} from '../utils/config.js'
 import {files_dir, data_dir, restrict_path} from '../utils/paths.js'
+import {warn_eperm} from '../utils/dialogs.js'
+import {report_file_remove_fail} from './errors.js'
 
 
 ipcMain.on('get_paths', event => {
@@ -54,25 +56,38 @@ ipcMain.handle('user_file_size_total', async (event, relative_path:string):Promi
 })
 
 
-ipcMain.handle('user_file_read', async (event, relative_path:string):Promise<ArrayBuffer|null> => {
-    // Read a file from the user's files dir (returns null if file doesn't exist)
+ipcMain.handle('user_file_read', async (event, relative_path:string) => {
+    // Read a file from the user's files dir (returns null if not found, 'permission' if blocked)
     const full_path = restrict_path(files_dir, relative_path)
     try {
-        // WARN Uint8Array wrapper required so .buffer returns exact bytes (not a shared pool buffer)
+        // WARN Uint8Array wrap required so .buffer returns exact bytes (not a shared pool buffer)
         return new Uint8Array(readFileSync(full_path)).buffer
     } catch (error){
-        if ((error as NodeJS.ErrnoException).code === 'ENOENT')
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT'){
             return null
+        } else if ((error as NodeJS.ErrnoException).code === 'EPERM'){
+            void warn_eperm('user_file_read', full_path)
+            return 'permission'
+        }
         throw error
     }
 })
 
 
 ipcMain.handle('user_file_write', async (event, relative_path:string, data:ArrayBuffer) => {
-    // Write a file to the user's files dir
+    // Write a file to the user's files dir (returns 'permission' if blocked)
     const full_path = restrict_path(files_dir, relative_path)
-    mkdirSync(path.dirname(full_path), {recursive: true})
-    writeFileSync(full_path, Buffer.from(data))
+    try {
+        mkdirSync(path.dirname(full_path), {recursive: true})
+        writeFileSync(full_path, Buffer.from(data))
+    } catch (error){
+        if ((error as NodeJS.ErrnoException).code === 'EPERM'){
+            void warn_eperm('user_file_write', full_path)
+            return 'permission'
+        }
+        throw error
+    }
+    return undefined
 })
 
 
@@ -80,7 +95,12 @@ ipcMain.handle('user_file_remove', async (event, relative_path:string):Promise<v
     // Remove a file or dir recursively in the user's files dir
     // NOTE Windows especially may need retry due to anti-virus and other things holding locks
     const full_path = restrict_path(files_dir, relative_path)
-    rmSync(full_path, {force: true, recursive: true, maxRetries: 3})
+    try {
+        rmSync(full_path, {force: true, recursive: true, maxRetries: 3})
+    } catch (error){
+        // WARN Silent failure (assume deletion of files not essential to app functioning)
+        report_file_remove_fail(error as NodeJS.ErrnoException, full_path)
+    }
 })
 
 

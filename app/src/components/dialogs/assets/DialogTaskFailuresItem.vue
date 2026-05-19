@@ -7,7 +7,7 @@ v-card.card(class='mb-4')
     v-card-text(class='text-body-1')
         p {{ explanation }}
     v-card-actions
-        app-btn(v-if='support_url' :href='support_url') Let us know
+        app-btn(v-if='support_url' :href='support_url') {{ support_label }}
         app-btn(@click='fix') {{ fix_text }}
 
 </template>
@@ -72,6 +72,7 @@ export default class extends Vue {
             throttled: "Limit exceeded",
             restore: "Can't read file",
             storage: "Storage full",
+            permission: "Not allowed to access files",
             clock: "Clock out of sync",
             unknown: "Unexpected error",
         }[this.error_type]
@@ -115,6 +116,8 @@ export default class extends Vue {
         } else if (this.error_type === 'storage'){
             return "Your Google Drive is full. Free up space in your Google Drive"
                 + " or upgrade your storage plan, then retry."
+        } else if (this.error_type === 'permission'){
+            return "Your operating system is blocking Stello from accessing its own files."
         } else if (this.error_type === 'clock'){
             return "Your computer's clock is out of sync."
                 + " Fix it by syncing your system clock in your computer's Date & Time settings."
@@ -141,8 +144,11 @@ export default class extends Vue {
     }
 
     get support_url():string|undefined{
-        // Generate a support url if the fail type is unknown
+        // Generate a support url for unknown errors or mac permission errors
         // SECURITY Don't include task params or label as may include personal data
+        if (this.error_type === 'permission' && navigator.userAgent.includes('Macintosh')){
+            return 'https://stello.news/guide/problem-permission-mac/'
+        }
         if (this.error_type === 'unknown'){
             const desc = `Task: ${this.task.name}\nError id: ${this.task.error_report_id ?? ''}`
             return `https://gracious.tech/contact?desc=${encodeURIComponent(desc)}`
@@ -150,10 +156,18 @@ export default class extends Vue {
         return undefined
     }
 
+    get support_label():string{
+        // Label for the support button depending on error type
+        if (this.error_type === 'permission' && navigator.userAgent.includes('Macintosh')){
+            return "How to fix"
+        }
+        return "Let us know"
+    }
+
     async fix():Promise<void>{
         // Attempt to fix the problem
         const task_args:TaskStartArgs = [this.task.name, this.task.params, this.task.options]
-        let abort_msg:void|string
+        let abort_msg:void|undefined|string
         if (this.error_type === 'oauth_useless' && this.task.fix_settings){
             abort_msg = await this.task.fix_settings()
         } else if (this.error_type.startsWith('oauth_') && this.oauth){

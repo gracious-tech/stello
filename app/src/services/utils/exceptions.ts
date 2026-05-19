@@ -72,6 +72,12 @@ export class MustMakeSpace extends CustomError {
 }
 
 
+// NOTE This is actually thrown as a string due to coming from preload.ts which can't keep obj refs
+// export class MustAllow extends CustomError {
+//     // Use for when OS permissions block file access (e.g. macOS Privacy & Security settings)
+// }
+
+
 export class MustSyncClock extends CustomError {
     // Use for when system clock is too far off and must be synced
 }

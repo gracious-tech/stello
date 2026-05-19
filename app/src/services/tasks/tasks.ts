@@ -21,7 +21,7 @@ export type TaskStartArgs = [string, unknown[]?, unknown[]?]
 // Task functions return a promise which may resolve to single/array of other subtask promises
 export type TaskReturn = Promise<Promise<unknown>|Promise<unknown>[]|void>
 export type TaskErrorType =
-    'network'|'auth'|'settings'|'throttled'|'restore'|'storage'|'clock'|'unknown'
+    'network'|'auth'|'settings'|'throttled'|'restore'|'storage'|'permission'|'clock'|'unknown'
 export type TaskFunction = (task:Task)=>TaskReturn
 
 
@@ -126,6 +126,8 @@ export class Task {
             return 'restore'
         } else if (this.error instanceof MustMakeSpace){
             return 'storage'
+        } else if (this.error === 'MustAllow'){
+            return 'permission'
         } else if (this.error instanceof MustSyncClock){
             return 'clock'
         }

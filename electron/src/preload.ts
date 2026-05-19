@@ -29,12 +29,21 @@ const native_electron:NativeInterface = {
         return ipcRenderer.invoke('user_file_size_total', path) as Promise<number>
     },
 
-    user_file_read(path:string){
-        return ipcRenderer.invoke('user_file_read', path) as Promise<ArrayBuffer|null>
+    async user_file_read(path:string){
+        const data =
+            await ipcRenderer.invoke('user_file_read', path) as ArrayBuffer|'permission'|null
+        if (data === 'permission'){
+            throw 'MustAllow'
+        }
+        return data
     },
 
-    user_file_write(path:string, data:ArrayBuffer){
-        return ipcRenderer.invoke('user_file_write', path, data) as Promise<void>
+    async user_file_write(path:string, data:ArrayBuffer){
+        const error =
+            await ipcRenderer.invoke('user_file_write', path, data) as 'permission'|undefined
+        if (error === 'permission'){
+            throw 'MustAllow'
+        }
     },
 
     user_file_remove(path:string){
