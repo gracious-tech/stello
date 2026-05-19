@@ -1,6 +1,6 @@
 {
     "name": "stello",
-    "version": "1.9.9",
+    "version": "1.9.10",
     "description": "A new way to send newsletters that are secure and interactive",
     "homepage": "https://stello.news/",
     "author": {
@@ -61,7 +61,6 @@
             "publisher": "CN=108FB3BA-A617-4D61-B151-371B31EF4350"
         },
         "mac": {
-            "icon": "build/icon_square.png",
             "darkModeSupport": true,
             "category": "public.app-category.productivity"
         },
