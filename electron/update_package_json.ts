@@ -69,6 +69,7 @@ const new_contents:Metadata|PackageJsonMissing = {
             publisher: "CN=108FB3BA-A617-4D61-B151-371B31EF4350",
         },
         mac: {
+            icon: 'build/icon_square.png',
             darkModeSupport: true,
             category: 'public.app-category.productivity',
         },
