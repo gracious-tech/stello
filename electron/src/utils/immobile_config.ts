@@ -6,8 +6,8 @@ import {app} from 'electron'
 
 
 // Config file stored in OS appData dir — separate from Stello Files, so it survives user moves
-const config_dir = join(app.getPath('appData'), 'stello')
-const config_path = join(config_dir, 'immobile_config.json')
+export const immobile_config_dir = join(app.getPath('appData'), 'stello')
+const config_path = join(immobile_config_dir, 'immobile_config.json')
 
 
 interface ImmobileConfig {
@@ -31,7 +31,7 @@ export function read_immobile_config():string|null {
 
 export function write_immobile_config(files_dir:string|null):void {
     // Save the current files_dir so Stello can find it again after a user-initiated move
-    mkdirSync(config_dir, {recursive: true})
+    mkdirSync(immobile_config_dir, {recursive: true})
     const config:ImmobileConfig = {files_dirs: files_dir ? [files_dir] : []}
     writeFileSync(config_path, JSON.stringify(config))
 }

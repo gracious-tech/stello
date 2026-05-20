@@ -1,6 +1,6 @@
 
 import {join} from 'node:path'
-import {readFile, writeFile} from 'node:fs/promises'
+import {writeFileSync} from 'node:original-fs'
 
 
 const warn_text = `
@@ -25,10 +25,7 @@ See the guide at https://stello.news/guide/backup/ for further instructions.
 export const readme_filename = 'READ ME before moving this folder.txt'
 
 
-export async function write_warning_file(files_dir:string):Promise<void>{
+export function write_warning_file(files_dir:string):void{
     // Ensure warning file exists
-    const warn_file = join(files_dir, readme_filename)
-    const existing = await readFile(warn_file, {encoding: 'utf8'}).catch(() => '')
-    if (existing !== warn_text)
-        void writeFile(warn_file, warn_text)
+    writeFileSync(join(files_dir, readme_filename), warn_text)
 }
