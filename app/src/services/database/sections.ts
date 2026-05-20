@@ -3,7 +3,7 @@ import {IDBPObjectStore} from 'idb'
 
 import {AppDatabaseConnection, RecordSection, RecordSectionContent, SectionIds,
     AppDatabaseSchema} from './types'
-import {blobstore_copy_impatient, blobstore_remove} from './blobstore'
+import {blobstore_copy_impatient, blobstore_read, blobstore_remove} from './blobstore'
 import {generate_token} from '@/services/utils/crypt'
 
 
@@ -161,12 +161,36 @@ export class DatabaseSections {
         return section
     }
 
-    async remove(id:string):Promise<RecordSection[]>{
+    async extract(id:string):Promise<RecordSection[]>{
         // Remove the section with given id and return it and all connected subsections
         // WARN callers expect first section of returned array to be the one identified by given id
+        // NOTE Embeds blobs so that not left over if this data is later discarded
+
+        // Get the sections data
         const transaction = this._conn.transaction('sections', 'readwrite')
-        const removed = await rm_sections(transaction.objectStore('sections'), [[id]])
+        const removed = await rm_sections_inner(transaction.objectStore('sections'), [[id]])
         await transaction.done
+
+        // Read blob data into records and delete the files
+        for (const section of removed){
+            if (section.content.type === 'images'){
+                for (const image of section.content.images){
+                    const ref = image.data
+                    image.data = await blobstore_read(ref)
+                    void blobstore_remove(ref)
+                }
+            } else if (section.content.type === 'files'){
+                for (const file of section.content.files){
+                    const ref = file.data
+                    file.data = await blobstore_read(ref)
+                    void blobstore_remove(ref)
+                }
+            } else if (section.content.type === 'page'){
+                const ref = section.content.image
+                section.content.image = await blobstore_read(section.content.image)
+                void blobstore_remove(ref)
+            }
+        }
         return removed
     }
 }
@@ -176,18 +200,20 @@ export class DatabaseSections {
 type SectionsStore = IDBPObjectStore<AppDatabaseSchema, any, 'sections', 'readwrite'>
 
 
-export async function rm_sections(sections_store:SectionsStore, section_ids:SectionIds){
-    // Recursive helper for deleting sections which traverses pages
+async function rm_sections_inner(sections_store:SectionsStore, section_ids:SectionIds){
+    // Recursively remove sections from db, traversing pages
+    // WARN This must be transaction safe and not wait for anything async that's not db
     // NOTE Expects to be provided an object store from an ongoing transaction
 
     // Collect all section records that are removed so can later return them
     const removed:RecordSection[] = []
 
     // Can process each id concurrently but must wait for all to finish so removed array populated
-    // NOTE order added to removed matters to DatabaseSections.remove() but only 1 item in that case
+    // NOTE DatabaseSections.extract() expects first item to be first that was passed in
     await Promise.all(section_ids.flat().map(async section_id => {
 
         // Get and remove section
+        // NOTE Must get in case a page and has child sections
         const section = await sections_store.get(section_id)
         if (!section){
             self.app_report_error("Section data missing (rm_sections)")
@@ -196,22 +222,30 @@ export async function rm_sections(sections_store:SectionsStore, section_ids:Sect
         removed.push(section)
         void sections_store.delete(section_id)  // Can wait on transaction later if needed
 
-        // Fire-and-forget blob file cleanup (no point failing if record already updated)
-        if (section.content.type === 'images'){
-            void Promise.all(section.content.images.map(image => blobstore_remove(image.data)))
-        } else if (section.content.type === 'files'){
-            void Promise.all(section.content.files.map(file => blobstore_remove(file.data)))
-        } else if (section.content.type === 'page'){
-            void blobstore_remove(section.content.image)
-        }
-
-        // See if need to recurse through subpages
+        // Recurse through subpages
         if (section.content.type === 'page'){
-            removed.push(... await rm_sections(sections_store, section.content.sections))
+            removed.push(... await rm_sections_inner(sections_store, section.content.sections))
         }
     }))
 
     return removed
+}
+
+
+export async function rm_sections(sections_store:SectionsStore, section_ids:SectionIds)
+        :Promise<void>{
+    // Remove sections from db and fire-and-forget delete their blob files
+    // WARN This must be transaction safe and not wait for anything async that's not db
+    const removed = await rm_sections_inner(sections_store, section_ids)
+    for (const section of removed){
+        if (section.content.type === 'images'){
+            section.content.images.map(image => void blobstore_remove(image.data))
+        } else if (section.content.type === 'files'){
+            section.content.files.map(file => void blobstore_remove(file.data))
+        } else if (section.content.type === 'page'){
+            void blobstore_remove(section.content.image)
+        }
+    }
 }
 
 

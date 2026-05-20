@@ -113,7 +113,7 @@ export default class RouteDraftPage extends Vue {
             rm_section_id(this.draft!.sections, this.page_id)
             await self.app_db.drafts.set(this.draft!)
         }
-        const removed_sections = await self.app_db.sections.remove(this.page_id)
+        const removed_sections = await self.app_db.sections.extract(this.page_id)
         this.$store.commit('tmp_set', ['cut_section', removed_sections])
         void this.$router.push('../')
     }

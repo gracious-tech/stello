@@ -171,7 +171,7 @@ export default class extends Vue {
         // Remove the given section
         rm_section_id(this.sections, section.id)
         this.save_sections()
-        const removed_sections = await self.app_db.sections.remove(section.id)
+        const removed_sections = await self.app_db.sections.extract(section.id)
         this.$store.commit('tmp_set', ['cut_section', removed_sections])
         delete this.records[section.id]  // Rm from cache
     }
