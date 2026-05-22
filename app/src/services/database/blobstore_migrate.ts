@@ -5,7 +5,7 @@ import {AppDatabaseConnection, RecordSection, RecordProfile, RecordDraft, Record
     from './types'
 
 
-export async function migrate(on_progress:(progress:number, total:number)=>void):Promise<void>{
+export async function migrate(on_progress:(progress:number, total:number)=>void):Promise<number>{
     // Migrate all inline Blobs to external blobstore files
 
     const db = self.app_db._conn
@@ -17,12 +17,13 @@ export async function migrate(on_progress:(progress:number, total:number)=>void)
     const message_count = await db.count('messages')
     const total = section_count + profile_count + draft_count + message_count
     let progress = 0
+    let skipped = 0
 
-    // Process one record at a time in case one fails (and avoid loading too much into memory)
+    // Process one record at a time to reduce memory use, skipping any with unreadable blobs
     for (const key of await db.getAllKeys('sections')){
         const section = await db.get('sections', key)
         if (section){
-            await migrate_section(section, db)
+            skipped += await migrate_record(() => migrate_section(section, db))
         }
         on_progress(++progress, total)
     }
@@ -30,7 +31,7 @@ export async function migrate(on_progress:(progress:number, total:number)=>void)
     for (const key of await db.getAllKeys('profiles')){
         const profile = await db.get('profiles', key)
         if (profile){
-            await migrate_profile(profile, db)
+            skipped += await migrate_record(() => migrate_profile(profile, db))
         }
         on_progress(++progress, total)
     }
@@ -38,7 +39,7 @@ export async function migrate(on_progress:(progress:number, total:number)=>void)
     for (const key of await db.getAllKeys('drafts')){
         const draft = await db.get('drafts', key)
         if (draft){
-            await migrate_draft(draft, db)
+            skipped += await migrate_record(() => migrate_draft(draft, db))
         }
         on_progress(++progress, total)
     }
@@ -46,9 +47,30 @@ export async function migrate(on_progress:(progress:number, total:number)=>void)
     for (const key of await db.getAllKeys('messages')){
         const message = await db.get('messages', key)
         if (message){
-            await migrate_message(message, db)
+            skipped += await migrate_record(() => migrate_message(message, db))
         }
         on_progress(++progress, total)
+    }
+
+    return skipped
+}
+
+
+// Helpers
+
+
+let reported = false  // Max one report per session
+async function migrate_record(fn:() => Promise<void>):Promise<number>{
+    // Try to migrate a single record, returning 1 if skipped due to unreadable blob data
+    try {
+        await fn()
+        return 0
+    } catch (error){
+        if (!reported){
+            self.app_report_error(error)
+            reported = true
+        }
+        return 1
     }
 }
 
