@@ -14,13 +14,14 @@ cd displayer
 sed --in-place 's/\.\/lottie_light/\/displayer\/lottie_light/' dist/displayer/index.*.js
 
 # Create compressed version in new dir
-# NOTE All files are compressed for simplicity (only one png icon that might not really need it)
+# NOTE Text assets are gzip compressed, but raster images (jpg/png) are left raw since gzipping
+#      them gives ~no benefit and breaks non-browser clients (e.g. Facebook's og:image crawler)
 # NOTE Only copies index.html and displayer dir to exclude dev files etc
 rm -rf dist_compressed
 mkdir dist_compressed
 cp --archive dist/index.html dist/displayer dist_compressed
-gzip -r --best dist_compressed
-# Remove the .gz extension that was added to all files
+find dist_compressed -type f ! -name '*.jpg' ! -name '*.png' -exec gzip --best {} +
+# Remove the .gz extension that was added to compressed files
 find dist_compressed -name '*.gz' -exec bash -c 'mv "$1" "${1%.gz}"' _ {} \;
 
 # Place tar'd copy in app component

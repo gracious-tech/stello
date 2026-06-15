@@ -34,6 +34,19 @@ export function displayer_asset_type(path:string):string{
             return 'text/css'
         case 'js':
             return 'text/javascript'
+        case 'png':
+            return 'image/png'
+        case 'jpg':
+            return 'image/jpeg'
     }
     return 'application/octet-stream'
+}
+
+
+export function displayer_asset_gzipped(path:string):boolean{
+    // Whether a displayer asset is stored gzip compressed (see build_displayer)
+    // NOTE Raster images (jpg/png) are left raw since gzipping them gives ~no benefit and breaks
+    //      non-browser clients (e.g. Facebook's og:image crawler)
+    const ext = path.split('.').at(-1)!.toLowerCase()
+    return ext !== 'jpg' && ext !== 'png'
 }

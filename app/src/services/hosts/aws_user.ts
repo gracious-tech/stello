@@ -10,7 +10,8 @@ import {Task} from '@/services/tasks/tasks'
 import {buffer_to_hex} from '@/services/utils/coding'
 import {sleep} from '@/services/utils/async'
 import {untar} from '@/services/misc'
-import {displayer_asset_type, HostPermissionError, HOST_STORAGE_VERSION} from './common'
+import {displayer_asset_type, displayer_asset_gzipped, HostPermissionError, HOST_STORAGE_VERSION}
+    from './common'
 import {maxWaitTime, AwsError, no404, HostStorageGeneratedAws} from '@/services/hosts/aws_common'
 
 
@@ -184,7 +185,7 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
                 Bucket: this.bucket,
                 Key: file.name,
                 ContentType: displayer_asset_type(file.name),
-                ContentEncoding: 'gzip',
+                ContentEncoding: displayer_asset_gzipped(file.name) ? 'gzip' : undefined,
                 Body: new Uint8Array(file.buffer),
             }).then(() => file.name))
         }

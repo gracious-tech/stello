@@ -22,8 +22,14 @@ echo "Uploading..."
 cd displayer/dist_compressed
 aws s3 sync --delete "s3://$STELLO_HOSTED_BUCKET" ../dist_prev/
 
-# Upload assets
-aws s3 sync --content-encoding gzip --delete . "s3://$STELLO_HOSTED_BUCKET"
+# Upload assets in two passes since s3 sync applies --content-encoding to every file
+# NOTE Text assets are gzip compressed (see build_displayer) so get the gzip content-encoding,
+#      but raster images (jpg/png) are stored raw and must NOT be served gzipped
+#      (breaks non-browser clients like Facebook's og:image crawler)
+aws s3 sync --content-encoding gzip --delete --exclude '*.jpg' --exclude '*.png' \
+    . "s3://$STELLO_HOSTED_BUCKET"
+aws s3 sync --delete --exclude '*' --include '*.jpg' --include '*.png' \
+    . "s3://$STELLO_HOSTED_BUCKET"
 
 # Invalidate cloudfront
 aws cloudfront create-invalidation --distribution-id "$STELLO_HOSTED_CF" --paths '/*'
