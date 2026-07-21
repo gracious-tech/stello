@@ -1,9 +1,9 @@
 
 <template lang='pug'>
 
-v-list-item(:to='to')
+v-list-item(:to='to' @click='handle_click')
     v-list-item-action
-        app-btn-checkbox(@click.prevent='toggle_selected' :value='item.selected')
+        app-btn-checkbox(@click.prevent.stop='toggle_selected' :value='item.selected')
     v-list-item-content
         v-list-item-title {{ item.contact.display }}
     v-list-item-action.hello(class='ellipsis ml-4')
@@ -46,12 +46,23 @@ export default class extends Vue {
 
     @Prop({required: true}) declare readonly item:ContactItem
     @Prop({default: null}) declare readonly disengaged:DisengagedData|null
+    @Prop({default: false}) declare readonly some_selected:boolean
 
-    get to():RawLocation{
-        // Return route location for viewing the contact
+    get to():RawLocation|null{
+        // Return route location for viewing the contact (unless a selection is in progress)
+        if (this.some_selected){
+            return null
+        }
         return {
             name: 'contact',
             params: {contact_id: this.item.contact.id},
+        }
+    }
+
+    handle_click(event:MouseEvent){
+        // Toggle selection instead of navigating when a selection is already in progress
+        if (this.some_selected){
+            this.toggle_selected(event)
         }
     }
 

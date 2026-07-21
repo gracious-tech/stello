@@ -93,7 +93,7 @@ div
                     class='pt-6')
                 template(#default='{item, height_styles}')
                     route-contacts-item(:item='item' :key='item.contact.id' :style='height_styles'
-                        :disengaged='get_disengaged(item.contact.id)')
+                        :disengaged='get_disengaged(item.contact.id)' :some_selected='some_selected')
 
 </template>
 
