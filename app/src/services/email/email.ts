@@ -71,6 +71,7 @@ class EmailAccountManager {
     last_send = 0  // Epoch time
     interval = 0  // ms
     dead = false  // Prevents instance from being used by throwing when try to send
+    dead_reason:unknown = null  // The error that killed the transport, re-thrown to late senders
     aborted = new Set<string>()
 
     constructor(settings:Profile['smtp_settings']){
@@ -85,9 +86,10 @@ class EmailAccountManager {
         // NOTE Will throw error for anything other than a problem with recipient's address
 
         // Prevent queuing of any more emails if transport is declared dead
-        // WARN Otherwise could end up in situation where promise is never resolved
+        // WARN Must throw before creating the promise, or it would never resolve
+        // NOTE Re-throw the original cause so late sends fail the same way queued ones did
         if (this.dead){
-            throw new Error("Email transport is dead but was still given an email to send")
+            throw this.dead_reason ?? new Error("Email transport is dead")
         } else if (this.aborted.has(task_id)){
             // Task has been aborted so prevent further queuing
             throw new TaskAborted()
@@ -177,6 +179,7 @@ class EmailAccountManager {
                 // An error occurred that requires user action to resolve
                 // NOTE Assumes all items will fail, not just this one
                 this.dead = true  // Prevent any more items being added to queue
+                this.dead_reason = error  // Preserve so late `send()` calls re-throw it
                 item.reject(error)  // Reject this item
                 while (this.queue.length){  // Reject all items in queue
                     this.queue.shift()!.reject(error)  // Reason of failed email raised for all
