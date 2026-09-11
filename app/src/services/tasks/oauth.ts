@@ -173,8 +173,20 @@ async function oauth_authorize_init(issuer:OAuthIssuer, scope_sets:ScopeSet[], m
     }
 
     // Fetch the openid config
-    const auth_config = await appauth.AuthorizationServiceConfiguration.fetchFromIssuer(
-        issuer_config.endpoint, new appauth.FetchRequestor())
+    // NOTE Callers don't await this fn (auth continues via a redirect) so handle connection fail
+    //      here, otherwise the user gets no feedback at all and the error is needlessly reported
+    let auth_config:appauth.AuthorizationServiceConfiguration
+    try {
+        auth_config = await appauth.AuthorizationServiceConfiguration.fetchFromIssuer(
+            issuer_config.endpoint, new appauth.FetchRequestor())
+    } catch (error){
+        // Underlying fetch call throws TypeError when can't connect
+        if (error instanceof TypeError){
+            void self.app_store.dispatch('show_snackbar', "Could not connect")
+            return
+        }
+        throw error
+    }
 
     // Different request params are needed depending on if email is known or not
     // If email is known then should supply to avoid need to select correct account
