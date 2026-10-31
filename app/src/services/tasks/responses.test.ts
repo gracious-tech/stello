@@ -136,8 +136,7 @@ describe('responses_receive', () => {
     })
 
     test('sync responses are applied in chronological order', async () => {
-        // BUG #responses-sync-order: "sync" responses are run with Promise.all (concurrently)
-        //      so a slow earlier unsubscribe can be applied after a later resubscribe
+        // Sync responses must be applied in order (unsubscribe then resubscribe)
         const first = await add_response('subscription', {resp_token: copy.resp_token,
             subscribed: false})
         await add_response('subscription', {resp_token: copy.resp_token, subscribed: true})

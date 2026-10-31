@@ -86,7 +86,9 @@ export async function responses_receive(task:Task):Promise<void>{
     await concurrent(resp_fns_async.map(item => item.fn))
 
     // Synchronous tasks must be done in order as can override each other
-    await Promise.all(resp_fns_sync.map(fn => fn()))
+    for (const fn of resp_fns_sync){
+        await fn()
+    }
 
     // If error occured at any point, can throw it now that processing done
     if (deferred_throw){
