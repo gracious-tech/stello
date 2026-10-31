@@ -19,9 +19,12 @@ node_modules/.bin/ts-node host/template_builder.ts
 
 # Load in env vars for deployment
 source deploy_host_${env}.env
-read -s -p "AWS_SECRET_ACCESS_KEY: "
-export AWS_SECRET_ACCESS_KEY="$REPLY"
-echo  # Password input doesn't look like it worked otherwise (as silenced)
+# Prompt for secret unless credentials already provided (e.g. via SSO session or AWS_PROFILE)
+if [[ -z "$AWS_SECRET_ACCESS_KEY" && -z "$AWS_PROFILE" ]]; then
+    read -s -p "AWS_SECRET_ACCESS_KEY: "
+    export AWS_SECRET_ACCESS_KEY="$REPLY"
+    echo  # Password input doesn't look like it worked otherwise (as silenced)
+fi
 echo "Deploying..."
 
 
