@@ -187,8 +187,7 @@ describe('oauth_refresh', () => {
     })
 
     test('saves rotated refresh token', async () => {
-        // BUG #oauth-refresh-rotation: Microsoft (and optionally Google) return a new refresh
-        //      token when refreshing; it's discarded so the original expires after ~90 days
+        // Issuers may rotate refresh tokens, so the new one must be saved
         appauth.state.token_resp = {accessToken: 'a', refreshToken: 'refresh2'}
         const oauth = await new_oauth({issuer: 'microsoft'})
         await oauth_refresh(oauth)

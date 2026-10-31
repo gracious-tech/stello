@@ -502,6 +502,10 @@ export async function oauth_refresh(oauth:OAuth):Promise<void>{
         throw error
     }
     oauth.token_access = await external_encrypt(token_resp.accessToken)
+    // Issuers may rotate the refresh token, invalidating the old one
+    if (token_resp.refreshToken){
+        oauth.token_refresh = await external_encrypt(token_resp.refreshToken)
+    }
     oauth.token_access_expires = token_resp.expiresIn === undefined ? null :
         new Date((token_resp.issuedAt + token_resp.expiresIn) * 1000)
     await self.app_db.oauths.set(oauth)
