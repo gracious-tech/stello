@@ -27,8 +27,9 @@ export function extract_contacts_from_vcard(data:string):Contact[]{
         line = line.trim()
         let [key, val] = partition(line, ':')
         key = partition(key, ';')[0].split('.').at(-1) ?? ''
-        // NOTE vcard escapes commas with backlash for any field (not just ones with lists)
-        val = val.replaceAll('\\,', ',')
+        // Unescape special chars (vcard escapes commas for any field, not just lists)
+        val = val.replace(/\\([\\,;nN])/g,
+            (_match, char:string) => char === 'n' || char === 'N' ? '\n' : char)
 
         if (line === 'BEGIN:VCARD'){
             within_card = true

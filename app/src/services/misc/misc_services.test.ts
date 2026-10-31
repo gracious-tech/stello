@@ -155,7 +155,7 @@ describe('vcard', () => {
     })
 
     test('unescapes newlines and semicolons', () => {
-        // BUG #vcard-escapes: only `\,` is unescaped, but `\n`, `\;` and `\\` are also standard
+        // `\n`, `\;` and `\\` are standard escapes, not just `\,`
         const data = 'BEGIN:VCARD\nFN:Bob\nNOTE:Line one\\nLine two\\; ok\nEND:VCARD'
         expect(extract_contacts_from_vcard(data)[0]!.notes).toBe('Line one\nLine two; ok')
     })
