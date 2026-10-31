@@ -189,7 +189,8 @@ export async function contacts_create(task:Task):Promise<void>{
     // NOTE Currently not used as using taskless version instead
 
     // Extract args from task object and get oauth record
-    const [oauth_id, contact_name, contact_address] = task.params as [string, string, string]
+    const [oauth_id, contact_address] = task.params as [string, string]
+    const [contact_name] = task.options as [string]
     if (!contact_name || !contact_address){
         // Synced contacts are required to have both, unlike Stello contacts
         throw task.abort("Contact has no name and/or email address")

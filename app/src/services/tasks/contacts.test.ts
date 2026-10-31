@@ -265,8 +265,7 @@ describe('contact changes', () => {
     })
 
     test('create contact via task uses params from start_contacts_create', async () => {
-        // BUG #contacts-create-params: start_contacts_create() passes [oauth_id, address] as
-        //      params and [name] as options, but the task reads [oauth_id, name, address] params
+        // Task must read the params/options that start_contacts_create() passes
         route('POST people:createContact', {resourceName: 'people/new'})
         await contacts_create(task([oauth.id, 'n@x'], ['Name']))
         const created = (await db.contacts.list())[0]!
