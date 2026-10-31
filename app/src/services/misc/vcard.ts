@@ -19,7 +19,8 @@ export function extract_contacts_from_vcard(data:string):Contact[]{
     let email:string|null = null
     let notes:string|null = null
 
-    for (let line of data.split('\n')){
+    // Unfold lines that were folded with a newline followed by a space/tab (RFC 6350 3.2)
+    for (let line of data.replace(/\r?\n[ \t]/g, '').split('\n')){
 
         // Extract key and val from line
         // Must account for eg: group1.EMAIL;TYPE=INTERNET:user@localhost

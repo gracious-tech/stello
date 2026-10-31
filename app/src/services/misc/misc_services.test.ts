@@ -147,7 +147,7 @@ describe('vcard', () => {
     })
 
     test('unfolds long lines', () => {
-        // BUG #vcard-folding: RFC 6350 folds lines >75 chars with CRLF + space (Google does this)
+        // RFC 6350 folds lines >75 chars with CRLF + space (Google does this)
         const data = 'BEGIN:VCARD\r\nFN:Bob\r\nNOTE:This is a long note that has been\r\n'
             + '  folded onto a second line\r\nEND:VCARD'
         expect(extract_contacts_from_vcard(data)[0]!.notes)
