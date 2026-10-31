@@ -757,7 +757,7 @@ async function contacts_change_email_google(oauth:OAuth, service_id:string, addr
 
     // May not need to do anything if user didn't add/remove any address (just chose from existing)
     const person_address_values = person.emailAddresses.map(i => i.value)
-    if (xor([person_address_values, addresses]).length === 0){
+    if (xor(person_address_values, addresses).length === 0){
         return
     }
 

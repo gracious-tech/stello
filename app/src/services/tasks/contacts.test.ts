@@ -241,8 +241,7 @@ describe('contact changes', () => {
     })
 
     test('change email skips update when addresses unchanged', async () => {
-        // BUG #lodash-xor: `xor([a, b])` is passed a single array of arrays (should be
-        //      `xor(a, b)`) so the "nothing changed" shortcut never triggers
+        // No update request needed when addresses are unchanged
         const contact = await synced_contact()
         route('GET people/p1', {resourceName: 'people/p1', emailAddresses: [{value: 'c@x'},
             {value: 'd@x'}]})
