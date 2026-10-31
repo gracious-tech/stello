@@ -65,7 +65,7 @@ describe('request body handling', () => {
     })
 
     test('json body of falsy value is still sent', async () => {
-        // BUG #http-falsy-json: `if (init.json)` skips valid JSON values like 0/false/''
+        // Falsy JSON values (0/false/'') are still valid bodies
         await request('https://x/', {json: false, method: 'POST'})
         expect(last_init().body).toBe('false')
     })

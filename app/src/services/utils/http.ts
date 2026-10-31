@@ -80,7 +80,7 @@ export async function request(input:string|Request, init?:JsonRequestInit,
     init.headers = new Headers(init.headers)
 
     // If json property exists, stringify as body
-    if (init.json){
+    if (init.json !== undefined){
         init.body = JSON.stringify(init.json)
         init.headers.set('Content-Type', 'application/json')
     }
