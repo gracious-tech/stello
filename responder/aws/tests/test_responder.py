@@ -401,9 +401,7 @@ def test_notify_subscribe_with_contents(self_hosted):
 
 
 def test_notify_subject_valid_for_sns(self_hosted):
-    # BUG #sns-subject-invalid: SNS rejects subjects that are non-ASCII, contain line breaks or
-    #   are 100+ chars, and the subscriber's name is put in the subject unchecked, so
-    #   self-hosted users never get notified of subscribe requests from e.g. "José"
+    # SNS only accepts printable ASCII subjects under 100 chars
     self_hosted.set_config(notify_mode='replies', notify_include_contents=True)
     for name in ('José', 'Bob\nSmith', 'x' * 100):
         self_hosted.post('subscribe', form='form1', name=name, address='a@x.com', content='')

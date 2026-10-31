@@ -3,6 +3,7 @@ import os
 import json
 import base64
 import string
+import unicodedata
 from time import time
 from uuid import uuid4
 from pathlib import Path
@@ -414,6 +415,12 @@ def _count_resp_objects(user, resp_type):
     return resp['KeyCount']
 
 
+def _ascii_printable(text):
+    """Convert text to printable ASCII only (accents removed, others dropped)"""
+    ascii_text = unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('ascii')
+    return ''.join(char if char.isprintable() else ' ' for char in ascii_text)
+
+
 def _send_notification(config, resp_type, event, user):
     """Notify user of replies/reactions/resends/subscribes for their messages (if configured to)
 
@@ -451,7 +458,9 @@ def _send_notification(config, resp_type, event, user):
         subject = "Stello: New reaction" if reaction else "Stello: New reply"
         heading = "Someone reacted with:" if reaction else "Someone replied with:"
         if resp_type == 'subscribe':
-            subject = f"Stello: {event['name']} wants to subscribe"
+            # SNS only accepts printable ASCII subjects, so strip accents/control chars from name
+            name = _ascii_printable(event['name']) if SELF_HOSTED else event['name']
+            subject = f"Stello: {name} wants to subscribe"
             heading = f"{event['name']} <{event['address']}> wants to subscribe"
 
         # Prepare msg for body of notification
@@ -504,7 +513,7 @@ def _send_notification(config, resp_type, event, user):
     if not DEV:
         if SELF_HOSTED:
             boto3.client('sns', config=AWS_CONFIG).publish(
-                TopicArn=TOPIC_ARN, Subject=subject, Message=f'{heading}\n\n\n{msg}')
+                TopicArn=TOPIC_ARN, Subject=subject[:99], Message=f'{heading}\n\n\n{msg}')
         else:
             boto3.client('ses', config=AWS_CONFIG).send_email(
                 Source=f"Stello <no-reply@{DOMAIN_BRANDED}>",
