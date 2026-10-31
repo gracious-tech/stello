@@ -207,6 +207,7 @@ class EmailAccountManager {
                 this.interval = 1000
                 this.max_processors = 1
                 this.max_batch_size = 1
+                this.last_send = this.now()  // So the retry waits for the interval too
                 console.warn("Email throttling detected (switching to single processor)")
             }
             return

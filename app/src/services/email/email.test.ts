@@ -86,8 +86,7 @@ describe('email account manager', () => {
     })
 
     test('throttling retries with interval and single processor', async () => {
-        // BUG #email-throttle-retry: last_send is never set before throttling is detected, so the
-        //      first retry is sent immediately rather than after the interval
+        // First retry after throttling must also wait for the interval
         let calls = 0
         vi.spyOn(smtp, 'send_batch_smtp').mockImplementation(async items => {
             calls++
