@@ -237,9 +237,7 @@ describe('auto update', () => {
         await run_main()
         await new Promise(resolve => {setTimeout(resolve, 10)})
         process.off('unhandledRejection', unhandled)
-        // BUG #update-check-unhandled: checkForUpdatesAndNotify() rejects when offline etc, but
-        //      main.ts has no catch so every failed (daily) check is an unhandled rejection
-        //      (reported to Rollbar via captureUnhandledRejections)
+        // Failed update checks (offline etc) must not be unhandled rejections
         expect(unhandled).not.toHaveBeenCalled()
     })
 })

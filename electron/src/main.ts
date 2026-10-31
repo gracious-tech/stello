@@ -56,14 +56,15 @@ void app.whenReady().then(async () => {
             if (update_downloaded){
                 return  // Don't repeat if already downloaded an update
             }
+            // NOTE Failures (e.g. offline) are expected so only warn rather than report
             void autoUpdater.checkForUpdatesAndNotify().then(result => {
                 // Update variable when download done
                 void result?.downloadPromise?.then(() => {
                     update_downloaded = true
                     // Notify app
                     BrowserWindow.getAllWindows()[0]?.webContents.send('update_ready')
-                })
-            })
+                }).catch(error => console.warn(error))
+            }).catch(error => console.warn(error))
         }
 
         // Check for updates
