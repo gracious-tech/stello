@@ -164,8 +164,7 @@ describe('DialogSubscribe', () => {
         expect(responses.respond_subscribe).toHaveBeenCalledWith('form', 'a@b.co', "Name", "Hi")
         expect((name!.element as HTMLInputElement).value).toBe('')
         expect(wrapper.find('.success').exists()).toBe(true)
-        // BUG #subscribe-success-address: address is cleared before the success message
-        //      renders it, so it reads " subscribed" instead of "a@b.co subscribed"
+        // Success message should still show the address after form is cleared
         expect(wrapper.find('.success').text()).toBe("a@b.co subscribed")
     })
 

@@ -7,7 +7,7 @@ input(v-model='name' :placeholder='$t("Full name") + "..."')
 input(v-model='address' type='email' :placeholder='$t("Email address") + "..."')
 textarea(v-if='form.accept_message' ref='textarea' v-model='message'
     :placeholder='$t("Message") + "..."')
-div.success(v-if='success') {{ address }} {{ $t("subscribed") }}
+div.success(v-if='success') {{ subscribed_address }} {{ $t("subscribed") }}
 
 div.actions
     button(@click='close' class='btn-text') {{ $t("Close") }}
@@ -44,6 +44,7 @@ export default defineComponent({
         const progress = ref(false)
         const error = ref(false)
         const success = ref(false)
+        const subscribed_address = ref('')  // Kept for success msg since form is cleared
 
         // Computed
         const valid = computed(() => name.value && email_address_like(address.value))
@@ -56,6 +57,7 @@ export default defineComponent({
             success.value = false
             if (await respond_subscribe(props.form.id, address.value, name.value, message.value)){
                 success.value = true
+                subscribed_address.value = address.value
                 name.value = ''
                 address.value = ''
                 message.value = ''
@@ -77,7 +79,8 @@ export default defineComponent({
         })
 
         // Expose
-        return {close, send, progress, error, success, textarea, valid, name, address, message}
+        return {close, send, progress, error, success, subscribed_address, textarea, valid, name,
+            address, message}
     },
 })
 
