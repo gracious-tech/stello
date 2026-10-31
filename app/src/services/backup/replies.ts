@@ -28,7 +28,8 @@ export async function export_replies_csv():Promise<ArrayBuffer>{
     }))
 
     // Return as ArrayBuffer
-    return string_to_utf8(papaparse.unparse(data))
+    // SECURITY Replies are written by recipients so escape anything a spreadsheet could execute
+    return string_to_utf8(papaparse.unparse(data, {escapeFormulae: true}))
 }
 
 

@@ -110,9 +110,7 @@ describe('replies csv', () => {
     })
 
     test('recipient content cannot inject spreadsheet formulas', async () => {
-        // BUG #csv-formula-injection: replies are written by recipients (untrusted) and opened
-        //      in spreadsheets; values starting with = + - @ must be escaped (papaparse has
-        //      an `escapeFormulae` option for this)
+        // Replies are untrusted, so values a spreadsheet could execute must be escaped
         await reply('=HYPERLINK("https://evil","click")')
         const rows = parse_csv(await export_replies_csv())
         expect(rows[1]![1]!.startsWith('=')).toBe(false)
