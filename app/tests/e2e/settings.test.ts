@@ -210,9 +210,7 @@ test.describe('profile setup', () => {
             create_error = error
             await done.click()
             await expect(page.locator('.done .error--text')).toBeVisible()
-            // BUG #accounts-error-message: `override message!:create_errors` in
-            //      AccountsCreateError is emitted as a class field which resets `message` to
-            //      undefined after super(), so the generic "Something went wrong" always shows
+            // Each creation error code should show its specific message
             await expect.soft(page.getByText(new RegExp(message))).toBeVisible({timeout: 3000})
         }
 

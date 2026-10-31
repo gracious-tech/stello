@@ -84,7 +84,7 @@ type create_errors = 'username_invalid'|'username_taken'|'ip_limit_day'|'ip_limi
 
 export class AccountsCreateError extends CustomError {
     // Create error expects error code as the message
-    override message!:create_errors
+    declare message:create_errors
 }
 
 
