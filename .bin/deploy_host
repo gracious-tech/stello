@@ -33,6 +33,18 @@ cd host
 sam deploy --no-fail-on-empty-changeset --config-file template_input.toml --config-env deployed_${env}
 
 
-# SetPrincipalTagAttributeMap not supported by CloudFormation yet
+# Map Cognito username to a principal tag (used by user role's IAM policy)
+# NOTE SetPrincipalTagAttributeMap not supported by CloudFormation yet
 # TODO Waiting on https://github.com/aws-cloudformation/cloudformation-coverage-roadmap/issues/779
-echo "MANUAL: Enable attributes for access control mapping 'username' -> 'cognito:username'"
+read stack_name region < <(python3 -c "import tomllib
+params = tomllib.load(open('template_input.toml', 'rb'))['deployed_${env}']['deploy']['parameters']
+print(params['stack_name'], params['region'])")
+stack_resource(){
+    aws cloudformation describe-stack-resource --region "$region" --stack-name "$stack_name" \
+        --logical-resource-id "$1" --query StackResourceDetail.PhysicalResourceId --output text
+}
+aws cognito-identity set-principal-tag-attribute-map --region "$region" \
+    --identity-pool-id "$(stack_resource IdentityPool)" \
+    --identity-provider-name "cognito-idp.$region.amazonaws.com/$(stack_resource UserPool)" \
+    --no-use-defaults --principal-tags username=cognito:username > /dev/null
+echo "Mapped Cognito username to principal tag"
