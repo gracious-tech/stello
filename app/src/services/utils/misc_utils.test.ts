@@ -121,7 +121,7 @@ describe('numbers', () => {
     })
 
     test('enforce_range never returns NaN', () => {
-        // BUG #enforce-range-nan: NaN is typeof 'number' so passes straight through clamping
+        // NaN is typeof 'number' but must not pass through clamping
         expect(enforce_range(NaN, 1, 10)).toBe(1)
     })
 
