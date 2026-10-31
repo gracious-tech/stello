@@ -136,8 +136,7 @@ describe('contacts_sync (google)', () => {
     })
 
     test('group batches respect member limit even with empty groups', async () => {
-        // BUG #google-group-batching: memberCount is omitted by Google for empty groups, making
-        //      the running total NaN so the 1000 member limit is never enforced afterwards
+        // Google omits memberCount for empty groups, which must not break the limit
         route('GET people/me/connections', {nextSyncToken: 's'})
         route('GET contactGroups', {contactGroups: [
             {resourceName: 'contactGroups/empty', groupType: 'USER_CONTACT_GROUP'},
