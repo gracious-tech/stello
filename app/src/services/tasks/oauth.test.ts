@@ -346,8 +346,7 @@ describe('oauth_pretask_process', () => {
     })
 
     test('reauth without new refresh token keeps existing one', async () => {
-        // BUG #oauth-reauth-refresh-lost: Google only returns a refresh token on first consent,
-        //      so a reauth overwrites the stored refresh token with an encrypted empty string
+        // Google only returns a refresh token on first consent, so keep existing
         const existing = await new_oauth()
         pending_auth({task: ['send_message', ['m']], oauth_id: existing.id}, undefined)
         await oauth_pretask_process('http://127.0.0.1/oauth?code=x')

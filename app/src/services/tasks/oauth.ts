@@ -439,6 +439,10 @@ export async function oauth_pretask_process(url:string):Promise<void>{
         // NOTE This may revoke previously held permissions but can't do anything about it
         //      If new refresh token generated then old one will already be invalidated
         oauth_instance = new OAuth({...existing, ...auth})
+        // Issuers may only provide a refresh token on first consent, so keep existing if none
+        if (!await external_decrypt(auth.token_refresh)){
+            oauth_instance.token_refresh = existing.token_refresh
+        }
         await self.app_db.oauths.set(oauth_instance)
     } else {
         oauth_instance = await self.app_db.oauths.create({
