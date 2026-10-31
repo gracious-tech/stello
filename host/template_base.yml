@@ -41,6 +41,12 @@ Resources:
         Type: AWS::S3::Bucket
         Properties:
             BucketName: !Join ['', [!Ref AWS::StackName, -displayer]]
+            # Allow public bucket policy (new buckets block it by default) but still block ACLs
+            PublicAccessBlockConfiguration:
+                BlockPublicAcls: true
+                IgnorePublicAcls: true
+                BlockPublicPolicy: false
+                RestrictPublicBuckets: false
             BucketEncryption:
                 ServerSideEncryptionConfiguration:
                     -   ServerSideEncryptionByDefault:
@@ -64,6 +70,12 @@ Resources:
         Type: AWS::S3::Bucket
         Properties:
             BucketName: !Ref AWS::StackName
+            # Allow public bucket policy (new buckets block it by default) but still block ACLs
+            PublicAccessBlockConfiguration:
+                BlockPublicAcls: true
+                IgnorePublicAcls: true
+                BlockPublicPolicy: false
+                RestrictPublicBuckets: false
             BucketEncryption:
                 ServerSideEncryptionConfiguration:
                     -   ServerSideEncryptionByDefault:
