@@ -1,0 +1,19 @@
+#!/bin/bash
+# Run responder (Python Lambda) unit tests with coverage
+set -e
+cd "$(dirname "$(dirname "$0")")"
+
+
+# Create venv and install test requirements if needed
+if [[ ! -f .venv/bin/python ]]; then
+    python3 -m venv .venv
+fi
+.venv/bin/pip install --quiet -r responder/aws/requirements_test.txt
+
+
+# Run tests (extra args passed to pytest)
+mkdir -p coverage/responder
+export COVERAGE_FILE=coverage/responder/.coverage
+.venv/bin/python -m pytest responder/aws/tests -p no:cacheprovider \
+    --cov=responder/aws/function --cov-report=term-missing \
+    --cov-report=html:coverage/responder "$@"

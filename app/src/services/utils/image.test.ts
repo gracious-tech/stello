@@ -1,21 +1,43 @@
 // WARN AI GENERATED - NOT REVIEWED YET
 
-import {test, expect} from '@playwright/test'
+import {afterEach, describe, expect, test, vi} from 'vitest'
 
 import {resize_image_calc} from './image'
 
 
 // MOCKS for canvas_to_blob_smart
 
+// Mock 2d context that records the operations performed on it
+class MockContext {
+    calls:unknown[][] = []
+    filters:string[] = []
+    set filter(value:string){
+        this.filters.push(value)
+    }
+    translate(...args:unknown[]){
+        this.calls.push(['translate', ...args])
+    }
+    rotate(...args:unknown[]){
+        this.calls.push(['rotate', ...args])
+    }
+    drawImage(...args:unknown[]){
+        this.calls.push(['drawImage', ...args])
+    }
+    resetTransform(){
+        this.calls.push(['resetTransform'])
+    }
+}
+
 // Mock OffscreenCanvas with convertToBlob that simulates format-dependent sizes
 class MockCanvas {
     width:number
     height:number
+    context = new MockContext()
     constructor(width:number, height:number) {
         this.width = width
         this.height = height
     }
-    getContext() { return null }
+    getContext() { return this.context }
     async convertToBlob(options?:{type?:string, quality?:number}):Promise<Blob> {
         const type = options?.type ?? 'image/png'
         const quality = options?.quality ?? 1
@@ -37,7 +59,8 @@ if (typeof self === 'undefined'){
 }
 
 // Must import after mock is set (canvas_to_blob_smart uses canvas_to_blob from coding.ts)
-import {canvas_to_blob_smart} from './image'
+import {canvas_to_blob_smart, rotate_image, filter_image, blob_image_size,
+    _tmp_normalize_orientation} from './image'
 
 function make_canvas(width:number, height:number):OffscreenCanvas {
     return new MockCanvas(width, height) as unknown as OffscreenCanvas
@@ -46,9 +69,9 @@ function make_canvas(width:number, height:number):OffscreenCanvas {
 
 // CALC_RESIZE TESTS (pure math, no mocking needed)
 
-test.describe('resize_image_calc', () => {
+describe('resize_image_calc', () => {
 
-    test.describe('no resize needed (returns null)', () => {
+    describe('no resize needed (returns null)', () => {
 
         test('image smaller than max', () => {
             expect(resize_image_calc(100, 50, 200, 200)).toBeNull()
@@ -64,7 +87,7 @@ test.describe('resize_image_calc', () => {
         })
     })
 
-    test.describe('scale down (no crop)', () => {
+    describe('scale down (no crop)', () => {
 
         test('width-limited: scales to fit max width', () => {
             // 1000x500 (ratio 2:1), max 200x400
@@ -107,7 +130,7 @@ test.describe('resize_image_calc', () => {
         })
     })
 
-    test.describe('crop', () => {
+    describe('crop', () => {
 
         test('ratio already matches, just scales down', () => {
             // 800x400 (ratio 2:1), max 200x100 (ratio 2:1) → scale only
@@ -177,7 +200,7 @@ test.describe('resize_image_calc', () => {
         })
     })
 
-    test.describe('edge cases', () => {
+    describe('edge cases', () => {
 
         test('fractional dimensions are rounded', () => {
             // 1001x500, max 200x400
@@ -223,7 +246,7 @@ test.describe('resize_image_calc', () => {
 
 // CANVAS_TO_BLOB_SMART TESTS
 
-test.describe('canvas_to_blob_smart', () => {
+describe('canvas_to_blob_smart', () => {
 
     test('returns png when small enough', async () => {
         // 100x100=10000 pixels, png=40000 < 102400 default max
@@ -266,5 +289,97 @@ test.describe('canvas_to_blob_smart', () => {
     test('default lossy format is jpeg', async () => {
         const blob = await canvas_to_blob_smart(make_canvas(200, 200))
         expect(blob.type).toBe('image/jpeg')
+    })
+})
+
+
+// CANVAS TRANSFORMS
+
+// Get the mock context of a canvas returned by a transform
+function ctx_of(canvas:OffscreenCanvas):MockContext{
+    return (canvas as unknown as MockCanvas).context
+}
+
+
+describe('rotate_image', () => {
+
+    test('clockwise swaps dimensions and rotates from top-right', () => {
+        const source = make_canvas(30, 10)
+        const result = rotate_image(source)
+        expect([result.width, result.height]).toEqual([10, 30])
+        expect(ctx_of(result).calls).toEqual([
+            ['translate', 10, 0],
+            ['rotate', Math.PI / 2],
+            ['drawImage', source, 0, 0],
+            ['resetTransform'],
+        ])
+    })
+
+    test('anticlockwise rotates from bottom-left', () => {
+        const result = rotate_image(make_canvas(30, 10), false)
+        expect(ctx_of(result).calls.slice(0, 2)).toEqual([
+            ['translate', 0, 30],
+            ['rotate', -Math.PI / 2],
+        ])
+    })
+})
+
+
+describe('filter_image', () => {
+
+    test('draws source with filter then resets it', () => {
+        const source = make_canvas(5, 6)
+        const result = filter_image(source, 'grayscale(1)')
+        expect([result.width, result.height]).toEqual([5, 6])
+        expect(ctx_of(result).filters).toEqual(['grayscale(1)', ''])
+        expect(ctx_of(result).calls).toEqual([['drawImage', source, 0, 0]])
+    })
+})
+
+
+// IMAGE DECODING (browser APIs stubbed)
+
+describe('image decoding', () => {
+
+    afterEach(() => {
+        vi.unstubAllGlobals()
+        vi.restoreAllMocks()
+    })
+
+    test('blob_image_size returns bitmap dimensions', async () => {
+        vi.stubGlobal('createImageBitmap', vi.fn().mockResolvedValue({width: 7, height: 8}))
+        expect(await blob_image_size(new Blob())).toEqual({width: 7, height: 8})
+    })
+
+    // Stub document with an img element that loads (or errors) once src is set
+    function stub_img(event:'load'|'error'){
+        const listeners:Record<string, (e:unknown) => void> = {}
+        const img = {
+            width: 4,
+            height: 3,
+            src: '',
+            addEventListener(name:string, fn:(e:unknown) => void){
+                listeners[name] = fn
+                if (name === event){
+                    setTimeout(() => fn(new Error(name)))
+                }
+            },
+        }
+        vi.stubGlobal('document', {createElement: () => img})
+        vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:x')
+        return {img, revoke: vi.spyOn(URL, 'revokeObjectURL').mockReturnValue(undefined)}
+    }
+
+    test('_tmp_normalize_orientation redraws via img and frees blob url', async () => {
+        const {img, revoke} = stub_img('load')
+        const canvas = await _tmp_normalize_orientation(new Blob())
+        expect([canvas.width, canvas.height]).toEqual([4, 3])
+        expect(ctx_of(canvas).calls).toEqual([['drawImage', img, 0, 0]])
+        expect(revoke).toHaveBeenCalledWith('blob:x')
+    })
+
+    test('_tmp_normalize_orientation rejects when image fails to load', async () => {
+        stub_img('error')
+        await expect(_tmp_normalize_orientation(new Blob())).rejects.toThrow('error')
     })
 })

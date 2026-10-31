@@ -1,0 +1,8 @@
+
+# Packages needed to run responder tests (in addition to function/requirements.txt)
+# NOTE boto3 is provided by the Lambda runtime so isn't in function/requirements.txt
+-r function/requirements.txt
+boto3
+pytest
+pytest-cov
+moto[s3,sns,ses]

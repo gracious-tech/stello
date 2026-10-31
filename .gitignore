@@ -2,6 +2,8 @@
 # Global
 node_modules/
 test-results/
+/coverage/
+__pycache__/
 
 /.bin/sam
 /.bin/sam_install/

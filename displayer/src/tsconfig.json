@@ -1,6 +1,6 @@
 {
     "extends": "../../tsconfig_browser.jsonc",
-    "include": ["**/*.ts", "**/*.vue"],
+    "include": ["**/*.ts", "**/*.vue", "../tests/unit_*.ts"],
     "compilerOptions": {
         "types": ["lodash", "offscreencanvas"],
         "paths": {

@@ -2,15 +2,15 @@
     @typescript-eslint/no-unsafe-argument -- needed when prop no longer exists */
 
 import 'fake-indexeddb/auto'  // WARN Must import before indexeddb accessed
-import {expect, test} from '@playwright/test'
+import {describe, expect, test, vi} from 'vitest'
 
 import {migrate, migrate_async, DATABASE_VERSION, to_12_from_0, _to1_creates, to_13, to_14,
     to_14_async, to_15, to_16, to_17, to_18, to_19, to_20, to_21_async} from './migrations'
-import {STORES_V12, STORES_V19, STORES_LATEST, test_stores, open_db, to_12_from_11}
-    from './migrations.test_utils'
+import {STORES_V12, STORES_V19, STORES_LATEST, test_stores, open_db, to_12_from_1,
+    to_12_from_11} from './migrations.test_utils'
 
 
-test.describe('migrate', async () => {
+describe('migrate', async () => {
 
     test('new', async () => {
         // Test database setup without any previous version (skips 1-12 aside from stores/indexes)
@@ -36,8 +36,17 @@ test.describe('migrate', async () => {
         await test_stores(db, STORES_V12)
     })
 
-    // NOTE Disabled since fake IDB had bug storing CryptoKey and this test isn't needed anymore
-    // test('to_12_from_1', to_12_from_1)
+    test('to_12_from_1', async () => {
+        // Placeholders used for keys and blobs so stored values can be compared
+        vi.spyOn(self.crypto.subtle, 'generateKey').mockResolvedValue('crypto_key' as never)
+        vi.stubGlobal('Blob', undefined)
+        try {
+            await to_12_from_1()
+        } finally {
+            vi.restoreAllMocks()
+            vi.unstubAllGlobals()
+        }
+    })
 
     test('to_12_from_11', to_12_from_11)
 

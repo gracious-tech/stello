@@ -1,8 +1,8 @@
 #!/bin/bash
-# Run unit tests for whole project
+# Run unit tests for whole project with coverage (extra args passed to vitest)
+# NOTE Tests for known bugs fail on purpose until fixed (see docs/test_bugs.md)
 set -e
 cd "$(dirname "$(dirname "$0")")"
 
 
-cd app/src
-../../node_modules/.bin/playwright "${@:-test}"
+node_modules/.bin/vitest run --coverage "$@"

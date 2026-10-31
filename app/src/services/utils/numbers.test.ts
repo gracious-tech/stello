@@ -1,10 +1,10 @@
 
-import {test, expect} from '@playwright/test'
+import {describe, expect, test} from 'vitest'
 
 import {mimic_formatting} from './numbers'
 
 
-test.describe('mimic_formatting', () => {
+describe('mimic_formatting', () => {
 
     const input:[string, number, string][] = [
         ['', 2, '2'],

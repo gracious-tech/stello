@@ -102,7 +102,7 @@ Symlinks connect shared code between app and displayer:
 | **Cloud** | AWS (S3, Lambda, Cognito, SNS, API Gateway) | Serverless message hosting |
 | **Responder** | Python 3.11 + AWS Lambda | Server-side response handler |
 | **Infrastructure** | AWS SAM / CloudFormation | Infrastructure as code |
-| **Testing** | Playwright | E2E and unit tests |
+| **Testing** | Vitest, Playwright, pytest | Unit, E2E, responder tests |
 | **Linting** | ESLint + TypeScript ESLint | Code quality enforcement |
 | **Type Checking** | TypeScript (strict) + vue-tsc | Type safety |
 | **Packaging** | electron-builder | macOS (.dmg), Windows (.exe), Linux (.deb/.rpm/.AppImage) |
@@ -273,7 +273,9 @@ Key variables: OAuth client IDs/secrets (Google, Microsoft), Rollbar tokens, AWS
 .bin/audit_types            # TypeScript type checking (vue-tsc + tsc)
 .bin/audit_lint             # ESLint (all .js/.ts/.vue files)
 .bin/audit_lint_errors      # ESLint errors only (no warnings)
-.bin/audit_test             # Unit tests (Playwright in app/src/)
+.bin/audit_test             # Unit tests with coverage (Vitest)
+.bin/audit_test_responder   # Responder tests (pytest)
+.bin/audit_e2e_app          # E2E tests for app components
 .bin/audit_e2e_displayer    # E2E tests for displayer
 .bin/audit_e2e_electron     # E2E tests for electron app
 ```
@@ -402,21 +404,26 @@ Custom exception hierarchy in `app/src/services/utils/exceptions.ts`:
 
 ### Test Framework
 
-Playwright is used for both unit tests and E2E tests:
-- **Unit tests:** `app/src/**/*.test.ts` — run with `.bin/audit_test`
+- **Unit tests (Vitest):** `**/*.test.ts` next to sources in app/src (services only), displayer/src,
+  electron/src, host/accounts/src and app_config — one Vitest project each in `vitest.config.mts`.
+  Run with `.bin/audit_test` (coverage → `coverage/unit`). Coverage is only collected on an
+  unfiltered run, not with `--project`
+- **Responder (pytest):** `responder/aws/tests/` with moto — run with `.bin/audit_test_responder`
+  (creates `.venv`, coverage → `coverage/responder`)
+- **App E2E (Playwright):** `app/tests/e2e/` against the app dev server, covering the Vue 2
+  components. External network is blocked and native features are shimmed
+  (`e2e/native_shim.ts`); seed data via `app/src/services/e2e_seed.test_utils.ts`.
+  Run with `.bin/audit_e2e_app` (coverage → `coverage/e2e_app`)
 - **Displayer E2E:** `displayer/tests/` — run with `.bin/audit_e2e_displayer`
-- **Electron E2E:** `electron/tests/` — run with `.bin/audit_e2e_electron`
+- **Electron E2E:** `electron/tests/` — run with `.bin/audit_e2e_electron` (needs packaged build)
 
-### Existing Test Files
+Unit tests use `fake-indexeddb` for IndexedDB, `happy-dom` + `@vue/test-utils` for displayer
+components, and `aws-sdk-client-mock` for AWS.
 
-- `app/src/services/backup/database.test.ts` — Backup export/import
-- `app/src/services/database/migrations.test.ts` — Schema migrations
-- `app/src/services/misc/recipients.test.ts` — Recipient calculation logic
-- `app/src/services/utils/numbers.test.ts` — Number utilities
-- `displayer/tests/general.test.ts` — Basic displayer E2E
-- `electron/tests/general.test.ts` — Electron app E2E
+### Known Bugs
 
-Unit tests use `fake-indexeddb` to mock IndexedDB in Node.
+Tests for known bugs fail on purpose and are marked `// BUG #id` (`grep -rn "BUG #"`). Each is
+described in `docs/test_bugs.md`; fixing the bug should make its test pass unchanged.
 
 ### Linting
 

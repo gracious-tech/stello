@@ -1,7 +1,7 @@
 // WARN AI GENERATED - NOT REVIEWED YET
 
 import 'fake-indexeddb/auto'  // WARN Must import before indexeddb accessed
-import {test, expect} from '@playwright/test'
+import {describe, expect, test} from 'vitest'
 
 import {merge_contacts} from './contacts_merge'
 import {migrate, migrate_async, DATABASE_VERSION} from './migrations'
@@ -37,7 +37,7 @@ function make_contact(id: string, overrides: Partial<RecordContact> = {}): Recor
 // TESTS
 
 
-test.describe('merge_contacts', () => {
+describe('merge_contacts', () => {
 
     test('merges_notes_from_all_contacts', async () => {
         // Notes from primary and secondaries are concatenated with newlines

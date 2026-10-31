@@ -1,6 +1,6 @@
 {
     "extends": "../../tsconfig_browser.jsonc",
-    "include": ["**/*.ts", "**/*.vue"],
+    "include": ["**/*.ts", "**/*.vue", "../tests/unit_*.ts"],
     "compilerOptions": {
         "types": ["vuetify", "lodash", "offscreencanvas"],  // Needed for `new Vue({vuetify})`
         "paths": {

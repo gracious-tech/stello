@@ -1,10 +1,10 @@
 
-import {test, expect} from '@playwright/test'
+import {describe, expect, test} from 'vitest'
 
 import {get_final_recipients} from './recipients'
 
 
-test.describe('get_final_recipients', () => {
+describe('get_final_recipients', () => {
 
     interface WrapperArgs {
         contacts:(string|[string, string])[]  // id or [id, address]

@@ -1,6 +1,6 @@
 // AI GENERATED - NOT YET REVIEWED
 
-import {expect, test} from '@playwright/test'
+import {describe, expect, test} from 'vitest'
 
 import {NativeBrowser} from '../native/native_browser'
 import {blobstore_new, blobstore_read, blobstore_read_image, blobstore_read_file,
@@ -45,7 +45,7 @@ function make_mock_native(){
 
 // BLOBSTORE_NEW TESTS
 
-test.describe('blobstore_new', () => {
+describe('blobstore_new', () => {
 
     test('null input returns null without writing', async () => {
         const {mock, files} = make_mock_native()
@@ -99,7 +99,7 @@ test.describe('blobstore_new', () => {
 
 // BLOBSTORE_READ TESTS
 
-test.describe('blobstore_read', () => {
+describe('blobstore_read', () => {
 
     test('null input returns null', async () => {
         const result = await blobstore_read(null)
@@ -140,7 +140,7 @@ test.describe('blobstore_read', () => {
 
 // BLOBSTORE_READ_IMAGE TESTS
 
-test.describe('blobstore_read_image', () => {
+describe('blobstore_read_image', () => {
 
     test('missing file returns placeholder blob instead of throwing', async () => {
         const {mock} = make_mock_native()
@@ -163,7 +163,7 @@ test.describe('blobstore_read_image', () => {
 
 // BLOBSTORE_READ_FILE TESTS
 
-test.describe('blobstore_read_file', () => {
+describe('blobstore_read_file', () => {
 
     test('missing file returns empty blob instead of throwing', async () => {
         const {mock} = make_mock_native()
@@ -185,7 +185,7 @@ test.describe('blobstore_read_file', () => {
 
 // BLOBSTORE_REMOVE TESTS
 
-test.describe('blobstore_remove', () => {
+describe('blobstore_remove', () => {
 
     test('null ref does not call remove', async () => {
         const {mock, removed} = make_mock_native()
@@ -219,7 +219,7 @@ test.describe('blobstore_remove', () => {
 
 // BLOBSTORE_CHANGE TESTS
 
-test.describe('blobstore_change', () => {
+describe('blobstore_change', () => {
 
     test('writes new blob and removes old filename', async () => {
         const {mock, files, removed} = make_mock_native()
@@ -265,7 +265,7 @@ test.describe('blobstore_change', () => {
 
 // BLOBSTORE_COPY_IMPATIENT TESTS
 
-test.describe('blobstore_copy_impatient', () => {
+describe('blobstore_copy_impatient', () => {
 
     test('null input returns null', () => {
         const result = blobstore_copy_impatient(null)

@@ -1,6 +1,6 @@
 
 import 'fake-indexeddb/auto'  // WARN Must import before indexeddb accessed
-import {expect, test} from '@playwright/test'
+import {expect, test} from 'vitest'
 
 import {NativeBrowser} from '../native/native_browser'
 import {migrate, migrate_async, DATABASE_VERSION} from '../database/migrations'

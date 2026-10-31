@@ -1,6 +1,6 @@
 // AI GENERATED - NOT YET REVIEWED
 
-import {expect, test} from '@playwright/test'
+import {describe, expect, test} from 'vitest'
 
 import {NativeBrowser} from '../native/native_browser'
 import {get_backups_dir, determine_backup_dir, find_other_backup_dbids} from './backup_dirs'
@@ -32,7 +32,7 @@ function mock_file_list(responses:Record<string, string[]>){
 
 // GET_BACKUPS_DIR TESTS
 
-test.describe('get_backups_dir', () => {
+describe('get_backups_dir', () => {
 
     test('returns dir name containing the current dbid', () => {
         const result = get_backups_dir()
@@ -44,7 +44,7 @@ test.describe('get_backups_dir', () => {
 
 // DETERMINE_BACKUP_DIR TESTS
 
-test.describe('determine_backup_dir', () => {
+describe('determine_backup_dir', () => {
 
     test('returns [null, null] if already backed up today', async () => {
         const today = new Date().toISOString().slice(0, 10)
@@ -151,7 +151,7 @@ test.describe('determine_backup_dir', () => {
 
 // FIND_OTHER_BACKUP_DBIDS TESTS
 
-test.describe('find_other_backup_dbids', () => {
+describe('find_other_backup_dbids', () => {
 
     test('returns empty array when no backup dirs exist', async () => {
         mock_file_list({'': []})

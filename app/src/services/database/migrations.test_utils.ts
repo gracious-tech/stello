@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- needed when prop no longer exists */
 
-import {expect} from '@playwright/test'
+import {expect} from 'vitest'
 import {openDB, StoreNames} from 'idb/with-async-ittr-cjs'
 
 import {NativeBrowser} from '../../services/native/native_browser'
