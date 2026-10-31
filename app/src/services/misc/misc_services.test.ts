@@ -57,10 +57,10 @@ describe('invites', () => {
     })
 
     test('render_invite_text keeps $ sequences in values', () => {
-        // BUG #replace-dollar: titles/names containing `$&` or `$$` are corrupted
+        // `$` sequences in values must be inserted literally
         const text = render_invite_text('SUBJECT LINK', {contact: '', sender: '',
             title: 'Raised $$$ for $&', url: 'https://x/'})
-        expect(text).toBe('Raised $$$ for $& https://x/')
+        expect(text).toBe('Raised $$$ for $&  https://x/')  // LINK is padded with spaces
     })
 
     test('get_text_invite_for_copy and gen_view_url', async () => {

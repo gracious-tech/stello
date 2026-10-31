@@ -194,7 +194,7 @@ describe('strings', () => {
     })
 
     test('replace_without_overlap inserts values literally', () => {
-        // BUG #replace-dollar: replaceAll() interprets `$&`, `$$` etc in replacement strings
+        // `$` sequences in values must be inserted literally
         expect(replace_without_overlap('Subject: SUBJECT', {SUBJECT: 'Save $$ now $&'}))
             .toBe('Subject: Save $$ now $&')
     })

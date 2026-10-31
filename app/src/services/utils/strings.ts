@@ -18,8 +18,9 @@ export function replace_without_overlap(template:string, replacements:Record<str
     }
 
     // Now safe(r) to replace with actual values
+    // NOTE Replacer fn used so `$` sequences in values are inserted literally
     for (const [placeholder, value] of Object.entries(replacements)){
-        template = template.replaceAll(`~~NEVER~~${placeholder}~~MATCH~~`, value)
+        template = template.replaceAll(`~~NEVER~~${placeholder}~~MATCH~~`, () => value)
     }
 
     return template
