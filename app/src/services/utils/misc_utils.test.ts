@@ -101,7 +101,7 @@ describe('misc', () => {
     })
 
     test('get_clipboard_text returns null when reading rejects', async () => {
-        // BUG #clipboard-text: promise is returned without await so try/catch never catches
+        // Rejections from reading the clipboard should result in null
         vi.spyOn(navigator, 'clipboard', 'get').mockReturnValue(
             {readText: () => Promise.reject(new DOMException('denied'))} as unknown as Clipboard)
         await expect(get_clipboard_text()).resolves.toBe(null)

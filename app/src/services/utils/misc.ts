@@ -38,7 +38,7 @@ export async function get_clipboard_blobs(preferred:string[]=[]):Promise<Blob[]>
 export async function get_clipboard_text():Promise<string|null>{
     // A simpler version of `get_clipboard_blobs` (only returns one item which must be text/plain)
     try {
-        return self.navigator.clipboard.readText()
+        return await self.navigator.clipboard.readText()
     } catch {
         return null
     }
