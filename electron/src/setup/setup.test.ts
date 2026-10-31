@@ -110,8 +110,7 @@ describe('errors', () => {
         }
         ;(rollbar.config!['onSendCallback'] as SendCallback)(false, [], payload)
         electron_mock.paths['home'] = original
-        // BUG #rollbar-windows-home: home is matched against JSON-escaped text, so on Windows
-        //      (where `\` is escaped to `\\`) the OS username is never redacted from reports
+        // Windows home paths are JSON-escaped, but must still be redacted
         expect(JSON.stringify(payload)).not.toContain('JaneDoe')
     })
 

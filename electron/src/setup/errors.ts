@@ -30,10 +30,11 @@ const rollbar = Rollbar.init({
         // SECURITY Avoid exposing OS username in paths
         // NOTE `transform` callback is called earlier and doesn't apply to `notifier` prop
         try {
-            const home = app.getPath('home')
+            // NOTE Must match home as it appears in JSON (Windows backslashes are escaped)
+            const home_json = JSON.stringify(app.getPath('home')).slice(1, -1)
             for (const [key, val] of Object.entries(payload)){
                 ;(payload as Record<string, unknown>)[key] = JSON.parse(
-                    JSON.stringify(val).replaceAll(home, '~'))
+                    JSON.stringify(val).replaceAll(home_json, '~'))
             }
         } catch {
             // Ensure doesn't fail / don't need to return anything
