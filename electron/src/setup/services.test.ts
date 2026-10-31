@@ -260,8 +260,7 @@ describe('html_to_pdf', () => {
     // Offscreen window should not be left open
     test('closes offscreen window', async () => {
         const {window} = await export_pdf('en-US')
-        // BUG #pdf-window-leak: the hidden offscreen BrowserWindow is never closed/destroyed,
-        //      so every PDF export leaks a renderer process until the app quits
+        // Hidden offscreen window must be destroyed after each export
         expect(window.destroyed).toBe(true)
     })
 })

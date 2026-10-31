@@ -166,21 +166,28 @@ ipcMain.handle('html_to_pdf', async (event, html:string, filename:string):Promis
         },
     })
 
-    // Load the HTML into it
-    await window.loadFile(tmp_file)
+    // Always clean up window and tmp file, even if PDF generation fails
+    try {
 
-    // Detect preferred paper size
-    const country = app.getLocale().split('-')[1]?.toUpperCase() ?? 'US'
-    const prefer_letter = ['US', 'CA', 'MX'].includes(country)
+        // Load the HTML into it
+        await window.loadFile(tmp_file)
 
-    // Generate the PDF
-    const pdf_buffer = await window.webContents.printToPDF({
-        pageSize: prefer_letter ? 'Letter' : 'A4',
-    })
+        // Detect preferred paper size
+        const country = app.getLocale().split('-')[1]?.toUpperCase() ?? 'US'
+        const prefer_letter = ['US', 'CA', 'MX'].includes(country)
 
-    // Save PDF and rm tmp file
-    writeFileSync(dialog_choice.filePath, pdf_buffer)
-    rmSync(tmp_file)
+        // Generate the PDF
+        const pdf_buffer = await window.webContents.printToPDF({
+            pageSize: prefer_letter ? 'Letter' : 'A4',
+        })
+
+        // Save PDF
+        writeFileSync(dialog_choice.filePath, pdf_buffer)
+
+    } finally {
+        window.destroy()
+        rmSync(tmp_file, {force: true})
+    }
 
     return null
 })
