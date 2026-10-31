@@ -48,7 +48,7 @@ describe('Task', () => {
     })
 
     test('percent is 0 when there are no subtasks', () => {
-        // BUG #task-percent-nan: 0/0 produces NaN which renders as "NaN%" in progress UI
+        // Avoid NaN (0/0) which would render as "NaN%" in progress UI
         expect(new Task('name', [], []).percent).toBe(0)
     })
 

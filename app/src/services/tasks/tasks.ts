@@ -106,7 +106,10 @@ export class Task {
     }
 
     get percent():number{
-        // Work out percentage complete
+        // Work out percentage complete (0 if no subtasks to avoid NaN)
+        if (!this.safe_total){
+            return 0
+        }
         return Math.floor(this.subtasks_done / this.safe_total * 100)
     }
 
