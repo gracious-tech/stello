@@ -245,14 +245,16 @@ export async function cloudbackup_sync(task:Task):Promise<void>{
     // Save local backup and reuse the exported buffer for the encrypted cloud upload
     const db_buffer = await run_database_backup()
 
-    // Database backup — delete old copy first then upload fresh (Drive doesn't overwrite by name)
+    // Database backup — upload fresh then delete old copies (Drive doesn't overwrite by name)
+    // NOTE Upload first so a failed upload doesn't leave no backup at all
     task.upcoming(1)
-    const existing_db_id = drive_map.get('backup_database.json')
-    if (existing_db_id){
-        await drive_delete_file_google(oauth, existing_db_id)
-    }
+    const existing_db_ids = drive_files
+        .filter(f => f.name === 'backup_database.json').map(f => f.id)
     const encrypted_db = await encrypt_sym(db_buffer, key)
     await task.expected(drive_upload_file_google(oauth, 'backup_database.json', encrypted_db))
+    for (const existing_db_id of existing_db_ids){
+        await drive_delete_file_google(oauth, existing_db_id)
+    }
 
     // Internal Files sync — reconcile backup_files_* against local files
     // When level is 'database', the desired set is empty so any existing backup_files_* are deleted

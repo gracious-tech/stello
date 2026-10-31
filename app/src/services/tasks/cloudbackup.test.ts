@@ -179,8 +179,7 @@ describe('cloudbackup_sync', () => {
     })
 
     test('failed upload of database keeps previous database backup', async () => {
-        // BUG #cloudbackup-delete-first: old backup_database.json is deleted before the new
-        //      one is uploaded, so a failed upload leaves no database backup on Drive at all
+        // Old database backup must survive a failed upload of the new one
         await sync('password')
         fail_uploads_of = 'backup_database.json'
         await expect(sync()).rejects.toBeInstanceOf(MustWait)
