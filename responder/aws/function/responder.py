@@ -88,20 +88,22 @@ def entry(api_event, context):
             return {'statusCode': 400}
 
     # Determine expected origin (and detect user)
+    # NOTE Origin may be missing for crawlers/bots, which should get 403 rather than an error
+    origin = api_event['headers'].get('origin', '')
     # NOTE Access-Control-Allow-Origin can only take one value, so must detect right one
     if SELF_HOSTED:
         user = '_user'
         allowed_origin = f'https://{MSGS_BUCKET}.s3-{REGION}.amazonaws.com'
     else:
         # Hosted setup -- origin must be a subdomain of one of defined domains
-        user, _, root_origin = api_event['headers']['origin'].partition('//')[2].partition('.')
+        user, _, root_origin = origin.partition('//')[2].partition('.')
         allowed_root = DOMAIN_BRANDED
         if root_origin == DOMAIN_UNBRANDED:
             allowed_root = DOMAIN_UNBRANDED
         allowed_origin = f'https://{user}.{allowed_root}'
 
     # If origin not allowed, 403 to prevent further processing of the request
-    if not DEV and api_event['headers']['origin'] != allowed_origin:
+    if not DEV and origin != allowed_origin:
         return {'statusCode': 403}
 
     # Process event and catch exceptions

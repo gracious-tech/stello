@@ -87,8 +87,7 @@ def test_wrong_origin_forbidden(self_hosted):
 
 
 def test_missing_origin_forbidden(self_hosted):
-    # BUG #responder-missing-origin: a POST without an Origin header raises KeyError outside of
-    #   the try block, so Lambda errors (API Gateway 500) instead of returning 403
+    # A POST without an Origin header (crawlers etc) gets 403, not an error
     event = self_hosted.event(headers={}, body={})
     assert self_hosted.mod.entry(event, None) == {'statusCode': 403}
 
