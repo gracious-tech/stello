@@ -47,7 +47,7 @@ div.respondbar(v-if='allow_comments || allow_reactions' @mouseenter='have_hovere
 
 <script lang='ts'>
 
-import {ref, watch, computed, PropType, Ref, reactive, defineComponent} from 'vue'
+import {ref, watch, computed, PropType, Ref, reactive, defineComponent, nextTick} from 'vue'
 
 import ReactionSvg from './ReactionSvg.vue'
 import SharedRespondReact from '../shared/SharedRespondReact.vue'
@@ -99,10 +99,13 @@ export default defineComponent({
         const allow_comments = computed(
             () => props.section.respondable !== false && displayer_config.allow_comments)
 
-        const focus_reply_textarea = () => {
+        const focus_reply_textarea = async () => {
             // Focus textarea for quicker writing
             // NOTE iOS won't focus until textarea displayed, so requires two clicks
-            reply_textarea.value.focus()
+            // NOTE Textarea only rendered once hovered, which keyboard users won't have done
+            have_hovered.value = true
+            await nextTick()
+            reply_textarea.value?.focus()
         }
         const focus_react_button = (event:MouseEvent) => {
             // Focus button so reactions displayed

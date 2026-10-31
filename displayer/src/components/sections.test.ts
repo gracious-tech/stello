@@ -283,8 +283,7 @@ describe('SectionRespond', () => {
         const errors:unknown[] = []
         const wrapper = mount_respond({}, error => {errors.push(error)})
         await wrapper.find('.reply_container button').trigger('click')
-        // BUG #respond-focus-before-hover: focus_reply_textarea() assumes the textarea exists,
-        //      but it's only rendered after mouseenter, so keyboard activation throws
+        // Keyboard activation (no mouseenter) must not throw
         expect(errors).toEqual([])
     })
 
