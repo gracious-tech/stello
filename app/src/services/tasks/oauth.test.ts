@@ -310,8 +310,7 @@ describe('oauth_pretask_process', () => {
     }
 
     test('creates new oauth and starts task with its id', async () => {
-        // BUG #oauth-scope-sets: issuers' empty scope lists count as "granted", so 'always' is
-        //      recorded as a scope set (and 'storage' for every Microsoft account)
+        // Empty scope lists (and `always`) must not be recorded as granted scope sets
         pending_auth({task: ['send_oauth_setup', ['p']], oauth_id: null}, 'new_refresh')
         await oauth_pretask_process('http://127.0.0.1/oauth?code=x')
         const oauths = await db.oauths.list()

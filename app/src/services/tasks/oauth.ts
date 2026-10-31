@@ -288,7 +288,11 @@ async function oauth_authorize_complete(url:string):Promise<AuthCompletion>{
     // Determine which scope sets have been granted
     const granted_scopes = (token_resp.scope ?? '').split(' ')
     const granted_scope_sets:ScopeSet[] = []
+    // NOTE `always` isn't a scope set, and empty lists mean the issuer doesn't support that set
     for (const [scope_set, scope_set_scopes] of Object.entries(OAUTH_SUPPORTED[issuer].scopes)){
+        if (scope_set === 'always' || !scope_set_scopes.length){
+            continue
+        }
         if (scope_set_scopes.every(scope => granted_scopes.includes(scope))){
             granted_scope_sets.push(scope_set as ScopeSet)
         }
