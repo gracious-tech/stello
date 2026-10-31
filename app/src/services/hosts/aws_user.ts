@@ -54,7 +54,7 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
     async update_services(task:Task):Promise<void>{
         // Ensure host services setup properly (sets up all services, not just storage)
         // NOTE Will create if storage doesn't exist, or fail if storage id taken by third party
-        task.upcoming(11)
+        task.upcoming(8)
         try {
             // Run rest of tasks in parallel
             await task.expected(
@@ -88,7 +88,7 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
 
     async delete_services(task:Task):Promise<void>{
         // Delete services for this storage set
-        task.upcoming(7)
+        task.upcoming(6)
 
         // Delete services
         await task.expected(

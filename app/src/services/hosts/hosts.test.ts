@@ -267,7 +267,7 @@ describe('HostUserAws', () => {
         const version_tag = s3.commandCalls(PutBucketTaggingCommand).at(-1)!.args[0].input
         expect(version_tag.Tagging!.TagSet).toContainEqual({Key: 'stello-version',
             Value: `${HOST_STORAGE_VERSION}`})
-        // BUG #host-progress-count: upcoming(11) but only 8 subtasks are tracked
+        // All declared subtasks should be tracked so progress reaches 100%
         expect(task.subtasks_done).toBe(task.subtasks_total)
     })
 
@@ -305,7 +305,7 @@ describe('HostUserAws', () => {
         const task = new Task('', [], [])
         await user.delete_services(task)
         expect(user.generated.api_id).toBe('found_api')
-        // BUG #host-progress-count: upcoming(7) but only 6 subtasks are tracked
+        // All declared subtasks should be tracked so progress reaches 100%
         expect(task.subtasks_done).toBe(task.subtasks_total)
         expect(iam.commandCalls(DeleteAccessKeyCommand)[0]!.args[0].input).toEqual({
             UserName: 'stello-bkt', AccessKeyId: 'AK'})
