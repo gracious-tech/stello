@@ -12,6 +12,7 @@ export default defineConfig({
     timeout: 60 * 1000,
     expect: {timeout: 15 * 1000},
     fullyParallel: true,
+    workers: '50%',  // Dev server and editor tests become flaky when every core is busy
     retries: process.env['CI'] ? 1 : 0,
     globalSetup: './e2e/coverage_setup.ts',
     globalTeardown: './e2e/coverage_teardown.ts',
