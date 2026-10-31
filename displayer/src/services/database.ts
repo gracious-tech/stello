@@ -15,27 +15,30 @@ class DisplayerDatabase {
     async connect():Promise<void>{
         // Init connection to the database
         // WARN May be called again if connection terminated
-        this._conn = await openDB<DisplayerDatabaseSchema>('stello', DATABASE_VERSION, {
-            upgrade(db, old_version, new_version, transaction){
-                void upgrade_database(db, old_version, transaction)
-            },
-            blocked(){
-                // Will soon unblock after other pages refresh...
-                console.info("Database upgrade blocked (probably already resolved)")
-            },
-            blocking(){
-                // If blocking an upgrade, reload to unblock
-                self.location.reload()
-            },
-            terminated: () => {
-                // Some browsers (especially Safari) close connection after a time
-                void this.connect()
-            },
-        }).catch(error => {
+        try {
+            this._conn = await openDB<DisplayerDatabaseSchema>('stello', DATABASE_VERSION, {
+                upgrade(db, old_version, new_version, transaction){
+                    void upgrade_database(db, old_version, transaction)
+                },
+                blocked(){
+                    // Will soon unblock after other pages refresh...
+                    console.info("Database upgrade blocked (probably already resolved)")
+                },
+                blocking(){
+                    // If blocking an upgrade, reload to unblock
+                    self.location.reload()
+                },
+                terminated: () => {
+                    // Some browsers (especially Safari) close connection after a time
+                    void this.connect()
+                },
+            })
+        } catch (error){
             // IDB isn't available in some private tabs, webviews, etc (non-persistent fake instead)
+            // NOTE openDB may throw synchronously (e.g. Safari invalid security context)
             console.error(error)
             console.error("Database unavailable")
-            return {
+            this._conn = {
                 /* eslint-disable @typescript-eslint/require-await -- async to mimic original */
                 get: async () => undefined,
                 getAll: async () => [],
@@ -44,7 +47,7 @@ class DisplayerDatabase {
                 delete: async () => undefined,
                 /* eslint-enable @typescript-eslint/require-await */
             } as unknown as IDBPDatabase<DisplayerDatabaseSchema>
-        })
+        }
     }
 
     async dict_get(key:string):Promise<unknown>{

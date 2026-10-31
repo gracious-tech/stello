@@ -40,8 +40,7 @@ describe('database fallback', () => {
         vi.spyOn(indexedDB, 'open').mockImplementation(() => {
             throw new Error("IDBFactory.open() called in an invalid security context")
         })
-        // BUG #displayer-db-sync-throw: idb's openDB() throws synchronously when
-        //      indexedDB.open() does, so the `.catch()` fallback is never attached
+        // openDB() can throw synchronously, which must still use the fallback
         await expect(database.connect()).resolves.toBe(undefined)
     })
 })
