@@ -36,6 +36,45 @@ jobs:
             -   run: .bin/audit_test
 
 
+    test_responder:
+        name: Test responder
+        runs-on: ubuntu-latest
+        if: github.event.inputs.run_tests != 'false'
+        steps:
+            -   uses: actions/checkout@v4
+            -   uses: actions/setup-python@v5
+                with:
+                    python-version: '3.13'  # Match Lambda runtime
+            -   run: .bin/audit_test_responder
+
+
+    test_app_e2e:
+        name: Test app E2E
+        runs-on: ubuntu-latest
+        if: github.event.inputs.run_tests != 'false'
+        steps:
+            -   uses: actions/checkout@v4
+            -   uses: actions/setup-node@v4
+                with:
+                    node-version: '25'
+                    cache: 'npm'
+                    cache-dependency-path: '**/package-lock.json'
+            -   run: .bin/all_node npm ci
+            -   run: npx playwright install --with-deps chromium
+            -   run: .bin/audit_e2e_app
+                env:
+                    # Placeholders so hosted API requests have URLs tests can intercept
+                    # NOTE External network is blocked during app E2E tests anyway
+                    VITE_HOSTED_API: https://api.example.com/
+                    VITE_HOSTED_DOMAIN_BRANDED: example.com
+                    VITE_HOSTED_DOMAIN_UNBRANDED: example.net
+            -   if: failure()
+                uses: actions/upload-artifact@v4
+                with:
+                    name: app_e2e_results
+                    path: app/tests/test-results
+
+
     build_app_base:
         name: Build app base
         runs-on: ubuntu-latest
