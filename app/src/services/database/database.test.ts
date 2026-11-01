@@ -9,6 +9,7 @@ import {Draft} from './drafts'
 import {Profile} from './profiles'
 import * as gracious from '@/services/hosts/gracious_user'
 import type {RecordReplaction} from './types'
+import {sleep} from '../utils/async'
 
 
 let db:Database
@@ -53,7 +54,7 @@ describe('draft_copy', () => {
         expect(copy.sections[0]![0]).not.toBe(section.id)
         expect(await db.sections.get(copy.sections[0]![0])).toBeDefined()
         expect(copy.options_identity.invite_image).not.toBe('inv.png')
-        await new Promise(resolve => setTimeout(resolve, 10))  // Impatient copy completes
+        await sleep(10)  // Impatient copy completes
         expect(native.files.has(`Internal Files/${copy.options_identity.invite_image as string}`))
             .toBe(true)
         expect(await db.drafts.get(copy.id)).toBeDefined()
@@ -151,7 +152,7 @@ describe('draft_to_message', () => {
             await db.drafts.set(draft)
             await db.draft_to_message(draft.id)
         }
-        await new Promise(resolve => setTimeout(resolve, 10))
+        await sleep(10)
         expect((await db.replies.get('reply1'))!.replied).toBe(true)
         expect((await db.reactions.get('reaction1'))!.replied).toBe(true)
     })

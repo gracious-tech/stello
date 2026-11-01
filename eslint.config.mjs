@@ -40,14 +40,28 @@ export default [
                     allowDefaultProject: [
                         '.bin/*.ts', '.bin/*.mts', 'eslint.config.mjs',
                         'displayer/public/displayer/*.js', 'vitest*.mts',
-                        // Test helpers type checked by app/displayer tsconfigs (see tsconfig.json)
-                        'app/tests/unit_*.ts', 'app/tests/integration_*.ts',
-                        'displayer/tests/unit_*.ts',
                     ],
                     maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 20,
                 },
                 tsconfigRootDir: __dirname,
             },
+        },
+    },
+
+    // Test helpers sit outside src dirs but are type checked by their src tsconfig
+    // NOTE projectService can't discover these, and its default project lacks their aliases/types
+    {
+        files: ['app/tests/unit_*.ts', 'app/tests/integration_*.ts'],
+        languageOptions: {
+            parserOptions: {projectService: false, project: './app/src/tsconfig.json',
+                tsconfigRootDir: __dirname},
+        },
+    },
+    {
+        files: ['displayer/tests/unit_*.ts'],
+        languageOptions: {
+            parserOptions: {projectService: false, project: './displayer/src/tsconfig.json',
+                tsconfigRootDir: __dirname},
         },
     },
 

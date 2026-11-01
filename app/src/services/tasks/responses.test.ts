@@ -10,6 +10,7 @@ import {responses_receive} from './responses'
 import {encrypt_asym, encrypt_sym, export_key, import_key_asym} from '../utils/crypt'
 import {buffer_to_url64, string_to_utf8} from '../utils/coding'
 import type {HostUser} from '../hosts/types'
+import {sleep} from '../utils/async'
 
 
 let db:Database
@@ -48,7 +49,7 @@ beforeEach(async () => {
     vi.spyOn(db, 'new_host_user').mockImplementation(async () => ({
         list_responses: async () => [...objects.keys()],
         download_response: async (key:string) => {
-            await new Promise(r => setTimeout(r, download_delays[key] ?? 0))
+            await sleep(download_delays[key] ?? 0)
             return objects.get(key)!
         },
         delete_response: async (key:string) => {
@@ -187,13 +188,13 @@ describe('responses_receive', () => {
     })
 
     test('undecryptable responses are deleted and error thrown after processing rest',
-            async () => {
-        objects.set('reply/1_bad', string_to_utf8('{"encrypted_data":"x","encrypted_key":"y"}'))
-        await add_response('read', {resp_token: copy.resp_token})
-        await expect(run()).rejects.toThrow('Could not decrypt response')
-        expect(deleted).toContain('reply/1_bad')
-        expect(await db.reads.list()).toHaveLength(1)
-    })
+        async () => {
+            objects.set('reply/1_bad', string_to_utf8('{"encrypted_data":"x","encrypted_key":"y"}'))
+            await add_response('read', {resp_token: copy.resp_token})
+            await expect(run()).rejects.toThrow('Could not decrypt response')
+            expect(deleted).toContain('reply/1_bad')
+            expect(await db.reads.list()).toHaveLength(1)
+        })
 
     test('undecryptable encrypted field is deleted', async () => {
         const pub = await import_key_asym(await export_key(profile.host_state.resp_key.publicKey))

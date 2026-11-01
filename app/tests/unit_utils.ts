@@ -147,6 +147,8 @@ export function new_store(state:Partial<AppStoreState>={}):MockStore{
         commit: vi.fn((type:string, payload:[string|MinOne<string>, unknown]) => {
             const [key, value] = payload
             if (type === 'dict_set'){
+                // NOTE Assertion gives `[key]` a tuple type so is needed (rule's false positive)
+                // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
                 const keys = (Array.isArray(key) ? key : [key]) as MinOne<string>
                 nested_objects_set(full_state, keys, value)
             } else if (type === 'tmp_set'){

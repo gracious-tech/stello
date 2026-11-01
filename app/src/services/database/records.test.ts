@@ -16,6 +16,7 @@ import {Reaction} from './reactions'
 import {Reply} from './replies'
 import {rm_section_id} from './utils'
 import type {RecordMessageCopy, RecordSectionContent} from './types'
+import {sleep} from '../utils/async'
 
 
 let db:Database
@@ -282,7 +283,7 @@ describe('DatabaseSections', () => {
         }
         const extracted_page = removed[0]!.content
         expect(extracted_page.type === 'page' && extracted_page.image).toBeInstanceOf(Blob)
-        await new Promise(resolve => setTimeout(resolve))  // Let fire-and-forget removes finish
+        await sleep(0)  // Let fire-and-forget removes finish
         expect(native.files.size).toBe(0)
     })
 })

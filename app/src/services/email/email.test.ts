@@ -19,6 +19,7 @@ import {OAuth} from '../database/oauths'
 import {base64_to_buffer, utf8_to_string} from '../utils/coding'
 import type {Email} from '../native/types'
 import type {Profile} from '../database/profiles'
+import {sleep} from '../utils/async'
 
 
 beforeEach(async () => {
@@ -70,7 +71,7 @@ describe('email account manager', () => {
     test('fatal error rejects all queued and future sends with same error', async () => {
         const error = new MustReauthenticate()
         vi.spyOn(smtp, 'send_batch_smtp').mockImplementation(async items => {
-            await new Promise(r => setTimeout(r, 5))
+            await sleep(5)
             return items.map(i => [i, error])
         })
         const settings = new_settings()
@@ -101,7 +102,7 @@ describe('email account manager', () => {
 
     test('abort rejects queued emails and prevents further queuing', async () => {
         vi.spyOn(smtp, 'send_batch_smtp').mockImplementation(async items => {
-            await new Promise(r => setTimeout(r, 20))
+            await sleep(20)
             return items.map(i => [i, null])
         })
         const task = new_email_task(new_settings())

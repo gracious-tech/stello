@@ -17,6 +17,7 @@ import {HostUserAws} from '../hosts/aws_user'
 import {decrypt_sym, export_key, import_key_sym} from '../utils/crypt'
 import {url64_to_buffer, utf8_to_string} from '../utils/coding'
 import type {HostUser} from '../hosts/types'
+import {sleep} from '../utils/async'
 
 
 let db:Database
@@ -223,7 +224,7 @@ describe('resume_tasks', () => {
         expect(start).toHaveBeenCalledWith('configs_update', [profile.id])
         expect(start).toHaveBeenCalledWith('hosts_storage_update', [profile.id])
 
-        await new Promise(r => setTimeout(r, 50))  // Instant handlers run async
+        await sleep(50)  // Instant handlers run async
         expect(start).toHaveBeenCalledWith('responses_receive', [], [], true)
         expect(start).toHaveBeenCalledWith('contacts_sync', [oauth_due.id], [], true)
         expect(start.mock.calls.filter(c => c[0] === 'contacts_sync')).toHaveLength(1)

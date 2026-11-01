@@ -131,6 +131,7 @@ describe('common', () => {
     test('no404 ignores only 404s', async () => {
         expect(await no404(Promise.reject(aws_error('NotFound', 404)))).toBeUndefined()
         await expect(no404(Promise.reject(aws_error('Denied', 403)))).rejects.toThrow('Denied')
+        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors -- Testing null
         await expect(no404(Promise.reject(null))).rejects.toBe(null)
         expect(await no404(Promise.resolve(5))).toBe(5)
     })
@@ -373,7 +374,8 @@ describe('HostManagerAws', () => {
     test('no list bucket permission marks s3 inaccessible', async () => {
         s3.on(ListBucketsCommand).rejects(aws_error('Forbidden', 403))
         const manager = new HostManagerAws(creds)
-        await new Promise(r => setTimeout(r, 10))
+        // NOTE Real timer since sleep() is mocked in this file
+        await new Promise(resolve => {setTimeout(resolve, 10)})
         expect(manager._s3_accessible).toBe(false)
     })
 

@@ -132,9 +132,9 @@ describe('errors', () => {
         expect(instance.error).toHaveBeenCalled()
 
         // Vue errors are critical
-        Vue.config.errorHandler!(new Error('vue'), new Vue(), 'render')
+        Vue.config.errorHandler(new Error('vue'), new Vue(), 'render')
         expect(instance.critical).toHaveBeenCalledTimes(1)
-        Vue.config.warnHandler!('warn', new Vue(), 'trace')
+        Vue.config.warnHandler('warn', new Vue(), 'trace')
         expect(instance.critical).toHaveBeenCalledTimes(2)
 
         // onSendCallback redacts file paths and shows fail bar for critical
@@ -216,7 +216,7 @@ describe('NativeBrowser', () => {
         expect(await native.os_encrypt('x')).toBe(null)
         expect(await native.os_decrypt(new ArrayBuffer(0))).toBe(null)
         expect(await native.html_to_pdf('', '')).toBe(null)
-        expect((await native.test_email_settings({} as never))!.code).toBe('unsupported')
+        expect((await native.test_email_settings({} as never)).code).toBe('unsupported')
         await expect(native.smtp_send({} as never, {} as never)).rejects.toThrow('unsupported')
         native.on_update_ready(() => undefined)
         native.on_oauth(() => undefined)

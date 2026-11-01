@@ -209,7 +209,7 @@ describe('TaskManager', () => {
                 overlap = true
             }
             first_running = true
-            await new Promise(r => setTimeout(r, 10))
+            await sleep(10)
             first_running = false
             task.check_aborted()
         })

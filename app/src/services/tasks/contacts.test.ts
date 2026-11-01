@@ -11,6 +11,7 @@ import {contacts_oauth_setup, contacts_sync, contacts_change_property, contacts_
     contacts_group_name, contacts_group_fill, contacts_group_drain, taskless_contact_addresses,
     taskless_contacts_create} from './contacts'
 import {MustInterpret, MustReauthenticate, MustRecover, MustWait} from '../utils/exceptions'
+import {sleep} from '../utils/async'
 
 
 let db:Database
@@ -95,7 +96,7 @@ describe('contacts_sync (google)', () => {
 
         const t = task([oauth.id])
         await contacts_sync(t)
-        await new Promise(r => setTimeout(r, 20))  // Fire-and-forget db writes
+        await sleep(20)  // Fire-and-forget db writes
 
         // Contacts
         const contacts = await db.contacts.list_for_account('google', 'gid')
@@ -131,7 +132,7 @@ describe('contacts_sync (google)', () => {
             nextSyncToken: 's'})
         route('GET contactGroups', {contactGroups: []})
         await contacts_sync(task([oauth.id]))
-        await new Promise(r => setTimeout(r, 10))
+        await sleep(10)
         expect((await db.contacts.list())[0]!.address).toBe('b@x')
     })
 
@@ -342,7 +343,7 @@ describe('group changes', () => {
         }
         const orphan = await db.groups.create('G', [], 'google:none', 'g')
         for (const fn of [contacts_group_name, contacts_group_fill, contacts_group_drain,
-                contacts_group_remove]){
+            contacts_group_remove]){
             await expect(fn(task([orphan.id], [[]]))).rejects.toBeInstanceOf(TaskAborted)
         }
     })

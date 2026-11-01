@@ -12,6 +12,7 @@ import {task_manager} from './tasks'
 import {external_encrypt, external_decrypt} from '../misc/external_crypt'
 import {MustReauthenticate, MustReconnect} from '../utils/exceptions'
 import {buffer_to_standard_url64, string_to_utf8} from '../utils/coding'
+import {sleep} from '../utils/async'
 
 
 // Fake AppAuth library so flows can be tested without real issuers
@@ -249,7 +250,7 @@ describe('pretask flows', () => {
         await db.profiles.set(profile)
         store.state.storage_oauth = oauth.id
         await oauth_pretask_new_usage('contacts_oauth_setup', [], 'google', 'a@gmail.com')
-        await new Promise(r => setTimeout(r))
+        await sleep(0)
         const request = appauth.state.auth_requests[0]!
         expect(request['scope']).toBe('openid email https://www.googleapis.com/auth/contacts '
             + 'https://www.googleapis.com/auth/drive.appdata '

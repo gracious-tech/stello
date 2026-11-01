@@ -73,7 +73,7 @@ beforeEach(async () => {
     uploads = new Map()
     vi.spyOn(db, 'new_host_user').mockImplementation(async () => ({
         upload_file: async (path:string, data:ArrayBuffer, lifespan=Infinity,
-                max_reads=Infinity) => {
+            max_reads=Infinity) => {
             uploads.set(path, {data, lifespan, max_reads})
         },
     } as unknown as HostUser))
@@ -139,7 +139,7 @@ describe('send_message', () => {
         const chart = await db.sections.create('chart')
         const msg = await create_message([[text.id], [video.id, empty_video.id], [chart.id]],
             [{name: 'Bob Smith', address: 'bob@x.com'}, {name: 'No Email', address: ''},
-            {name: 'Bad', address: 'not-an-email'}])
+                {name: 'Bad', address: 'not-an-email'}])
 
         const task = new Task('send_message', [msg.id], [])
         await send_message(task)
@@ -161,7 +161,7 @@ describe('send_message', () => {
         expect(published.title).toBe('Newsletter')
         expect(published.sections).toHaveLength(3)
         expect(published.sections[1]).toHaveLength(1)  // Empty video excluded
-        const html = (published.sections[0]![0]!.content as {html:string}).html
+        const html = (published.sections[0]![0].content as {html:string}).html
         expect(html).toContain('>Bob<')
         expect(html).toContain('>Me<')
         expect(published.contact_address).toBe('bob@x.com')
@@ -218,14 +218,14 @@ describe('send_message', () => {
 
         const copy = (await db.copies.list_for_msg(msg.id))[0]!
         const published = await decrypt_copy(copy.id)
-        const pub_images = published.sections[0]![0]!.content as {images:unknown[], hero:boolean}
+        const pub_images = published.sections[0]![0].content as {images:unknown[], hero:boolean}
         expect(pub_images.images).toEqual([{id: 'img1', caption: 'c1'},
             {id: 'img2', caption: 'c2'}])
-        expect(published.sections[1]![0]!.content).toMatchObject({filename: 'doc.pdf',
+        expect(published.sections[1]![0].content).toMatchObject({filename: 'doc.pdf',
             download: false})
         expect(published.sections[1]![1]!.content).toMatchObject({filename: 'Bundle.zip',
             mimetype: 'application/zip', download: true})
-        expect(published.sections[2]![0]!.content).toMatchObject({type: 'page', image: page.id,
+        expect(published.sections[2]![0].content).toMatchObject({type: 'page', image: page.id,
             headline: 'More'})
     })
 

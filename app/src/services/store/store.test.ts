@@ -9,6 +9,7 @@ import {Database} from '@/services/database/database'
 import {get_store} from './store'
 import {get_initial_state} from './store_state'
 import type {AppStoreState, StateTmpDialog} from './types'
+import {sleep} from '../utils/async'
 
 
 Vue.use(Vuex)
@@ -27,16 +28,16 @@ beforeEach(async () => {
 describe('get_initial_state', () => {
 
     test('defaults overridden by stored values (including nested) and obsolete keys ignored',
-            async () => {
-        await db.state.set({key: 'dbid', value: 'stored_id'})
-        await db.state.set({key: 'tmp$manager_aws_key_secret', value: 'nested'})
-        await db.state.set({key: 'obsolete$key', value: 1})
-        const state = await get_initial_state(db)
-        expect(state.dbid).toBe('stored_id')
-        expect(state.tmp.manager_aws_key_secret).toBe('nested')
-        expect(state.dark).toBe(false)  // matchMedia light matches
-        expect(state.backups).toBe('all')
-    })
+        async () => {
+            await db.state.set({key: 'dbid', value: 'stored_id'})
+            await db.state.set({key: 'tmp$manager_aws_key_secret', value: 'nested'})
+            await db.state.set({key: 'obsolete$key', value: 1})
+            const state = await get_initial_state(db)
+            expect(state.dbid).toBe('stored_id')
+            expect(state.tmp.manager_aws_key_secret).toBe('nested')
+            expect(state.dark).toBe(false)  // matchMedia light matches
+            expect(state.backups).toBe('all')
+        })
 })
 
 
@@ -52,7 +53,7 @@ describe('store', () => {
         store.commit('dict_set', ['dbid', 'abc'])
         store.commit('dict_set', [['tmp', 'manager_aws_key_secret'], 'x'])
         expect(store.state.dbid).toBe('abc')
-        await new Promise(resolve => setTimeout(resolve, 10))
+        await sleep(10)
         const stored = await db.state.list()
         expect(stored).toContainEqual({key: 'dbid', value: 'abc'})
         expect(stored).toContainEqual({key: 'tmp$manager_aws_key_secret', value: 'x'})
