@@ -6,11 +6,15 @@ import path from 'path'
 import {fileURLToPath} from 'url'
 
 import {STS} from '@aws-sdk/client-sts'
+import {CognitoIdentityProvider} from '@aws-sdk/client-cognito-identity-provider'
 
 import {buffer_to_url64, string_to_utf8, utf8_to_string} from '@/services/utils/coding'
 import {encrypt_asym, export_key, generate_token, import_key_asym}
     from '@/services/utils/crypt'
 import {sleep} from '@/services/utils/async'
+import {create_account} from '@/services/hosts/gracious_user'
+import {Task} from '@/services/tasks/tasks'
+import type {Database} from '@/services/database/database'
 import type {HostCredentialsAws} from '@/services/hosts/aws_common'
 import type {Profile} from '@/services/database/profiles'
 import type {untar} from '@/services/misc'
@@ -59,10 +63,51 @@ export function unique_name():string{
 export function load_static_files(native:MemoryNative):void{
     // Make built displayer and responder available to code that deploys them
     const static_dir = fileURLToPath(new URL('../static', import.meta.url))
-    for (const name of ['displayer.tar', 'responder_aws.zip']){
+    for (const name of ['displayer.tar', 'responder_aws.zip', 'default_invite_image.jpg']){
         // NOTE Copied since a Buffer's underlying ArrayBuffer may be a larger shared pool
         const data = readFileSync(path.join(static_dir, name))
         native.app_files.set(name, Uint8Array.from(data).buffer)
+    }
+}
+
+
+export async function create_hosted_profile(db:Database, username:string):Promise<Profile>{
+    // Create a real hosted account and a profile that uses it
+    const account = await create_account(username, 'integration@example.com', 'c')
+    const profile = await db.profiles.create()
+    profile.setup_step = null
+    profile.email = 'integration@example.com'
+    profile.options.notify_mode = 'none'  // Don't email from the responder
+    profile.host = {
+        cloud: 'gracious',
+        plan: 'c',
+        username,
+        password: account.password,
+        federated_id: account.federated_id,
+        id_token: account.id_token,
+        id_token_exires: account.id_token_expires,
+    }
+    await db.profiles.set(profile)
+    return profile
+}
+
+
+export async function delete_hosted_account(db:Database, profile:Profile|undefined,
+        admin:HostCredentialsAws, username:string):Promise<void>{
+    // Delete everything a hosted test user stored, then the Cognito user itself
+    try {
+        if (profile){
+            const storage = await db.new_host_user(profile)
+            await storage.delete_services(new Task('', [], []))
+        }
+    } finally {
+        // Always delete Cognito user so test accounts don't accumulate
+        const env = import.meta.env
+        const user_pools = new CognitoIdentityProvider({credentials: admin,
+            region: env.VITE_HOSTED_REGION})
+        await user_pools.adminDeleteUser({UserPoolId: env.VITE_HOSTED_USER_POOL,
+            Username: username})
+            .catch(() => undefined)  // May not have been created if an earlier test failed
     }
 }
 

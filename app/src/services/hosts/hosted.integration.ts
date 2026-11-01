@@ -2,13 +2,12 @@
 // Integration tests for Gracious hosted storage against the real sandbox stack (stello-hosted-*)
 
 import {afterAll, beforeAll, describe, expect, test} from 'vitest'
-import {CognitoIdentityProvider} from '@aws-sdk/client-cognito-identity-provider'
 import {ListObjectsV2Command, PutObjectCommand} from '@aws-sdk/client-s3'
 
 import {setup_globals} from '@/../tests/unit_utils'
-import {assert_sandbox, sandbox_credentials, send_response, unique_name}
-    from '@/../tests/integration_utils'
-import {create_account, HostUserGracious, username_available} from './gracious_user'
+import {assert_sandbox, create_hosted_profile, delete_hosted_account, sandbox_credentials,
+    send_response, unique_name} from '@/../tests/integration_utils'
+import {HostUserGracious, username_available} from './gracious_user'
 import {configs_update} from '../tasks/configs'
 import {responses_receive} from '../tasks/responses'
 import {Task} from '../tasks/tasks'
@@ -38,19 +37,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
     // Delete everything the test user stored, then the Cognito user itself
-    try {
-        if (profile){
-            const storage = await db.new_host_user(profile)
-            await storage.delete_services(new Task('', [], []))
-        }
-    } finally {
-        // Always delete Cognito user so test accounts don't accumulate
-        const user_pools = new CognitoIdentityProvider({credentials: admin,
-            region: env.VITE_HOSTED_REGION})
-        await user_pools.adminDeleteUser({UserPoolId: env.VITE_HOSTED_USER_POOL,
-            Username: username})
-            .catch(() => undefined)  // May not have been created if an earlier test failed
-    }
+    await delete_hosted_account(db, profile, admin, username)
 })
 
 
@@ -69,21 +56,7 @@ describe('hosted account', () => {
 
     // Account creation returns working login and federated identity
     test('account can be created and used to get credentials', async () => {
-        const account = await create_account(username, 'integration@example.com', 'c')
-        profile = await db.profiles.create()
-        profile.setup_step = null
-        profile.email = 'integration@example.com'
-        profile.options.notify_mode = 'none'  // Don't email from the responder
-        profile.host = {
-            cloud: 'gracious',
-            plan: 'c',
-            username,
-            password: account.password,
-            federated_id: account.federated_id,
-            id_token: account.id_token,
-            id_token_exires: account.id_token_expires,
-        }
-        await db.profiles.set(profile)
+        profile = await create_hosted_profile(db, username)
         expect(await username_available(username)).toEqual({valid: true, available: false})
         expect((await get_storage()).generated.credentials.sessionToken).toBeTruthy()
     })

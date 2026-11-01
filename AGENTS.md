@@ -418,7 +418,8 @@ Custom exception hierarchy in `app/src/services/utils/exceptions.ts`:
 - **Displayer E2E:** `displayer/tests/` — run with `.bin/audit_e2e_displayer`
 - **Electron E2E:** `electron/tests/` — run with `.bin/audit_e2e_electron` (needs packaged build)
 - **Integration (Vitest):** `app/src/**/*.integration.ts` against real AWS services in the sandbox
-  account (hosted stack `stello-hosted-sandbox` and throwaway self-hosted storages named `zz-it-*`).
+  account (hosted stack `stello-hosted-sandbox` and throwaway self-hosted storages named `zz-it-*`),
+  including sending a message and viewing/replying to it in Chromium via the real displayer.
   Run with `.bin/audit_integration` (not part of `.bin/audit`). Needs sandbox credentials in env and
   `STELLO_SANDBOX_ACCOUNT_ID` (gitignored `.bin/integration.env`); tests refuse any other account
 
