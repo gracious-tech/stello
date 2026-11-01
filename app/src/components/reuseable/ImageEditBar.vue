@@ -18,7 +18,7 @@ div.root(:class='region_mode')
                     @click='change_filter(filter.value)' :disabled='active_filter === filter.value')
                     | {{ filter.label }}
             app-btn(@click='start_region("redact")' icon='face_retouching_off' data-tip="Redact")
-            app-btn(v-if='original !== blob' @click='undo' icon='undo' color='error'
+            app-btn(v-if='edited' @click='undo' icon='undo' color='error'
                 data-tip="Undo changes")
 
     //- Since Croppr only supports <img> (and replaces it) need to hide original img/canvas/etc
@@ -53,6 +53,8 @@ export default class extends Vue {
     region_target_src = ''
     croppr:Croppr|null = null
     cropped = false  // Whether have cropped yet (only relevant if aspect ratio given)
+    // NOTE Tracked rather than comparing blobs since parent may save and reload the blob it's given
+    edited = false  // Whether have changes that can be undone
 
     created(){
         // Keep reference to original blob so can reset back to it
@@ -235,11 +237,13 @@ export default class extends Vue {
 
         // Emit as a blob, preserving the original format
         const format = this.blob.type.split('/')[1] as 'png'|'jpeg'|'webp'
+        this.edited = true
         this.$emit('changed', await canvas_to_blob(filtered, format, this.quality))
     }
 
     async undo(){
         // Undo all changes by emitting original and resetting
+        this.edited = false
         this.$emit('changed', this.original)
         void this.reset()
     }

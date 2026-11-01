@@ -40,11 +40,3 @@ and encode the body accordingly.
 Not fixed yet: changes the raw format of every Gmail-API email, so it should be verified
 against real Gmail before shipping. The passing `produces rfc headers and html body` test
 asserts the exact current headers/body and will need updating alongside the fix.
-
-### #image-undo-persists — "Undo changes" button never disappears (Low)
-`app/src/components/dialogs/assets/DialogSectionImagesItem.vue` `image_edited()` saves even the
-reverted original as a new blobstore file and reloads it as a new `Blob`, so `ImageEditBar`'s
-`original !== blob` identity check stays true after undo. The image itself is reverted correctly.
-**Fix:** skip saving when `blob === original`, or have `ImageEditBar` track an `edited` flag.
-
-Not fixed yet: needs a small redesign of how ImageEditBar detects edits.

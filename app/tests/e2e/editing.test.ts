@@ -111,10 +111,7 @@ test.describe('image editing', () => {
 
         // Undo all changes
         await item.locator('[data-tip="Undo changes"]').dispatchEvent('click')
-        // BUG #image-undo-persists: DialogSectionImagesItem saves the reverted blob as a new
-        //      file and reloads it, so ImageEditBar's `original !== blob` stays true and Undo
-        //      never hides
-        await expect.soft(item.locator('[data-tip="Undo changes"]')).toHaveCount(0)
+        await expect(item.locator('[data-tip="Undo changes"]')).toHaveCount(0)
 
         // Reorder, caption and remove items
         await item.locator('textarea').fill("Edited caption")
