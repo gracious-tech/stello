@@ -106,8 +106,6 @@ describe('configs_update', () => {
     })
 
     test('settings changed during upload are not marked as uploaded', async () => {
-        // BUG #configs-update-race: after uploading, all three flags are set true on a fresh
-        //      profile, overwriting a change (flag set false) made while the upload was running
         host['upload_displayer_config']!.mockImplementation(async () => {
             const fresh = (await db.profiles.get(profile.id))!
             fresh.options.allow_replies = false
@@ -117,6 +115,25 @@ describe('configs_update', () => {
         await configs_update(new Task('configs_update', [profile.id], []))
         expect((await db.profiles.get(profile.id))!.host_state.displayer_config_uploaded)
             .toBe(false)
+    })
+
+    test('configs not uploaded this run are not marked as uploaded', async () => {
+        // Displayer config up to date at start but invalidated while responder config uploads
+        profile.host_state.displayer_config_uploaded = true
+        await db.profiles.set(profile)
+        host['upload_responder_config']!.mockImplementation(async () => {
+            const fresh = (await db.profiles.get(profile.id))!
+            fresh.options.allow_reactions = !fresh.options.allow_reactions
+            fresh.host_state.displayer_config_uploaded = false
+            await db.profiles.set(fresh)
+        })
+        await configs_update(new Task('configs_update', [profile.id], []))
+        const state = (await db.profiles.get(profile.id))!.host_state
+        expect(host['upload_displayer_config']).not.toHaveBeenCalled()
+        expect(state.displayer_config_uploaded).toBe(false)
+        expect(state.subscribe_config_uploaded).toBe(true)
+        // Responder config also includes allow_reactions so must be re-uploaded too
+        expect(state.responder_config_uploaded).toBe(false)
     })
 })
 

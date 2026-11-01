@@ -9,17 +9,6 @@ Severity: **High** = data loss, security, or a core flow broken · **Medium** = 
 users will hit · **Low** = edge case or cosmetic.
 
 
-### #configs-update-race — settings changed during upload are never re-uploaded (Medium)
-`configs_update()` (`app/src/services/tasks/configs.ts`) re-fetches the profile after uploading
-but then sets all three `*_config_uploaded` flags to `true`. If the user changes a setting while
-the upload runs (which sets a flag to `false`), that change is marked uploaded but never is, so
-recipients keep seeing the old options (e.g. replies still allowed).
-**Fix:** only set flags for configs this run actually uploaded, and only if they weren't
-invalidated meanwhile (e.g. compare a revision counter or re-run when a flag was reset).
-
-Not fixed yet: needs a design decision (e.g. a revision counter or re-running when a flag
-was reset mid-upload).
-
 ### #task-restart-race — restarting a task with new options doesn't wait for the old one (Medium)
 `TaskManager.start()` says "wait for existing to be aborted before creating new task" but only
 calls `existing.abort()` and immediately starts the new one. Both run concurrently (e.g. two
