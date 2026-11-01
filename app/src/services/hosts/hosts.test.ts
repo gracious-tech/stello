@@ -5,7 +5,8 @@ import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {mockClient} from 'aws-sdk-client-mock'
 import {S3Client, HeadBucketCommand, PutObjectCommand, ListObjectsV2Command,
     DeleteObjectsCommand, DeleteObjectCommand, GetObjectCommand, CreateBucketCommand,
-    PutBucketTaggingCommand, ListBucketsCommand, DeleteBucketCommand} from '@aws-sdk/client-s3'
+    PutBucketTaggingCommand, ListBucketsCommand, DeleteBucketCommand, PutPublicAccessBlockCommand,
+    PutBucketPolicyCommand} from '@aws-sdk/client-s3'
 import {SNSClient, ListSubscriptionsByTopicCommand, UnsubscribeCommand, SubscribeCommand,
     CreateTopicCommand} from '@aws-sdk/client-sns'
 import {IAMClient, CreateRoleCommand, GetRoleCommand, PutRolePolicyCommand, CreateUserCommand,
@@ -254,6 +255,13 @@ describe('HostUserAws', () => {
 
         expect(s3.commandCalls(CreateBucketCommand)[0]!.args[0].input.Bucket)
             .toBe('bkt-stello-resp')
+        // Public access block must be relaxed before a public bucket policy can be set
+        const s3_calls = s3.calls().map(call => call.args[0] as unknown)
+        expect(s3_calls.findIndex(cmd => cmd instanceof PutPublicAccessBlockCommand))
+            .toBeLessThan(s3_calls.findIndex(cmd => cmd instanceof PutBucketPolicyCommand))
+        expect(s3.commandCalls(PutPublicAccessBlockCommand)[0]!.args[0].input
+            .PublicAccessBlockConfiguration).toMatchObject({BlockPublicPolicy: false,
+            BlockPublicAcls: true})
         expect(iam.commandCalls(CreateRoleCommand)[0]!.args[0].input.PermissionsBoundary)
             .toBe('arn:aws:iam::123:policy/stello-bkt-lambda-boundary')
         expect(iam.commandCalls(PutRolePolicyCommand)).toHaveLength(1)

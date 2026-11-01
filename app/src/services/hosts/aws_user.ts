@@ -274,6 +274,17 @@ export class HostUserAws extends HostUserAwsBase implements HostUser {
             LifecycleConfiguration: {Rules: rules},
         })
 
+        // Allow public bucket policy (new buckets block them by default) but still block ACLs
+        await this.s3.putPublicAccessBlock({
+            Bucket: this.bucket,
+            PublicAccessBlockConfiguration: {
+                BlockPublicAcls: true,
+                IgnorePublicAcls: true,
+                BlockPublicPolicy: false,
+                RestrictPublicBuckets: false,
+            },
+        })
+
         // Set access policy
         await this.s3.putBucketPolicy({
             Bucket: this.bucket,
