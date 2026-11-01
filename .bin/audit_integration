@@ -17,10 +17,9 @@ fi
 
 
 # Build latest responder and displayer since tests deploy them
+# NOTE Displayer must be the self-hosted build (not hosted) as it's deployed to test storages
 .bin/build_responder_aws
-if [[ ! -f app/static/displayer.tar ]]; then
-    .bin/build_displayer
-fi
+VITE_HOSTED_MSGS_URL= .bin/build_displayer
 
 
 node_modules/.bin/vitest run --config vitest.integration.config.mts "$@"
