@@ -4,6 +4,8 @@
         "@eslint/compat": "^2.0.3",
         "@eslint/js": "^10.0.1",
         "@playwright/test": "^1.58.2",
+        "@stryker-mutator/core": "^10.1.1",
+        "@stryker-mutator/vitest-runner": "^10.1.1",
         "@types/node": "^25.5.0",
         "@types/offscreencanvas": "^2019.7.3",
         "@typescript-eslint/eslint-plugin": "^8.58.0",

@@ -1,0 +1,29 @@
+#!/bin/bash
+# Mutation test core code (checks unit tests detect changes to it) -- slow, so not in .bin/audit
+# Extra args are passed to stryker (e.g. --mutate app/src/services/tasks/configs.ts)
+# NOTE Runs on the last commit in a throwaway worktree, since Stryker must mutate files in place
+#      and can damage the checkout it runs in (e.g. replacing symlinks with copies)
+set -e
+cd "$(dirname "$(dirname "$0")")"
+root="$(pwd)"
+worktree="$root/.private/mutation_worktree"
+
+
+# Create fresh worktree of last commit
+git worktree remove --force "$worktree" 2>/dev/null || true
+git worktree add --detach "$worktree" HEAD > /dev/null
+trap 'git -C "$root" worktree remove --force "$worktree"' EXIT
+
+# Reuse installed packages rather than reinstalling
+for modules in node_modules */node_modules host/*/node_modules; do
+    if [[ -d "$modules" ]]; then
+        ln -s "$root/$modules" "$worktree/$modules"
+    fi
+done
+
+# Run and copy report back
+cd "$worktree"
+node_modules/.bin/stryker run "$@" || status=$?
+mkdir -p "$root/coverage/mutation"
+cp -r coverage/mutation/. "$root/coverage/mutation/" 2>/dev/null || true
+exit ${status:-0}

@@ -40,3 +40,5 @@ __pycache__/
 /responder/aws/.dev_env_key
 
 /site/dist
+/.private/mutation_worktree/
+/.stryker-tmp/
