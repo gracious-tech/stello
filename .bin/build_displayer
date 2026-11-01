@@ -24,6 +24,12 @@ find dist_compressed -type f ! -name '*.jpg' ! -name '*.png' -exec gzip --best {
 # Remove the .gz extension that was added to compressed files
 find dist_compressed -name '*.gz' -exec bash -c 'mv "$1" "${1%.gz}"' _ {} \;
 
-# Place tar'd copy in app component
+# Place tar'd copy in app component (for self-hosted storage)
+# WARN Builds for hosted storage (VITE_HOSTED_MSGS_URL set) fetch from the hosted bucket,
+#      so must never be embedded in the app where they'd break self-hosted messages
+if [[ -n "$VITE_HOSTED_MSGS_URL" ]]; then
+    echo "Not updating app/static/displayer.tar since this is a hosted build"
+    exit 0
+fi
 cd dist_compressed
 tar --create --file ../../app/static/displayer.tar index.html displayer
