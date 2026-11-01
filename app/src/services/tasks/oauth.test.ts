@@ -229,7 +229,8 @@ describe('oauth_revoke', () => {
         const obsolete = await new_oauth({issuer_id: '4'})
         await oauth_revoke_if_obsolete(obsolete)
         expect(await db.oauths.get(obsolete.id)).toBeUndefined()
-        expect(appauth.state.revoke_requests).toHaveLength(1)
+        // NOTE Revoking isn't awaited by oauth_revoke_if_obsolete
+        await vi.waitFor(() => expect(appauth.state.revoke_requests).toHaveLength(1))
     })
 })
 

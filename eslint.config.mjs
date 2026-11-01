@@ -38,7 +38,7 @@ export default [
                 projectService: {
                     // Check files not included in any tsconfig
                     allowDefaultProject: [
-                        '.bin/*.ts', '.bin/*.mts', 'eslint.config.mjs',
+                        '.bin/*.ts', '.bin/*.mts', 'eslint.config.mjs', 'stryker.config.mjs',
                         'displayer/public/displayer/*.js', 'vitest*.mts',
                     ],
                     maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 20,
