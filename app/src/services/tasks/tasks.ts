@@ -230,16 +230,21 @@ export class TaskManager {
     async start(name:string, params:unknown[]=[], options:unknown[]=[], auto=false):Promise<Task>{
         // Register the task identified by given code and params
 
-        // See if an existing task matches code and params
-        const existing = this.data.tasks.find(t => t.name === name && isEqual(t.params, params))
-        if (existing){
-            // If options also match, can skip creating this task and return the existing's promise
-            if (isEqual(existing.options, options)){
-                return existing
-            }
-            // Since options are different, wait for existing to be aborted before creating new task
-            existing.abort()
+        // See if existing tasks match code and params (may be multiple if some are being aborted)
+        const existing = this.data.tasks.filter(t => t.name === name && isEqual(t.params, params))
+
+        // If latest unaborted one also matches options, can skip creating and return it instead
+        const latest = existing.filter(t => !t.aborted).at(-1)
+        if (latest && isEqual(latest.options, options)){
+            return latest
         }
+
+        // Since options are different, abort existing tasks and wait for them to finish (below)
+        // NOTE Not awaited here so callers (e.g. UI) aren't blocked until existing ones notice
+        for (const existing_task of existing){
+            existing_task.abort()
+        }
+        const existing_done = Promise.all(existing.map(t => t.done))
 
         // Create new task and add to list
         const task = new Task(name, params, options)
@@ -250,8 +255,12 @@ export class TaskManager {
             return failed_task.name === task.name && isEqual(failed_task.params, task.params)
         })
 
-        // Start doing the work
-        void TASKS[name]!(task).then(async subtasks => {
+        // Start doing the work once any existing tasks have finished
+        // NOTE May have been aborted while waiting (e.g. restarted yet again)
+        void existing_done.then(() => {
+            task.check_aborted()
+            return TASKS[name]!(task)
+        }).then(async subtasks => {
             // If task returns a value, they are subtasks to be tracked and awaited
             if (subtasks){
                 await task.add(...(Array.isArray(subtasks) ? subtasks : [subtasks]))

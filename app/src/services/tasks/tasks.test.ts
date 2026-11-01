@@ -3,6 +3,7 @@ import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 
 import {setup_globals} from '@/../tests/unit_utils'
 import {Task, TaskAborted, TaskManager} from './tasks'
+import {sleep} from '../utils/async'
 import {MustReauthenticate, MustReconfigure, MustReconnect, MustWait, MustRestore, MustMakeSpace,
     MustSyncClock} from '../utils/exceptions'
 
@@ -200,8 +201,6 @@ describe('TaskManager', () => {
     })
 
     test('different options abort existing and wait for it before starting', async () => {
-        // BUG #task-restart-race: comment says it waits for the existing task to be aborted,
-        //      but the new task starts immediately so both run concurrently
         const manager = new TaskManager()
         let first_running = false
         let overlap = false
@@ -219,6 +218,49 @@ describe('TaskManager', () => {
         expect(task1.aborted).not.toBe(null)
         await Promise.all([task1.done, task2.done])
         expect(overlap).toBe(false)
+    })
+
+    test('restarting while a restart is waiting only runs the latest', async () => {
+        // A restart waiting for the first task must itself be aborted by a further restart
+        const manager = new TaskManager()
+        const ran:unknown[] = []
+        spy_task(async task => {
+            ran.push(task.options[0])
+            await sleep(10)
+            task.check_aborted()
+        })
+        const task1 = await manager.start('contacts_remove', ['c'], ['x'])
+        const task2 = await manager.start('contacts_remove', ['c'], ['y'])
+        const task3 = await manager.start('contacts_remove', ['c'], ['z'])
+        await Promise.all([task1.done, task2.done, task3.done])
+        expect(ran).toEqual(['x', 'z'])
+        expect(task2.aborted).not.toBe(null)
+        expect(task3.aborted).toBe(null)
+    })
+
+    test('restart returns the new task without waiting for the old one', async () => {
+        // Starting must not block callers until the old task notices it was aborted
+        const manager = new TaskManager()
+        // Only the first task blocks (until released)
+        let release!:()=>void
+        const gate = new Promise<void>(resolve => {
+            release = resolve
+        })
+        let calls = 0
+        spy_task(async task => {
+            calls += 1
+            if (calls === 1){
+                await gate
+            }
+            task.check_aborted()
+        })
+        await manager.start('contacts_remove', ['c'], ['x'])
+        const task2 = await manager.start('contacts_remove', ['c'], ['y'])
+        expect(manager.data.tasks).toContain(task2)
+        expect(calls).toBe(1)  // New task waits for the old one before doing its work
+        release()
+        expect(await task2.done).toBe(null)
+        expect(calls).toBe(2)
     })
 
     test('typed start helpers pass correct params', async () => {
