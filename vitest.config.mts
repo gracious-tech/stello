@@ -21,7 +21,7 @@ const displayer_require = createRequire(root('displayer/package.json'))
 
 
 // Minimal version of app's raw-svg plugin (just embeds svg contents as string)
-function plugin_raw_svg():Plugin{
+export function plugin_raw_svg():Plugin{
     return {
         name: 'raw-svg',
         enforce: 'pre',
@@ -39,7 +39,7 @@ function plugin_raw_svg():Plugin{
 
 // Stub app imports that can't be loaded outside of the app's own Vite 2 build
 // NOTE Vue 2 components are tested via E2E, so services only need a placeholder object
-function plugin_app_stubs():Plugin{
+export function plugin_app_stubs():Plugin{
     return {
         name: 'app-stubs',
         enforce: 'pre',

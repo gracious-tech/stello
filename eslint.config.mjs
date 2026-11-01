@@ -39,8 +39,12 @@ export default [
                     // Check files not included in any tsconfig
                     allowDefaultProject: [
                         '.bin/*.ts', '.bin/*.mts', 'eslint.config.mjs',
-                        'displayer/public/displayer/*.js',
+                        'displayer/public/displayer/*.js', 'vitest*.mts',
+                        // Test helpers type checked by app/displayer tsconfigs (see tsconfig.json)
+                        'app/tests/unit_*.ts', 'app/tests/integration_*.ts',
+                        'displayer/tests/unit_*.ts',
                     ],
+                    maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 20,
                 },
                 tsconfigRootDir: __dirname,
             },

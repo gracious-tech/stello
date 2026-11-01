@@ -14,6 +14,7 @@
     "include": ["**/*.ts"],
     // NOTE host/manual excluded as only run by devs, and utils dir throws errors for unused code
     //    Due to there being lots of functions that are browser only (and not Node)
-    "exclude": ["**/node_modules", "app/src", "app/tests/unit_*.ts", "displayer/src",
+    "exclude": ["**/node_modules", "app/src", "app/tests/unit_*.ts", "app/tests/integration_*.ts",
+        "displayer/src",
         "displayer/tests/unit_*.ts", "electron/src", "host/manual", "site"],
 }

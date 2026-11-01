@@ -1,0 +1,133 @@
+
+// Shared helpers for integration tests that run against real AWS services in the sandbox account
+
+import {readFileSync} from 'fs'
+import path from 'path'
+import {fileURLToPath} from 'url'
+
+import {STS} from '@aws-sdk/client-sts'
+
+import {buffer_to_url64, string_to_utf8, utf8_to_string} from '@/services/utils/coding'
+import {encrypt_asym, export_key, generate_token, import_key_asym}
+    from '@/services/utils/crypt'
+import {sleep} from '@/services/utils/async'
+import type {HostCredentialsAws} from '@/services/hosts/aws_common'
+import type {Profile} from '@/services/database/profiles'
+import type {untar} from '@/services/misc'
+import type {MemoryNative} from './unit_utils'
+
+
+// Prefix for every resource created by integration tests (used for cleanup)
+export const TEST_PREFIX = 'zz-it'
+
+
+export function sandbox_credentials():HostCredentialsAws{
+    // Get credentials for sandbox account from environment (set by .bin/audit_integration)
+    const {AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN} = process.env
+    if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY){
+        throw new Error("AWS credentials for the sandbox account must be set in env")
+    }
+    return {
+        accessKeyId: AWS_ACCESS_KEY_ID,
+        secretAccessKey: AWS_SECRET_ACCESS_KEY,
+        ...(AWS_SESSION_TOKEN ? {sessionToken: AWS_SESSION_TOKEN} : {}),
+    }
+}
+
+
+export async function assert_sandbox(credentials:HostCredentialsAws):Promise<void>{
+    // Refuse to run unless credentials belong to the sandbox account
+    // SECURITY Prevents tests creating/deleting resources in a shared or production account
+    const expected = process.env['STELLO_SANDBOX_ACCOUNT_ID']
+    if (!expected){
+        throw new Error("STELLO_SANDBOX_ACCOUNT_ID must be set in env")
+    }
+    const sts = new STS({credentials, region: 'us-west-2'})
+    const account = (await sts.getCallerIdentity({})).Account
+    if (account !== expected){
+        throw new Error(`Credentials are for account ${account ?? '?'}, not the sandbox`)
+    }
+}
+
+
+export function unique_name():string{
+    // Generate a name valid as both a hosted username and a bucket name
+    return `${TEST_PREFIX}-${generate_token().toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 12)}`
+}
+
+
+export function load_static_files(native:MemoryNative):void{
+    // Make built displayer and responder available to code that deploys them
+    const static_dir = fileURLToPath(new URL('../static', import.meta.url))
+    for (const name of ['displayer.tar', 'responder_aws.zip']){
+        // NOTE Copied since a Buffer's underlying ArrayBuffer may be a larger shared pool
+        const data = readFileSync(path.join(static_dir, name))
+        native.app_files.set(name, Uint8Array.from(data).buffer)
+    }
+}
+
+
+export async function retry<T>(fn:()=>Promise<T>, attempts=10, delay=3000):Promise<T>{
+    // Retry fn to allow for eventual consistency of AWS services (e.g. new IAM keys)
+    for (let attempt = 1;; attempt++){
+        try {
+            return await fn()
+        } catch (error){
+            if (attempt >= attempts){
+                throw error
+            }
+            await sleep(delay)
+        }
+    }
+}
+
+
+export async function send_response(profile:Profile, type:string,
+        encrypted:Record<string, unknown>, origin=`https://${profile.view_domain}`)
+        :Promise<Response>{
+    // Send a response to the responder the same way the displayer does (see displayer responses.ts)
+    const config_secret = buffer_to_url64(await export_key(profile.host_state.shared_secret))
+    // NOTE Displayer imports the exported public key (which gives it encrypt usage)
+    const resp_key_public = await import_key_asym(
+        await export_key(profile.host_state.resp_key.publicKey))
+    const body = {
+        config_secret,
+        encrypted: await encrypt_asym(
+            string_to_utf8(JSON.stringify({...encrypted, user_agent: 'integration-test'})),
+            resp_key_public,
+        ),
+    }
+    return fetch(`${profile.api}responder/${type}`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', Origin: origin},
+        body: JSON.stringify(body),
+    })
+}
+
+
+export async function untar_node(tar_file:ArrayBuffer):ReturnType<typeof untar>{
+    // Extract a ustar archive in-process (app's untar relies on a web worker unavailable in node)
+    const files:Awaited<ReturnType<typeof untar>> = []
+    const bytes = new Uint8Array(tar_file)
+
+    // Helper for reading a null-terminated string field from a header
+    const field = (start:number, length:number) =>
+        utf8_to_string(bytes.slice(start, start + length).buffer).replace(/\0.*$/s, '')
+
+    // Each entry is a 512 byte header followed by its data padded to a multiple of 512
+    for (let offset = 0; offset + 512 <= bytes.length;){
+        const name = field(offset, 100)
+        if (!name){
+            break  // Archive ends with empty blocks
+        }
+        const prefix = field(offset + 345, 155)
+        const size = parseInt(field(offset + 124, 12).trim() || '0', 8)
+        files.push({
+            name: prefix ? `${prefix}/${name}` : name,
+            type: field(offset + 156, 1),
+            buffer: bytes.slice(offset + 512, offset + 512 + size).buffer,
+        })
+        offset += 512 + Math.ceil(size / 512) * 512
+    }
+    return files
+}

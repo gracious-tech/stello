@@ -278,6 +278,7 @@ Key variables: OAuth client IDs/secrets (Google, Microsoft), Rollbar tokens, AWS
 .bin/audit_e2e_app          # E2E tests for app components
 .bin/audit_e2e_displayer    # E2E tests for displayer
 .bin/audit_e2e_electron     # E2E tests for electron app
+.bin/audit_integration      # Integration tests against real AWS (sandbox account only)
 ```
 
 ### Deployment
@@ -416,6 +417,10 @@ Custom exception hierarchy in `app/src/services/utils/exceptions.ts`:
   Run with `.bin/audit_e2e_app` (coverage → `coverage/e2e_app`)
 - **Displayer E2E:** `displayer/tests/` — run with `.bin/audit_e2e_displayer`
 - **Electron E2E:** `electron/tests/` — run with `.bin/audit_e2e_electron` (needs packaged build)
+- **Integration (Vitest):** `app/src/**/*.integration.ts` against real AWS services in the sandbox
+  account (hosted stack `stello-hosted-sandbox` and throwaway self-hosted storages named `zz-it-*`).
+  Run with `.bin/audit_integration` (not part of `.bin/audit`). Needs sandbox credentials in env and
+  `STELLO_SANDBOX_ACCOUNT_ID` (gitignored `.bin/integration.env`); tests refuse any other account
 
 Unit tests use `fake-indexeddb` for IndexedDB, `happy-dom` + `@vue/test-utils` for displayer
 components, and `aws-sdk-client-mock` for AWS.

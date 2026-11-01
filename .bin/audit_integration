@@ -1,0 +1,26 @@
+#!/bin/bash
+# Run integration tests against real AWS services in the sandbox account (extra args passed to vitest)
+# Requires AWS credentials for the sandbox account in env (e.g. pasted from SSO portal)
+# and STELLO_SANDBOX_ACCOUNT_ID (can be set in .bin/integration.env)
+set -e
+cd "$(dirname "$(dirname "$0")")"
+
+
+# Load local settings if present
+if [[ -f .bin/integration.env ]]; then
+    source .bin/integration.env
+fi
+if [[ -z "$STELLO_SANDBOX_ACCOUNT_ID" || -z "$AWS_ACCESS_KEY_ID" ]]; then
+    echo "Set STELLO_SANDBOX_ACCOUNT_ID and sandbox AWS credentials in env first" >&2
+    exit 1
+fi
+
+
+# Build latest responder and displayer since tests deploy them
+.bin/build_responder_aws
+if [[ ! -f app/static/displayer.tar ]]; then
+    .bin/build_displayer
+fi
+
+
+node_modules/.bin/vitest run --config vitest.integration.config.mts "$@"
