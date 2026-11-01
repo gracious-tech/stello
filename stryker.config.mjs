@@ -20,6 +20,8 @@ export default {
         'displayer/src/services/responses.ts',
         'displayer/src/services/env.ts',
     ],
+    // Only needed for mutated files (and some Vue templates can't be parsed by Stryker)
+    disableTypeChecks: '{app,displayer}/src/services/**/*.ts',
     coverageAnalysis: 'perTest',
     reporters: ['clear-text', 'progress', 'html'],
     htmlReporter: {fileName: 'coverage/mutation/index.html'},

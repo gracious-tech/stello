@@ -84,6 +84,11 @@ function plugin_skip_styles():Plugin{
 }
 
 
+// Allow loading deps via symlinked node_modules (e.g. mutation testing's worktree)
+// NOTE Only affects serving modules to tests, so no security concern
+const test_server = {fs: {strict: false}}
+
+
 export default defineConfig({
     test: {
         coverage: {
@@ -114,6 +119,7 @@ export default defineConfig({
             // App services (Vue 2 components are covered by E2E)
             {
                 plugins: [plugin_raw_svg(), plugin_app_stubs()],
+                server: test_server,
                 resolve: {
                     alias: [
                         {find: '@', replacement: root('app/src')},
@@ -135,6 +141,7 @@ export default defineConfig({
                 plugins: [plugin_skip_styles(), plugin_vue({compiler: displayer_require(
                     '@vue/compiler-sfc') as NonNullable<Parameters<typeof plugin_vue>[0]>['compiler'],
                 })],
+                server: test_server,
                 resolve: {
                     alias: [
                         {find: '@', replacement: root('displayer/src')},
