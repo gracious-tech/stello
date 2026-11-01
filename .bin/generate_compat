@@ -1,0 +1,26 @@
+#!/bin/bash
+# Generate compatibility fixtures for the current app version (done automatically on release)
+# Later versions are tested against these so data stored by existing users stays readable
+# See fixtures/compat/README.md
+set -e
+cd "$(dirname "$(dirname "$0")")"
+
+
+# Fixtures are frozen once released, so refuse to overwrite unless forced
+version="v$(node -p "require('./app/src/app_config.json').version")"
+dir="fixtures/compat/$version"
+if [[ -d "$dir" ]]; then
+    if [[ "$1" != "--force" ]]; then
+        echo "$dir already exists (only use --force if $version was never released)" >&2
+        exit 1
+    fi
+    rm -rf "$dir"
+fi
+
+
+# Each component generates its fixture from the previous one's (app -> displayer -> responder)
+STELLO_COMPAT_GENERATE=1 node_modules/.bin/vitest run --project app \
+    app/src/services/compat_generate.test.ts
+node_modules/.bin/vitest run --project displayer displayer/src/services/compat_generate.test.ts
+STELLO_COMPAT_VERSION="$version" .bin/audit_test_responder -q -k generate --no-cov
+echo "Generated $dir"

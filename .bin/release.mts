@@ -54,6 +54,9 @@ const new_version = await new Promise<string>(resolve => {
 writeFileSync(app_config_path, app_config.replace(/^version: .+$/m, `version: ${new_version}`))
 run_visible('apply_app_config stello')
 
+// Snapshot data formats of this version so later versions are tested against them
+run_visible('.bin/generate_compat')
+
 // Commit and tag the new version
 run_visible('git add .')
 run_visible(`git commit -m "Version ${new_version}"`)

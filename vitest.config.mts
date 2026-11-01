@@ -151,6 +151,7 @@ export default defineConfig({
                 },
                 test: {
                     name: 'displayer',
+                    globalSetup: [root('displayer/tests/compat_setup.ts')],
                     root: root('displayer/src'),
                     include: ['**/*.test.ts'],
                     exclude: ['**/node_modules/**', 'services/utils/**'],  // Symlink tested by app

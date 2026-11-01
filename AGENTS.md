@@ -279,6 +279,8 @@ Key variables: OAuth client IDs/secrets (Google, Microsoft), Rollbar tokens, AWS
 .bin/audit_e2e_displayer    # E2E tests for displayer
 .bin/audit_e2e_electron     # E2E tests for electron app
 .bin/audit_integration      # Integration tests against real AWS (sandbox account only)
+.bin/audit_mutation         # Mutation testing of core code (slow)
+.bin/generate_compat        # Compatibility fixtures for current version (run by release)
 ```
 
 ### Deployment
@@ -415,6 +417,13 @@ Custom exception hierarchy in `app/src/services/utils/exceptions.ts`:
   components. External network is blocked and native features are shimmed
   (`e2e/native_shim.ts`); seed data via `app/src/services/e2e_seed.test_utils.ts`.
   Run with `.bin/audit_e2e_app` (coverage → `coverage/e2e_app`)
+- **Compatibility:** `fixtures/compat/v<version>/` snapshots data each release wrote (messages,
+  configs, responder requests/responses, backups). `compat.test.ts` (app, displayer) and
+  `test_compat.py` (responder) check every past version's data still works. Generated on release
+  by `.bin/generate_compat` — never edit or regenerate a released version's fixtures; if they
+  fail, the change breaks existing users' data (see `fixtures/compat/README.md`)
+- **Mutation testing (Stryker):** `.bin/audit_mutation` mutates core code (`stryker.config.mjs`)
+  to check unit tests detect changes (report → `coverage/mutation`). Slow, so not in `.bin/audit`
 - **Displayer E2E:** `displayer/tests/` — run with `.bin/audit_e2e_displayer`
 - **Electron E2E:** `electron/tests/` — run with `.bin/audit_e2e_electron` (needs packaged build)
 - **Integration (Vitest):** `app/src/**/*.integration.ts` against real AWS services in the sandbox
