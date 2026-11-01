@@ -463,8 +463,12 @@ describe('gracious', () => {
         await user.update_services(new Task('', [], []))
         await user.delete_services(new Task('', [], []))
         const prefixes = s3.commandCalls(ListObjectsV2Command).map(c => c.args[0].input.Prefix)
-        expect(prefixes).toEqual(['messages/usr/', 'config/usr/', 'responses/usr/'])
-        expect(s3.commandCalls(DeleteObjectCommand)[0]!.args[0].input).toEqual(
-            {Bucket: 'hosted-stello-resp', Key: 'config/usr/config'})
+        // NOTE Config prefix can't be listed by users (no IAM permission) so must not be
+        expect(prefixes).toEqual(['messages/usr/', 'responses/usr/'])
+        expect(s3.commandCalls(DeleteObjectCommand).map(c => c.args[0].input)).toEqual([
+            {Bucket: 'hosted', Key: 'config/usr/config'},
+            {Bucket: 'hosted', Key: 'config/usr/subscribe'},
+            {Bucket: 'hosted-stello-resp', Key: 'config/usr/config'},
+        ])
     })
 })

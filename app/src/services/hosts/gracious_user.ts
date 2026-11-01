@@ -61,7 +61,9 @@ export class HostUserGracious extends HostUserAwsBase implements HostUser {
             Unless there's a backup, the credentials for logging in will be lost anyway
         */
         await this._delete_objects(this.bucket, `messages/${this.user}/`)
-        await this._delete_objects(this.bucket, `config/${this.user}/`)
+        // NOTE Users can't list their config prefix so delete its known files directly
+        await this.s3.deleteObject({Bucket: this.bucket, Key: `config/${this.user}/config`})
+        await this.s3.deleteObject({Bucket: this.bucket, Key: `config/${this.user}/subscribe`})
         await this._delete_objects(this._bucket_resp_id, `responses/${this.user}/`)
         await this.s3.deleteObject({Bucket: this._bucket_resp_id, Key: `config/${this.user}/config`})
     }
