@@ -16,7 +16,7 @@ import {TaskAborted} from '../tasks/tasks'
 import {MustInterpret, MustReauthenticate, MustReconfigure, MustReconnect, MustWait}
     from '../utils/exceptions'
 import {OAuth} from '../database/oauths'
-import {utf8_to_string} from '../utils/coding'
+import {base64_to_buffer, utf8_to_string} from '../utils/coding'
 import type {Email} from '../native/types'
 import type {Profile} from '../database/profiles'
 
@@ -311,26 +311,36 @@ describe('create_email', () => {
             'From: From <f@x>',
             'To: To <t@x>',
             'Subject: Subject',
+            'MIME-Version: 1.0',
             'Content-Type: text/html; charset=UTF-8',
+            'Content-Transfer-Encoding: base64',
             'Reply-To: Reply <r@x>',
         ])
-        expect(body).toBe('<p>Body ✓</p>')
+        expect(utf8_to_string(base64_to_buffer(body.replaceAll('\r\n', ''))))
+            .toBe('<p>Body ✓</p>')
     })
 
     test('includes MIME-Version header', () => {
-        // BUG #email-mime-headers: RFC 2045 requires MIME-Version when Content-Type is used
         const raw = utf8_to_string(create_email({name: '', address: 'f@x'},
             {name: '', address: 't@x'}, 'S', 'body'))
         expect(raw).toContain('MIME-Version: 1.0')
     })
 
     test('no line exceeds the RFC 5322 limit of 998 chars', () => {
-        // BUG #email-mime-headers: html from the editor is a single long line and is not
-        //      wrapped or transfer-encoded, so some mail servers will reject or corrupt it
         const raw = utf8_to_string(create_email({name: '', address: 'f@x'},
             {name: '', address: 't@x'}, 'S', `<p>${'word '.repeat(400)}</p>`))
         for (const line of raw.split('\r\n')){
             expect(line.length).toBeLessThanOrEqual(998)
         }
+    })
+
+    test('long multi-byte bodies decode exactly', () => {
+        // Chunks split multi-byte chars across lines, which must still decode correctly
+        const html = `<p>${'Grüße ✓ 你好 '.repeat(5000)}</p>`
+        const raw = utf8_to_string(create_email({name: '', address: 'f@x'},
+            {name: '', address: 't@x'}, 'S', html))
+        const body = raw.split('\r\n\r\n')[1]!
+        expect(body.split('\r\n').every(line => line.length <= 76)).toBe(true)
+        expect(utf8_to_string(base64_to_buffer(body.replaceAll('\r\n', '')))).toBe(html)
     })
 })

@@ -16,16 +16,3 @@ calls `existing.abort()` and immediately starts the new one. Both run concurrent
 
 Not fixed yet: awaiting the old task would block `start()` (and the UI awaiting it) until a
 long-running task notices the abort, and two concurrent restarts could still both start.
-
-### #email-mime-headers — generated emails aren't RFC-compliant (Medium)
-`create_email()` (`app/src/services/email/utils.ts`), used for the Gmail API:
-- No `MIME-Version: 1.0` header (required by RFC 2045 when `Content-Type` is present).
-- The HTML body is written raw with no `Content-Transfer-Encoding`, so lines from the editor can
-  exceed RFC 5322's 998-char limit. Some MTAs reject or hard-wrap such messages (corrupting HTML).
-
-**Fix:** add `MIME-Version: 1.0` and `Content-Transfer-Encoding: quoted-printable` (or base64)
-and encode the body accordingly.
-
-Not fixed yet: changes the raw format of every Gmail-API email, so it should be verified
-against real Gmail before shipping. The passing `produces rfc headers and html body` test
-asserts the exact current headers/body and will need updating alongside the fix.
