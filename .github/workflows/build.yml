@@ -98,6 +98,8 @@ jobs:
             VITE_HOSTED_API: https://api.encrypted-dev.yes.church/
             VITE_HOSTED_DOMAIN_BRANDED: stello-dev.yes.church
             VITE_HOSTED_DOMAIN_UNBRANDED: encrypted-dev.yes.church
+            # Self-hosted responders require a token (placeholder, so errors aren't reported)
+            VITE_ROLLBAR_RESPONDER: placeholder
         steps:
             -   uses: actions/checkout@v4
             -   uses: actions/setup-node@v4
