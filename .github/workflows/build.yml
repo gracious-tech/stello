@@ -75,6 +75,45 @@ jobs:
                     path: app/tests/test-results
 
 
+    test_integration:
+        name: Test integration (real AWS sandbox)
+        runs-on: ubuntu-latest
+        # NOTE OIDC credentials only available for pushes to this repo (not forks)
+        if: github.event.inputs.run_tests != 'false' && github.repository == 'gracious-tech/stello'
+        # Runs share a long-lived sandbox storage, so must not overlap
+        concurrency:
+            group: integration
+            cancel-in-progress: false
+        permissions:
+            id-token: write  # For assuming sandbox role via OIDC
+            contents: read
+        env:
+            STELLO_SANDBOX_ACCOUNT_ID: '858948057074'
+            # Sandbox hosted stack (public client config, not secrets)
+            VITE_HOSTED_REGION: us-west-2
+            VITE_HOSTED_USER_POOL: us-west-2_GvDkhgotm
+            VITE_HOSTED_USER_POOL_CLIENT: 7qhst490jjv44a2gq3a9d60opi
+            VITE_HOSTED_IDENTITY_POOL: us-west-2:5023b89f-63a7-4439-8581-f9d7c7ebedb3
+            VITE_HOSTED_BUCKET: stello-hosted-sandbox
+            VITE_HOSTED_API: https://api.encrypted-dev.yes.church/
+            VITE_HOSTED_DOMAIN_BRANDED: stello-dev.yes.church
+            VITE_HOSTED_DOMAIN_UNBRANDED: encrypted-dev.yes.church
+        steps:
+            -   uses: actions/checkout@v4
+            -   uses: actions/setup-node@v4
+                with:
+                    node-version: '25'
+                    cache: 'npm'
+                    cache-dependency-path: '**/package-lock.json'
+            -   run: .bin/all_node npm ci
+            -   run: npx playwright install --with-deps chromium
+            -   uses: aws-actions/configure-aws-credentials@v4
+                with:
+                    role-to-assume: arn:aws:iam::858948057074:role/stello-github-integration
+                    aws-region: us-west-2
+            -   run: .bin/audit_integration
+
+
     build_app_base:
         name: Build app base
         runs-on: ubuntu-latest
