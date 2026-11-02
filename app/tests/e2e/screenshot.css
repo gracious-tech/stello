@@ -1,0 +1,6 @@
+/* Applied only while taking screenshots, to hide elements that vary with timing */
+
+/* Background task status (appears/disappears depending on when tasks finish) */
+.statusbar {
+    visibility: hidden;
+}

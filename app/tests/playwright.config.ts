@@ -10,7 +10,12 @@ export default defineConfig({
     testDir: './e2e',
     outputDir: './test-results',
     timeout: 60 * 1000,
-    expect: {timeout: 15 * 1000},
+    expect: {
+        timeout: 15 * 1000,
+        // Small tolerance for anti-aliasing differences between machines
+        toHaveScreenshot: {maxDiffPixelRatio: 0.01, animations: 'disabled', caret: 'hide',
+            stylePath: path.join(__dirname, 'e2e/screenshot.css')},
+    },
     fullyParallel: true,
     workers: '50%',  // Dev server and editor tests become flaky when every core is busy
     retries: process.env['CI'] ? 1 : 0,

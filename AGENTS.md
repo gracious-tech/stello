@@ -416,7 +416,9 @@ Custom exception hierarchy in `app/src/services/utils/exceptions.ts`:
 - **App E2E (Playwright):** `app/tests/e2e/` against the app dev server, covering the Vue 2
   components. External network is blocked and native features are shimmed
   (`e2e/native_shim.ts`); seed data via `app/src/services/e2e_seed.test_utils.ts`.
-  Run with `.bin/audit_e2e_app` (coverage → `coverage/e2e_app`)
+  Run with `.bin/audit_e2e_app` (coverage → `coverage/e2e_app`). `screens.test.ts` compares
+  screenshots of main screens to baselines; after intended UI changes update them with
+  `.bin/audit_e2e_app screens --update-snapshots` and review the new images before committing
 - **Compatibility:** `fixtures/compat/v<version>/` snapshots data each release wrote (messages,
   configs, responder requests/responses, backups). `compat.test.ts` (app, displayer) and
   `test_compat.py` (responder) check every past version's data still works. Generated on release

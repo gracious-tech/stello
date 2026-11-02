@@ -147,11 +147,13 @@ export async function seed_full():Promise<SeedResult>{
     for (const [i, copy] of copies.entries()){
         copy.invited = true
         await db.copies.set(copy)
-        await db.read_create(sent, copy.resp_token, null, '')
-        await db.reply_create(`General reply ${i}`, sent, copy.resp_token, null, null, null, '')
-        await db.reply_create(`Section reply ${i}`, sent, copy.resp_token, text.id, null, null,
+        // NOTE Distinct times (a minute apart) so responses always list in the same order
+        const at = (offset:number) => new Date(sent.getTime() + (i * 3 + offset) * 60 * 1000)
+        await db.read_create(at(0), copy.resp_token, null, '')
+        await db.reply_create(`General reply ${i}`, at(1), copy.resp_token, null, null, null, '')
+        await db.reply_create(`Section reply ${i}`, at(2), copy.resp_token, text.id, null, null,
             '')
-        await db.reaction_create('love', sent, copy.resp_token, images.id, 'img1', null, '')
+        await db.reaction_create('love', at(2), copy.resp_token, images.id, 'img1', null, '')
     }
 
     // Resend request and subscription request
