@@ -432,7 +432,9 @@ Custom exception hierarchy in `app/src/services/utils/exceptions.ts`:
   account (hosted stack `stello-hosted-sandbox` and throwaway self-hosted storages named `zz-it-*`),
   including sending a message and viewing/replying to it in Chromium via the real displayer.
   A long-lived storage `zz-compat-<account>` keeps an old version's IAM policy to check upgrades
-  (never delete it; see `selfhosted_legacy.integration.ts`).
+  (never delete it; see `selfhosted_legacy.integration.ts`). `providers.integration.ts` tests
+  Google/Microsoft contacts, email and Drive backup against TEST accounts, skipped unless their
+  refresh tokens were saved to `.bin/integration.env` by `node .bin/integration_oauth.mts <issuer>`.
   Run with `.bin/audit_integration` (not part of `.bin/audit`). Needs sandbox credentials in env and
   `STELLO_SANDBOX_ACCOUNT_ID` (gitignored `.bin/integration.env`); tests refuse any other account
 

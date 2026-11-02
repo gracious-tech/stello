@@ -7,6 +7,7 @@ import {fileURLToPath} from 'url'
 
 import {STS} from '@aws-sdk/client-sts'
 import {CognitoIdentityProvider} from '@aws-sdk/client-cognito-identity-provider'
+import {AuthorizationServiceConfiguration, FetchRequestor} from '@openid/appauth'
 
 import {buffer_to_url64, string_to_utf8, utf8_to_string} from '@/services/utils/coding'
 import {encrypt_asym, export_key, generate_token, import_key_asym}
@@ -14,6 +15,10 @@ import {encrypt_asym, export_key, generate_token, import_key_asym}
 import {sleep} from '@/services/utils/async'
 import {create_account} from '@/services/hosts/gracious_user'
 import {Task} from '@/services/tasks/tasks'
+import {OAUTH_SUPPORTED} from '@/services/tasks/oauth'
+import {external_encrypt} from '@/services/misc/external_crypt'
+import {jwt_to_object} from '@/services/utils/coding'
+import type {OAuth} from '@/services/database/oauths'
 import type {Database} from '@/services/database/database'
 import type {HostCredentialsAws} from '@/services/hosts/aws_common'
 import type {Profile} from '@/services/database/profiles'
@@ -175,4 +180,50 @@ export async function untar_node(tar_file:ArrayBuffer):ReturnType<typeof untar>{
         offset += 512 + Math.ceil(size / 512) * 512
     }
     return files
+}
+
+
+export function provider_refresh_token(issuer:'google'|'microsoft'):string|undefined{
+    // Refresh token for a test account (saved by .bin/integration_oauth.mts), if available
+    return process.env[`STELLO_IT_${issuer.toUpperCase()}_REFRESH`] || undefined
+}
+
+
+export async function create_provider_oauth(db:Database, issuer:'google'|'microsoft')
+        :Promise<OAuth>{
+    // Create an oauth record for a test account as the app would after the user signed in
+    // NOTE Access token is left expired so the app's own refresh logic gets exercised
+    const refresh_token = provider_refresh_token(issuer)!
+    const issuer_settings = OAUTH_SUPPORTED[issuer]
+    const issuer_config = await AuthorizationServiceConfiguration.fetchFromIssuer(
+        issuer_settings.endpoint, new FetchRequestor())
+
+    // Get the account's identity (as the app gets from the id token when signing in)
+    const resp = await fetch(issuer_config.tokenEndpoint, {method: 'POST',
+        body: new URLSearchParams({grant_type: 'refresh_token', refresh_token,
+            client_id: issuer_settings.client_id,
+            ...(issuer_settings.client_secret
+                ? {client_secret: issuer_settings.client_secret} : {})})})
+    const tokens = await resp.json() as {id_token?:string, error_description?:string}
+    if (!tokens.id_token){
+        throw new Error(`Refresh failed (rerun .bin/integration_oauth.mts ${issuer}): `
+            + (tokens.error_description ?? String(resp.status)))
+    }
+    const id_info = jwt_to_object(tokens.id_token) as {sub:string, email?:string}
+
+    return db.oauths.create({
+        issuer,
+        issuer_id: id_info.sub,
+        issuer_config: issuer_config as unknown as Record<string, unknown>,
+        email: id_info.email ?? '',
+        name: "Integration Test",
+        scope_sets: issuer === 'google' ? ['email_send', 'contacts', 'storage']
+            : ['email_send', 'contacts'],
+        token_refresh: await external_encrypt(refresh_token),
+        token_access: await external_encrypt(''),
+        token_access_expires: new Date(0),
+        contacts_sync: true,
+        contacts_sync_last: null,
+        contacts_sync_token: null,
+    } as unknown as Parameters<Database['oauths']['create']>[0])
 }
