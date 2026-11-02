@@ -71,6 +71,26 @@ describe('displayer_config', () => {
         expect(config.resp_key_public?.type).toBe('public')
     })
 
+    // Old configs lacking newer fields fall back on safe defaults
+    test('old configs get defaults for missing fields', async () => {
+        const secret = await serve_config({responder: 'https://r/', resp_key_public})
+        const config = await fresh_config()
+        expect(await config.safe_load(secret)).toBe(true)
+        expect(config).toMatchObject({
+            version: 'unknown',
+            notify_include_contents: false,
+            allow_replies: false,
+            allow_comments: false,
+            allow_reactions: false,
+            allow_delete: false,
+            allow_resend_requests: false,
+            social_referral_ban: true,
+            reaction_options: ['like', 'love', 'yay', 'pray', 'laugh', 'wow', 'sad'],
+            theme_style: 'modern',
+            theme_color: {h: 210, s: 0.75, l: 0.75},
+        })
+    })
+
     // Backwards compatibility
     test('allow_comments defaults to allow_replies for old configs', async () => {
         const secret = await serve_config({responder: 'https://r/', allow_replies: true,
@@ -84,11 +104,13 @@ describe('displayer_config', () => {
     test('missing config means account inactive and disables responses', async () => {
         mock_fetch({[CONFIG_URL]: new Response(null, {status: 403})})
         const config = await fresh_config()
-        config.allow_replies = true
+        Object.assign(config, {allow_replies: true, allow_comments: true, allow_reactions: true,
+            allow_delete: true, allow_resend_requests: true})
         expect(await config.safe_load('secret')).toBe(false)
         expect(config.error).toBe('inactive')
-        expect(config.responder).toBe(false)
-        expect(config.allow_replies).toBe(false)
+        expect(config).toMatchObject({responder: false, allow_replies: false,
+            allow_comments: false, allow_reactions: false, allow_delete: false,
+            allow_resend_requests: false})
     })
 
     // Network issues
