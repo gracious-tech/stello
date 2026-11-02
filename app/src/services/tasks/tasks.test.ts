@@ -48,6 +48,13 @@ describe('Task', () => {
         expect(task.status).toBe('Label')
     })
 
+    // Tasks don't show counts or allow manual aborting unless they opt in
+    test('defaults', () => {
+        const task = new Task('name', [], [])
+        expect(task.show_count).toBe(false)
+        expect(task.abortable).toBe(false)
+    })
+
     test('percent is 0 when there are no subtasks', () => {
         // Avoid NaN (0/0) which would render as "NaN%" in progress UI
         expect(new Task('name', [], []).percent).toBe(0)
@@ -155,6 +162,16 @@ describe('TaskManager', () => {
         expect(task.subtasks_done).toBe(2)
     })
 
+    // Params and options default to empty
+    test('start defaults to no params or options', async () => {
+        const manager = new TaskManager()
+        spy_task(async () => undefined)
+        const task = await manager.start('contacts_remove')
+        expect(task.params).toEqual([])
+        expect(task.options).toEqual([])
+        await task.done
+    })
+
     test('failed task moves to fails and restart clears previous fail', async () => {
         const manager = new TaskManager()
         spy_task(async () => {throw new MustReauthenticate()})
@@ -168,6 +185,26 @@ describe('TaskManager', () => {
         expect(manager.data.fails).toEqual([])
         expect(manager.data.finished).toBe(task2)
         expect(task2.aborted?.message).toBe('given up')
+    })
+
+    // Starting a task only clears fails of the same task with the same params
+    test('starting a task only clears its own previous fail', async () => {
+        const manager = new TaskManager()
+        spy_task(async () => {throw new MustReauthenticate()})
+        const fail_c = await manager.start('contacts_remove', ['c'])
+        const fail_d = await manager.start('contacts_remove', ['d'])
+        await Promise.all([fail_c.done, fail_d.done])
+        expect(manager.data.fails).toEqual([fail_c, fail_d])
+
+        // Different name with same params doesn't clear fail
+        const other = await manager.start('configs_update', ['c'])
+        await other.done
+        expect(manager.data.fails).toEqual([fail_c, fail_d])
+
+        // Same name and params clears only that fail
+        const retry = await manager.start('contacts_remove', ['c'])
+        expect(manager.data.fails).toEqual([fail_d])
+        await retry.done
     })
 
     test('TaskAborted thrown in task counts as aborted not failed', async () => {
@@ -187,6 +224,50 @@ describe('TaskManager', () => {
         await task.done
         expect(task.aborted).not.toBe(null)
         expect(manager.data.fails).toHaveLength(0)
+    })
+
+    // Tasks started by the user (default) show network failures so user can retry
+    test('non-auto tasks fail on network failure', async () => {
+        const manager = new TaskManager()
+        spy_task(async () => {throw new MustReconnect()})
+        const task = await manager.start('contacts_remove', ['c'])
+        await task.done
+        expect(task.aborted).toBe(null)
+        expect(manager.data.fails).toEqual([task])
+    })
+
+    // Tasks with a different name or params are independent and not aborted
+    test('starting a different task does not abort others', async () => {
+        const manager = new TaskManager()
+        let release!:()=>void
+        const gate = new Promise<void>(resolve => {
+            release = resolve
+        })
+        spy_task(() => gate)
+        const task = await manager.start('contacts_remove', ['c'])
+        const other_name = await manager.start('configs_update', ['c'])
+        const other_params = await manager.start('contacts_remove', ['d'])
+        expect(other_params).not.toBe(task)
+        expect(task.aborted).toBe(null)
+        await other_name.done
+        release()
+        await Promise.all([task.done, other_params.done])
+    })
+
+    // An aborted task is never returned even if it matches
+    test('starting identical task to an aborted one creates a new task', async () => {
+        const manager = new TaskManager()
+        let release!:()=>void
+        const gate = new Promise<void>(resolve => {
+            release = resolve
+        })
+        spy_task(() => gate)
+        const task1 = await manager.start('contacts_remove', ['c'], ['x'])
+        task1.abort()
+        const task2 = await manager.start('contacts_remove', ['c'], ['x'])
+        expect(task2).not.toBe(task1)
+        release()
+        await Promise.all([task1.done, task2.done])
     })
 
     test('starting identical task returns existing one', async () => {
@@ -267,8 +348,10 @@ describe('TaskManager', () => {
         const manager = new TaskManager()
         const start = vi.spyOn(manager, 'start').mockResolvedValue(new Task('', [], []))
         await manager.start_contacts_sync('o', true)
+        await manager.start_contacts_sync('o')
         await manager.start_contacts_change_property('o', 'c', 'name', 'v')
         await manager.start_contacts_change_email('o', 'c', ['a'], 'a')
+        await manager.start_contacts_remove('c')
         await manager.start_contacts_create('o', 'addr', 'name')
         await manager.start_contacts_group_create('o', 'name', ['c'])
         await manager.start_contacts_group_remove('g')
@@ -279,10 +362,13 @@ describe('TaskManager', () => {
         await manager.start_hosts_storage_update('p')
         await manager.start_send_message('m')
         await manager.start_responses_receive(true)
+        await manager.start_responses_receive()
         expect(start.mock.calls).toEqual([
             ['contacts_sync', ['o'], [], true],
+            ['contacts_sync', ['o'], [], false],
             ['contacts_change_property', ['o', 'c', 'name'], ['v']],
             ['contacts_change_email', ['o', 'c'], [['a'], 'a']],
+            ['contacts_remove', ['c']],
             ['contacts_create', ['o', 'addr'], ['name']],
             ['contacts_group_create', ['o', 'name'], [['c']]],
             ['contacts_group_remove', ['g']],
@@ -293,6 +379,7 @@ describe('TaskManager', () => {
             ['hosts_storage_update', ['p']],
             ['send_message', ['m']],
             ['responses_receive', [], [], true],
+            ['responses_receive', [], [], false],
         ])
     })
 })
