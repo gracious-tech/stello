@@ -49,7 +49,8 @@ describe('displayer_config', () => {
     test('has safe defaults before loading', async () => {
         const config = await fresh_config()
         expect(config.responder).toBe(null)
-        expect(config.allow_replies).toBe(false)
+        expect(config).toMatchObject({allow_replies: false, allow_comments: false,
+            allow_reactions: false, allow_delete: false, allow_resend_requests: false})
         expect(config.reaction_options).toContain('like')
         expect(config.theme_style).toBe('modern')
     })
