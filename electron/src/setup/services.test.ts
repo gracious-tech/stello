@@ -25,8 +25,9 @@ vi.mock('../utils/paths.js', async () => {
 })
 
 
-// Allow tests to force fs errors for specific paths
+// Allow tests to force fs errors (or fake contents) for specific paths
 const fs_errors = vi.hoisted(() => ({} as Record<string, string>))
+const fs_contents = vi.hoisted(() => ({} as Record<string, string>))
 vi.mock('fs', async import_original => {
     const actual = await import_original<typeof import('fs')>()
     const maybe_throw = (path:unknown) => {
@@ -42,7 +43,12 @@ vi.mock('fs', async import_original => {
     }) as F
     return {
         ...actual,
-        readFileSync: wrap(actual.readFileSync),
+        readFileSync: wrap(((path:unknown, ...args:unknown[]) => {
+            // Return fake contents if given (e.g. for app build files that may not exist)
+            const fake = Object.entries(fs_contents).find(([match]) => String(path).endsWith(match))
+            const read = actual.readFileSync as (...read_args:unknown[]) => unknown
+            return fake ? Buffer.from(fake[1]) : read(path, ...args)
+        }) as typeof actual.readFileSync),
         writeFileSync: wrap(actual.writeFileSync),
         rmSync: wrap(actual.rmSync),
     }
@@ -65,8 +71,9 @@ beforeAll(async () => {
 // Empty files dir and reset mocks for each test
 beforeEach(() => {
     vi.clearAllMocks()
-    for (const key of Object.keys(fs_errors)){
+    for (const key of [...Object.keys(fs_errors), ...Object.keys(fs_contents)]){
         delete fs_errors[key]
+        delete fs_contents[key]
     }
     rmSync(dirs.files_dir, {recursive: true, force: true})
     mkdirSync(dirs.files_dir)
@@ -92,11 +99,12 @@ describe('paths', () => {
 describe('app_file_read', () => {
 
     // Files in app dir can be read
+    // NOTE App dir is a build output (may not exist, e.g. in CI) so contents are faked
     test('reads app file', async () => {
+        fs_contents[`${sep}app${sep}robots.txt`] = "User-agent: *"
         const result = await invoke('app_file_read', 'robots.txt') as ArrayBuffer
-        const expected = readFileSync(join(import.meta.dirname, '..', 'app', 'robots.txt'))
-        expect(Buffer.from(result)).toEqual(expected)
-        expect(result.byteLength).toBe(expected.length)
+        expect(Buffer.from(result).toString()).toBe("User-agent: *")
+        expect(result.byteLength).toBe("User-agent: *".length)
     })
 
     // SECURITY Can't escape app dir
