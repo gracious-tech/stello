@@ -93,6 +93,43 @@ describe('configs_update', () => {
         expect(host['upload_displayer_config']).not.toHaveBeenCalled()
         expect(host['upload_responder_config']).not.toHaveBeenCalled()
         expect(host['upload_subscribe_config']).toHaveBeenCalledWith('[]')
+
+        // Subscribe config also skipped when already uploaded
+        profile.host_state.subscribe_config_uploaded = true
+        profile.host_state.displayer_config_uploaded = false
+        await db.profiles.set(profile)
+        host['upload_subscribe_config']!.mockClear()
+        await configs_update(new Task('configs_update', [profile.id], []))
+        expect(host['upload_displayer_config']).toHaveBeenCalledTimes(1)
+        expect(host['upload_subscribe_config']).not.toHaveBeenCalled()
+    })
+
+    // Responder doesn't distinguish replies from comments so allows if either is enabled
+    test('responder allows replies if replies or comments allowed', async () => {
+        const responder_allows = async (allow_replies:boolean, allow_comments:boolean) => {
+            const fresh = (await db.profiles.get(profile.id))!
+            fresh.options.allow_replies = allow_replies
+            fresh.options.allow_comments = allow_comments
+            fresh.host_state.responder_config_uploaded = false
+            await db.profiles.set(fresh)
+            host['upload_responder_config']!.mockClear()
+            await configs_update(new Task('configs_update', [profile.id], []))
+            const config = await decrypt_config(
+                host['upload_responder_config']!.mock.calls[0]![0])
+            return config['allow_replies']
+        }
+        expect(await responder_allows(false, true)).toBe(true)
+        expect(await responder_allows(true, false)).toBe(true)
+        expect(await responder_allows(false, false)).toBe(false)
+    })
+
+    // Profile may be deleted while configs are uploading
+    test('profile deleted during upload is not recreated', async () => {
+        host['upload_displayer_config']!.mockImplementation(async () => {
+            await db.profiles.remove(profile.id)
+        })
+        await configs_update(new Task('configs_update', [profile.id], []))
+        expect(await db.profiles.get(profile.id)).toBe(undefined)
     })
 
     test('does nothing when up to date and aborts for missing profile', async () => {
@@ -118,21 +155,34 @@ describe('configs_update', () => {
             .toBe(false)
     })
 
+    test('subscribe forms changed during upload are not marked as uploaded', async () => {
+        host['upload_displayer_config']!.mockImplementation(async () => {
+            await db.subscribe_forms.create(profile.id)
+        })
+        await configs_update(new Task('configs_update', [profile.id], []))
+        const state = (await db.profiles.get(profile.id))!.host_state
+        expect(state.displayer_config_uploaded).toBe(true)
+        expect(state.subscribe_config_uploaded).toBe(false)
+    })
+
     test('configs not uploaded this run are not marked as uploaded', async () => {
-        // Displayer config up to date at start but invalidated while responder config uploads
+        // Displayer/subscribe configs up to date at start but invalidated while responder uploads
         profile.host_state.displayer_config_uploaded = true
+        profile.host_state.subscribe_config_uploaded = true
         await db.profiles.set(profile)
         host['upload_responder_config']!.mockImplementation(async () => {
             const fresh = (await db.profiles.get(profile.id))!
             fresh.options.allow_reactions = !fresh.options.allow_reactions
             fresh.host_state.displayer_config_uploaded = false
+            fresh.host_state.subscribe_config_uploaded = false  // Even if forms unchanged
             await db.profiles.set(fresh)
         })
         await configs_update(new Task('configs_update', [profile.id], []))
         const state = (await db.profiles.get(profile.id))!.host_state
         expect(host['upload_displayer_config']).not.toHaveBeenCalled()
+        expect(host['upload_subscribe_config']).not.toHaveBeenCalled()
         expect(state.displayer_config_uploaded).toBe(false)
-        expect(state.subscribe_config_uploaded).toBe(true)
+        expect(state.subscribe_config_uploaded).toBe(false)
         // Responder config also includes allow_reactions so must be re-uploaded too
         expect(state.responder_config_uploaded).toBe(false)
     })
