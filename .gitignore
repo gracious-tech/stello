@@ -42,3 +42,4 @@ __pycache__/
 /site/dist
 /.private/mutation_worktree/
 /.stryker-tmp/
+/.claude/worktrees/
