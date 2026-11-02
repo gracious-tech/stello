@@ -429,6 +429,8 @@ Custom exception hierarchy in `app/src/services/utils/exceptions.ts`:
 - **Integration (Vitest):** `app/src/**/*.integration.ts` against real AWS services in the sandbox
   account (hosted stack `stello-hosted-sandbox` and throwaway self-hosted storages named `zz-it-*`),
   including sending a message and viewing/replying to it in Chromium via the real displayer.
+  A long-lived storage `zz-compat-<account>` keeps an old version's IAM policy to check upgrades
+  (never delete it; see `selfhosted_legacy.integration.ts`).
   Run with `.bin/audit_integration` (not part of `.bin/audit`). Needs sandbox credentials in env and
   `STELLO_SANDBOX_ACCOUNT_ID` (gitignored `.bin/integration.env`); tests refuse any other account
 
