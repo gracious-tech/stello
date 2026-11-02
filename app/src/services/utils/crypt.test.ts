@@ -42,6 +42,16 @@ describe('keys', () => {
             .toBe('secret')
     })
 
+    // SECURITY Keys must not be extractable unless explicitly requested
+    test('generated and imported keys are not extractable by default', async () => {
+        const pair = await generate_key_asym()
+        expect(pair.privateKey.extractable).toBe(false)
+        const sym_raw = await export_key(await generate_key_sym(true))
+        expect((await import_key_sym(sym_raw)).extractable).toBe(false)
+        const spki = await export_key((await asym_pair).publicKey)
+        expect((await import_key_asym(spki)).extractable).toBe(false)
+    })
+
     test('password_to_key is deterministic for same salt', async () => {
         const salt = random_buffer(16)
         const key1 = await password_to_key('pass', salt)
