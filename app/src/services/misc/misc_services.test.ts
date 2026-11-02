@@ -6,7 +6,7 @@ import {beforeEach, describe, expect, test, vi} from 'vitest'
 import {setup_globals} from '@/../tests/unit_utils'
 import {Database} from '@/services/database/database'
 import {gen_invite_styles, render_invite_html, render_invite_text, get_text_invite_for_copy,
-    gen_view_url, INVITE_IMG_HEIGHT} from './invites'
+    gen_view_url, INVITE_IMG_HEIGHT, INVITE_HTML_MAX_WIDTH} from './invites'
 import {gen_variable_items, update_template_values, msg_max_reads_value} from './templates'
 import {extract_contacts_from_vcard} from './vcard'
 import {external_encrypt, external_decrypt} from './external_crypt'
@@ -30,6 +30,28 @@ describe('invites', () => {
         expect(styles.image).toContain(`max-height: ${INVITE_IMG_HEIGHT}px`)
     })
 
+    // Each invite element gets its layout and hue-based colors (as hex for Outlook)
+    test('gen_invite_styles styles every element', () => {
+        const styles = gen_invite_styles(120)
+        const hex_bg = /background-color: #[0-9a-f]{6};/
+        expect(styles.container).toContain(`max-width: ${INVITE_HTML_MAX_WIDTH}px`)
+        expect(styles.container).toContain('background-color: rgba(')
+        expect(styles.image_wrap).toContain('overflow: hidden')  // Rounds image corners
+        expect(styles.image_wrap).toMatch(hex_bg)
+        expect(styles.action).toContain('text-align: center')
+        expect(styles.action).toMatch(hex_bg)
+        expect(styles.button).toContain('text-decoration: none')
+        expect(styles.button).toMatch(/border: 1px solid #[0-9a-f]{6};/)
+    })
+
+    // Invite image is displayed at the same 3:1 ratio that invite images are generated at
+    test('render_invite_html image has 3:1 ratio', () => {
+        const html = render_invite_html('', 'https://x/', 'https://img/', 'Open', 100)
+        const img = new DOMParser().parseFromString(html, 'text/html').querySelector('img')!
+        expect(Number(img.getAttribute('width'))).toBe(INVITE_HTML_MAX_WIDTH)
+        expect(Number(img.getAttribute('height')) * 3).toBe(INVITE_HTML_MAX_WIDTH)
+    })
+
     test('render_invite_html escapes attributes and button', () => {
         const html = render_invite_html('<p>Contents</p>', "https://x/#a'b", 'https://img/',
             '<Open>', 100)
@@ -37,6 +59,7 @@ describe('invites', () => {
         expect(html).toContain("href='https://x/#a&#39;b'")
         expect(html).toContain('&lt;Open&gt;')
         expect(html).not.toContain('Unsubscribe')
+        expect(html).toMatch(/<\/div>\s*<\/body>/)  // Nothing after invite when no address
     })
 
     test('render_invite_html adds subscription links when address given', () => {
