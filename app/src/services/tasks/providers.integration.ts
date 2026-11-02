@@ -17,8 +17,12 @@ import type {Database} from '../database/database'
 import type {OAuth} from '../database/oauths'
 
 
-// Run the same contact and email tests for each issuer that has a test account
+// Run tests for each issuer that has a test account
+// NOTE Contacts sync is only offered for Google (Microsoft's import option is disabled)
 describe.each(['google', 'microsoft'] as const)('%s account', issuer => {
+
+    // Whether to test contacts for this issuer
+    const test_contacts = test.skipIf(!provider_refresh_token(issuer) || issuer !== 'google')
 
     const name = unique_name()
     let db:Database
@@ -48,7 +52,7 @@ describe.each(['google', 'microsoft'] as const)('%s account', issuer => {
     })
 
     // Contacts created in the app appear in the account and sync back
-    test.skipIf(!provider_refresh_token(issuer))('contact can be created and synced', async () => {
+    test_contacts('contact can be created and synced', async () => {
         const contact = await taskless_contacts_create(oauth, name, `${name}@example.com`)
         contact_id = contact.id
         expect(contact.service_id).toBeTruthy()
@@ -64,7 +68,7 @@ describe.each(['google', 'microsoft'] as const)('%s account', issuer => {
     })
 
     // Changes made in the app are saved to the account
-    test.skipIf(!provider_refresh_token(issuer))('contact can be changed', async () => {
+    test_contacts('contact can be changed', async () => {
         const contact = (await sync()).find(c => c.name === name)!
         contact_id = contact.id
         await contacts_change_property(new Task('contacts_change_property',
@@ -78,7 +82,7 @@ describe.each(['google', 'microsoft'] as const)('%s account', issuer => {
     })
 
     // Contacts removed in the app are removed from the account
-    test.skipIf(!provider_refresh_token(issuer))('contact can be removed', async () => {
+    test_contacts('contact can be removed', async () => {
         const contact = (await sync()).find(c => c.name === `${name} renamed`)!
         await contacts_remove(new Task('contacts_remove', [contact.id], []))
         contact_id = undefined
